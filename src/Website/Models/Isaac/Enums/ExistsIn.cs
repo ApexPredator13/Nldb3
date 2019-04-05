@@ -1,0 +1,33 @@
+﻿namespace Website.Models.Isaac.Enums
+{
+    public enum ExistsIn
+    {
+        EveryVersion,
+        VanillaOnly,
+        WrathOfTheLambOnly,
+        CommunityRemixOnly,
+        RebirthOnly,
+        AfterbirthOnly,
+        AntibirthOnly,
+        AfterbirthPlusOnly,
+        RepentanceOnly,
+        BoosterPack1Only,
+        BoosterPack2Only,
+        BoosterPack3Only,
+        BoosterPack4Only,
+        BoosterPack5Only,
+        VanillaOnwards,
+        WrathOfTheLambOnwards,
+        CommunityRemixOnwards,
+        RebirthOnwards,
+        AfterbirthOnwards,
+        AnitbirthOnwards,
+        AfterbirthPlusOnwards,
+        BoosterPack1Onwards,
+        BoosterPack2Onwards,
+        BoosterPack3Onwards,
+        BoosterPack4Onwards,
+        BoosterPack5Onwards,
+        RepentanceOnwards
+    }
+}

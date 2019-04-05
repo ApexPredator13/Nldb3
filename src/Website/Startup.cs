@@ -41,7 +41,7 @@ namespace Website
 
             services.AddIdentity<IdentityUser, IdentityRole>()
                 .AddDefaultTokenProviders()
-                .AddEntityFrameworkStores<IdentityDbContext>();
+                .AddEntityFrameworkStores<ApplicationIdentityDbContext>();
 
             services.AddMvc()
                 .AddNewtonsoftJson();
