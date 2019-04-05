@@ -41,7 +41,7 @@ namespace Website
 
             services.AddDefaultIdentity<IdentityUser>()
                 .AddDefaultUI(UIFramework.Bootstrap4)
-                .AddEntityFrameworkStores<ApplicationDbContext>();
+                .AddEntityFrameworkStores<IdentityDbContext>();
 
             services.AddMvc()
                 .AddNewtonsoftJson();
