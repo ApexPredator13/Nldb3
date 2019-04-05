@@ -5,6 +5,6 @@ namespace Website.Data
 {
     public class ApplicationIdentityDbContext : IdentityDbContext
     {
-        public ApplicationIdentityDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
+        public ApplicationIdentityDbContext(DbContextOptions<ApplicationIdentityDbContext> options) : base(options) { }
     }
 }

@@ -37,7 +37,7 @@ namespace Website
             });
 
             services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")));
-            services.AddDbContext<IdentityDbContext>(options => options.UseNpgsql(Configuration.GetConnectionString("IdentityConnection")));
+            services.AddDbContext<ApplicationIdentityDbContext>(options => options.UseNpgsql(Configuration.GetConnectionString("IdentityConnection")));
 
             services.AddIdentity<IdentityUser, IdentityRole>()
                 .AddDefaultTokenProviders()
