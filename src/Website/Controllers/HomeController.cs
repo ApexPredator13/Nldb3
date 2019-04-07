@@ -10,6 +10,8 @@ namespace Website.Controllers
 {
     public class HomeController : Controller
     {
+        public const string Controllername = "Home";
+
         public IActionResult Index()
         {
             return View();
