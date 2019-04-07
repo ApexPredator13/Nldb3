@@ -166,6 +166,84 @@ namespace WebsiteTests.Tools
             return this;
         }
 
+        public AccountControllerBuilder CanConfigureAuthenticationProperties(Dictionary<string, string> values)
+        {
+            _signinManager.CanConfigureAuthenticationProperties(values);
+            return this;
+        }
+
+        public AccountControllerBuilder GetExternalLoginInfoAsyncFails()
+        {
+            _signinManager.GetExternalLoginInfoAsyncFails();
+            return this;
+        }
+
+        public AccountControllerBuilder GetExternalLoginInfoAsyncSucceeds()
+        {
+            _signinManager.GetExternalLoginInfoAsyncSucceeds();
+            return this;
+        }
+
+        public AccountControllerBuilder ExternalLoginSignInAsyncFailsLockedOut()
+        {
+            _signinManager.ExternalLoginSignInAsyncFailsLockedOut();
+            return this;
+        }
+
+        public AccountControllerBuilder ExternalLoginSignInAsyncFails()
+        {
+            _signinManager.ExternalLoginSignInAsyncFails();
+            return this;
+        }
+
+        public AccountControllerBuilder ExternalLoginSignInAsyncSucceeds()
+        {
+            _signinManager.ExternalLoginSignInAsyncSucceeds();
+            return this;
+        }
+
+        public AccountControllerBuilder CreateUserFails()
+        {
+            _userManager.CreateAsyncFails();
+            return this;
+        }
+
+        public AccountControllerBuilder CreateUserSucceeds()
+        {
+            _userManager.CreateAsyncSucceeds();
+            return this;
+        }
+
+        public AccountControllerBuilder CanAddLoginToUser()
+        {
+            _userManager.AddLoginAsyncSucceeds();
+            return this;
+        }
+
+        public AccountControllerBuilder CannotAddLoginToUser()
+        {
+            _userManager.AddLoginAsyncFails();
+            return this;
+        }
+
+        public AccountControllerBuilder CanSignIn()
+        {
+            _signinManager.SignInAsyncSucceeds();
+            return this;
+        }
+
+        public AccountControllerBuilder DeleteUserProfileSucceeds()
+        {
+            _userManager.DeleteAsyncSucceeds();
+            return this;
+        }
+
+        public AccountControllerBuilder DeleteUserProfileCrashes()
+        {
+            _userManager.DeleteAsyncCrashes();
+            return this;
+        }
+
         public AccountController Build() => _controller;
     }
 }

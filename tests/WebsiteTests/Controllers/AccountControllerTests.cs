@@ -239,5 +239,213 @@ namespace WebsiteTests.Controllers
             // assert
             result.Should().BeOfType<ViewResult>().Which.ViewName.Should().BeNull();
         }
+
+        [Fact(DisplayName = "ExternalLogin returns ChallengeResult with correct provider and returnUrl")]
+        public void T14()
+        {
+            // arrange
+            var properties = new Dictionary<string, string>() { { "returnUrl", "some url" } };
+            var controller = new AccountControllerBuilder().CanConfigureAuthenticationProperties(properties).Build();
+
+            // act
+            var result = controller.ExternalLogin("google", "some url");
+
+            // assert
+            result.Should().BeOfType<ChallengeResult>();
+            result.Properties.Items.Should().ContainKey("returnUrl").WhichValue.Should().Be("some url");
+            result.AuthenticationSchemes.Should().Contain("google");
+        }
+
+        [Fact(DisplayName = "ExternalLoginCallback [GET] redirects to error page if remote error was returned")]
+        public async Task T15()
+        {
+            // arrange
+            var controller = new AccountControllerBuilder().Build();
+
+            // act
+            var result = await controller.ExternalLoginCallback((string)null, "some remote error");
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>().Which.ActionName.Should().Be(nameof(AccountController.ExternalLoginFailed));
+        }
+
+        [Fact(DisplayName = "ExternalLoginCallback [GET] redirects to error page if login info is null")]
+        public async Task T16()
+        {
+            // arrange
+            var controller = new AccountControllerBuilder().GetExternalLoginInfoAsyncFails().Build();
+
+            // act
+            var result = await controller.ExternalLoginCallback((string)null, null);
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>().Which.ActionName.Should().Be(nameof(AccountController.ExternalLoginFailed));
+        }
+
+        [Fact(DisplayName = "ExternalLoginCallback [GET] returns LocalRedirect if SignIn succeeds")]
+        public async Task T17()
+        {
+            // arrange
+            var controller = new AccountControllerBuilder()
+                .GetExternalLoginInfoAsyncSucceeds()
+                .ExternalLoginSignInAsyncSucceeds()
+                .Build();
+
+            // act
+            var result = await controller.ExternalLoginCallback((string)null, null);
+
+            // assert
+            result.Should().BeOfType<LocalRedirectResult>();
+        }
+
+        [Fact(DisplayName = "ExternalLoginCallback [GET] redirects to error page if user is locked out")]
+        public async Task T18()
+        {
+            // arrange
+            var controller = new AccountControllerBuilder()
+                .GetExternalLoginInfoAsyncSucceeds()
+                .ExternalLoginSignInAsyncFailsLockedOut()
+                .Build();
+
+            // act
+            var result = await controller.ExternalLoginCallback((string)null, null) as RedirectToActionResult;
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>().Which.ActionName.Should().Be(nameof(AccountController.ExternalLoginFailed));
+            result.RouteValues.Should().ContainKey("error").WhichValue.Should().NotBeNull();
+        }
+
+        [Fact(DisplayName = "ExternalLoginCallback [GET] shows 'choose username' form if external login worked but user was never here before")]
+        public async Task T19()
+        {
+            // arrange
+            var controller = new AccountControllerBuilder()
+                .GetExternalLoginInfoAsyncSucceeds()
+                .ExternalLoginSignInAsyncFails()
+                .Build();
+
+            // act
+            var result = await controller.ExternalLoginCallback((string)null, null) as ViewResult;
+
+            // assert
+            result.Should().BeOfType<ViewResult>().Which.ViewName.Should().BeNull();
+            result.ViewData.Should().ContainKey("returnUrl");
+            result.Model.Should().NotBeNull().And.BeOfType<ExternalLoginCallbackModel>();
+        }
+
+        [Fact(DisplayName = "ExternalLoginCallback [POST] redisplays form if model is invalid")]
+        public async Task T20()
+        {
+            // arrange
+            var controller = new AccountControllerBuilder().Build();
+            controller.ModelState.AddModelError("some", "error");
+            var model = new ExternalLoginCallbackModel("google") { UserName = "x" };
+
+            // act
+            var result = await controller.ExternalLoginCallback(model, "some returnUrl") as ViewResult;
+
+            // assert
+            result.Should().BeOfType<ViewResult>().Which.ViewName.Should().BeNull();
+            result.ViewData.Should().ContainKey("returnUrl").WhichValue.Should().Be("some returnUrl");
+            result.Model.Should().BeEquivalentTo(model);
+        }
+
+        [Fact(DisplayName = "ExternalLoginCallback [POST] redirects to error page if login info cannot be found anymore")]
+        public async Task T21()
+        {
+            // arrange
+            var controller = new AccountControllerBuilder().GetExternalLoginInfoAsyncFails().Build();
+            var model = new ExternalLoginCallbackModel("google") { UserName = "x" };
+
+            // act
+            var result = await controller.ExternalLoginCallback(model, "some returnUrl") as RedirectToActionResult;
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>().Which.ActionName.Should().Be(nameof(AccountController.ExternalLoginFailed));
+        }
+
+        [Fact(DisplayName = "ExternalLoginCallback [POST] redisplays form if profile cannot be created")]
+        public async Task T22()
+        {
+            // arrange
+            var controller = new AccountControllerBuilder()
+                .GetExternalLoginInfoAsyncSucceeds()
+                .CreateUserFails()
+                .Build();
+
+            var model = new ExternalLoginCallbackModel("google") { UserName = "x" };
+
+            // act
+            var result = await controller.ExternalLoginCallback(model, "some returnUrl") as ViewResult;
+
+            // assert
+            result.Should().BeOfType<ViewResult>().Which.ViewName.Should().BeNull();
+            result.ViewData.Should().ContainKey("returnUrl").WhichValue.Should().Be("some returnUrl");
+            result.Model.Should().BeEquivalentTo(model);
+        }
+
+        [Fact(DisplayName = "ExternalLoginCallback [POST] redisplays form if profile can be created, but login info cannot be added")]
+        public async Task T23()
+        {
+            // arrange
+            var controller = new AccountControllerBuilder()
+                .GetExternalLoginInfoAsyncSucceeds()
+                .CreateUserSucceeds()
+                .CannotAddLoginToUser()
+                .DeleteUserProfileSucceeds()
+                .Build();
+
+            var model = new ExternalLoginCallbackModel("google") { UserName = "x" };
+
+            // act
+            var result = await controller.ExternalLoginCallback(model, "some returnUrl") as ViewResult;
+
+            // assert
+            result.Should().BeOfType<ViewResult>().Which.ViewName.Should().BeNull();
+            result.ViewData.Should().ContainKey("returnUrl").WhichValue.Should().Be("some returnUrl");
+            result.Model.Should().BeEquivalentTo(model);
+        }
+
+        [Fact(DisplayName = "ExternalLoginCallback [POST] redisplays form if profile can be created, but login info cannot be added, even if usermanager crashes!")]
+        public async Task T24()
+        {
+            // arrange
+            var controller = new AccountControllerBuilder()
+                .GetExternalLoginInfoAsyncSucceeds()
+                .CreateUserSucceeds()
+                .CannotAddLoginToUser()
+                .DeleteUserProfileCrashes()
+                .Build();
+
+            var model = new ExternalLoginCallbackModel("google") { UserName = "x" };
+
+            // act
+            var result = await controller.ExternalLoginCallback(model, "some returnUrl") as ViewResult;
+
+            // assert
+            result.Should().BeOfType<ViewResult>().Which.ViewName.Should().BeNull();
+            result.ViewData.Should().ContainKey("returnUrl").WhichValue.Should().Be("some returnUrl");
+            result.Model.Should().BeEquivalentTo(model);
+        }
+
+        [Fact(DisplayName = "ExternalLoginCallback [POST] redirects to returnUrl if user was created and logged in successfully")]
+        public async Task T25()
+        {
+            // arrange
+            var controller = new AccountControllerBuilder()
+                .GetExternalLoginInfoAsyncSucceeds()
+                .CreateUserSucceeds()
+                .CanAddLoginToUser()
+                .CanSignIn()
+                .Build();
+
+            var model = new ExternalLoginCallbackModel("google") { UserName = "x" };
+
+            // act
+            var result = await controller.ExternalLoginCallback(model, "some returnUrl") as LocalRedirectResult;
+
+            // assert
+            result.Should().BeOfType<LocalRedirectResult>();
+        }
     }
 }

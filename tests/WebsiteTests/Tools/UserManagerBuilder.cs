@@ -84,9 +84,45 @@ namespace WebsiteTests.Tools
             return this;
         }
 
+        public UserManagerBuilder CreateAsyncFails()
+        {
+            _userManager.Setup(x => x.CreateAsync(It.IsAny<IdentityUser>())).ReturnsAsync(IdentityResult.Failed());
+            return this;
+        }
+
+        public UserManagerBuilder CreateAsyncSucceeds()
+        {
+            _userManager.Setup(x => x.CreateAsync(It.IsAny<IdentityUser>())).ReturnsAsync(IdentityResult.Success);
+            return this;
+        }
+
+        public UserManagerBuilder DeleteAsyncSucceeds()
+        {
+            _userManager.Setup(x => x.DeleteAsync(It.IsAny<IdentityUser>())).ReturnsAsync(IdentityResult.Success);
+            return this;
+        }
+
+        public UserManagerBuilder DeleteAsyncCrashes()
+        {
+            _userManager.Setup(x => x.DeleteAsync(It.IsAny<IdentityUser>())).ThrowsAsync(new Exception());
+            return this;
+        }
+
         public UserManagerBuilder CannotFindUserById()
         {
             _userManager.Setup(x => x.FindByIdAsync(It.IsAny<string>())).Returns(Task.FromResult<IdentityUser>(null));
+            return this;
+        }
+
+        public UserManagerBuilder AddLoginAsyncSucceeds()
+        {
+            _userManager.Setup(x => x.AddLoginAsync(It.IsAny<IdentityUser>(), It.IsAny<UserLoginInfo>())).ReturnsAsync(IdentityResult.Success);
+            return this;
+        }
+
+        public UserManagerBuilder AddLoginAsyncFails()
+        {
+            _userManager.Setup(x => x.AddLoginAsync(It.IsAny<IdentityUser>(), It.IsAny<UserLoginInfo>())).ReturnsAsync(IdentityResult.Failed());
             return this;
         }
 
