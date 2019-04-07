@@ -83,6 +83,34 @@ namespace Website.Controllers
             return View(model);
         }
 
+        [HttpGet]
+        public ViewResult ConfirmEmailFailed() => View();
+
+        [HttpGet]
+        public async Task<ActionResult> ConfirmEmail([FromQuery] string? userId, [FromQuery] string? code)
+        {
+            if (String.IsNullOrEmpty(userId) || String.IsNullOrEmpty(code))
+            {
+                return RedirectToAction(nameof(ConfirmEmailFailed));
+            }
+
+            var user = await _userManager.FindByIdAsync(userId);
+
+            if (user is null)
+            {
+                return RedirectToAction(nameof(ConfirmEmailFailed));
+            }
+
+            var result = await _userManager.ConfirmEmailAsync(user, code);
+
+            if (!result.Succeeded)
+            {
+                return RedirectToAction(nameof(ConfirmEmailFailed));
+            }
+
+            return View();
+        }
+
         public ViewResult Logout()
         {
             throw new NotImplementedException();

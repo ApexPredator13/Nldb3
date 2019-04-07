@@ -185,5 +185,59 @@ namespace WebsiteTests.Controllers
             result.Should().BeOfType<ViewResult>();
             result.Model.Should().BeEquivalentTo(model);
         }
+
+        [Fact(DisplayName = "ConfirmEmail redirects to error page if code or user id is null or empty")]
+        public async Task T10()
+        {
+            // arrange
+            var controller = new AccountControllerBuilder().Build();
+
+            // act
+            var result1 = await controller.ConfirmEmail(null, "x");
+            var result2 = await controller.ConfirmEmail("x", null);
+
+            // assert
+            result1.Should().BeOfType<RedirectToActionResult>().Which.ActionName.Should().Be(nameof(AccountController.ConfirmEmailFailed));
+            result2.Should().BeOfType<RedirectToActionResult>().Which.ActionName.Should().Be(nameof(AccountController.ConfirmEmailFailed));
+        }
+
+        [Fact(DisplayName = "ConfirmEmail redirects to error page if user was not found")]
+        public async Task T11()
+        {
+            // arrange
+            var controller = new AccountControllerBuilder().CannotFindUserById().Build();
+
+            // act
+            var result = await controller.ConfirmEmail("x", "y");
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>().Which.ActionName.Should().Be(nameof(AccountController.ConfirmEmailFailed));
+        }
+
+        [Fact(DisplayName = "ConfirmEmail redirects to error page if confirmation fails")]
+        public async Task T12()
+        {
+            // arrange
+            var controller = new AccountControllerBuilder().CanFindUserById().ConfirmEmailFails().Build();
+
+            // act
+            var result = await controller.ConfirmEmail("x", "y");
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>().Which.ActionName.Should().Be(nameof(AccountController.ConfirmEmailFailed));
+        }
+
+        [Fact(DisplayName = "ConfirmEmail returns view if confirmation succeeds")]
+        public async Task T13()
+        {
+            // arrange
+            var controller = new AccountControllerBuilder().CanFindUserById().ConfirmEmailSucceeds().Build();
+
+            // act
+            var result = await controller.ConfirmEmail("x", "y");
+
+            // assert
+            result.Should().BeOfType<ViewResult>().Which.ViewName.Should().BeNull();
+        }
     }
 }

@@ -130,6 +130,18 @@ namespace WebsiteTests.Tools
             return this;
         }
 
+        public AccountControllerBuilder CanFindUserById()
+        {
+            _userManager.CanFindUserById();
+            return this;
+        }
+
+        public AccountControllerBuilder CannotFindUserById()
+        {
+            _userManager.CannotFindUserById();
+            return this;
+        }
+
         public AccountControllerBuilder CanFindUserByName()
         {
             _userManager.CanFindUserByName();
@@ -139,6 +151,18 @@ namespace WebsiteTests.Tools
         public AccountControllerBuilder CannotFindUserByName()
         {
             _userManager.CannotFindUserByName();
+            return this;
+        }
+
+        public AccountControllerBuilder ConfirmEmailFails()
+        {
+            _userManager.ConfirmEmailFails();
+            return this;
+        }
+
+        public AccountControllerBuilder ConfirmEmailSucceeds()
+        {
+            _userManager.ConfirmEmailSucceeds();
             return this;
         }
 

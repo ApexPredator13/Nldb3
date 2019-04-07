@@ -78,6 +78,30 @@ namespace WebsiteTests.Tools
             return this;
         }
 
+        public UserManagerBuilder CanFindUserById()
+        {
+            _userManager.Setup(x => x.FindByIdAsync(It.IsAny<string>())).ReturnsAsync(new IdentityUser());
+            return this;
+        }
+
+        public UserManagerBuilder CannotFindUserById()
+        {
+            _userManager.Setup(x => x.FindByIdAsync(It.IsAny<string>())).Returns(Task.FromResult<IdentityUser>(null));
+            return this;
+        }
+
+        public UserManagerBuilder ConfirmEmailFails()
+        {
+            _userManager.Setup(x => x.ConfirmEmailAsync(It.IsAny<IdentityUser>(), It.IsAny<string>())).ReturnsAsync(IdentityResult.Failed());
+            return this;
+        }
+
+        public UserManagerBuilder ConfirmEmailSucceeds()
+        {
+            _userManager.Setup(x => x.ConfirmEmailAsync(It.IsAny<IdentityUser>(), It.IsAny<string>())).ReturnsAsync(IdentityResult.Success);
+            return this;
+        }
+
         public UserManager<IdentityUser> GetMockedObject() => _userManager.Object;
     }
 }
