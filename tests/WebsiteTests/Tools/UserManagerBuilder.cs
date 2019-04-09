@@ -52,6 +52,9 @@ namespace WebsiteTests.Tools
                 _serviceProvider.Object,
                 null
             );
+
+            // things that always succeed
+            _userManager.Setup(x => x.GeneratePasswordResetTokenAsync(It.IsAny<IdentityUser>())).ReturnsAsync("x");
         }
 
         public UserManagerBuilder CanFindUserByEmail()
@@ -138,6 +141,19 @@ namespace WebsiteTests.Tools
             return this;
         }
 
+        public UserManagerBuilder UserHasCornfirmedEmail()
+        {
+            _userManager.Setup(x => x.IsEmailConfirmedAsync(It.IsAny<IdentityUser>())).ReturnsAsync(true);
+            return this;
+        }
+
+        public UserManagerBuilder UserHasUncornfirmedEmail()
+        {
+            _userManager.Setup(x => x.IsEmailConfirmedAsync(It.IsAny<IdentityUser>())).ReturnsAsync(false);
+            return this;
+        }
+
         public UserManager<IdentityUser> GetMockedObject() => _userManager.Object;
+        public Mock<UserManager<IdentityUser>> GetMock() => _userManager;
     }
 }

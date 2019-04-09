@@ -8,14 +8,14 @@ using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Mvc.ViewFeatures.Infrastructure;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Moq;
 using System;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Website.Controllers;
+using Website.Models.Account;
+using Website.Services;
 
 namespace WebsiteTests.Tools
 {
@@ -31,6 +31,7 @@ namespace WebsiteTests.Tools
         private readonly Mock<IServiceProvider> _httpContextServiceProvider;
         private readonly UserManagerBuilder _userManager;
         private readonly SigninManagerBuilder _signinManager;
+        private readonly Mock<IEmailService> _emailService;
 
         public AccountControllerBuilder()
         {
@@ -38,7 +39,8 @@ namespace WebsiteTests.Tools
             var authService = new Mock<IAuthenticationService>();
             authService.Setup(x => x.SignOutAsync(It.IsAny<HttpContext>(), It.IsAny<string>(), It.IsAny<AuthenticationProperties>())).Returns(Task.CompletedTask);
 
-            // fake service provider for the HttpContext
+            // fake service provider the default HttpContext will use, needs IUrlHelperFactory and ITempDataDictionaryFactory to function,
+            // additionally IAuthenticationService is added to get HttpContext.SignOutAsync() to work
             _httpContextServiceProvider = new Mock<IServiceProvider>();
             _httpContextServiceProvider.Setup(x => x.GetService(typeof(IAuthenticationService))).Returns(authService.Object);
             _httpContextServiceProvider.Setup(sp => sp.GetService(typeof(IUrlHelperFactory))).Returns(new UrlHelperFactory());
@@ -56,7 +58,12 @@ namespace WebsiteTests.Tools
             _userManager = new UserManagerBuilder();
             _signinManager = new SigninManagerBuilder(_userManager.GetMockedObject(), httpContext);
 
-            _controller = new AccountController(_signinManager.GetMockedObject(), _userManager.GetMockedObject())
+            // fake email sender that always succeeds
+            _emailService = new Mock<IEmailService>();
+            _emailService.Setup(x => x.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(Task.CompletedTask);
+            _emailService.Setup(x => x.GenerateResetPasswordEmail(It.IsAny<ForgotPasswordModel>(), It.IsAny<string>(), It.IsAny<string>())).Returns("x");
+
+            _controller = new AccountController(_signinManager.GetMockedObject(), _userManager.GetMockedObject(), _emailService.Object)
             {
                 ControllerContext = new ControllerContext()
                 {
@@ -244,6 +251,19 @@ namespace WebsiteTests.Tools
             return this;
         }
 
-        public AccountController Build() => _controller;
+        public AccountControllerBuilder UserHasCornfirmedEmail()
+        {
+            _userManager.UserHasCornfirmedEmail();
+            return this;
+        }
+
+        public AccountControllerBuilder UserHasUncornfirmedEmail()
+        {
+            _userManager.UserHasUncornfirmedEmail();
+            return this;
+        }
+
+        public (AccountController controller, Mock<UserManager<IdentityUser>> userManager, Mock<SignInManager<IdentityUser>> signInManager, Mock<IEmailService> emailService) Build() 
+            => (_controller, _userManager.GetMock(), _signinManager.GetMock(), _emailService);
     }
 }

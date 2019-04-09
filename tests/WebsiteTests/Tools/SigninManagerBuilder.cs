@@ -115,5 +115,6 @@ namespace WebsiteTests.Tools
         }
 
         public SignInManager<IdentityUser> GetMockedObject() => _signinManager.Object;
+        public Mock<SignInManager<IdentityUser>> GetMock() => _signinManager;
     }
 }

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Website.Models.Account;
+using Website.Services;
 
 namespace Website.Controllers
 {
@@ -13,11 +14,13 @@ namespace Website.Controllers
     {
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly IEmailService _emailSender;
 
-        public AccountController(SignInManager<IdentityUser> signInManager, UserManager<IdentityUser> userManager)
+        public AccountController(SignInManager<IdentityUser> signInManager, UserManager<IdentityUser> userManager, IEmailService emailSender)
         {
             _signInManager = signInManager;
             _userManager = userManager;
+            _emailSender = emailSender;
         }
 
         [HttpGet]
@@ -236,7 +239,47 @@ namespace Website.Controllers
             return LocalRedirect(returnUrl);
         }
 
-
+        [HttpGet]
         public ViewResult ExternalLoginFailed([FromQuery] string? error) => View(nameof(ExternalLoginFailed), error);
+
+        [HttpGet]
+        public ViewResult ForgotPassword() => View();
+
+        [HttpPost]
+        public async Task<ActionResult> ForgotPassword([FromForm] ForgotPasswordModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View();
+            }
+
+            var user = await _userManager.FindByEmailAsync(model.Email);
+
+            if (user is null)
+            {
+                return RedirectToAction(nameof(ForgotPasswordEmailSent));
+            }
+
+            bool userHasConfirmedEmail = await _userManager.IsEmailConfirmedAsync(user);
+
+            if (!userHasConfirmedEmail)
+            {
+                return RedirectToAction(nameof(ForgotPasswordEmailSent));
+            }
+
+            var code = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var callbackUrl = Url.Action(nameof(ResetPassword), new { code });
+
+            var email = _emailSender.GenerateResetPasswordEmail(model, callbackUrl, code);
+            await _emailSender.SendEmailAsync(email, "The Northernlion Database - Password Reset", email);
+
+            return RedirectToAction(nameof(ForgotPasswordEmailSent));
+        }
+
+        [HttpGet]
+        public ViewResult ForgotPasswordEmailSent() => View();
+
+        [HttpGet]
+        public ViewResult ResetPassword() => View();
     }
 }
