@@ -268,7 +268,7 @@ namespace Website.Controllers
             }
 
             var code = await _userManager.GeneratePasswordResetTokenAsync(user);
-            var callbackUrl = Url.Action(nameof(ResetPassword), new { code });
+            var callbackUrl = Url.Action(nameof(ForgotPassword), new { code });
 
             var email = _emailSender.GenerateResetPasswordEmail(model, callbackUrl, code);
             await _emailSender.SendEmailAsync(email, "The Northernlion Database - Password Reset", email);
@@ -280,6 +280,49 @@ namespace Website.Controllers
         public ViewResult ForgotPasswordEmailSent() => View();
 
         [HttpGet]
-        public ViewResult ResetPassword() => View();
+        public ActionResult ResetPassword([FromQuery] string? code = null)
+        {
+            if (string.IsNullOrEmpty(code))
+            {
+                return RedirectToAction(nameof(PasswordResetFailed));
+            }
+
+            return View(new ResetPasswordModel { Code = code });
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> ResetPassword(ResetPasswordModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var user = await _userManager.FindByEmailAsync(model.EmailOrUsername);
+
+            if (user is null)
+            {
+                user = await _userManager.FindByNameAsync(model.EmailOrUsername);
+            }
+            if (user is null)
+            {
+                return RedirectToAction(nameof(PasswordResetFailed));
+            }
+
+            var result = await _userManager.ResetPasswordAsync(user, model.Code, model.Password);
+
+            if (!result.Succeeded)
+            {
+                return RedirectToAction(nameof(PasswordResetFailed));
+            }
+
+            return RedirectToAction(nameof(PasswordResetSucceeded));
+        }
+
+        [HttpGet]
+        public ViewResult PasswordResetFailed() => View();
+
+        [HttpGet]
+        public ViewResult PasswordResetSucceeded() => View();
     }
 }

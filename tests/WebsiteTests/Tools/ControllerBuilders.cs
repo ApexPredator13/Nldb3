@@ -263,6 +263,18 @@ namespace WebsiteTests.Tools
             return this;
         }
 
+        public AccountControllerBuilder ResetPasswordSucceeds()
+        {
+            _userManager.ResetPasswordSucceeds();
+            return this;
+        }
+
+        public AccountControllerBuilder ResetPasswordFails()
+        {
+            _userManager.ResetPasswordFails();
+            return this;
+        }
+
         public (AccountController controller, Mock<UserManager<IdentityUser>> userManager, Mock<SignInManager<IdentityUser>> signInManager, Mock<IEmailService> emailService) Build() 
             => (_controller, _userManager.GetMock(), _signinManager.GetMock(), _emailService);
     }

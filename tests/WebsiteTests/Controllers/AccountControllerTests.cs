@@ -621,5 +621,126 @@ namespace WebsiteTests.Controllers
             emailService.Verify(x => x.GenerateResetPasswordEmail(It.IsAny<ForgotPasswordModel>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
             emailService.Verify(x => x.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
         }
+
+        [Fact(DisplayName = "ResetPassword [GET] redirects to error page if no reset code was found")]
+        public void T30()
+        {
+            // arrange
+            var (controller, _, _, _) = new AccountControllerBuilder().Build();
+
+            // act
+            var result = controller.ResetPassword((string)null);
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>()
+                .Which.ActionName.Should().Be(nameof(AccountController.PasswordResetFailed));
+        }
+
+        [Fact(DisplayName = "ResetPassword [GET] shows password reset form if code was provided")]
+        public void T31()
+        {
+            // arrange
+            var (controller, _, _, _) = new AccountControllerBuilder().Build();
+
+            // act
+            var result = controller.ResetPassword("some code") as ViewResult;
+
+            // assert
+            result.Should().BeOfType<ViewResult>();
+            result.ViewName.Should().BeNull();
+            result.Model.Should().BeOfType<ResetPasswordModel>();
+            (result.Model as ResetPasswordModel).Code.Should().Be("some code");
+        }
+
+        [Fact(DisplayName = "ResetPassword [POST] redisplays view if model is invalid")]
+        public async Task T32()
+        {
+            // arrange
+            var (controller, _, _, _) = new AccountControllerBuilder().Build();
+            var model = new ResetPasswordModel
+            {
+                ConfirmPassword = "a",
+                Password = "a",
+                EmailOrUsername = "b",
+                Code = "c"
+            };
+
+            controller.ModelState.AddModelError("some", "error");
+
+            // act
+            var result = await controller.ResetPassword(model) as ViewResult;
+
+            // assert
+            result.Should().BeOfType<ViewResult>()
+                .Which.ViewName.Should().BeNull();
+            result.Model.Should().BeEquivalentTo(model);
+        }
+
+        [Fact(DisplayName = "ResetPassword [POST] redirects to error page if user cannot be found")]
+        public async Task T33()
+        {
+            // arrange
+            var (controller, userManager, _, _) = new AccountControllerBuilder()
+                .CannotFindUserByEmail()
+                .CannotFindUserByName()
+                .Build();
+
+            var model = new ResetPasswordModel();
+
+            // act
+            var result = await controller.ResetPassword(model) as RedirectToActionResult;
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>()
+                .Which.ActionName.Should().Be(nameof(AccountController.PasswordResetFailed));
+
+            userManager.Verify(x => x.FindByEmailAsync(It.IsAny<string>()), Times.Once);
+            userManager.Verify(x => x.FindByNameAsync(It.IsAny<string>()), Times.Once);
+            userManager.Verify(x => x.ResetPasswordAsync(It.IsAny<IdentityUser>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [Fact(DisplayName = "ResetPassword [POST] redirects to error page if password reset fails")]
+        public async Task T34()
+        {
+            // arrange
+            var (controller, userManager, _, _) = new AccountControllerBuilder()
+                .CanFindUserByEmail()
+                .ResetPasswordFails()
+                .Build();
+
+            var model = new ResetPasswordModel();
+
+            // act
+            var result = await controller.ResetPassword(model) as RedirectToActionResult;
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>()
+                .Which.ActionName.Should().Be(nameof(AccountController.PasswordResetFailed));
+
+            userManager.Verify(x => x.FindByEmailAsync(It.IsAny<string>()), Times.Once);
+            userManager.Verify(x => x.ResetPasswordAsync(It.IsAny<IdentityUser>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+        }
+
+        [Fact(DisplayName = "ResetPassword [POST] redirects to success page if password reset succeeded")]
+        public async Task T35()
+        {
+            // arrange
+            var (controller, userManager, _, _) = new AccountControllerBuilder()
+                .CanFindUserByEmail()
+                .ResetPasswordSucceeds()
+                .Build();
+
+            var model = new ResetPasswordModel();
+
+            // act
+            var result = await controller.ResetPassword(model) as RedirectToActionResult;
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>()
+                .Which.ActionName.Should().Be(nameof(AccountController.PasswordResetSucceeded));
+
+            userManager.Verify(x => x.FindByEmailAsync(It.IsAny<string>()), Times.Once);
+            userManager.Verify(x => x.ResetPasswordAsync(It.IsAny<IdentityUser>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+        }
     }
 }
