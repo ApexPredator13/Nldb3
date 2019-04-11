@@ -41,6 +41,8 @@ namespace WebsiteTests.Tools
 
             // things that never fail
             _signinManager.Setup(x => x.SignOutAsync()).Returns(Task.CompletedTask);
+            _signinManager.Setup(x => x.SignInAsync(It.IsAny<IdentityUser>(), It.IsAny<bool>(), It.IsAny<string>())).Returns(Task.CompletedTask);
+            _signinManager.Setup(x => x.SignInAsync(It.IsAny<IdentityUser>(), It.IsAny<AuthenticationProperties>(), It.IsAny<string>())).Returns(Task.CompletedTask);
         }
 
         public SigninManagerBuilder PasswordSignInSucceeds()

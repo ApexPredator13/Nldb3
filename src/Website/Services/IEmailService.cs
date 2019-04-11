@@ -6,6 +6,7 @@ namespace Website.Services
     public interface IEmailService
     {
         string GenerateResetPasswordEmail(ForgotPasswordModel model, string callbackUrl, string code);
+        string GenerateConfirmEmailAddressEmail(string emailAddress, string callbackUrl, string code);
         Task SendEmailAsync(string email, string subject, string htmlMessage);
     }
 }

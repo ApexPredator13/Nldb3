@@ -62,6 +62,7 @@ namespace WebsiteTests.Tools
             _emailService = new Mock<IEmailService>();
             _emailService.Setup(x => x.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(Task.CompletedTask);
             _emailService.Setup(x => x.GenerateResetPasswordEmail(It.IsAny<ForgotPasswordModel>(), It.IsAny<string>(), It.IsAny<string>())).Returns("x");
+            _emailService.Setup(x => x.GenerateConfirmEmailAddressEmail(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns("x");
 
             _controller = new AccountController(_signinManager.GetMockedObject(), _userManager.GetMockedObject(), _emailService.Object)
             {

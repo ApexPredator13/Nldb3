@@ -330,5 +330,42 @@ namespace Website.Controllers
 
         [HttpGet]
         public ViewResult PasswordResetSucceeded() => View();
+
+        [HttpGet]
+        public ViewResult Register() => View(new RegisterModel());
+
+        [HttpPost]
+        public async Task<ActionResult> Register([FromForm] RegisterModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var user = new IdentityUser(model.Username)
+            {
+                Email = model.Email
+            };
+
+            var result = await _userManager.CreateAsync(user, model.Password);
+
+            if (!result.Succeeded)
+            {
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+                return View(model);
+            }
+
+            var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var userId = user.Id;
+            var callbackUrl = Url.Action(nameof(ConfirmEmail), new { code, userId });
+            var emailMessage = _emailSender.GenerateConfirmEmailAddressEmail(model.Email, callbackUrl, code);
+            await _emailSender.SendEmailAsync(model.Email, "The Northernlion Database - Your new account", emailMessage);
+
+            await _signInManager.SignInAsync(user, false);
+            return RedirectToAction(nameof(MyAccountController.RegistrationComplete), MyAccountController.Controllername);
+        }
     }
 }

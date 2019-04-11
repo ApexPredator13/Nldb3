@@ -10,9 +10,8 @@ namespace Website.Controllers
     {
         public const string Controllername = "MyAccount";
 
-        public ViewResult Index()
-        {
-            return View();
-        }
+        public ViewResult Index() => View();
+
+        public ViewResult RegistrationComplete() => View();
     }
 }

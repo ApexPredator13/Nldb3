@@ -758,5 +758,78 @@ namespace WebsiteTests.Controllers
 
             signInManager.Verify(x => x.SignOutAsync(), Times.Once);
         }
+
+        [Fact(DisplayName = "Register [POST] redisplays form if model is invalid")]
+        public async Task T37()
+        {
+            // arrange
+            var (controller, _, _, _) = new AccountControllerBuilder().Build();
+            var model = new RegisterModel
+            {
+                Email = "e",
+                Password = "p",
+                PasswordConfirm = "p",
+                Username = "u"
+            };
+            controller.ModelState.AddModelError("some", "error");
+
+            // act
+            var result = await controller.Register(model) as ViewResult;
+
+            // assert
+            result.Should().BeOfType<ViewResult>().Which.ViewName.Should().BeNull();
+            result.Model.Should().BeEquivalentTo(model);
+        }
+
+        [Fact(DisplayName = "Register [POST] redisplays form if create user fails")]
+        public async Task T38()
+        {
+            // arrange
+            var (controller, userManager, _, emailService) = new AccountControllerBuilder()
+                .CreateUserFails()
+                .Build();
+
+            var model = new RegisterModel
+            {
+                Email = "e",
+                Password = "p",
+                PasswordConfirm = "p",
+                Username = "u"
+            };
+
+            // act
+            var result = await controller.Register(model) as ViewResult;
+
+            // assert
+            result.Should().BeOfType<ViewResult>().Which.ViewName.Should().BeNull();
+            result.Model.Should().BeEquivalentTo(model);
+
+            userManager.Verify(x => x.CreateAsync(It.IsAny<IdentityUser>(), It.IsAny<string>()), Times.Once);
+            userManager.Verify(x => x.GenerateEmailConfirmationTokenAsync(It.IsAny<IdentityUser>()), Times.Never);
+            emailService.Verify(x => x.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [Fact(DisplayName = "Register [POST] finishes registration and redirects to success page if everything is OK")]
+        public async Task T39()
+        {
+            // arrange
+            var (controller, userManager, signInManager, emailService) = new AccountControllerBuilder()
+                .CreateUserSucceeds()
+                .Build();
+
+            // act
+            var result = await controller.Register(new RegisterModel()) as RedirectToActionResult;
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>();
+            result.ActionName.Should().Be(nameof(MyAccountController.RegistrationComplete));
+            result.ControllerName.Should().Be(MyAccountController.Controllername);
+
+            userManager.Verify(x => x.CreateAsync(It.IsAny<IdentityUser>(), It.IsAny<string>()), Times.Once);
+            userManager.Verify(x => x.GenerateEmailConfirmationTokenAsync(It.IsAny<IdentityUser>()), Times.Once);
+            signInManager.Verify(x => x.SignInAsync(It.IsAny<IdentityUser>(), It.IsAny<bool>(), It.IsAny<string>()), Times.Once);
+            emailService.Verify(x => x.GenerateConfirmEmailAddressEmail(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+            emailService.Verify(x => x.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+        }
     }
 }
