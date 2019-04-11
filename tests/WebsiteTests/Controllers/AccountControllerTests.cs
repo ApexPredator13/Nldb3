@@ -742,5 +742,21 @@ namespace WebsiteTests.Controllers
             userManager.Verify(x => x.FindByEmailAsync(It.IsAny<string>()), Times.Once);
             userManager.Verify(x => x.ResetPasswordAsync(It.IsAny<IdentityUser>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
         }
+
+        [Fact(DisplayName = "Logout [POST] logs out and redirects locally")]
+        public async Task T36()
+        {
+            // arrange
+            var (controller, _, signInManager, _) = new AccountControllerBuilder().Build();
+
+            // act
+            var result = await controller.Logout(new LogoutModel { ReturnUrl = "some url" });
+
+            // assert
+            result.Should().BeOfType<LocalRedirectResult>()
+                .Which.Url.Should().Be("some url");
+
+            signInManager.Verify(x => x.SignOutAsync(), Times.Once);
+        }
     }
 }

@@ -38,6 +38,9 @@ namespace WebsiteTests.Tools
             _identityOptions.SetupGet(x => x.Value).Returns(new IdentityOptions());
 
             _signinManager = new Mock<SignInManager<IdentityUser>>(userManager, _httpContextAccessor.Object, _userClaimsPrincipalFactory.Object, _identityOptions.Object, null, null);
+
+            // things that never fail
+            _signinManager.Setup(x => x.SignOutAsync()).Returns(Task.CompletedTask);
         }
 
         public SigninManagerBuilder PasswordSignInSucceeds()

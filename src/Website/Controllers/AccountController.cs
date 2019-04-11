@@ -131,9 +131,15 @@ namespace Website.Controllers
         }
 
         [HttpGet]
-        public ViewResult Logout()
+        public ViewResult Logout([FromQuery] string? returnUrl = null) 
+            => View(nameof(Logout), returnUrl);
+
+        [HttpPost]
+        public async Task<LocalRedirectResult> Logout([FromForm] LogoutModel model)
         {
-            throw new NotImplementedException();
+            model.ReturnUrl ??= Url.Action(nameof(HomeController.Index), HomeController.Controllername);
+            await _signInManager.SignOutAsync();
+            return LocalRedirect(model.ReturnUrl);
         }
 
         [HttpGet]
