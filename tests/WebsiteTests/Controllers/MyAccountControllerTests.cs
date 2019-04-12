@@ -196,5 +196,323 @@ namespace WebsiteTests.Controllers
             userManager.Verify(x => x.ChangePasswordAsync(It.IsAny<IdentityUser>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
             signInManager.Verify(x => x.RefreshSignInAsync(It.IsAny<IdentityUser>()), Times.Once);
         }
+
+        [Fact(DisplayName = "DeleteAccount [GET] redirects to login page if user is not found")]
+        public async Task T9()
+        {
+            // arrange
+            var (controller, userManager, _, _) = new MyAccountControllerBuilder()
+                .GetUserFails()
+                .Build();
+
+            // act
+            var result = await controller.DeleteAccount() as RedirectToActionResult;
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>();
+            result.ActionName.Should().Be(nameof(AccountController.Login));
+            result.ControllerName.Should().Be(AccountController.Controllername);
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.HasPasswordAsync(It.IsAny<IdentityUser>()), Times.Never);
+        }
+
+        [Fact(DisplayName = "DeleteAccount [GET] displays view with model set to FALSE if user has no password set")]
+        public async Task T10()
+        {
+            // arrange
+            var (controller, userManager, _, _) = new MyAccountControllerBuilder()
+                .GetUserSucceeds()
+                .UserHasNoPassword()
+                .Build();
+
+            // act
+            var result = await controller.DeleteAccount() as ViewResult;
+
+            // assert
+            result.Should().BeOfType<ViewResult>();
+            result.ViewName.Should().BeNull();
+            result.Model.Should().BeOfType<bool>().And.Be(false);
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.HasPasswordAsync(It.IsAny<IdentityUser>()), Times.Once);
+        }
+
+        [Fact(DisplayName = "DeleteAccount [GET] displays view with model set to TRUE if user has password set")]
+        public async Task T11()
+        {
+            // arrange
+            var (controller, userManager, _, _) = new MyAccountControllerBuilder()
+                .GetUserSucceeds()
+                .UserHasPassword()
+                .Build();
+
+            // act
+            var result = await controller.DeleteAccount() as ViewResult;
+
+            // assert
+            result.Should().BeOfType<ViewResult>();
+            result.ViewName.Should().BeNull();
+            result.Model.Should().BeOfType<bool>().And.Be(true);
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.HasPasswordAsync(It.IsAny<IdentityUser>()), Times.Once);
+        }
+
+        [Fact(DisplayName = "DeleteAccount [POST] redirects to login page if user was not found")]
+        public async Task T12()
+        {
+            // arrange
+            var (controller, userManager, _, _) = new MyAccountControllerBuilder()
+                .GetUserFails()
+                .Build();
+
+            // act
+            var result = await controller.DeleteAccount(new DeleteAccountInputModel()) as RedirectToActionResult;
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>();
+            result.ActionName.Should().Be(nameof(AccountController.Login));
+            result.ControllerName.Should().Be(AccountController.Controllername);
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.HasPasswordAsync(It.IsAny<IdentityUser>()), Times.Never);
+        }
+
+        [Fact(DisplayName = "DeleteAccount [POST] redisplays view if user has password but has not entered one")]
+        public async Task T13()
+        {
+            // arrange
+            var (controller, userManager, _, _) = new MyAccountControllerBuilder()
+                .GetUserSucceeds()
+                .UserHasPassword()
+                .Build();
+
+            var model = new DeleteAccountInputModel
+            {
+                Password = string.Empty,
+                UserNameOrEmail = "x"
+            };
+
+            // act
+            var result = await controller.DeleteAccount(model) as ViewResult;
+
+            // assert
+            result.Should().BeOfType<ViewResult>();
+            result.ViewName.Should().BeNull();
+            result.Model.Should().BeEquivalentTo(model);
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.HasPasswordAsync(It.IsAny<IdentityUser>()), Times.Once);
+            userManager.Verify(x => x.DeleteAsync(It.IsAny<IdentityUser>()), Times.Never);
+        }
+
+        [Fact(DisplayName = "DeleteAccount [POST] redisplays view if user has no password and has not entered email or username")]
+        public async Task T14()
+        {
+            // arrange
+            var (controller, userManager, _, _) = new MyAccountControllerBuilder()
+                .GetUserSucceeds()
+                .UserHasNoPassword()
+                .Build();
+
+            var model = new DeleteAccountInputModel
+            {
+                Password = "x",
+                UserNameOrEmail = string.Empty
+            };
+
+            // act
+            var result = await controller.DeleteAccount(model) as ViewResult;
+
+            // assert
+            result.Should().BeOfType<ViewResult>();
+            result.ViewName.Should().BeNull();
+            result.Model.Should().BeEquivalentTo(model);
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.HasPasswordAsync(It.IsAny<IdentityUser>()), Times.Once);
+            userManager.Verify(x => x.DeleteAsync(It.IsAny<IdentityUser>()), Times.Never);
+        }
+
+        [Fact(DisplayName = "DeleteAccount [POST] redisplays view if user has password and entered wrong password")]
+        public async Task T15()
+        {
+            // arrange
+            var (controller, userManager, _, _) = new MyAccountControllerBuilder()
+                .GetUserSucceeds()
+                .UserHasPassword()
+                .CheckPasswordFails()
+                .Build();
+
+            var model = new DeleteAccountInputModel
+            {
+                Password = "x",
+                UserNameOrEmail = string.Empty
+            };
+
+            // act
+            var result = await controller.DeleteAccount(model) as ViewResult;
+
+            // assert
+            result.Should().BeOfType<ViewResult>();
+            result.ViewName.Should().BeNull();
+            result.Model.Should().BeEquivalentTo(model);
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.HasPasswordAsync(It.IsAny<IdentityUser>()), Times.Once);
+            userManager.Verify(x => x.CheckPasswordAsync(It.IsAny<IdentityUser>(), It.IsAny<string>()), Times.Once);
+            userManager.Verify(x => x.DeleteAsync(It.IsAny<IdentityUser>()), Times.Never);
+        }
+
+        [Fact(DisplayName = "DeleteAccount [POST] redisplays view if user has no password and entered wrong username")]
+        public async Task T16()
+        {
+            // arrange
+            var (controller, userManager, _, _) = new MyAccountControllerBuilder()
+                .GetUserSucceeds("x", null)
+                .UserHasNoPassword()
+                .CheckPasswordFails()
+                .Build();
+
+            var model = new DeleteAccountInputModel
+            {
+                Password = string.Empty,
+                UserNameOrEmail = "y"
+            };
+
+            // act
+            var result = await controller.DeleteAccount(model) as ViewResult;
+
+            // assert
+            result.Should().BeOfType<ViewResult>();
+            result.ViewName.Should().BeNull();
+            result.Model.Should().BeEquivalentTo(model);
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.HasPasswordAsync(It.IsAny<IdentityUser>()), Times.Once);
+            userManager.Verify(x => x.DeleteAsync(It.IsAny<IdentityUser>()), Times.Never);
+        }
+
+        [Fact(DisplayName = "DeleteAccount [POST] redisplays view if user has no password and entered wrong email")]
+        public async Task T17()
+        {
+            // arrange
+            var (controller, userManager, _, _) = new MyAccountControllerBuilder()
+                .GetUserSucceeds(null, "x")
+                .UserHasNoPassword()
+                .CheckPasswordFails()
+                .Build();
+
+            var model = new DeleteAccountInputModel
+            {
+                Password = string.Empty,
+                UserNameOrEmail = "y"
+            };
+
+            // act
+            var result = await controller.DeleteAccount(model) as ViewResult;
+
+            // assert
+            result.Should().BeOfType<ViewResult>();
+            result.ViewName.Should().BeNull();
+            result.Model.Should().BeEquivalentTo(model);
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.HasPasswordAsync(It.IsAny<IdentityUser>()), Times.Once);
+            userManager.Verify(x => x.DeleteAsync(It.IsAny<IdentityUser>()), Times.Never);
+        }
+
+        [Fact(DisplayName = "DeleteAccount [POST] redirects to success page if user with password deleted his account")]
+        public async Task T18()
+        {
+            // arrange
+            var claims = new Dictionary<string, string>() { { ClaimTypes.Name, "x" } };
+
+            var (controller, userManager, _, signInManager) = new MyAccountControllerBuilder()
+                .WithAuthenticatedUser(claims)
+                .GetUserSucceeds()
+                .UserHasPassword()
+                .CheckPasswordSucceeds()
+                .DeleteUserProfileSucceeds()
+                .Build();
+
+            var model = new DeleteAccountInputModel
+            {
+                Password = "x",
+                UserNameOrEmail = string.Empty
+            };
+
+            // act
+            var result = await controller.DeleteAccount(model) as RedirectToActionResult;
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>();
+            result.ActionName.Should().Be(nameof(MyAccountController.AccountWasDeleted));
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.HasPasswordAsync(It.IsAny<IdentityUser>()), Times.Once);
+            userManager.Verify(x => x.DeleteAsync(It.IsAny<IdentityUser>()), Times.Once);
+            signInManager.Verify(x => x.SignOutAsync(), Times.Once);
+        }
+
+        [Fact(DisplayName = "DeleteAccount [POST] redirects to success page if user without password deleted his account")]
+        public async Task T19()
+        {
+            // arrange
+            var (controller, userManager, _, signInManager) = new MyAccountControllerBuilder()
+                .GetUserSucceeds("x", null)
+                .UserHasNoPassword()
+                .DeleteUserProfileSucceeds()
+                .Build();
+
+            var model = new DeleteAccountInputModel
+            {
+                Password = string.Empty,
+                UserNameOrEmail = "x"
+            };
+
+            // act
+            var result = await controller.DeleteAccount(model) as RedirectToActionResult;
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>();
+            result.ActionName.Should().Be(nameof(MyAccountController.AccountWasDeleted));
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.HasPasswordAsync(It.IsAny<IdentityUser>()), Times.Once);
+            userManager.Verify(x => x.DeleteAsync(It.IsAny<IdentityUser>()), Times.Once);
+            signInManager.Verify(x => x.SignOutAsync(), Times.Once);
+        }
+
+        [Fact(DisplayName = "DeleteAccount [POST] redisplays view if profile cannot be deleted")]
+        public async Task T20()
+        {
+            // arrange
+            var (controller, userManager, _, signInManager) = new MyAccountControllerBuilder()
+                .GetUserSucceeds("x", null)
+                .UserHasNoPassword()
+                .DeleteUserProfileFails()
+                .Build();
+
+            var model = new DeleteAccountInputModel
+            {
+                Password = string.Empty,
+                UserNameOrEmail = "x"
+            };
+
+            // act
+            var result = await controller.DeleteAccount(model) as ViewResult;
+
+            // assert
+            result.Should().BeOfType<ViewResult>();
+            result.ViewName.Should().BeNull();
+            result.Model.Should().BeEquivalentTo(model);
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.HasPasswordAsync(It.IsAny<IdentityUser>()), Times.Once);
+            userManager.Verify(x => x.DeleteAsync(It.IsAny<IdentityUser>()), Times.Once);
+            signInManager.Verify(x => x.SignOutAsync(), Times.Never);
+        }
     }
 }

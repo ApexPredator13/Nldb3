@@ -59,9 +59,9 @@ namespace WebsiteTests.Tools
             _userManager.Setup(x => x.GenerateEmailConfirmationTokenAsync(It.IsAny<IdentityUser>())).ReturnsAsync("x");
         }
 
-        public UserManagerBuilder GetUserAsyncSucceeds()
+        public UserManagerBuilder GetUserAsyncSucceeds(string userName = null, string email = null)
         {
-            _userManager.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(new IdentityUser());
+            _userManager.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(new IdentityUser(userName) { Email = email });
             return this;
         }
 
@@ -105,6 +105,12 @@ namespace WebsiteTests.Tools
         public UserManagerBuilder DeleteAsyncSucceeds()
         {
             _userManager.Setup(x => x.DeleteAsync(It.IsAny<IdentityUser>())).ReturnsAsync(IdentityResult.Success);
+            return this;
+        }
+
+        public UserManagerBuilder DeleteAsyncFails()
+        {
+            _userManager.Setup(x => x.DeleteAsync(It.IsAny<IdentityUser>())).ReturnsAsync(IdentityResult.Failed());
             return this;
         }
 
@@ -189,6 +195,18 @@ namespace WebsiteTests.Tools
         public UserManagerBuilder ChangePasswordSucceeds()
         {
             _userManager.Setup(x => x.ChangePasswordAsync(It.IsAny<IdentityUser>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(IdentityResult.Success);
+            return this;
+        }
+
+        public UserManagerBuilder CheckPasswordFails()
+        {
+            _userManager.Setup(x => x.CheckPasswordAsync(It.IsAny<IdentityUser>(), It.IsAny<string>())).ReturnsAsync(false);
+            return this;
+        }
+
+        public UserManagerBuilder CheckPasswordSucceeds()
+        {
+            _userManager.Setup(x => x.CheckPasswordAsync(It.IsAny<IdentityUser>(), It.IsAny<string>())).ReturnsAsync(true);
             return this;
         }
 

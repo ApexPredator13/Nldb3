@@ -340,9 +340,9 @@ namespace WebsiteTests.Tools
             return this;
         }
 
-        public MyAccountControllerBuilder GetUserSucceeds()
+        public MyAccountControllerBuilder GetUserSucceeds(string userName = null, string email = null)
         {
-            _userManager.GetUserAsyncSucceeds();
+            _userManager.GetUserAsyncSucceeds(userName, email);
             return this;
         }
 
@@ -367,6 +367,30 @@ namespace WebsiteTests.Tools
         public MyAccountControllerBuilder ChangePasswordFails()
         {
             _userManager.ChangePasswordFails();
+            return this;
+        }
+
+        public MyAccountControllerBuilder CheckPasswordSucceeds()
+        {
+            _userManager.CheckPasswordSucceeds();
+            return this;
+        }
+
+        public MyAccountControllerBuilder CheckPasswordFails()
+        {
+            _userManager.CheckPasswordFails();
+            return this;
+        }
+
+        public MyAccountControllerBuilder DeleteUserProfileFails()
+        {
+            _userManager.DeleteAsyncFails();
+            return this;
+        }
+
+        public MyAccountControllerBuilder DeleteUserProfileSucceeds()
+        {
+            _userManager.DeleteAsyncSucceeds();
             return this;
         }
 
