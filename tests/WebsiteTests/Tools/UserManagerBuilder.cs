@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using System;
 using System.Collections.Generic;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -58,6 +59,18 @@ namespace WebsiteTests.Tools
             _userManager.Setup(x => x.GenerateEmailConfirmationTokenAsync(It.IsAny<IdentityUser>())).ReturnsAsync("x");
         }
 
+        public UserManagerBuilder GetUserAsyncSucceeds()
+        {
+            _userManager.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(new IdentityUser());
+            return this;
+        }
+
+        public UserManagerBuilder GetUserAsyncFails()
+        {
+            _userManager.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync((IdentityUser)null);
+            return this;
+        }
+
         public UserManagerBuilder CanFindUserByEmail()
         {
             _userManager.Setup(x => x.FindByEmailAsync(It.IsAny<string>())).ReturnsAsync(new IdentityUser());
@@ -92,6 +105,18 @@ namespace WebsiteTests.Tools
         public UserManagerBuilder DeleteAsyncSucceeds()
         {
             _userManager.Setup(x => x.DeleteAsync(It.IsAny<IdentityUser>())).ReturnsAsync(IdentityResult.Success);
+            return this;
+        }
+
+        public UserManagerBuilder HasPasswordReturnsTrue()
+        {
+            _userManager.Setup(x => x.HasPasswordAsync(It.IsAny<IdentityUser>())).ReturnsAsync(true);
+            return this;
+        }
+
+        public UserManagerBuilder HasPasswordReturnsFalse()
+        {
+            _userManager.Setup(x => x.HasPasswordAsync(It.IsAny<IdentityUser>())).ReturnsAsync(false);
             return this;
         }
 
@@ -152,6 +177,18 @@ namespace WebsiteTests.Tools
         public UserManagerBuilder ResetPasswordFails()
         {
             _userManager.Setup(x => x.ResetPasswordAsync(It.IsAny<IdentityUser>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(IdentityResult.Failed());
+            return this;
+        }
+
+        public UserManagerBuilder ChangePasswordFails()
+        {
+            _userManager.Setup(x => x.ChangePasswordAsync(It.IsAny<IdentityUser>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(IdentityResult.Failed());
+            return this;
+        }
+
+        public UserManagerBuilder ChangePasswordSucceeds()
+        {
+            _userManager.Setup(x => x.ChangePasswordAsync(It.IsAny<IdentityUser>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(IdentityResult.Success);
             return this;
         }
 

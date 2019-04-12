@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
@@ -12,6 +10,8 @@ namespace Website.Controllers
 {
     public class AccountController : Controller
     {
+        public const string Controllername = "Account";
+
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly IEmailService _emailSender;
@@ -187,12 +187,15 @@ namespace Website.Controllers
         [HttpPost]
         public async Task<ActionResult> ExternalLoginCallback([FromForm] ExternalLoginCallbackModel model, [FromQuery] string? returnUrl = null)
         {
-            returnUrl ??= Url.Action(nameof(HomeController.Index), HomeController.Controllername);
-
             if (!ModelState.IsValid)
             {
                 ViewData["returnUrl"] = returnUrl;
                 return View(model);
+            }
+
+            if (string.IsNullOrEmpty(returnUrl))
+            {
+                returnUrl = Url.Action(nameof(HomeController.Index), HomeController.Controllername);
             }
 
             var info = await _signInManager.GetExternalLoginInfoAsync();
@@ -202,10 +205,7 @@ namespace Website.Controllers
                 return RedirectToAction(nameof(ExternalLoginFailed));
             }
 
-            var newUser = new IdentityUser
-            {
-                UserName = model.UserName
-            };
+            var newUser = new IdentityUser(model.UserName);
 
             var result = await _userManager.CreateAsync(newUser);
 
@@ -276,7 +276,7 @@ namespace Website.Controllers
             var code = await _userManager.GeneratePasswordResetTokenAsync(user);
             var callbackUrl = Url.Action(nameof(ForgotPassword), new { code });
 
-            var email = _emailSender.GenerateResetPasswordEmail(model, callbackUrl, code);
+            var email = _emailSender.GenerateResetPasswordEmail(model, callbackUrl);
             await _emailSender.SendEmailAsync(email, "The Northernlion Database - Password Reset", email);
 
             return RedirectToAction(nameof(ForgotPasswordEmailSent));
@@ -361,7 +361,7 @@ namespace Website.Controllers
             var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             var userId = user.Id;
             var callbackUrl = Url.Action(nameof(ConfirmEmail), new { code, userId });
-            var emailMessage = _emailSender.GenerateConfirmEmailAddressEmail(model.Email, callbackUrl, code);
+            var emailMessage = _emailSender.GenerateConfirmEmailAddressEmail(model.Email, callbackUrl);
             await _emailSender.SendEmailAsync(model.Email, "The Northernlion Database - Your new account", emailMessage);
 
             await _signInManager.SignInAsync(user, false);

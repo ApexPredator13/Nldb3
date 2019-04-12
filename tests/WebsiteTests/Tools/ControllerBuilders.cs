@@ -61,8 +61,8 @@ namespace WebsiteTests.Tools
             // fake email sender that always succeeds
             _emailService = new Mock<IEmailService>();
             _emailService.Setup(x => x.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(Task.CompletedTask);
-            _emailService.Setup(x => x.GenerateResetPasswordEmail(It.IsAny<ForgotPasswordModel>(), It.IsAny<string>(), It.IsAny<string>())).Returns("x");
-            _emailService.Setup(x => x.GenerateConfirmEmailAddressEmail(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns("x");
+            _emailService.Setup(x => x.GenerateResetPasswordEmail(It.IsAny<ForgotPasswordModel>(), It.IsAny<string>())).Returns("x");
+            _emailService.Setup(x => x.GenerateConfirmEmailAddressEmail(It.IsAny<string>(), It.IsAny<string>())).Returns("x");
 
             _controller = new AccountController(_signinManager.GetMockedObject(), _userManager.GetMockedObject(), _emailService.Object)
             {
@@ -278,5 +278,101 @@ namespace WebsiteTests.Tools
 
         public (AccountController controller, Mock<UserManager<IdentityUser>> userManager, Mock<SignInManager<IdentityUser>> signInManager, Mock<IEmailService> emailService) Build() 
             => (_controller, _userManager.GetMock(), _signinManager.GetMock(), _emailService);
+    }
+
+    public class MyAccountControllerBuilder
+    {
+        private readonly MyAccountController _controller;
+        private readonly Mock<IEmailService> _emailService;
+        private readonly UserManagerBuilder _userManager;
+        private readonly SigninManagerBuilder _signInManager;
+
+        public MyAccountControllerBuilder()
+        {
+            _emailService = new Mock<IEmailService>();
+            _emailService.Setup(x => x.GenerateConfirmEmailAddressEmail(It.IsAny<string>(), It.IsAny<string>())).Returns("x");
+            _emailService.Setup(x => x.GenerateResetPasswordEmail(It.IsAny<ForgotPasswordModel>(), It.IsAny<string>())).Returns("x");
+            _emailService.Setup(x => x.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(Task.CompletedTask);
+
+            var context = new DefaultHttpContext();
+
+            _userManager = new UserManagerBuilder();
+            _signInManager = new SigninManagerBuilder(_userManager.GetMockedObject(), context);
+
+            _controller = new MyAccountController(_userManager.GetMockedObject(), _emailService.Object, _signInManager.GetMockedObject())
+            {
+                ControllerContext = new ControllerContext()
+                {
+                    HttpContext = context
+                }
+            };
+        }
+
+        public MyAccountControllerBuilder WithAuthenticatedUser(Dictionary<string, string> additionalClaims = null)
+        {
+            if (additionalClaims is null)
+            {
+                additionalClaims = new Dictionary<string, string>
+                {
+                    { ClaimTypes.NameIdentifier, "x" }
+                };
+            }
+
+            var finalClaims = new List<Claim>();
+            foreach (var additionalClaim in additionalClaims)
+            {
+                finalClaims.Add(new Claim(additionalClaim.Key, additionalClaim.Value));
+            }
+
+            _controller.ControllerContext.HttpContext.User = new ClaimsPrincipal(new List<ClaimsIdentity>
+            {
+                new ClaimsIdentity(finalClaims, "some authentication schema")
+            });
+
+            _controller.ControllerContext.HttpContext.User.AddIdentity(new ClaimsIdentity(finalClaims));
+
+            return this;
+        }
+
+        public MyAccountControllerBuilder GetUserFails()
+        {
+            _userManager.GetUserAsyncFails();
+            return this;
+        }
+
+        public MyAccountControllerBuilder GetUserSucceeds()
+        {
+            _userManager.GetUserAsyncSucceeds();
+            return this;
+        }
+
+        public MyAccountControllerBuilder UserHasNoPassword()
+        {
+            _userManager.HasPasswordReturnsFalse();
+            return this;
+        }
+
+        public MyAccountControllerBuilder UserHasPassword()
+        {
+            _userManager.HasPasswordReturnsTrue();
+            return this;
+        }
+
+        public MyAccountControllerBuilder ChangePasswordSucceeds()
+        {
+            _userManager.ChangePasswordSucceeds();
+            return this;
+        }
+
+        public MyAccountControllerBuilder ChangePasswordFails()
+        {
+            _userManager.ChangePasswordFails();
+            return this;
+        }
+
+        public (MyAccountController controller, Mock<UserManager<IdentityUser>> userManager, Mock<IEmailService> emailService, Mock<SignInManager<IdentityUser>> signInManager) Build()
+        {
+            return (_controller, _userManager.GetMock(), _emailService, _signInManager.GetMock());
+        }
     }
 }

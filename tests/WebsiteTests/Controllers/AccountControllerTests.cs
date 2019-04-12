@@ -555,7 +555,7 @@ namespace WebsiteTests.Controllers
             result.Should().BeOfType<ViewResult>().Which.ViewName.Should().BeNull();
 
             userManager.Verify(x => x.FindByEmailAsync(It.IsAny<string>()), Times.Never);
-            emailService.Verify(x => x.GenerateResetPasswordEmail(It.IsAny<ForgotPasswordModel>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            emailService.Verify(x => x.GenerateResetPasswordEmail(It.IsAny<ForgotPasswordModel>(), It.IsAny<string>()), Times.Never);
         }
 
         [Fact(DisplayName = "ForgotPassword [POST] redircts to 'email sent' without sending the email if user with this email does not exist")]
@@ -575,7 +575,7 @@ namespace WebsiteTests.Controllers
 
             userManager.Verify(x => x.FindByEmailAsync(It.IsAny<string>()), Times.Once);
             userManager.Verify(x => x.IsEmailConfirmedAsync(It.IsAny<IdentityUser>()), Times.Never);
-            emailService.Verify(x => x.GenerateResetPasswordEmail(It.IsAny<ForgotPasswordModel>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            emailService.Verify(x => x.GenerateResetPasswordEmail(It.IsAny<ForgotPasswordModel>(), It.IsAny<string>()), Times.Never);
         }
 
         [Fact(DisplayName = "ForgotPassword [POST] redircts to 'email sent' without sending the email if user has unconfirmed email")]
@@ -596,7 +596,7 @@ namespace WebsiteTests.Controllers
 
             userManager.Verify(x => x.FindByEmailAsync(It.IsAny<string>()), Times.Once);
             userManager.Verify(x => x.IsEmailConfirmedAsync(It.IsAny<IdentityUser>()), Times.Once);
-            emailService.Verify(x => x.GenerateResetPasswordEmail(It.IsAny<ForgotPasswordModel>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            emailService.Verify(x => x.GenerateResetPasswordEmail(It.IsAny<ForgotPasswordModel>(), It.IsAny<string>()), Times.Never);
         }
 
         [Fact(DisplayName = "ForgotPassword [POST] redircts to 'email sent' if everything is OK")]
@@ -618,7 +618,7 @@ namespace WebsiteTests.Controllers
             userManager.Verify(x => x.FindByEmailAsync(It.IsAny<string>()), Times.Once);
             userManager.Verify(x => x.IsEmailConfirmedAsync(It.IsAny<IdentityUser>()), Times.Once);
             userManager.Verify(x => x.GeneratePasswordResetTokenAsync(It.IsAny<IdentityUser>()), Times.Once);
-            emailService.Verify(x => x.GenerateResetPasswordEmail(It.IsAny<ForgotPasswordModel>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+            emailService.Verify(x => x.GenerateResetPasswordEmail(It.IsAny<ForgotPasswordModel>(),  It.IsAny<string>()), Times.Once);
             emailService.Verify(x => x.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
         }
 
@@ -828,7 +828,7 @@ namespace WebsiteTests.Controllers
             userManager.Verify(x => x.CreateAsync(It.IsAny<IdentityUser>(), It.IsAny<string>()), Times.Once);
             userManager.Verify(x => x.GenerateEmailConfirmationTokenAsync(It.IsAny<IdentityUser>()), Times.Once);
             signInManager.Verify(x => x.SignInAsync(It.IsAny<IdentityUser>(), It.IsAny<bool>(), It.IsAny<string>()), Times.Once);
-            emailService.Verify(x => x.GenerateConfirmEmailAddressEmail(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+            emailService.Verify(x => x.GenerateConfirmEmailAddressEmail(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
             emailService.Verify(x => x.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
         }
     }
