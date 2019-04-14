@@ -988,5 +988,226 @@ namespace WebsiteTests.Controllers
             emailService.Verify(x => x.GenerateConfirmEmailAddressEmail(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
             emailService.Verify(x => x.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
         }
+
+        [Fact(DisplayName = "ChangeEmail [GET] redirects to login page if user is not found")]
+        public async Task T42()
+        {
+            // arrange
+            var (controller, userManager, _, _) = new MyAccountControllerBuilder()
+                .GetUserFails()
+                .Build();
+
+            // act
+            var result = await controller.ChangeEmail() as RedirectToActionResult;
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>();
+            result.ActionName.Should().Be(nameof(AccountController.Login));
+            result.ControllerName.Should().Be(AccountController.Controllername);
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+        }
+
+        [Fact(DisplayName = "ChangeEmail [GET] redirects to 'add normal login' page if user has no email yet")]
+        public async Task T43()
+        {
+            // arrange
+            var (controller, userManager, _, _) = new MyAccountControllerBuilder()
+                .GetUserSucceeds()
+                .Build();
+
+            // act
+            var result = await controller.ChangeEmail() as RedirectToActionResult;
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>();
+            result.ActionName.Should().Be(nameof(MyAccountController.AddNormalLogin));
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+        }
+
+        [Fact(DisplayName = "ChangeEmail [GET] shows view if user was found")]
+        public async Task T44()
+        {
+            // arrange
+            var (controller, userManager, _, _) = new MyAccountControllerBuilder()
+                .GetUserSucceeds(null, "some email")
+                .Build();
+
+            // act
+            var result = await controller.ChangeEmail() as ViewResult;
+
+            // assert
+            result.Should().BeOfType<ViewResult>();
+            result.ViewName.Should().BeNull();
+            result.Model.Should().BeOfType<ChangeEmailModel>();
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+        }
+
+        [Fact(DisplayName = "ChangeEmail [POST] redisplays view if model is invalid")]
+        public async Task T45()
+        {
+            // arrange
+            var (controller, userManager, _, _) = new MyAccountControllerBuilder().Build();
+
+            var model = new ChangeEmailModel
+            {
+                Email = "e"
+            };
+
+            controller.ModelState.AddModelError("some", "error");
+
+            // act
+            var result = await controller.ChangeEmail(model) as ViewResult;
+
+            // assert
+            result.Should().BeOfType<ViewResult>();
+            result.ViewName.Should().BeNull();
+            result.Model.Should().BeEquivalentTo(model);
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Never);
+        }
+
+        [Fact(DisplayName = "ChangeEmail [POST] redirects to login page if user is not found")]
+        public async Task T46()
+        {
+            // arrange
+            var (controller, userManager, _, _) = new MyAccountControllerBuilder()
+                .GetUserFails()
+                .Build();
+
+            // act
+            var result = await controller.ChangeEmail(new ChangeEmailModel()) as RedirectToActionResult;
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>();
+            result.ActionName.Should().Be(nameof(AccountController.Login));
+            result.ControllerName.Should().Be(AccountController.Controllername);
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.GenerateChangeEmailTokenAsync(It.IsAny<IdentityUser>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [Fact(DisplayName = "ChangeEmail [POST] redirects to 'add normal login' page if user has no email yet")]
+        public async Task T47()
+        {
+            // arrange
+            var (controller, userManager, _, _) = new MyAccountControllerBuilder()
+                .GetUserSucceeds()
+                .Build();
+
+            // act
+            var result = await controller.ChangeEmail(new ChangeEmailModel()) as RedirectToActionResult;
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>();
+            result.ActionName.Should().Be(nameof(MyAccountController.AddNormalLogin));
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.GenerateChangeEmailTokenAsync(It.IsAny<IdentityUser>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [Fact(DisplayName = "ChangeEmail [POST] sends email and redirects to confirmation page if request was OK")]
+        public async Task T48()
+        {
+            // arrange
+            var (controller, userManager, emailService, _) = new MyAccountControllerBuilder()
+                .GetUserSucceeds(null, "a@a.com")
+                .Build();
+
+            // act
+            var result = await controller.ChangeEmail(new ChangeEmailModel()) as RedirectToActionResult;
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>();
+            result.ActionName.Should().Be(nameof(MyAccountController.ChangeEmailRequestSent));
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.GenerateChangeEmailTokenAsync(It.IsAny<IdentityUser>(), It.IsAny<string>()), Times.Once);
+            emailService.Verify(x => x.GenerateChangeEmailAddressEmail(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+            emailService.Verify(x => x.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+        }
+
+        [Fact(DisplayName = "ChangeEmailConfirmation [GET] redirects to error page if email or token are missing")]
+        public async Task T49()
+        {
+            // arrange
+            var (controller, userManager, _, _) = new MyAccountControllerBuilder().Build();
+
+            // act
+            var result1 = await controller.ChangeEmailConfirmation(string.Empty, "token");
+            var result2 = await controller.ChangeEmailConfirmation("a@a.com", string.Empty);
+
+            // assert
+            result1.Should().BeOfType<RedirectToActionResult>();
+            result1.ActionName.Should().Be(nameof(MyAccountController.EmailChangeFailed));
+            result2.Should().BeOfType<RedirectToActionResult>();
+            result2.ActionName.Should().Be(nameof(MyAccountController.EmailChangeFailed));
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Never);
+            userManager.Verify(x => x.ChangeEmailAsync(It.IsAny<IdentityUser>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [Fact(DisplayName = "ChangeEmailConfirmation [GET] redirects to login page if user is not found")]
+        public async Task T50()
+        {
+            // arrange
+            var (controller, userManager, _, _) = new MyAccountControllerBuilder()
+                .GetUserFails()
+                .Build();
+
+            // act
+            var result = await controller.ChangeEmailConfirmation("a", "a");
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>();
+            result.ActionName.Should().Be(nameof(AccountController.Login));
+            result.ControllerName.Should().Be(AccountController.Controllername);
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.ChangeEmailAsync(It.IsAny<IdentityUser>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [Fact(DisplayName = "ChangeEmailConfirmation [GET] redirects to error page if email change was unsuccessful")]
+        public async Task T51()
+        {
+            // arrange
+            var (controller, userManager, _, _) = new MyAccountControllerBuilder()
+                .GetUserSucceeds()
+                .ChangeEmailFails()
+                .Build();
+
+            // act
+            var result = await controller.ChangeEmailConfirmation("a", "a");
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>();
+            result.ActionName.Should().Be(nameof(MyAccountController.EmailChangeFailed));
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.ChangeEmailAsync(It.IsAny<IdentityUser>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+        }
+
+        [Fact(DisplayName = "ChangeEmailConfirmation [GET] redirects back to profile page after email was changed successfully")]
+        public async Task T52()
+        {
+            // arrange
+            var (controller, userManager, _, _) = new MyAccountControllerBuilder()
+                .GetUserSucceeds()
+                .ChangeEmailSucceeds()
+                .Build();
+
+            // act
+            var result = await controller.ChangeEmailConfirmation("a", "a");
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>();
+            result.ActionName.Should().Be(nameof(MyAccountController.Index));
+            result.RouteValues.Should().ContainKey("message");
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.ChangeEmailAsync(It.IsAny<IdentityUser>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+        }
     }
 }

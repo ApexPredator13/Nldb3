@@ -350,6 +350,80 @@ namespace Website.Controllers
             return RedirectToAction(nameof(NormalLoginAdded));
         }
 
+        [HttpGet]
+        public async Task<ActionResult> ChangeEmail()
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user is null)
+            {
+                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername);
+            }
+
+            if (user.Email is null)
+            {
+                return RedirectToAction(nameof(AddNormalLogin));
+            }
+
+            return View(new ChangeEmailModel());
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> ChangeEmail(ChangeEmailModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user is null)
+            {
+                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername);
+            }
+
+            if (user.Email is null)
+            {
+                return RedirectToAction(nameof(AddNormalLogin));
+            }
+
+            var code = await _userManager.GenerateChangeEmailTokenAsync(user, model.Email);
+            var newEmail = model.Email;
+            var callbackUrl = Url.Action(nameof(ChangeEmailConfirmation), new { code, newEmail });
+            var emailMessage = _emailService.GenerateChangeEmailAddressEmail(newEmail, callbackUrl);
+            await _emailService.SendEmailAsync(newEmail, "The Northernlion Database - Email Change", emailMessage);
+
+            return RedirectToAction(nameof(ChangeEmailRequestSent));
+        }
+
+        public ViewResult ChangeEmailRequestSent() => View();
+
+        [HttpGet]
+        public async Task<RedirectToActionResult> ChangeEmailConfirmation([FromQuery] string? newEmail, [FromQuery] string? token)
+        {
+            if (string.IsNullOrEmpty(newEmail) || string.IsNullOrEmpty(token))
+            {
+                return RedirectToAction(nameof(EmailChangeFailed));
+            }
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user is null)
+            {
+                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername);
+            }
+
+            var result = await _userManager.ChangeEmailAsync(user, newEmail, token);
+            if (!result.Succeeded)
+            {
+                return RedirectToAction(nameof(EmailChangeFailed));
+            }
+
+            return RedirectToAction(nameof(Index), new { message = $"Your e-mail address has been changed to '{newEmail}'." });
+        }
+
+        public ViewResult EmailChangeFailed() => View();
+
         public ViewResult NormalLoginAdded() => View();
 
         public ViewResult RegistrationComplete() => View();

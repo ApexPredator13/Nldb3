@@ -57,6 +57,7 @@ namespace WebsiteTests.Tools
             // things that always succeed
             _userManager.Setup(x => x.GeneratePasswordResetTokenAsync(It.IsAny<IdentityUser>())).ReturnsAsync("x");
             _userManager.Setup(x => x.GenerateEmailConfirmationTokenAsync(It.IsAny<IdentityUser>())).ReturnsAsync("x");
+            _userManager.Setup(x => x.GenerateChangeEmailTokenAsync(It.IsAny<IdentityUser>(), It.IsAny<string>())).ReturnsAsync("x");
             _userManager.Setup(x => x.GetLoginsAsync(It.IsAny<IdentityUser>())).ReturnsAsync(new List<UserLoginInfo>());
             _userManager.Setup(x => x.GetUserId(It.IsAny<ClaimsPrincipal>())).Returns("some user id");
             _userManager.Setup(x => x.GetUserIdAsync(It.IsAny<IdentityUser>())).ReturnsAsync("some user id");
@@ -260,6 +261,18 @@ namespace WebsiteTests.Tools
         public UserManagerBuilder AddPasswordFails()
         {
             _userManager.Setup(x => x.AddPasswordAsync(It.IsAny<IdentityUser>(), It.IsAny<string>())).ReturnsAsync(IdentityResult.Failed());
+            return this;
+        }
+
+        public UserManagerBuilder ChangeEmailSucceeds()
+        {
+            _userManager.Setup(x => x.ChangeEmailAsync(It.IsAny<IdentityUser>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(IdentityResult.Success);
+            return this;
+        }
+
+        public UserManagerBuilder ChangeEmailFails()
+        {
+            _userManager.Setup(x => x.ChangeEmailAsync(It.IsAny<IdentityUser>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(IdentityResult.Failed());
             return this;
         }
 

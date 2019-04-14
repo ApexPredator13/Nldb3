@@ -471,6 +471,18 @@ namespace WebsiteTests.Tools
             return this;
         }
 
+        public MyAccountControllerBuilder ChangeEmailSucceeds()
+        {
+            _userManager.ChangeEmailSucceeds();
+            return this;
+        }
+
+        public MyAccountControllerBuilder ChangeEmailFails()
+        {
+            _userManager.ChangeEmailFails();
+            return this;
+        }
+
         public (MyAccountController controller, Mock<UserManager<IdentityUser>> userManager, Mock<IEmailService> emailService, Mock<SignInManager<IdentityUser>> signInManager) Build()
         {
             return (_controller, _userManager.GetMock(), _emailService, _signInManager.GetMock());
