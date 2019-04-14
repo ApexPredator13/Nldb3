@@ -14,6 +14,7 @@ using Website.Data;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Website.Infrastructure;
 
 namespace Website
 {
@@ -52,7 +53,7 @@ namespace Website
                 options.SignIn.RequireConfirmedEmail = false;
                 options.SignIn.RequireConfirmedPhoneNumber = false;
                 options.User.AllowedUserNameCharacters = string.Empty;
-                options.User.RequireUniqueEmail = true;
+                options.User.RequireUniqueEmail = false;
             })
                 .AddDefaultTokenProviders()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
@@ -91,6 +92,7 @@ namespace Website
 
             app.UseAuthentication();
             app.UseAuthorization();
+            app.CreateAdminUser();
         }
     }
 }

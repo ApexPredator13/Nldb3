@@ -28,7 +28,7 @@ namespace Website.Infrastructure
             throw new NotImplementedException();
         }
 
-        public string GenerateResetPasswordEmail(ForgotPasswordModel model, string callbackUrl)
+        public string GenerateResetPasswordEmail(string emailAddress, string callbackUrl)
         {
             throw new NotImplementedException();
         }

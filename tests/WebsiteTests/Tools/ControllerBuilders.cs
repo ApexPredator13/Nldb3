@@ -62,7 +62,7 @@ namespace WebsiteTests.Tools
             // fake email sender that always succeeds
             _emailService = new Mock<IEmailService>();
             _emailService.Setup(x => x.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(Task.CompletedTask);
-            _emailService.Setup(x => x.GenerateResetPasswordEmail(It.IsAny<ForgotPasswordModel>(), It.IsAny<string>())).Returns("x");
+            _emailService.Setup(x => x.GenerateResetPasswordEmail(It.IsAny<string>(), It.IsAny<string>())).Returns("x");
             _emailService.Setup(x => x.GenerateConfirmEmailAddressEmail(It.IsAny<string>(), It.IsAny<string>())).Returns("x");
 
             _controller = new AccountController(_signinManager.GetMockedObject(), _userManager.GetMockedObject(), _emailService.Object)
@@ -293,7 +293,7 @@ namespace WebsiteTests.Tools
         {
             _emailService = new Mock<IEmailService>();
             _emailService.Setup(x => x.GenerateConfirmEmailAddressEmail(It.IsAny<string>(), It.IsAny<string>())).Returns("x");
-            _emailService.Setup(x => x.GenerateResetPasswordEmail(It.IsAny<ForgotPasswordModel>(), It.IsAny<string>())).Returns("x");
+            _emailService.Setup(x => x.GenerateResetPasswordEmail(It.IsAny<string>(), It.IsAny<string>())).Returns("x");
             _emailService.Setup(x => x.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(Task.CompletedTask);
 
             var authService = new Mock<IAuthenticationService>();

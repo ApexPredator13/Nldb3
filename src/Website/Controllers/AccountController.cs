@@ -276,7 +276,7 @@ namespace Website.Controllers
             var code = await _userManager.GeneratePasswordResetTokenAsync(user);
             var callbackUrl = Url.Action(nameof(ForgotPassword), new { code });
 
-            var email = _emailSender.GenerateResetPasswordEmail(model, callbackUrl);
+            var email = _emailSender.GenerateResetPasswordEmail(model.Email ?? string.Empty, callbackUrl);
             await _emailSender.SendEmailAsync(email, "The Northernlion Database - Password Reset", email);
 
             return RedirectToAction(nameof(ForgotPasswordEmailSent));
