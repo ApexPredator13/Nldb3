@@ -5,10 +5,16 @@
     <UserSecretsId>aspnet-Website-386D1BF3-0CC3-4035-B90E-CD34A50BB8B2</UserSecretsId>
     <LangVersion>8.0</LangVersion>
     <NullableContextOptions>enable</NullableContextOptions>
+    <TypeScriptToolsVersion>3.3</TypeScriptToolsVersion>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="gulpfile.ts" />
+  </ItemGroup>
 
 
   <ItemGroup>
+    <PackageReference Include="BundlerMinifier.Core" Version="2.9.406" />
     <PackageReference Include="Google.Apis.YouTube.v3" Version="1.38.2.1488" />
     <PackageReference Include="MailKit" Version="2.1.4" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="3.0.0-preview3-19153-02" />
@@ -29,6 +35,13 @@
   <ItemGroup>
     <Folder Include="Migrations\" />
     <Folder Include="Views\Account\" />
+    <Folder Include="wwwroot\js\dist\" />
+    <Folder Include="wwwroot\js\src\" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <TypeScriptCompile Include="gulpfile.ts" />
   </ItemGroup>
 
 </Project>
