@@ -1,4 +1,4 @@
-﻿namespace Website.Models.Isaac.Enums
+﻿namespace Website.Models.Database.Enums
 {
     public enum SubmittedEpisodeFlagReason
     {

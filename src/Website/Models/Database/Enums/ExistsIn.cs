@@ -1,7 +1,8 @@
-﻿namespace Website.Models.Isaac.Enums
+﻿namespace Website.Models.Database.Enums
 {
     public enum ExistsIn
     {
+        Nowhere,
         EveryVersion,
         VanillaOnly,
         WrathOfTheLambOnly,

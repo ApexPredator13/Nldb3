@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Website.Models.Isaac;
+using Website.Models.Database;
 
 #nullable disable
 namespace Website.Data

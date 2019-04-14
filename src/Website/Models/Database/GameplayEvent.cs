@@ -1,12 +1,18 @@
 ﻿using System.Collections.Generic;
-using Website.Models.Isaac.Enums;
+using System.ComponentModel.DataAnnotations;
+using Website.Models.Database.Enums;
 
-namespace Website.Models.Isaac
+#nullable disable
+namespace Website.Models.Database
 {
     public class GameplayEvent
     {
         public int Id { get; set; }
+
+        [Required]
         public GameplayEventType EventType { get; set; }
+
+        [Required]
         public List<IsaacResource> Resources { get; set; }
     }
 }
