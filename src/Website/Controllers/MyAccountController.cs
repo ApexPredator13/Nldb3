@@ -350,6 +350,8 @@ namespace Website.Controllers
             return RedirectToAction(nameof(NormalLoginAdded));
         }
 
+        public ViewResult NormalLoginAdded() => View();
+
         [HttpGet]
         public async Task<ActionResult> ChangeEmail()
         {
@@ -424,7 +426,47 @@ namespace Website.Controllers
 
         public ViewResult EmailChangeFailed() => View();
 
-        public ViewResult NormalLoginAdded() => View();
+        [HttpGet]
+        public async Task<ActionResult> ChangeUsername()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user is null)
+            {
+                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername);
+            }
+
+            ViewData["CurrentUsername"] = user.UserName;
+
+            return View(new ChangeUsernameModel());
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> ChangeUsername(ChangeUsernameModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user is null)
+            {
+                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername);
+            }
+
+            var result = await _userManager.SetUserNameAsync(user, model.NewUsername);
+
+            if (!result.Succeeded)
+            {
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+                return View(model);
+            }
+
+            return RedirectToAction(nameof(Index), new { message = $"Your username has been changed to {model.NewUsername}" });
+        }
 
         public ViewResult RegistrationComplete() => View();
     }

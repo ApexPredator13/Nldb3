@@ -483,6 +483,18 @@ namespace WebsiteTests.Tools
             return this;
         }
 
+        public MyAccountControllerBuilder SetUsernameSucceeds()
+        {
+            _userManager.SetUsernameSucceeds();
+            return this;
+        }
+
+        public MyAccountControllerBuilder SetUsernameFails()
+        {
+            _userManager.SetUsernameFails();
+            return this;
+        }
+
         public (MyAccountController controller, Mock<UserManager<IdentityUser>> userManager, Mock<IEmailService> emailService, Mock<SignInManager<IdentityUser>> signInManager) Build()
         {
             return (_controller, _userManager.GetMock(), _emailService, _signInManager.GetMock());

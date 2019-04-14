@@ -1209,5 +1209,134 @@ namespace WebsiteTests.Controllers
             userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
             userManager.Verify(x => x.ChangeEmailAsync(It.IsAny<IdentityUser>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
         }
+
+        [Fact(DisplayName = "ChangeUsername [GET] redirects to login page if user is not found")]
+        public async Task T53()
+        {
+            // arrange
+            var (controller, userManager, _, _) = new MyAccountControllerBuilder()
+                .GetUserFails()
+                .Build();
+
+            // act
+            var result = await controller.ChangeUsername() as RedirectToActionResult;
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>();
+            result.ActionName.Should().Be(nameof(AccountController.Login));
+            result.ControllerName.Should().Be(AccountController.Controllername);
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+        }
+
+        [Fact(DisplayName = "ChangeUsername [GET] shows view if user was found")]
+        public async Task T54()
+        {
+            // arrange
+            var (controller, userManager, _, _) = new MyAccountControllerBuilder()
+                .GetUserSucceeds()
+                .Build();
+
+            // act
+            var result = await controller.ChangeUsername() as ViewResult;
+
+            // assert
+            result.Should().BeOfType<ViewResult>();
+            result.ViewName.Should().BeNull();
+            result.Model.Should().BeOfType<ChangeUsernameModel>();
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+        }
+
+        [Fact(DisplayName = "ChangeUsername [POST] redisplays view if model is invalid")]
+        public async Task T55()
+        {
+            // arrange
+            var (controller, userManager, _, _) = new MyAccountControllerBuilder().Build();
+
+            var model = new ChangeUsernameModel
+            {
+                NewUsername = "x"
+            };
+
+            controller.ModelState.AddModelError("some", "error");
+
+            // act
+            var result = await controller.ChangeUsername(model) as ViewResult;
+
+            // assert
+            result.Should().BeOfType<ViewResult>();
+            result.ViewName.Should().BeNull();
+            result.Model.Should().BeEquivalentTo(model);
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Never);
+        }
+
+        [Fact(DisplayName = "ChangeUsername [POST] redirects to login page if user is not found")]
+        public async Task T56()
+        {
+            // arrange
+            var (controller, userManager, _, _) = new MyAccountControllerBuilder()
+                .GetUserFails()
+                .Build();
+
+            // act
+            var result = await controller.ChangeUsername(new ChangeUsernameModel()) as RedirectToActionResult;
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>();
+            result.ActionName.Should().Be(nameof(AccountController.Login));
+            result.ControllerName.Should().Be(AccountController.Controllername);
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.SetUserNameAsync(It.IsAny<IdentityUser>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [Fact(DisplayName = "ChangeUsername [POST] redisplays view if username could not be changed")]
+        public async Task T57()
+        {
+            // arrange
+            var (controller, userManager, _, _) = new MyAccountControllerBuilder()
+                .GetUserSucceeds()
+                .SetUsernameFails()
+                .Build();
+
+            var model = new ChangeUsernameModel
+            {
+                NewUsername = "x"
+            };
+
+            // act
+            var result = await controller.ChangeUsername(model) as ViewResult;
+
+            // assert
+            result.Should().BeOfType<ViewResult>();
+            result.ViewName.Should().BeNull();
+            result.Model.Should().BeEquivalentTo(model);
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.SetUserNameAsync(It.IsAny<IdentityUser>(), It.IsAny<string>()), Times.Once);
+        }
+
+        [Fact(DisplayName = "ChangeUsername [POST] redirects to profile page with success message after username was changed successfully")]
+        public async Task T58()
+        {
+            // arrange
+            var (controller, userManager, _, _) = new MyAccountControllerBuilder()
+                .GetUserSucceeds()
+                .SetUsernameSucceeds()
+                .Build();
+
+            // act
+            var result = await controller.ChangeUsername(new ChangeUsernameModel()) as RedirectToActionResult;
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>();
+            result.ActionName.Should().Be(nameof(MyAccountController.Index));
+            result.RouteValues.Should().ContainKey("message");
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.SetUserNameAsync(It.IsAny<IdentityUser>(), It.IsAny<string>()), Times.Once);
+        }
     }
 }

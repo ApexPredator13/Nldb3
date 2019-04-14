@@ -276,6 +276,18 @@ namespace WebsiteTests.Tools
             return this;
         }
 
+        public UserManagerBuilder SetUsernameSucceeds()
+        {
+            _userManager.Setup(x => x.SetUserNameAsync(It.IsAny<IdentityUser>(), It.IsAny<string>())).ReturnsAsync(IdentityResult.Success);
+            return this;
+        }
+
+        public UserManagerBuilder SetUsernameFails()
+        {
+            _userManager.Setup(x => x.SetUserNameAsync(It.IsAny<IdentityUser>(), It.IsAny<string>())).ReturnsAsync(IdentityResult.Failed());
+            return this;
+        }
+
         public UserManager<IdentityUser> GetMockedObject() => _userManager.Object;
         public Mock<UserManager<IdentityUser>> GetMock() => _userManager;
     }
