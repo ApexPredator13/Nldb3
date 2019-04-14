@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Website.Models.Isaac;
 
+#nullable disable
 namespace Website.Data
 {
     public class ApplicationDbContext : IdentityDbContext
