@@ -37,7 +37,6 @@ namespace Website
             });
 
             services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")));
-            services.AddDbContext<ApplicationIdentityDbContext>(options => options.UseNpgsql(Configuration.GetConnectionString("IdentityConnection")));
 
             services.AddIdentity<IdentityUser, IdentityRole>(options =>
             {
@@ -56,7 +55,7 @@ namespace Website
                 options.User.RequireUniqueEmail = true;
             })
                 .AddDefaultTokenProviders()
-                .AddEntityFrameworkStores<ApplicationIdentityDbContext>();
+                .AddEntityFrameworkStores<ApplicationDbContext>();
 
             services.AddMvc()
                 .AddNewtonsoftJson();
