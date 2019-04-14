@@ -42,7 +42,8 @@ namespace Website.Controllers
 
             if (user is null)
             {
-                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername);
+                var returnUrl = Url.Action(nameof(ChangePassword));
+                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername, new { returnUrl });
             }
 
             var hasPassword = await _userManager.HasPasswordAsync(user);
@@ -67,7 +68,8 @@ namespace Website.Controllers
 
             if (user is null)
             {
-                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername);
+                var returnUrl = Url.Action(nameof(ChangePassword));
+                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername, new { returnUrl });
             }
 
             var hasPassword = await _userManager.HasPasswordAsync(user);
@@ -99,7 +101,8 @@ namespace Website.Controllers
 
             if (user is null)
             {
-                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername);
+                var returnUrl = Url.Action(nameof(DeleteAccount));
+                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername, new { returnUrl });
             }
 
             bool userHasPassword = await _userManager.HasPasswordAsync(user);
@@ -114,7 +117,8 @@ namespace Website.Controllers
 
             if (user is null)
             {
-                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername);
+                var returnUrl = Url.Action(nameof(DeleteAccount));
+                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername, new { returnUrl });
             }
 
             var userHasPassword = await _userManager.HasPasswordAsync(user);
@@ -179,7 +183,8 @@ namespace Website.Controllers
 
             if (user is null)
             {
-                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername);
+                var returnUrl = Url.Action(nameof(Index));
+                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername, new { returnUrl });
             }
 
             var personalData = new Dictionary<string, string>();
@@ -212,7 +217,8 @@ namespace Website.Controllers
 
             if (user is null)
             {
-                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername);
+                var returnUrl = Url.Action(nameof(ExternalLogins));
+                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername, new { returnUrl });
             }
 
             await FillViewDataForExternalLoginPage(user, ViewData);
@@ -227,7 +233,8 @@ namespace Website.Controllers
 
             if (user is null)
             {
-                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername);
+                var returnUrl = Url.Action(nameof(ExternalLogins));
+                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername, new { returnUrl });
             }
 
             if (!ModelState.IsValid)
@@ -265,7 +272,8 @@ namespace Website.Controllers
 
             if (user is null)
             {
-                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername);
+                var returnUrl = Url.Action(nameof(ExternalLogins));
+                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername, new { returnUrl });
             }
 
             var info = await _signInManager.GetExternalLoginInfoAsync(await _userManager.GetUserIdAsync(user));
@@ -293,7 +301,8 @@ namespace Website.Controllers
 
             if (user is null)
             {
-                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername);
+                var returnUrl = Url.Action(nameof(AddNormalLogin));
+                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername, new { returnUrl });
             }
 
             var hasPassword = await _userManager.HasPasswordAsync(user);
@@ -318,7 +327,8 @@ namespace Website.Controllers
 
             if (user is null)
             {
-                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername);
+                var returnUrl = Url.Action(nameof(AddNormalLogin));
+                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername, new { returnUrl });
             }
 
             var hasPassword = await _userManager.HasPasswordAsync(user);
@@ -359,7 +369,8 @@ namespace Website.Controllers
 
             if (user is null)
             {
-                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername);
+                var returnUrl = Url.Action(nameof(ChangeEmail));
+                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername, new { returnUrl });
             }
 
             if (user.Email is null)
@@ -382,7 +393,8 @@ namespace Website.Controllers
 
             if (user is null)
             {
-                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername);
+                var returnUrl = Url.Action(nameof(ChangeEmail));
+                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername, new { returnUrl });
             }
 
             if (user.Email is null)
@@ -412,7 +424,8 @@ namespace Website.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user is null)
             {
-                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername);
+                var returnUrl = Url.Action(nameof(ChangeEmailConfirmation), new { newEmail, token });
+                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername, new { returnUrl });
             }
 
             var result = await _userManager.ChangeEmailAsync(user, newEmail, token);
@@ -432,7 +445,8 @@ namespace Website.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user is null)
             {
-                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername);
+                var returnUrl = Url.Action(nameof(ChangeUsername));
+                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername, new { returnUrl });
             }
 
             ViewData["CurrentUsername"] = user.UserName;
@@ -451,7 +465,8 @@ namespace Website.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user is null)
             {
-                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername);
+                var returnUrl = Url.Action(nameof(ChangeUsername));
+                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername, new { returnUrl });
             }
 
             var result = await _userManager.SetUserNameAsync(user, model.NewUsername);
