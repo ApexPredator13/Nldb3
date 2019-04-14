@@ -49,7 +49,7 @@ namespace Website.Controllers
 
             if (!hasPassword)
             {
-                return RedirectToAction(nameof(SetPassword));
+                return RedirectToAction(nameof(AddNormalLogin));
             }
 
             return View(new ChangePasswordModel());
@@ -74,7 +74,7 @@ namespace Website.Controllers
 
             if (!hasPassword)
             {
-                return RedirectToAction(nameof(SetPassword));
+                return RedirectToAction(nameof(AddNormalLogin));
             }
 
             var result = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
@@ -286,7 +286,71 @@ namespace Website.Controllers
             return RedirectToAction(nameof(ExternalLogins));
         }
 
-        public ViewResult SetPassword() => View();
+        [HttpGet]
+        public async Task<ActionResult> AddNormalLogin()
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user is null)
+            {
+                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername);
+            }
+
+            var hasPassword = await _userManager.HasPasswordAsync(user);
+
+            if (hasPassword)
+            {
+                return RedirectToAction(nameof(ChangePassword));
+            }
+
+            return View(new AddNormalLoginModel());
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> AddNormalLogin([FromForm] AddNormalLoginModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user is null)
+            {
+                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername);
+            }
+
+            var hasPassword = await _userManager.HasPasswordAsync(user);
+            if (hasPassword)
+            {
+                return RedirectToAction(nameof(ChangePassword));
+            }
+
+                var result = await _userManager.SetEmailAsync(user, model.Email);
+            if (!result.Succeeded)
+            {
+                ModelState.AddModelError(string.Empty, "An error occurred while adding the login data to your profile. Please try again.");
+                return View(model);
+            }
+
+            result = await _userManager.AddPasswordAsync(user, model.Password);
+            if (!result.Succeeded)
+            {
+                ModelState.AddModelError(string.Empty, "An error occurred while adding the login data to your profile. Please try again.");
+                return View(model);
+            }
+
+            var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var userId = user.Id;
+            var callbackUrl = Url.Action(nameof(AccountController.ConfirmEmail), AccountController.Controllername, new { userId, code });
+            var emailMessage = _emailService.GenerateConfirmEmailAddressEmail(model.Email, callbackUrl);
+            await _emailService.SendEmailAsync(model.Email, "The Northernlion Database - e-mail confirmation", emailMessage);
+
+            return RedirectToAction(nameof(NormalLoginAdded));
+        }
+
+        public ViewResult NormalLoginAdded() => View();
 
         public ViewResult RegistrationComplete() => View();
     }

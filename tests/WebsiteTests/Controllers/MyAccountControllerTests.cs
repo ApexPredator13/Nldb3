@@ -35,7 +35,7 @@ namespace WebsiteTests.Controllers
             userManager.Verify(x => x.HasPasswordAsync(It.IsAny<IdentityUser>()), Times.Never);
         }
 
-        [Fact(DisplayName = "ChangePassword [GET] redirects to set password page if user has no password yet")]
+        [Fact(DisplayName = "ChangePassword [GET] redirects to add normal login page if user has no password yet")]
         public async Task T2()
         {
             // arrange
@@ -50,7 +50,7 @@ namespace WebsiteTests.Controllers
 
             // assert
             result.Should().BeOfType<RedirectToActionResult>();
-            result.ActionName.Should().Be(nameof(MyAccountController.SetPassword));
+            result.ActionName.Should().Be(nameof(MyAccountController.AddNormalLogin));
 
             userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
             userManager.Verify(x => x.HasPasswordAsync(It.IsAny<IdentityUser>()), Times.Once);
@@ -122,7 +122,7 @@ namespace WebsiteTests.Controllers
             userManager.Verify(x => x.HasPasswordAsync(It.IsAny<IdentityUser>()), Times.Never);
         }
 
-        [Fact(DisplayName = "ChangePassword [POST] redirects to set password page if user has no password yet")]
+        [Fact(DisplayName = "ChangePassword [POST] redirects to add normal login page if user has no password yet")]
         public async Task T6()
         {
             // arrange
@@ -136,7 +136,7 @@ namespace WebsiteTests.Controllers
 
             // assert
             result.Should().BeOfType<RedirectToActionResult>();
-            result.ActionName.Should().Be(nameof(MyAccountController.SetPassword));
+            result.ActionName.Should().Be(nameof(MyAccountController.AddNormalLogin));
 
             userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
             userManager.Verify(x => x.HasPasswordAsync(It.IsAny<IdentityUser>()), Times.Once);
@@ -768,6 +768,225 @@ namespace WebsiteTests.Controllers
             userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
             signInManager.Verify(x => x.GetExternalLoginInfoAsync(It.IsAny<string>()), Times.Once);
             userManager.Verify(x => x.AddLoginAsync(It.IsAny<IdentityUser>(), It.IsAny<UserLoginInfo>()), Times.Once);
+        }
+
+        [Fact(DisplayName = "AddNormalLogin [GET] redirects to login page if user is not found")]
+        public async Task T33()
+        {
+            // arrange
+            var (controller, userManager, _, signInManager) = new MyAccountControllerBuilder()
+                .GetUserFails()
+                .Build();
+
+            // act
+            var result = await controller.AddNormalLogin() as RedirectToActionResult;
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>();
+            result.ActionName.Should().Be(nameof(AccountController.Login));
+            result.ControllerName.Should().Be(AccountController.Controllername);
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.HasPasswordAsync(It.IsAny<IdentityUser>()), Times.Never);
+        }
+
+        [Fact(DisplayName = "AddNormalLogin [GET] redirects to change password page if user has a password already")]
+        public async Task T34()
+        {
+            // arrange
+            var (controller, userManager, _, signInManager) = new MyAccountControllerBuilder()
+                .GetUserSucceeds()
+                .UserHasPassword()
+                .Build();
+            
+            // act
+            var result = await controller.AddNormalLogin() as RedirectToActionResult;
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>();
+            result.ActionName.Should().Be(nameof(MyAccountController.ChangePassword));
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.HasPasswordAsync(It.IsAny<IdentityUser>()), Times.Once);
+        }
+
+        [Fact(DisplayName = "AddNormalLogin [GET] shows view if user has no email/password login yet")]
+        public async Task T35()
+        {
+            // arrange
+            var (controller, userManager, _, signInManager) = new MyAccountControllerBuilder()
+                .GetUserSucceeds()
+                .UserHasNoPassword()
+                .Build();
+
+            // act
+            var result = await controller.AddNormalLogin() as ViewResult;
+
+            // assert
+            result.Should().BeOfType<ViewResult>();
+            result.ViewName.Should().BeNull();
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.HasPasswordAsync(It.IsAny<IdentityUser>()), Times.Once);
+        }
+
+        [Fact(DisplayName = "AddNormalLogin [POST] redisplays view if model is invalid")]
+        public async Task T36()
+        {
+            // arrange
+            var (controller, userManager, _, _) = new MyAccountControllerBuilder().Build();
+
+            var model = new AddNormalLoginModel
+            {
+                ConfirmPassword = "c",
+                Email = "e",
+                Password = "p"
+            };
+
+            controller.ModelState.AddModelError("some", "error");
+
+            // act
+            var result = await controller.AddNormalLogin(model) as ViewResult;
+
+            // assert
+            result.Should().BeOfType<ViewResult>();
+            result.ViewName.Should().BeNull();
+            result.Model.Should().BeEquivalentTo(model);
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Never);
+            userManager.Verify(x => x.HasPasswordAsync(It.IsAny<IdentityUser>()), Times.Never);
+        }
+
+        [Fact(DisplayName = "AddNormalLogin [POST] redirects to login page if user is not found")]
+        public async Task T37()
+        {
+            // arrange
+            var (controller, userManager, _, signInManager) = new MyAccountControllerBuilder()
+                .GetUserFails()
+                .Build();
+
+            // act
+            var result = await controller.AddNormalLogin(new AddNormalLoginModel()) as RedirectToActionResult;
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>();
+            result.ActionName.Should().Be(nameof(AccountController.Login));
+            result.ControllerName.Should().Be(AccountController.Controllername);
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.HasPasswordAsync(It.IsAny<IdentityUser>()), Times.Never);
+        }
+
+        [Fact(DisplayName = "AddNormalLogin [POST] redirects to change password page if user has a password set already")]
+        public async Task T38()
+        {
+            // arrange
+            var (controller, userManager, _, signInManager) = new MyAccountControllerBuilder()
+                .GetUserSucceeds()
+                .UserHasPassword()
+                .Build();
+
+            // act
+            var result = await controller.AddNormalLogin(new AddNormalLoginModel()) as RedirectToActionResult;
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>();
+            result.ActionName.Should().Be(nameof(MyAccountController.ChangePassword));
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.HasPasswordAsync(It.IsAny<IdentityUser>()), Times.Once);
+            userManager.Verify(x => x.SetEmailAsync(It.IsAny<IdentityUser>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [Fact(DisplayName = "AddNormalLogin [POST] redisplays view if email cannot be added to profile")]
+        public async Task T39()
+        {
+            // arrange
+            var (controller, userManager, _, signInManager) = new MyAccountControllerBuilder()
+                .GetUserSucceeds()
+                .UserHasNoPassword()
+                .SetEmailFails()
+                .Build();
+
+            var model = new AddNormalLoginModel
+            {
+                ConfirmPassword = "c",
+                Email = "e",
+                Password = "p"
+            };
+
+            // act
+            var result = await controller.AddNormalLogin(model) as ViewResult;
+
+            // assert
+            result.Should().BeOfType<ViewResult>();
+            result.ViewName.Should().BeNull();
+            result.Model.Should().BeEquivalentTo(model);
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.HasPasswordAsync(It.IsAny<IdentityUser>()), Times.Once);
+            userManager.Verify(x => x.SetEmailAsync(It.IsAny<IdentityUser>(), It.IsAny<string>()), Times.Once);
+            userManager.Verify(x => x.AddPasswordAsync(It.IsAny<IdentityUser>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [Fact(DisplayName = "AddNormalLogin [POST] redisplays view if password cannot be added to profile")]
+        public async Task T40()
+        {
+            // arrange
+            var (controller, userManager, _, signInManager) = new MyAccountControllerBuilder()
+                .GetUserSucceeds()
+                .UserHasNoPassword()
+                .SetEmailSucceeds()
+                .AddPasswordFails()
+                .Build();
+
+            var model = new AddNormalLoginModel
+            {
+                ConfirmPassword = "c",
+                Email = "e",
+                Password = "p"
+            };
+
+            // act
+            var result = await controller.AddNormalLogin(model) as ViewResult;
+
+            // assert
+            result.Should().BeOfType<ViewResult>();
+            result.ViewName.Should().BeNull();
+            result.Model.Should().BeEquivalentTo(model);
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.HasPasswordAsync(It.IsAny<IdentityUser>()), Times.Once);
+            userManager.Verify(x => x.SetEmailAsync(It.IsAny<IdentityUser>(), It.IsAny<string>()), Times.Once);
+            userManager.Verify(x => x.AddPasswordAsync(It.IsAny<IdentityUser>(), It.IsAny<string>()), Times.Once);
+            userManager.Verify(x => x.GenerateEmailConfirmationTokenAsync(It.IsAny<IdentityUser>()), Times.Never);
+        }
+
+        [Fact(DisplayName = "AddNormalLogin [POST] sends email and redirects to success page if everything was OK")]
+        public async Task T41()
+        {
+            // arrange
+            var (controller, userManager, emailService, signInManager) = new MyAccountControllerBuilder()
+                .GetUserSucceeds()
+                .UserHasNoPassword()
+                .SetEmailSucceeds()
+                .AddPasswordSucceeds()
+                .Build();
+
+            // act
+            var result = await controller.AddNormalLogin(new AddNormalLoginModel()) as RedirectToActionResult;
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>();
+            result.ActionName.Should().Be(nameof(MyAccountController.NormalLoginAdded));
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.HasPasswordAsync(It.IsAny<IdentityUser>()), Times.Once);
+            userManager.Verify(x => x.SetEmailAsync(It.IsAny<IdentityUser>(), It.IsAny<string>()), Times.Once);
+            userManager.Verify(x => x.AddPasswordAsync(It.IsAny<IdentityUser>(), It.IsAny<string>()), Times.Once);
+            userManager.Verify(x => x.GenerateEmailConfirmationTokenAsync(It.IsAny<IdentityUser>()), Times.Once);
+            emailService.Verify(x => x.GenerateConfirmEmailAddressEmail(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+            emailService.Verify(x => x.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
         }
     }
 }

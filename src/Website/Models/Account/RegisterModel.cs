@@ -16,6 +16,7 @@ namespace Website.Models.Account
         [Required(ErrorMessage = "Please pick a password")]
         [DataType(DataType.Password)]
         [Display(Name = "Your password")]
+        [StringLength(100, MinimumLength = 6, ErrorMessage = "The password must be at least 6 characters long")]
         public string Password { get; set; } = string.Empty;
 
         [DataType(DataType.Password)]

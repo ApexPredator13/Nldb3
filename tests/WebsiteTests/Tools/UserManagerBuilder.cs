@@ -239,6 +239,30 @@ namespace WebsiteTests.Tools
             return this;
         }
 
+        public UserManagerBuilder SetEmailSucceeds()
+        {
+            _userManager.Setup(x => x.SetEmailAsync(It.IsAny<IdentityUser>(), It.IsAny<string>())).ReturnsAsync(IdentityResult.Success);
+            return this;
+        }
+
+        public UserManagerBuilder SetEmailFails()
+        {
+            _userManager.Setup(x => x.SetEmailAsync(It.IsAny<IdentityUser>(), It.IsAny<string>())).ReturnsAsync(IdentityResult.Failed());
+            return this;
+        }
+
+        public UserManagerBuilder AddPasswordSucceeds()
+        {
+            _userManager.Setup(x => x.AddPasswordAsync(It.IsAny<IdentityUser>(), It.IsAny<string>())).ReturnsAsync(IdentityResult.Success);
+            return this;
+        }
+
+        public UserManagerBuilder AddPasswordFails()
+        {
+            _userManager.Setup(x => x.AddPasswordAsync(It.IsAny<IdentityUser>(), It.IsAny<string>())).ReturnsAsync(IdentityResult.Failed());
+            return this;
+        }
+
         public UserManager<IdentityUser> GetMockedObject() => _userManager.Object;
         public Mock<UserManager<IdentityUser>> GetMock() => _userManager;
     }
