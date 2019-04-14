@@ -44,6 +44,7 @@ namespace WebsiteTests.Tools
             _signinManager.Setup(x => x.SignInAsync(It.IsAny<IdentityUser>(), It.IsAny<bool>(), It.IsAny<string>())).Returns(Task.CompletedTask);
             _signinManager.Setup(x => x.SignInAsync(It.IsAny<IdentityUser>(), It.IsAny<AuthenticationProperties>(), It.IsAny<string>())).Returns(Task.CompletedTask);
             _signinManager.Setup(x => x.RefreshSignInAsync(It.IsAny<IdentityUser>())).Returns(Task.CompletedTask);
+            _signinManager.Setup(x => x.GetExternalAuthenticationSchemesAsync()).ReturnsAsync(new List<AuthenticationScheme>());
         }
 
         public SigninManagerBuilder PasswordSignInSucceeds()

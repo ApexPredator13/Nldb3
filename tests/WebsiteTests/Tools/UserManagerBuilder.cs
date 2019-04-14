@@ -57,6 +57,9 @@ namespace WebsiteTests.Tools
             // things that always succeed
             _userManager.Setup(x => x.GeneratePasswordResetTokenAsync(It.IsAny<IdentityUser>())).ReturnsAsync("x");
             _userManager.Setup(x => x.GenerateEmailConfirmationTokenAsync(It.IsAny<IdentityUser>())).ReturnsAsync("x");
+            _userManager.Setup(x => x.GetLoginsAsync(It.IsAny<IdentityUser>())).ReturnsAsync(new List<UserLoginInfo>());
+            _userManager.Setup(x => x.GetUserId(It.IsAny<ClaimsPrincipal>())).Returns("some user id");
+            _userManager.Setup(x => x.GetUserIdAsync(It.IsAny<IdentityUser>())).ReturnsAsync("some user id");
         }
 
         public UserManagerBuilder GetUserAsyncSucceeds(string userName = null, string email = null)
@@ -221,6 +224,18 @@ namespace WebsiteTests.Tools
         {
             _userManager.Setup(x => x.CreateAsync(It.IsAny<IdentityUser>())).ReturnsAsync(IdentityResult.Failed());
             _userManager.Setup(x => x.CreateAsync(It.IsAny<IdentityUser>(), It.IsAny<string>())).ReturnsAsync(IdentityResult.Failed());
+            return this;
+        }
+
+        public UserManagerBuilder RemoveLoginFails()
+        {
+            _userManager.Setup(x => x.RemoveLoginAsync(It.IsAny<IdentityUser>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(IdentityResult.Failed());
+            return this;
+        }
+
+        public UserManagerBuilder RemoveLoginSucceeds()
+        {
+            _userManager.Setup(x => x.RemoveLoginAsync(It.IsAny<IdentityUser>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(IdentityResult.Success);
             return this;
         }
 

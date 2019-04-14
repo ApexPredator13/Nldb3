@@ -1,7 +1,13 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Website.Models.MyAccount;
 using Website.Services;
@@ -50,7 +56,7 @@ namespace Website.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> ChangePassword(ChangePasswordModel model)
+        public async Task<ActionResult> ChangePassword([FromForm] ChangePasswordModel model)
         {
             if (!ModelState.IsValid)
             {
@@ -165,6 +171,120 @@ namespace Website.Controllers
 
         [AllowAnonymous]
         public ViewResult AccountWasDeleted() => View();
+
+        [HttpPost]
+        public async Task<ActionResult> DownloadMyData()
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user is null)
+            {
+                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername);
+            }
+
+            var personalData = new Dictionary<string, string>();
+            var personalDataProperties = typeof(IdentityUser).GetProperties().Where(x => Attribute.IsDefined(x, typeof(PersonalDataAttribute)));
+
+            foreach (var p in personalDataProperties)
+            {
+                personalData.Add(p.Name, p.GetValue(user)?.ToString() ?? "");
+            }
+
+            Response.Headers.Add("Content-Disposition", "attachment; filename=PersonalData.txt");
+            return new FileContentResult(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(personalData)), "text/plain");
+        }
+
+        private async Task FillViewDataForExternalLoginPage(IdentityUser user, ViewDataDictionary viewData)
+        {
+            var currentLogins = await _userManager.GetLoginsAsync(user);
+            var otherLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).Where(scheme => currentLogins.All(login => scheme.Name != login.LoginProvider)).ToList();
+            var showRemoveButton = user.PasswordHash != null || currentLogins.Count > 1;
+
+            viewData["CurrentLogins"] = currentLogins;
+            viewData["OtherLogins"] = otherLogins;
+            viewData["ShowRemoveButton"] = showRemoveButton;
+        }
+
+        [HttpGet]
+        public async Task<ActionResult> ExternalLogins()
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user is null)
+            {
+                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername);
+            }
+
+            await FillViewDataForExternalLoginPage(user, ViewData);
+
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> RemoveExternalLogin([FromForm] RemoveLoginModel model)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user is null)
+            {
+                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername);
+            }
+
+            if (!ModelState.IsValid)
+            {
+                await FillViewDataForExternalLoginPage(user, ViewData);
+                return View(nameof(ExternalLogins));
+            }
+
+            var result = await _userManager.RemoveLoginAsync(user, model.LoginProvider, model.ProviderKey);
+
+            if (!result.Succeeded)
+            {
+                ModelState.AddModelError(string.Empty, "The external login could not be removed");
+                await FillViewDataForExternalLoginPage(user, ViewData);
+                return View(nameof(ExternalLogins));
+            }
+
+            await _signInManager.RefreshSignInAsync(user);
+            return RedirectToAction(nameof(ExternalLogins));
+        }
+
+        [HttpPost]
+        public async Task<ChallengeResult> LinkLogin([FromQuery] string provider)
+        {
+            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+            var redirectUrl = Url.Action(nameof(LinkLoginCallback), Controllername);
+            var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl, _userManager.GetUserId(User));
+            return new ChallengeResult(provider, properties);
+        }
+
+        [HttpGet]
+        public async Task<RedirectToActionResult> LinkLoginCallback()
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user is null)
+            {
+                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername);
+            }
+
+            var info = await _signInManager.GetExternalLoginInfoAsync(await _userManager.GetUserIdAsync(user));
+
+            if (info is null)
+            {
+                return RedirectToAction(nameof(Index), new { message = "An error occurred during external login, please try again." });
+            }
+
+            var result = await _userManager.AddLoginAsync(user, info);
+
+            if (!result.Succeeded)
+            {
+                return RedirectToAction(nameof(Index), new { message = "An error occurred during external login, please try again." });
+            }
+
+            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+            return RedirectToAction(nameof(ExternalLogins));
+        }
 
         public ViewResult SetPassword() => View();
 

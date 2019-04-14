@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -513,6 +514,260 @@ namespace WebsiteTests.Controllers
             userManager.Verify(x => x.HasPasswordAsync(It.IsAny<IdentityUser>()), Times.Once);
             userManager.Verify(x => x.DeleteAsync(It.IsAny<IdentityUser>()), Times.Once);
             signInManager.Verify(x => x.SignOutAsync(), Times.Never);
+        }
+
+        [Fact(DisplayName = "DownloadMyData [POST] redirects to login page if user is not found")]
+        public async Task T21()
+        {
+            // arrange
+            var (controller, userManager, _, _) = new MyAccountControllerBuilder()
+                .GetUserFails()
+                .Build();
+
+            // act
+            var result = await controller.DownloadMyData() as RedirectToActionResult;
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>();
+            result.ActionName.Should().Be(nameof(AccountController.Login));
+            result.ControllerName.Should().Be(AccountController.Controllername);
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+        }
+
+        [Fact(DisplayName = "DownloadMyData [POST] returns TXT file if everything went OK")]
+        public async Task T22()
+        {
+            // arrange
+            var (controller, userManager, _, _) = new MyAccountControllerBuilder()
+                .GetUserSucceeds()
+                .Build();
+
+            // act
+            var result = await controller.DownloadMyData() as FileContentResult;
+
+            // assert
+            result.Should().BeOfType<FileContentResult>();
+            result.ContentType.Should().Be("text/plain");
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+        }
+
+        [Fact(DisplayName = "ExternalLogins [GET] redirects to login page if user is not found")]
+        public async Task T23()
+        {
+            // arrange
+            var (controller, userManager, _, signInManager) = new MyAccountControllerBuilder()
+                .GetUserFails()
+                .Build();
+
+            // act
+            var result = await controller.ExternalLogins() as RedirectToActionResult;
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>();
+            result.ActionName.Should().Be(nameof(AccountController.Login));
+            result.ControllerName.Should().Be(AccountController.Controllername);
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.GetLoginsAsync(It.IsAny<IdentityUser>()), Times.Never);
+            signInManager.Verify(x => x.GetExternalAuthenticationSchemesAsync(), Times.Never);
+        }
+
+        [Fact(DisplayName = "ExternalLogins [GET] shows view with logins")]
+        public async Task T24()
+        {
+            // arrange
+            var (controller, userManager, _, signInManager) = new MyAccountControllerBuilder()
+                .GetUserSucceeds()
+                .Build();
+
+            // act
+            var result = await controller.ExternalLogins() as ViewResult;
+
+            // assert
+            result.Should().BeOfType<ViewResult>();
+            result.ViewName.Should().BeNull();
+            result.ViewData.Should().ContainKey("CurrentLogins").WhichValue.Should().BeOfType<List<UserLoginInfo>>();
+            result.ViewData.Should().ContainKey("OtherLogins").WhichValue.Should().BeOfType<List<AuthenticationScheme>>();
+            result.ViewData.Should().ContainKey("ShowRemoveButton").WhichValue.Should().Be(false);
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.GetLoginsAsync(It.IsAny<IdentityUser>()), Times.Once);
+            signInManager.Verify(x => x.GetExternalAuthenticationSchemesAsync(), Times.Once);
+        }
+
+        [Fact(DisplayName = "RemoveExternalLogin [POST] redirects to login page if user is not found")]
+        public async Task T25()
+        {
+            // arrange
+            var (controller, userManager, _, signInManager) = new MyAccountControllerBuilder()
+                .GetUserFails()
+                .Build();
+
+            // act
+            var result = await controller.RemoveExternalLogin(new RemoveLoginModel()) as RedirectToActionResult;
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>();
+            result.ActionName.Should().Be(nameof(AccountController.Login));
+            result.ControllerName.Should().Be(AccountController.Controllername);
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.GetLoginsAsync(It.IsAny<IdentityUser>()), Times.Never);
+            signInManager.Verify(x => x.GetExternalAuthenticationSchemesAsync(), Times.Never);
+        }
+
+        [Fact(DisplayName = "RemoveExternalLogin [POST] redisplays view if model is invalid")]
+        public async Task T26()
+        {
+            // arrange
+            var (controller, userManager, _, signInManager) = new MyAccountControllerBuilder()
+                .GetUserSucceeds()
+                .Build();
+
+            controller.ModelState.AddModelError("some", "error");
+
+            // act
+            var result = await controller.RemoveExternalLogin(new RemoveLoginModel()) as ViewResult;
+
+            // assert
+            result.Should().BeOfType<ViewResult>();
+            result.ViewName.Should().Be(nameof(MyAccountController.ExternalLogins));
+            result.Model.Should().BeNull();
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.GetLoginsAsync(It.IsAny<IdentityUser>()), Times.Once);
+            signInManager.Verify(x => x.GetExternalAuthenticationSchemesAsync(), Times.Once);
+            userManager.Verify(x => x.RemoveLoginAsync(It.IsAny<IdentityUser>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [Fact(DisplayName = "RemoveExternalLogin [POST] redisplays view if login could not be removed")]
+        public async Task T27()
+        {
+            // arrange
+            var (controller, userManager, _, signInManager) = new MyAccountControllerBuilder()
+                .GetUserSucceeds()
+                .RemoveLoginFails()
+                .Build();
+
+            // act
+            var result = await controller.RemoveExternalLogin(new RemoveLoginModel()) as ViewResult;
+
+            // assert
+            result.Should().BeOfType<ViewResult>();
+            result.ViewName.Should().Be(nameof(MyAccountController.ExternalLogins));
+            result.Model.Should().BeNull();
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.RemoveLoginAsync(It.IsAny<IdentityUser>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+            signInManager.Verify(x => x.RefreshSignInAsync(It.IsAny<IdentityUser>()), Times.Never);
+        }
+
+        [Fact(DisplayName = "RemoveExternalLogin [POST] redirects back to external login page if login was removed")]
+        public async Task T28()
+        {
+            // arrange
+            var (controller, userManager, _, signInManager) = new MyAccountControllerBuilder()
+                .GetUserSucceeds()
+                .RemoveLoginSucceeds()
+                .Build();
+
+            // act
+            var result = await controller.RemoveExternalLogin(new RemoveLoginModel()) as RedirectToActionResult;
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>();
+            result.ActionName.Should().Be(nameof(MyAccountController.ExternalLogins));
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.RemoveLoginAsync(It.IsAny<IdentityUser>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+            signInManager.Verify(x => x.RefreshSignInAsync(It.IsAny<IdentityUser>()), Times.Once);
+        }
+
+        [Fact(DisplayName = "LinkLoginCallback [GET] redirects to login page if user is not found")]
+        public async Task T29()
+        {
+            // arrange
+            var (controller, userManager, _, signInManager) = new MyAccountControllerBuilder()
+                .GetUserFails()
+                .Build();
+
+            // act
+            var result = await controller.LinkLoginCallback();
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>();
+            result.ActionName.Should().Be(nameof(AccountController.Login));
+            result.ControllerName.Should().Be(AccountController.Controllername);
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            signInManager.Verify(x => x.GetExternalLoginInfoAsync(It.IsAny<string>()), Times.Never);
+        }
+
+        [Fact(DisplayName = "LinkLoginCallback [GET] redirects to user profile with error message if login info is null")]
+        public async Task T30()
+        {
+            // arrange
+            var (controller, userManager, _, signInManager) = new MyAccountControllerBuilder()
+                .GetUserSucceeds()
+                .GetExternalLoginInfoAsyncFails()
+                .Build();
+
+            // act
+            var result = await controller.LinkLoginCallback();
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>();
+            result.ActionName.Should().Be(nameof(MyAccountController.Index));
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            signInManager.Verify(x => x.GetExternalLoginInfoAsync(It.IsAny<string>()), Times.Once);
+            userManager.Verify(x => x.AddLoginAsync(It.IsAny<IdentityUser>(), It.IsAny<UserLoginInfo>()), Times.Never);
+        }
+
+        [Fact(DisplayName = "LinkLoginCallback [GET] redirects to user profile with error message if login cannot be added to profile")]
+        public async Task T31()
+        {
+            // arrange
+            var (controller, userManager, _, signInManager) = new MyAccountControllerBuilder()
+                .GetUserSucceeds()
+                .GetExternalLoginInfoAsyncSucceeds()
+                .CannotAddLoginToUser()
+                .Build();
+
+            // act
+            var result = await controller.LinkLoginCallback();
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>();
+            result.ActionName.Should().Be(nameof(MyAccountController.Index));
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            signInManager.Verify(x => x.GetExternalLoginInfoAsync(It.IsAny<string>()), Times.Once);
+            userManager.Verify(x => x.AddLoginAsync(It.IsAny<IdentityUser>(), It.IsAny<UserLoginInfo>()), Times.Once);
+        }
+
+        [Fact(DisplayName = "LinkLoginCallback [GET] redirects to ExternalLogins after login was added")]
+        public async Task T32()
+        {
+            // arrange
+            var (controller, userManager, _, signInManager) = new MyAccountControllerBuilder()
+                .GetUserSucceeds()
+                .GetExternalLoginInfoAsyncSucceeds()
+                .CanAddLoginToUser()
+                .Build();
+
+            // act
+            var result = await controller.LinkLoginCallback();
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>();
+            result.ActionName.Should().Be(nameof(MyAccountController.ExternalLogins));
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            signInManager.Verify(x => x.GetExternalLoginInfoAsync(It.IsAny<string>()), Times.Once);
+            userManager.Verify(x => x.AddLoginAsync(It.IsAny<IdentityUser>(), It.IsAny<UserLoginInfo>()), Times.Once);
         }
     }
 }

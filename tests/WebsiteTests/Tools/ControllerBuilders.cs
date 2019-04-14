@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
@@ -286,6 +287,7 @@ namespace WebsiteTests.Tools
         private readonly Mock<IEmailService> _emailService;
         private readonly UserManagerBuilder _userManager;
         private readonly SigninManagerBuilder _signInManager;
+        private readonly Mock<IServiceProvider> _httpContextServiceProvider;
 
         public MyAccountControllerBuilder()
         {
@@ -294,7 +296,21 @@ namespace WebsiteTests.Tools
             _emailService.Setup(x => x.GenerateResetPasswordEmail(It.IsAny<ForgotPasswordModel>(), It.IsAny<string>())).Returns("x");
             _emailService.Setup(x => x.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(Task.CompletedTask);
 
-            var context = new DefaultHttpContext();
+            var authService = new Mock<IAuthenticationService>();
+            authService.Setup(x => x.SignOutAsync(It.IsAny<HttpContext>(), It.IsAny<string>(), It.IsAny<AuthenticationProperties>())).Returns(Task.CompletedTask);
+
+            _httpContextServiceProvider = new Mock<IServiceProvider>();
+            _httpContextServiceProvider.Setup(x => x.GetService(typeof(IAuthenticationService))).Returns(authService.Object);
+            _httpContextServiceProvider.Setup(sp => sp.GetService(typeof(IUrlHelperFactory))).Returns(new UrlHelperFactory());
+            _httpContextServiceProvider.Setup(sp => sp.GetService(typeof(ITempDataDictionaryFactory))).Returns(new TempDataDictionaryFactory(new SessionStateTempDataProvider(new FakeTempDataSerializer())));
+
+            var urlHelper = new Mock<IUrlHelper>(MockBehavior.Strict);
+            urlHelper.Setup(x => x.Action(It.IsAny<UrlActionContext>())).Returns("some url");
+
+            var context = new DefaultHttpContext()
+            {
+                RequestServices = _httpContextServiceProvider.Object
+            };
 
             _userManager = new UserManagerBuilder();
             _signInManager = new SigninManagerBuilder(_userManager.GetMockedObject(), context);
@@ -304,7 +320,8 @@ namespace WebsiteTests.Tools
                 ControllerContext = new ControllerContext()
                 {
                     HttpContext = context
-                }
+                },
+                Url = urlHelper.Object
             };
         }
 
@@ -391,6 +408,42 @@ namespace WebsiteTests.Tools
         public MyAccountControllerBuilder DeleteUserProfileSucceeds()
         {
             _userManager.DeleteAsyncSucceeds();
+            return this;
+        }
+
+        public MyAccountControllerBuilder RemoveLoginFails()
+        {
+            _userManager.RemoveLoginFails();
+            return this;
+        }
+
+        public MyAccountControllerBuilder RemoveLoginSucceeds()
+        {
+            _userManager.RemoveLoginSucceeds();
+            return this;
+        }
+
+        public MyAccountControllerBuilder GetExternalLoginInfoAsyncFails()
+        {
+            _signInManager.GetExternalLoginInfoAsyncFails();
+            return this;
+        }
+
+        public MyAccountControllerBuilder GetExternalLoginInfoAsyncSucceeds()
+        {
+            _signInManager.GetExternalLoginInfoAsyncSucceeds();
+            return this;
+        }
+
+        public MyAccountControllerBuilder CanAddLoginToUser()
+        {
+            _userManager.AddLoginAsyncSucceeds();
+            return this;
+        }
+
+        public MyAccountControllerBuilder CannotAddLoginToUser()
+        {
+            _userManager.AddLoginAsyncFails();
             return this;
         }
 
