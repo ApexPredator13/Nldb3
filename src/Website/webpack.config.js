@@ -9,7 +9,6 @@ module.exports = {
         path: path.resolve(__dirname, 'wwwroot', 'js', 'dist'),
         filename: '[name].[hash].min.js'
     },
-    devtool: 'inline-source-map',
     module: {
         rules: [
             {

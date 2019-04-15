@@ -5,11 +5,11 @@
     <UserSecretsId>aspnet-Website-386D1BF3-0CC3-4035-B90E-CD34A50BB8B2</UserSecretsId>
     <LangVersion>8.0</LangVersion>
     <NullableContextOptions>enable</NullableContextOptions>
-    <TypeScriptToolsVersion>3.3</TypeScriptToolsVersion>
+    <TypeScriptToolsVersion>3.4.3</TypeScriptToolsVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="gulpfile.ts" />
+    <Content Remove="wwwroot\js\src\validation.ts" />
   </ItemGroup>
 
 
@@ -36,12 +36,11 @@
     <Folder Include="Migrations\" />
     <Folder Include="Views\Account\" />
     <Folder Include="wwwroot\js\dist\" />
-    <Folder Include="wwwroot\js\src\" />
   </ItemGroup>
 
 
   <ItemGroup>
-    <TypeScriptCompile Include="gulpfile.ts" />
+    <TypeScriptCompile Include="wwwroot\js\src\validation.ts" />
   </ItemGroup>
 
 </Project>
