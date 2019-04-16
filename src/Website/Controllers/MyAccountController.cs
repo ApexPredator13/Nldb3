@@ -105,9 +105,9 @@ namespace Website.Controllers
                 return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername, new { returnUrl });
             }
 
-            bool userHasPassword = await _userManager.HasPasswordAsync(user);
+            ViewData["UserHasPassword"] = await _userManager.HasPasswordAsync(user);
 
-            return View(userHasPassword);
+            return View(new DeleteAccountInputModel());
         }
 
         [HttpPost]
@@ -122,6 +122,7 @@ namespace Website.Controllers
             }
 
             var userHasPassword = await _userManager.HasPasswordAsync(user);
+            ViewData["UserHasPassword"] = userHasPassword;
 
             // manual validation
             if (userHasPassword && string.IsNullOrEmpty(model.Password))

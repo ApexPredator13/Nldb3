@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
@@ -153,6 +155,36 @@ namespace Website.Controllers
             return LocalRedirect(model.ReturnUrl);
         }
 
+        private string GetExternalLoginUsername(ExternalLoginInfo info)
+        {
+            switch (info.LoginProvider.ToLower())
+            {
+                case "twitch":
+                    var twitchDisplayName = info.Principal.Claims.FirstOrDefault(x => x.Type.ToLower() == "urn:twitch:displayname");
+                    if (twitchDisplayName != null)
+                    {
+                        return twitchDisplayName.Value;
+                    }
+                    break;
+                case "steam":
+                    var steamName = info.Principal.Claims.FirstOrDefault(x => x.Type.ToLower() == ClaimTypes.Name);
+                    if (steamName != null)
+                    {
+                        return steamName.Value;
+                    }
+                    break;
+                case "twitter":
+                    var twitterScreenName = info.Principal.Claims.FirstOrDefault(x => x.Type.ToLower() == "urn:twitter:screenname");
+                    if (twitterScreenName != null)
+                    {
+                        return twitterScreenName.Value;
+                    }
+                    break;
+            }
+
+            return string.Empty;
+        }
+
         [HttpGet]
         public async Task<ActionResult> ExternalLoginCallback(string? returnUrl = null, string? remoteError = null)
         {
@@ -167,11 +199,13 @@ namespace Website.Controllers
             }
 
             var info = await _signInManager.GetExternalLoginInfoAsync();
-
             if (info is null)
             {
                 return RedirectToAction(nameof(ExternalLoginFailed));
             }
+
+            string existingUsername = GetExternalLoginUsername(info);
+            ViewData["ExistingUsername"] = existingUsername;
 
             var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, false, true);
 

@@ -1,6 +1,7 @@
 ﻿@{
     ViewData["Title"] = "Choose a username";
     var returnUrl = (string)ViewData["returnUrl"];
+    var existingUsername = (string)ViewData["ExistingUsername"];
 }
 
 @model ExternalLoginCallbackModel
@@ -13,7 +14,7 @@
 
     <div>
         <label asp-for="UserName"></label>
-        <input type="text" asp-for="UserName" />
+        <input type="text" asp-for="UserName" value="@existingUsername"/>
         <div class="error-message"></div>
     </div>
     <div>

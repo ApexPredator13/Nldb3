@@ -24,12 +24,15 @@ namespace Website
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        public IConfiguration _config { get; }
+        private readonly IWebHostEnvironment _env;
+
+        public Startup(IConfiguration configuration, IWebHostEnvironment env)
         {
-            Configuration = configuration;
+            _config = configuration;
+            _env = env;
         }
 
-        public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -41,7 +44,7 @@ namespace Website
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
-            services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")));
+            services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(_config.GetConnectionString("DefaultConnection")));
             services.AddScoped<IEmailService, EmailService>();
 
             services.AddIdentity<IdentityUser, IdentityRole>(options =>
@@ -66,8 +69,27 @@ namespace Website
             services.AddAuthentication()
                 .AddFacebook(options =>
                 {
-                    options.AppId = Configuration["FacebookAppId"];
-                    options.AppSecret = Configuration["FacebookAppSecret"];
+                    options.AppId = _config["FacebookAppId"];
+                    options.AppSecret = _config["FacebookAppSecret"];
+                })
+                .AddTwitter(options =>
+                {
+                    options.ConsumerKey = _config["TwitterConsumerKey"];
+                    options.ConsumerSecret = _config["TwitterConsumerSecret"];
+                })
+                .AddGoogle(options =>
+                {
+                    options.ClientId = _config["GoogleClientId"];
+                    options.ClientSecret = _config["GoogleClientSecret"];
+                })
+                .AddSteam(options =>
+                {
+                    options.ApplicationKey = _config["SteamApplicationKey"];
+                })
+                .AddTwitch(options =>
+                {
+                    options.ClientId = _env.IsDevelopment() ? _config["TwitchClientId_Development"] : _config["TwitchClientId_Production"];
+                    options.ClientSecret = _env.IsDevelopment() ? _config["TwitchClientSecret_Development"] : _config["TwitchClientSecret_Production"];
                 });
 
             services.AddMvc()
