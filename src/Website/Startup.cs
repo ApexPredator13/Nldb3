@@ -15,6 +15,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Website.Infrastructure;
+using Website.Services;
 
 namespace Website
 {
@@ -38,6 +39,7 @@ namespace Website
             });
 
             services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")));
+            services.AddScoped<IEmailService, EmailService>();
 
             services.AddIdentity<IdentityUser, IdentityRole>(options =>
             {

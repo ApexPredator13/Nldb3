@@ -1,0 +1,32 @@
+﻿@{
+    ViewData["Title"] = "Login";
+}
+
+@model LoginModel
+
+<h1>Login</h1>
+
+<p>
+    @Html.ValidationSummary()
+</p>
+
+<form method="post">
+    <div>
+        <label asp-for="EmailOrUsername"></label>
+        <input asp-for="EmailOrUsername" type="text" data-required />
+        <div class="error-message"></div>
+    </div>
+    <div>
+        <label asp-for="Password"></label>
+        <input asp-for="Password" type="password" data-required />
+        <div class="error-message"></div>
+    </div>
+    <div>
+        <button type="submit">Login</button>
+    </div>
+</form>
+
+
+@section Scripts {
+    <script src="~/js/dist/validation.min.js" asp-append-version="true"></script>
+}

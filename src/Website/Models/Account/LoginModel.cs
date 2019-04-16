@@ -4,23 +4,16 @@ namespace Website.Models.Account
 {
     public class LoginModel
     {
-        public LoginModel()
-        {
-            EmailOrUsername = string.Empty;
-            Password = string.Empty;
-            RememberMe = false;
-        }
-
-        [Required]
+        [Required(ErrorMessage = "Please enter your username or e-mail address")]
         [Display(Name = "Your Email or Username")]
-        public string EmailOrUsername { get; set; }
+        public string EmailOrUsername { get; set; } = string.Empty;
 
-        [Required]
+        [Required(ErrorMessage = "Please enter your password")]
         [DataType(DataType.Password)]
         [Display(Name = "Your Password")]
-        public string Password { get; set; }
+        public string Password { get; set; } = string.Empty;
 
         [Display(Name = "Stay logged in?")]
-        public bool RememberMe { get; set; }
+        public bool RememberMe { get; set; } = false;
     }
 }

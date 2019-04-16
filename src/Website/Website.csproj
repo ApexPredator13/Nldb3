@@ -6,9 +6,11 @@
     <LangVersion>8.0</LangVersion>
     <NullableContextOptions>enable</NullableContextOptions>
     <TypeScriptToolsVersion>3.4.3</TypeScriptToolsVersion>
+    <SignAssembly>false</SignAssembly>
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="wwwroot\js\src\polyfills.ts" />
     <Content Remove="wwwroot\js\src\validation.ts" />
   </ItemGroup>
 
@@ -34,12 +36,12 @@
 
   <ItemGroup>
     <Folder Include="Migrations\" />
-    <Folder Include="Views\Account\" />
     <Folder Include="wwwroot\js\dist\" />
   </ItemGroup>
 
 
   <ItemGroup>
+    <TypeScriptCompile Include="wwwroot\js\src\polyfills.ts" />
     <TypeScriptCompile Include="wwwroot\js\src\validation.ts" />
   </ItemGroup>
 

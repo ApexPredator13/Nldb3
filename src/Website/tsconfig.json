@@ -6,6 +6,6 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "module": "esnext",
-    "target": "es2017"
+    "target": "es5"
   }
 }

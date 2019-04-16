@@ -7,7 +7,7 @@ module.exports = {
     },
     output: {
         path: path.resolve(__dirname, 'wwwroot', 'js', 'dist'),
-        filename: '[name].[hash].min.js'
+        filename: '[name].min.js'
     },
     module: {
         rules: [
