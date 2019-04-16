@@ -39,6 +39,7 @@ namespace Website.Controllers
         [HttpGet]
         public async Task<ActionResult> Login([FromQuery] string? returnUrl = null)
         {
+            ViewData["externalLogins"] = await _signInManager.GetExternalAuthenticationSchemesAsync();
             ViewData["returnUrl"] = returnUrl;
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
 
@@ -55,8 +56,15 @@ namespace Website.Controllers
         [HttpPost]
         public async Task<ActionResult> Login([FromForm] LoginModel model, [FromQuery] string? returnUrl = null)
         {
+            async Task FillViewData()
+            {
+                ViewData["externalLogins"] = await _signInManager.GetExternalAuthenticationSchemesAsync();
+                ViewData["returnUrl"] = returnUrl;
+            }
+
             if (!ModelState.IsValid)
             {
+                await FillViewData();
                 return View(model);
             }
 
@@ -68,6 +76,7 @@ namespace Website.Controllers
             }
             if (user is null)
             {
+                await FillViewData();
                 ModelState.AddModelError("", "Login failed, please try again.");
                 return View(model);
             }
@@ -80,10 +89,12 @@ namespace Website.Controllers
             }
             if (result.IsLockedOut)
             {
+                await FillViewData();
                 ModelState.AddModelError("", "Login failed too many times, please wait a minute before trying again.");
                 return View(model);
             }
 
+            await FillViewData();
             ModelState.AddModelError("", "Login failed, please try again.");
             return View(model);
         }

@@ -5,7 +5,6 @@
     <UserSecretsId>aspnet-Website-386D1BF3-0CC3-4035-B90E-CD34A50BB8B2</UserSecretsId>
     <LangVersion>8.0</LangVersion>
     <NullableContextOptions>enable</NullableContextOptions>
-    <TypeScriptToolsVersion>3.4.3</TypeScriptToolsVersion>
     <SignAssembly>false</SignAssembly>
   </PropertyGroup>
 
@@ -19,6 +18,7 @@
     <PackageReference Include="BundlerMinifier.Core" Version="2.9.406" />
     <PackageReference Include="Google.Apis.YouTube.v3" Version="1.38.2.1488" />
     <PackageReference Include="MailKit" Version="2.1.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Facebook" Version="3.0.0-preview3-19153-02" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="3.0.0-preview3-19153-02" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="3.0.0-preview3-19153-02" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="3.0.0-preview3-19153-02" />

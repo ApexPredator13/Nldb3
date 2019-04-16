@@ -1,5 +1,7 @@
 ﻿@{
     ViewData["Title"] = "Login";
+    var returnUrl = (string)ViewData["returnUrl"];
+    var externalAuthenticationSchemes = (IEnumerable<Microsoft.AspNetCore.Authentication.AuthenticationScheme>)ViewData["externalLogins"];
 }
 
 @model LoginModel
@@ -10,7 +12,7 @@
     @Html.ValidationSummary()
 </p>
 
-<form method="post">
+<form method="post" asp-route-returnUrl="returnUrl">
     <div>
         <label asp-for="EmailOrUsername"></label>
         <input asp-for="EmailOrUsername" type="text" data-required />
@@ -25,6 +27,15 @@
         <button type="submit">Login</button>
     </div>
 </form>
+
+@foreach (var scheme in externalAuthenticationSchemes)
+{
+    <form method="get" asp-action="@nameof(AccountController.ExternalLogin)" asp-controller="@AccountController.Controllername">
+        <input type="hidden" value="@scheme.Name" name="provider" />
+        <input type="hidden" value="@returnUrl" name="returnUrl" />
+        <button type="submit">@scheme.DisplayName</button>
+    </form>
+}
 
 
 @section Scripts {

@@ -1,0 +1,26 @@
+﻿@{
+    ViewData["Title"] = "Choose a username";
+    var returnUrl = (string)ViewData["returnUrl"];
+}
+
+@model ExternalLoginCallbackModel
+
+<h1>Login was successful!</h1>
+<p>What <strong>username</strong> would you like to use for this website in the future?</p>
+
+<form method="post" asp-route-returnUrl="@returnUrl">
+    <input asp-for="LoginProvider" type="hidden" />
+
+    <div>
+        <label asp-for="UserName"></label>
+        <input type="text" asp-for="UserName" />
+        <div class="error-message"></div>
+    </div>
+    <div>
+        <button type="submit">Create Profile</button>
+    </div>
+</form>
+
+@section Scripts {
+    <script src="~/js/dist/validation.min.js" asp-append-version="true"></script>
+}

@@ -19,9 +19,9 @@ namespace Website.Models.Account
 
         [Required(ErrorMessage = "Please choose a username")]
         [Display(Name = "Your public username")]
-        public string UserName { get; set; } = String.Empty;
+        public string UserName { get; set; }
 
         [Required(ErrorMessage = "External login failed, please start over")]
-        public string LoginProvider { get; set; } = String.Empty;
+        public string LoginProvider { get; set; }
     }
 }
