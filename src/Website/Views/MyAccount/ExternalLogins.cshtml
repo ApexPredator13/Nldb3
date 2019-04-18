@@ -1,0 +1,38 @@
+﻿@{ 
+    ViewData["Title"] = "External Logins";
+    var currentLogins = (IList<Microsoft.AspNetCore.Identity.UserLoginInfo>)ViewData["CurrentLogins"];
+    var otherLogins = (IList<Microsoft.AspNetCore.Authentication.AuthenticationScheme>)ViewData["OtherLogins"];
+    var showRemoveButton = (bool)ViewData["ShowRemoveButton"];
+}
+
+<h3>Currently used external logins</h3>
+
+@Html.ValidationSummary()
+
+<div>
+    @foreach(var currentLogin in currentLogins)
+    {
+        <form method="post" asp-controller="@MyAccountController.Controllername" asp-action="@nameof(MyAccountController.RemoveExternalLogin)">
+            <input type="hidden" value="@currentLogin.LoginProvider" name="@nameof(RemoveLoginModel.LoginProvider)" />
+            <input type="hidden" value="@currentLogin.ProviderKey" name="@nameof(RemoveLoginModel.ProviderKey)" />
+
+            @(currentLogin.ProviderDisplayName ?? currentLogin.LoginProvider)
+            @if (showRemoveButton)
+            {
+                <button type="submit">Remove Login</button>
+            }
+        </form>
+    }
+</div>
+
+<div>
+    @foreach (var otherLogin in otherLogins)
+    {
+        <form method="get" asp-action="@nameof(MyAccountController.LinkLogin)" asp-controller="@MyAccountController.Controllername">
+            <input type="hidden" value="@otherLogin.Name" name="provider" />
+            <button type="submit">@otherLogin.DisplayName</button>
+        </form>
+    }
+</div>
+
+

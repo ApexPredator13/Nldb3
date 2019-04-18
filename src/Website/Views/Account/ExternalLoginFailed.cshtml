@@ -1,0 +1,27 @@
+﻿@{
+    ViewData["Title"] = "Login Failed";
+}
+
+@model string
+
+
+
+@if (Model != null)
+{
+    <h1>An error occurred during login</h1>
+    <p>
+        The error message was:
+    </p>
+    <p>
+        @Model
+    </p>
+}
+else
+{
+    <h1>An unknown error occurred during login</h1>
+}
+
+<p>
+    You can <a asp-controller="@AccountController.Controllername" asp-action="@nameof(AccountController.Login)">Go back to the login page</a> and try again.
+</p>
+

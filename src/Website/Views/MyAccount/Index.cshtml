@@ -1,3 +1,72 @@
-﻿<div>
-    <a asp-controller="@MyAccountController.Controllername" asp-action="@nameof(MyAccountController.DeleteAccount)">Delete my account</a>
-</div>
+﻿@{ 
+    ViewData["Title"] = "Profile Settings";
+    var messageExists = ViewData.TryGetValue("Message", out object message);
+}
+
+@model IndexModel
+
+<h1>Profile Settings</h1>
+
+@if (messageExists)
+{
+    <p>@( (string)message )</p>
+}
+
+<section>
+    <h3>Password, E-Mail & Username</h3>
+
+    @if (Model.HasEmail)
+    {
+        <p>
+            <a asp-controller="@MyAccountController.Controllername" asp-action="@nameof(MyAccountController.ChangeEmail)">Change my e-mail address</a>
+        </p>
+    }
+    @if (Model.HasEmail && !Model.EmailIsConfirmed)
+    {
+        <p>
+            <a asp-controller="@MyAccountController.Controllername" asp-action="@nameof(MyAccountController.ConfirmEmailAgain)">Confirm e-mail address</a>
+        </p>
+    }
+    @if (Model.HasPassword)
+    {
+        <p>
+            <a asp-controller="@MyAccountController.Controllername" asp-action="@nameof(MyAccountController.ChangePassword)">Change password</a>
+        </p>
+    }
+    @if (!Model.HasEmail && !Model.HasPassword)
+    {
+        <p>
+            <a asp-controller="@MyAccountController.Controllername" asp-action="@nameof(MyAccountController.AddNormalLogin)">Add regular E-Mail / Password login to my account</a>
+        </p>
+    }
+    
+    <p>
+        <a asp-controller="@MyAccountController.Controllername" asp-action="@nameof(MyAccountController.ChangeUsername)">Change username</a>
+    </p>
+</section>
+
+<section>
+    <h3>External Logins</h3>
+
+    <p>
+        <a asp-controller="@MyAccountController.Controllername" asp-action="@nameof(MyAccountController.ExternalLogins)">View / add external logins</a>
+    </p>
+</section>
+
+<section>
+    <h3>Personal Data</h3>
+
+    <p>By downloading your personal data you can review what information this website has stored about you!</p>
+
+    <form method="post" asp-controller="@MyAccountController.Controllername" asp-action="@nameof(MyAccountController.DownloadMyData)">
+        <button type="submit">Download my data</button>
+    </form>
+</section>
+
+<section>
+    <h3>Danger Zone</h3>
+    <p>
+        <a asp-controller="@MyAccountController.Controllername" asp-action="@nameof(MyAccountController.DeleteAccount)">Delete my account</a>
+    </p>
+</section>
+

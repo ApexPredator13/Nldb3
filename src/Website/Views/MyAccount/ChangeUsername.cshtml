@@ -1,0 +1,23 @@
+﻿@{ 
+    ViewData["Title"] = "Username Change";
+}
+
+@model ChangeUsernameModel
+
+<h1>Username Change</h1>
+
+<form method="post">
+    <div>
+        <label asp-for="NewUsername"></label>
+        <input type="text" asp-for="NewUsername" data-required />
+        <div class="error-message"></div>
+    </div>
+    <div>
+        <button type="submit">Change Username</button>
+    </div>
+</form>
+
+
+@section Scripts {
+    <script src="~/js/dist/validation.min.js"></script>
+}

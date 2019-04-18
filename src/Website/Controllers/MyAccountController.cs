@@ -30,9 +30,27 @@ namespace Website.Controllers
             _signInManager = signInManager;
         }
 
-        public ViewResult Index(MyAccountMessage? message = null)
+        public async Task<ActionResult> Index(string? message = null)
         {
-            return View(nameof(Index), message);
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user is null)
+            {
+                var returnUrl = Url.Action(nameof(Index));
+                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername, new { returnUrl });
+            }
+
+            var model = new IndexModel
+            {
+                EmailIsConfirmed = await _userManager.IsEmailConfirmedAsync(user),
+                HasEmail = user.Email != null,
+                HasPassword = await _userManager.HasPasswordAsync(user),
+                User = user
+            };
+
+            ViewData["Message"] = message;
+
+            return View(model);
         }
 
         [HttpGet]
@@ -257,7 +275,7 @@ namespace Website.Controllers
             return RedirectToAction(nameof(ExternalLogins));
         }
 
-        [HttpPost]
+        [HttpGet]
         public async Task<ChallengeResult> LinkLogin([FromQuery] string provider)
         {
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
@@ -485,5 +503,55 @@ namespace Website.Controllers
         }
 
         public ViewResult RegistrationComplete() => View();
+
+        [HttpGet]
+        public async Task<ActionResult> ConfirmEmailAgain()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user is null)
+            {
+                var returnUrl = Url.Action(nameof(ChangeUsername));
+                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername, new { returnUrl });
+            }
+
+            if (user.Email is null)
+            {
+                return RedirectToAction(nameof(Index), new { message = "You have to add an e-mail address to your account before you can confirm it." });
+            }
+            if (await _userManager.IsEmailConfirmedAsync(user))
+            {
+                return RedirectToAction(nameof(Index), new { message = "Your e-mail address is already confirmed" });
+            }
+
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> ConfirmEmailAgainLinkSent()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user is null)
+            {
+                var returnUrl = Url.Action(nameof(ConfirmEmailAgain));
+                return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername, new { returnUrl });
+            }
+
+            if (user.Email is null)
+            {
+                return RedirectToAction(nameof(Index), new { message = "You have to add an e-mail address to your account before you can confirm it." });
+            }
+            if (await _userManager.IsEmailConfirmedAsync(user))
+            {
+                return RedirectToAction(nameof(Index), new { message = "Your e-mail address is already confirmed" });
+            }
+
+            var userId = user.Id;
+            var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var callbackUrl = Url.Action(nameof(AccountController.ConfirmEmail), AccountController.Controllername, new { userId, code });
+            var email = _emailService.GenerateConfirmEmailAddressEmail(user.Email, callbackUrl);
+            await _emailService.SendEmailAsync(user.Email, "The Northernlion Database - e-mail confirmation", email);
+
+            return View();
+        }
     }
 }

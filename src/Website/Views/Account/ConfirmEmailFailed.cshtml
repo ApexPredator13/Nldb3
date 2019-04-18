@@ -1,0 +1,20 @@
+﻿@{
+    ViewData["Title"] = "Email Validation failed";
+    var returnUrl = (string)ViewData["returnUrl"];
+}
+
+<h1>An error occurred</h1>
+
+<p>Your e-mail address could not be validated. Maybe the link expired!</p>
+
+@*
+    since this is not an authorized page, redirect to the login page, which will (if the user is logged in) redirect further to the request email confirmation page.
+    if the user isn't logged in, he will be redirected to the request email confirmation page after login
+*@
+<p>
+    Go to your
+    <a asp-controller="@AccountController.Controllername" asp-action="@nameof(AccountController.Login)" asp-route-returnUrl="@returnUrl">
+        'Confirm Email Again'
+    </a>
+    page in your profile to request a fresh link!
+</p>

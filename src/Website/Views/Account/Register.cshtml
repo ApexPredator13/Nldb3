@@ -1,0 +1,39 @@
+﻿@{ 
+    ViewData["Title"] = "New Account";
+}
+
+@model RegisterModel
+
+<h1>New Account</h1>
+
+@Html.ValidationSummary()
+
+<form method="post">
+    <div>
+        <label asp-for="Username"></label>
+        <input type="text" asp-for="Username" data-required />
+        <div class="error-message"></div>
+    </div>
+    <div>
+        <label asp-for="Email"></label>
+        <input type="text" asp-for="Email" data-required data-email />
+        <div class="error-message"></div>
+    </div>
+    <div>
+        <label asp-for="Password"></label>
+        <input type="password" asp-for="Password" data-required />
+        <div class="error-message"></div>
+    </div>
+    <div>
+        <label asp-for="PasswordConfirm"></label>
+        <input type="password" asp-for="PasswordConfirm" data-required />
+        <div class="error-message"></div>
+    </div>
+    <div>
+        <button type="submit">Register</button>
+    </div>
+</form>
+
+@section Scripts {
+    <script src="~/js/dist/validation.min.js" asp-append-version="true"></script>
+}

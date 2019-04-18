@@ -26,7 +26,7 @@ namespace Website.Controllers
         }
 
         [HttpGet]
-        public IActionResult Index()
+        public RedirectToActionResult Index()
         {
             if (User.Identity.IsAuthenticated)
             {
@@ -47,7 +47,14 @@ namespace Website.Controllers
 
             if (User.Identity.IsAuthenticated)
             {
-                return RedirectToAction(nameof(MyAccountController.Index), MyAccountController.Controllername);
+                if (returnUrl != null)
+                {
+                    return LocalRedirect(returnUrl);
+                }
+                else
+                {
+                    return RedirectToAction(nameof(MyAccountController.Index), MyAccountController.Controllername);
+                }
             }
             else
             {
@@ -102,7 +109,11 @@ namespace Website.Controllers
         }
 
         [HttpGet]
-        public ViewResult ConfirmEmailFailed() => View();
+        public ViewResult ConfirmEmailFailed()
+        {
+            ViewData["returnUrl"] = Url.Action(nameof(MyAccountController.ConfirmEmailAgain), MyAccountController.Controllername);
+            return View();
+        }
 
         [HttpGet]
         public async Task<ActionResult> ConfirmEmail([FromQuery] string? userId, [FromQuery] string? code)
@@ -145,7 +156,7 @@ namespace Website.Controllers
 
         [HttpGet]
         public ViewResult Logout([FromQuery] string? returnUrl = null) 
-            => View(nameof(Logout), returnUrl);
+            => View(new LogoutModel { ReturnUrl = returnUrl });
 
         [HttpPost]
         public async Task<LocalRedirectResult> Logout([FromForm] LogoutModel model)

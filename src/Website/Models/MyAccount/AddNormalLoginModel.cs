@@ -14,6 +14,7 @@ namespace Website.Models.MyAccount
         public string Password { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Please confirm your new password")]
+        [StringLength(100, MinimumLength = 6, ErrorMessage = "The password must be at least 6 characters long")]
         [DataType(DataType.Password)]
         [Compare("Password", ErrorMessage = "The two passwords don't match!")]
         public string ConfirmPassword { get; set; } = string.Empty;

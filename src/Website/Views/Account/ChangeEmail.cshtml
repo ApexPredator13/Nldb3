@@ -1,0 +1,22 @@
+﻿@{
+    ViewData["Title"] = "Email Change";
+}
+
+@model ChangeEmailModel
+
+<h1>Email Change</h1>
+
+<p>Please enter the new e-mail address you want to use below.</p>
+<p>An e-mail confirmation link will be sent to the new address.</p>
+
+<form method="post">
+    <div>
+        <label asp-for="Email"></label>
+        <input type="text" asp-for="Email" data-email data-required />
+        <div class="error-message"></div>
+    </div>
+    <div>
+        <button type="submit">Change E-Mail</button>
+    </div>
+</form>
+

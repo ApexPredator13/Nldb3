@@ -1,0 +1,35 @@
+﻿@{ 
+    ViewData["Title"] = "Add Normal Login";
+}
+
+@model AddNormalLoginModel
+
+<h1>Add regular e-mail / password login to your account</h1>
+
+@Html.ValidationSummary()
+
+<form method="post">
+    <div>
+        <label asp-for="Email"></label>
+        <input type="text" asp-for="Email" />
+        <div class="error-message"></div>
+    </div>
+    <div>
+        <label asp-for="Password"></label>
+        <input type="password" asp-for="Password" />
+        <div class="error-message"></div>
+    </div>
+    <div>
+        <label asp-for="ConfirmPassword"></label>
+        <input type="password" asp-for="ConfirmPassword" />
+        <div class="error-message"></div>
+    </div>
+    <div>
+        <button type="submit">Add Email / Password Login</button>
+    </div>
+</form>
+
+
+@section Scripts {
+    <script src="~/js/dist/validation.min.js"></script>
+}

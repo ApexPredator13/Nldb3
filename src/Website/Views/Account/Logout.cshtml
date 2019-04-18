@@ -1,0 +1,16 @@
+﻿@{ 
+    ViewData["Title"] = "Logout";
+}
+
+@model LogoutModel
+
+<h1>Logout</h1>
+<p>
+    Click here to log yourself out:
+</p>
+
+<form method="post">
+    <input type="hidden" asp-for="ReturnUrl" />
+    <button type="submit">Logout</button>
+</form>
+

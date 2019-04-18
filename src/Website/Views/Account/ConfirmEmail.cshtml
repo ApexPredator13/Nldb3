@@ -1,0 +1,16 @@
+﻿@{ 
+    ViewData["Title"] = "Email Confirmed";
+}
+
+<h1>Your e-mail address has been confirmed!</h1>
+
+<p>
+    <a asp-controller="@AccountController.Controllername" asp-action="@nameof(AccountController.Login)">To the login page</a>
+</p>
+<p>
+    <a asp-controller="@MyAccountController.Controllername" asp-action="@nameof(MyAccountController.Index)">To your profile page</a>
+</p>
+<p>
+    <a asp-controller="@HomeController.Controllername" asp-action="@nameof(HomeController.Index)">Back to the website</a>
+</p>
+
