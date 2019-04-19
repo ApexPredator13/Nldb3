@@ -495,6 +495,18 @@ namespace WebsiteTests.Tools
             return this;
         }
 
+        public MyAccountControllerBuilder UserHasCornfirmedEmail()
+        {
+            _userManager.UserHasCornfirmedEmail();
+            return this;
+        }
+
+        public MyAccountControllerBuilder UserHasUncornfirmedEmail()
+        {
+            _userManager.UserHasUncornfirmedEmail();
+            return this;
+        }
+
         public (MyAccountController controller, Mock<UserManager<IdentityUser>> userManager, Mock<IEmailService> emailService, Mock<SignInManager<IdentityUser>> signInManager) Build()
         {
             return (_controller, _userManager.GetMock(), _emailService, _signInManager.GetMock());

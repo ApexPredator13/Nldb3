@@ -19,23 +19,23 @@ var applyFormValidState = function (form, isValid) {
 var inputElementIsValid = function (element, target, markAsTouched) {
     var isValid = true;
     var errorMessage = null;
-    var isSameNode = element.isSameNode(target);
+    var isSameNode = element === target;
     // validation rules
     if (element.hasAttribute("data-val-required") && !element.value) {
         isValid = false;
-        errorMessage = element.getAttribute("data-val-required") ? element.getAttribute("data-val-required") : null;
+        errorMessage = errorMessage ? errorMessage : (element.getAttribute("data-val-required") ? element.getAttribute("data-val-required") : null);
     }
     if (element.hasAttribute("data-val-email") && !emailRegex.test(element.value)) {
         isValid = false;
-        errorMessage = element.getAttribute("data-val-email") ? element.getAttribute("data-val-email") : null;
+        errorMessage = errorMessage ? errorMessage : (element.getAttribute("data-val-email") ? element.getAttribute("data-val-email") : null);
     }
     if (element.hasAttribute("data-val-length-max") && element.value.length > parseInt(element.getAttribute("data-val-length-max"), 10)) {
         isValid = false;
-        errorMessage = element.getAttribute("data-val-length") ? element.getAttribute("data-val-length") : null;
+        errorMessage = errorMessage ? errorMessage : (element.getAttribute("data-val-length") ? element.getAttribute("data-val-length") : null);
     }
     if (element.hasAttribute("data-val-length-min") && element.value.length < parseInt(element.getAttribute("data-val-length-min"), 10)) {
         isValid = false;
-        errorMessage = element.getAttribute("data-val-length") ? element.getAttribute("data-val-length") : null;
+        errorMessage = errorMessage ? errorMessage : (element.getAttribute("data-val-length") ? element.getAttribute("data-val-length") : null);
     }
     if (markAsTouched && isSameNode) {
         element.setAttribute("touched", "true");

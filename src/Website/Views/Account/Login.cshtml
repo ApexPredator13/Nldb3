@@ -28,14 +28,22 @@
     </div>
 </form>
 
-@foreach (var scheme in externalAuthenticationSchemes)
-{
-    <form method="get" asp-action="@nameof(AccountController.ExternalLogin)" asp-controller="@AccountController.Controllername">
-        <input type="hidden" value="@scheme.Name" name="provider" />
-        <input type="hidden" value="@returnUrl" name="returnUrl" />
-        <button type="submit">@scheme.DisplayName</button>
-    </form>
-}
+<div>
+    <a asp-controller="@AccountController.Controllername" asp-action="@nameof(AccountController.Register)">Create a new account</a>
+</div>
+
+<div>
+    <h3>Or use one of your existing accounts to log yourself in</h3>
+    @foreach (var scheme in externalAuthenticationSchemes)
+    {
+        <form method="get" asp-action="@nameof(AccountController.ExternalLogin)" asp-controller="@AccountController.Controllername">
+            <input type="hidden" value="@scheme.Name" name="provider" />
+            <input type="hidden" value="@returnUrl" name="returnUrl" />
+            <button type="submit">@scheme.DisplayName</button>
+        </form>
+    }
+</div>
+
 
 
 @section Scripts {

@@ -330,7 +330,7 @@ namespace Website.Controllers
             }
 
             var code = await _userManager.GeneratePasswordResetTokenAsync(user);
-            var callbackUrl = Url.Action(nameof(ForgotPassword), new { code });
+            var callbackUrl = Url.Action(nameof(ForgotPassword), Controllername, new { code }, Request.Scheme);
 
             var email = _emailSender.GenerateResetPasswordEmail(model.Email ?? string.Empty, callbackUrl);
             await _emailSender.SendEmailAsync(email, "The Northernlion Database - Password Reset", email);
@@ -416,7 +416,7 @@ namespace Website.Controllers
 
             var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             var userId = user.Id;
-            var callbackUrl = Url.Action(nameof(ConfirmEmail), new { code, userId });
+            var callbackUrl = Url.Action(nameof(ConfirmEmail), Controllername, new { code, userId }, Request.Scheme);
             var emailMessage = _emailSender.GenerateConfirmEmailAddressEmail(model.Email, callbackUrl);
             await _emailSender.SendEmailAsync(model.Email, "The Northernlion Database - Your new account", emailMessage);
 

@@ -44,7 +44,7 @@ namespace WebsiteTests.Controllers
             result.ControllerName.Should().Be(MyAccountController.Controllername);
         }
 
-        [Fact(DisplayName = "Login GET redirects to private account page if user is logged in")]
+        [Fact(DisplayName = "Login GET redirects to private account page if user is already logged in")]
         public async Task T3()
         {
             // arrange
@@ -57,6 +57,20 @@ namespace WebsiteTests.Controllers
             result.Should().BeOfType<RedirectToActionResult>();
             result.ActionName.Should().Be(nameof(MyAccountController.Index));
             result.ControllerName.Should().Be(MyAccountController.Controllername);
+        }
+
+        [Fact(DisplayName = "Login GET redirects to returnUrl if user is already logged in and a url was provided")]
+        public async Task T40()
+        {
+            // arrange
+            var (controller, _, _, _) = new AccountControllerBuilder().WithAuthenticatedUser().Build();
+
+            // act
+            var result = await controller.Login("some returnUrl") as LocalRedirectResult;
+
+            // assert
+            result.Should().BeOfType<LocalRedirectResult>();
+            result.Url.Should().Be("some returnUrl");
         }
 
         [Fact(DisplayName = "Login GET shows login form if user is not logged in")]

@@ -109,7 +109,7 @@ namespace Website.Controllers
             }
 
             await _signInManager.RefreshSignInAsync(user);
-            return RedirectToAction(nameof(Index), new { message = MyAccountMessage.YourPasswordWasChanged });
+            return RedirectToAction(nameof(Index), new { message = "Your password was changed successfully!" });
         }
 
         [HttpGet]
@@ -372,7 +372,7 @@ namespace Website.Controllers
 
             var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             var userId = user.Id;
-            var callbackUrl = Url.Action(nameof(AccountController.ConfirmEmail), AccountController.Controllername, new { userId, code });
+            var callbackUrl = Url.Action(nameof(AccountController.ConfirmEmail), AccountController.Controllername, new { userId, code }, Request.Scheme);
             var emailMessage = _emailService.GenerateConfirmEmailAddressEmail(model.Email, callbackUrl);
             await _emailService.SendEmailAsync(model.Email, "The Northernlion Database - e-mail confirmation", emailMessage);
 
@@ -423,7 +423,7 @@ namespace Website.Controllers
 
             var code = await _userManager.GenerateChangeEmailTokenAsync(user, model.Email);
             var newEmail = model.Email;
-            var callbackUrl = Url.Action(nameof(ChangeEmailConfirmation), new { code, newEmail });
+            var callbackUrl = Url.Action(nameof(ChangeEmailConfirmation), Controllername, new { code, newEmail }, Request.Scheme);
             var emailMessage = _emailService.GenerateChangeEmailAddressEmail(newEmail, callbackUrl);
             await _emailService.SendEmailAsync(newEmail, "The Northernlion Database - Email Change", emailMessage);
 
@@ -547,7 +547,7 @@ namespace Website.Controllers
 
             var userId = user.Id;
             var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            var callbackUrl = Url.Action(nameof(AccountController.ConfirmEmail), AccountController.Controllername, new { userId, code });
+            var callbackUrl = Url.Action(nameof(AccountController.ConfirmEmail), AccountController.Controllername, new { userId, code }, Request.Scheme);
             var email = _emailService.GenerateConfirmEmailAddressEmail(user.Email, callbackUrl);
             await _emailService.SendEmailAsync(user.Email, "The Northernlion Database - e-mail confirmation", email);
 

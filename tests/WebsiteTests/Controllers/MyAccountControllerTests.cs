@@ -233,7 +233,7 @@ namespace WebsiteTests.Controllers
             // assert
             result.Should().BeOfType<ViewResult>();
             result.ViewName.Should().BeNull();
-            result.Model.Should().BeOfType<bool>().And.Be(false);
+            result.Model.Should().BeOfType<DeleteAccountInputModel>();
 
             userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
             userManager.Verify(x => x.HasPasswordAsync(It.IsAny<IdentityUser>()), Times.Once);
@@ -254,7 +254,7 @@ namespace WebsiteTests.Controllers
             // assert
             result.Should().BeOfType<ViewResult>();
             result.ViewName.Should().BeNull();
-            result.Model.Should().BeOfType<bool>().And.Be(true);
+            result.Model.Should().BeOfType<DeleteAccountInputModel>();
 
             userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
             userManager.Verify(x => x.HasPasswordAsync(It.IsAny<IdentityUser>()), Times.Once);
@@ -1337,6 +1337,219 @@ namespace WebsiteTests.Controllers
 
             userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
             userManager.Verify(x => x.SetUserNameAsync(It.IsAny<IdentityUser>(), It.IsAny<string>()), Times.Once);
+        }
+
+        [Fact(DisplayName = "ConfirmEmailAgain [GET] redirects to login page if user is not found")]
+        public async Task T59()
+        {
+            // arrange
+            var (controller, userManager, _, _) = new MyAccountControllerBuilder()
+                .GetUserFails()
+                .Build();
+
+            // act
+            var result = await controller.ConfirmEmailAgain() as RedirectToActionResult;
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>();
+            result.ActionName.Should().Be(nameof(AccountController.Login));
+            result.ControllerName.Should().Be(AccountController.Controllername);
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.IsEmailConfirmedAsync(It.IsAny<IdentityUser>()), Times.Never);
+        }
+
+        [Fact(DisplayName = "ConfirmEmailAgain [GET] redirects to profile page if user has no email yet")]
+        public async Task T60()
+        {
+            // arrange
+            var (controller, userManager, _, _) = new MyAccountControllerBuilder()
+                .GetUserSucceeds()
+                .Build();
+
+            // act
+            var result = await controller.ConfirmEmailAgain() as RedirectToActionResult;
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>();
+            result.ActionName.Should().Be(nameof(MyAccountController.Index));
+            result.RouteValues.Should().ContainKey("message");
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.IsEmailConfirmedAsync(It.IsAny<IdentityUser>()), Times.Never);
+        }
+
+        [Fact(DisplayName = "ConfirmEmailAgain [GET] redirects to profile page if email is already confirmed")]
+        public async Task T61()
+        {
+            // arrange
+            var (controller, userManager, _, _) = new MyAccountControllerBuilder()
+                .GetUserSucceeds(null, "a@a.com")
+                .UserHasCornfirmedEmail()
+                .Build();
+
+            // act
+            var result = await controller.ConfirmEmailAgain() as RedirectToActionResult;
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>();
+            result.ActionName.Should().Be(nameof(MyAccountController.Index));
+            result.RouteValues.Should().ContainKey("message");
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.IsEmailConfirmedAsync(It.IsAny<IdentityUser>()), Times.Once);
+        }
+
+        [Fact(DisplayName = "ConfirmEmailAgain [GET] displays view if everything is OK")]
+        public async Task T62()
+        {
+            // arrange
+            var (controller, userManager, _, _) = new MyAccountControllerBuilder()
+                .GetUserSucceeds(null, "a@a.com")
+                .UserHasUncornfirmedEmail()
+                .Build();
+
+            // act
+            var result = await controller.ConfirmEmailAgain() as ViewResult;
+
+            // assert
+            result.Should().BeOfType<ViewResult>();
+            result.ViewName.Should().BeNull();
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.IsEmailConfirmedAsync(It.IsAny<IdentityUser>()), Times.Once);
+        }
+
+        [Fact(DisplayName = "ConfirmEmailAgain [POST] redirects to login page if user is not found")]
+        public async Task T63()
+        {
+            // arrange
+            var (controller, userManager, _, _) = new MyAccountControllerBuilder()
+                .GetUserFails()
+                .Build();
+
+            // act
+            var result = await controller.ConfirmEmailAgainLinkSent() as RedirectToActionResult;
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>();
+            result.ActionName.Should().Be(nameof(AccountController.Login));
+            result.ControllerName.Should().Be(AccountController.Controllername);
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.IsEmailConfirmedAsync(It.IsAny<IdentityUser>()), Times.Never);
+        }
+
+        [Fact(DisplayName = "ConfirmEmailAgain [POST] redirects to profile page if user has no email yet")]
+        public async Task T64()
+        {
+            // arrange
+            var (controller, userManager, _, _) = new MyAccountControllerBuilder()
+                .GetUserSucceeds()
+                .Build();
+
+            // act
+            var result = await controller.ConfirmEmailAgainLinkSent() as RedirectToActionResult;
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>();
+            result.ActionName.Should().Be(nameof(MyAccountController.Index));
+            result.RouteValues.Should().ContainKey("message");
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.IsEmailConfirmedAsync(It.IsAny<IdentityUser>()), Times.Never);
+        }
+
+        [Fact(DisplayName = "ConfirmEmailAgain [POST] redirects to profile page if email is already confirmed")]
+        public async Task T65()
+        {
+            // arrange
+            var (controller, userManager, _, _) = new MyAccountControllerBuilder()
+                .GetUserSucceeds(null, "a@a.com")
+                .UserHasCornfirmedEmail()
+                .Build();
+
+            // act
+            var result = await controller.ConfirmEmailAgainLinkSent() as RedirectToActionResult;
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>();
+            result.ActionName.Should().Be(nameof(MyAccountController.Index));
+            result.RouteValues.Should().ContainKey("message");
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.IsEmailConfirmedAsync(It.IsAny<IdentityUser>()), Times.Once);
+        }
+
+        [Fact(DisplayName = "ConfirmEmailAgain [POST] sends email and displays view if everything was OK")]
+        public async Task T66()
+        {
+            // arrange
+            var (controller, userManager, emailService, _) = new MyAccountControllerBuilder()
+                .GetUserSucceeds(null, "a@a.com")
+                .UserHasUncornfirmedEmail()
+                .Build();
+
+            // act
+            var result = await controller.ConfirmEmailAgainLinkSent() as ViewResult;
+
+            // assert
+            result.Should().BeOfType<ViewResult>();
+            result.ViewName.Should().BeNull();
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.IsEmailConfirmedAsync(It.IsAny<IdentityUser>()), Times.Once);
+            userManager.Verify(x => x.GenerateEmailConfirmationTokenAsync(It.IsAny<IdentityUser>()), Times.Once);
+            emailService.Verify(x => x.GenerateConfirmEmailAddressEmail(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+            emailService.Verify(x => x.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+        }
+
+        [Fact(DisplayName = "Index [GET] redirects to login page if user is not found")]
+        public async Task T67()
+        {
+            // arrange
+            var (controller, userManager, _, _) = new MyAccountControllerBuilder()
+                .GetUserFails()
+                .Build();
+
+            // act
+            var result = await controller.Index() as RedirectToActionResult;
+
+            // assert
+            result.Should().BeOfType<RedirectToActionResult>();
+            result.ActionName.Should().Be(nameof(AccountController.Login));
+            result.ControllerName.Should().Be(AccountController.Controllername);
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.IsEmailConfirmedAsync(It.IsAny<IdentityUser>()), Times.Never);
+        }
+
+        [Fact(DisplayName = "Index [GET] returns view with user info if user is found")]
+        public async Task T68()
+        {
+            // arrange
+            var (controller, userManager, _, _) = new MyAccountControllerBuilder()
+                .GetUserSucceeds("user", "a@a.com")
+                .UserHasCornfirmedEmail()
+                .UserHasPassword()
+                .Build();
+
+            // act
+            var result = await controller.Index() as ViewResult;
+            var model = result.Model as IndexModel;
+
+            // assert
+            result.Should().BeOfType<ViewResult>();
+            result.ViewName.Should().BeNull();
+            model.Should().BeOfType<IndexModel>();
+            model.EmailIsConfirmed.Should().BeTrue();
+            model.HasEmail.Should().BeTrue();
+            model.HasPassword.Should().BeTrue();
+            model.User.Should().NotBeNull();
+
+            userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            userManager.Verify(x => x.IsEmailConfirmedAsync(It.IsAny<IdentityUser>()), Times.Once);
+            userManager.Verify(x => x.HasPasswordAsync(It.IsAny<IdentityUser>()), Times.Once);
         }
     }
 }
