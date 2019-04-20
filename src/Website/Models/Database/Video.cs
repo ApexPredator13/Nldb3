@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Website.Models.Validation;
 
 #nullable disable
 namespace Website.Models.Database
@@ -15,8 +16,7 @@ namespace Website.Models.Database
         [Required]
         public DateTime Published { get; set; }
 
-        [Required]
-        public TimeSpan Duration { get; set; }
+        public TimeSpan? Duration { get; set; }
 
         public List<Thumbnail> Thumbnails { get; set; }
         public bool RequiresUpdate { get; set; } = false;

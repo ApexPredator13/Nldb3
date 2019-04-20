@@ -18,8 +18,7 @@ namespace Website.Models.Database
         [Required]
         public IdentityUser Contributor { get; set; }
 
-        [Required]
-        public DateTime SubmissionTime { get; set; }
+        public DateTime? SubmissionTime { get; set; }
 
         [Required]
         public Video Video { get; set; }

@@ -8,6 +8,7 @@
         Greed,
         Greedier,
         SpecialChallenge,
-        SpecialSeed
+        SpecialSeed,
+        Unspecified
     }
 }

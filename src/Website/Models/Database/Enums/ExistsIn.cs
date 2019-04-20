@@ -29,6 +29,7 @@
         BoosterPack3Onwards,
         BoosterPack4Onwards,
         BoosterPack5Onwards,
-        RepentanceOnwards
+        RepentanceOnwards,
+        Unspecified
     }
 }

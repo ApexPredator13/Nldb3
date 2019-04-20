@@ -19,17 +19,18 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Website.Infrastructure;
 using Website.Services;
 using Microsoft.Extensions.Hosting;
+using Website.Migrations;
 
 namespace Website
 {
     public class Startup
     {
-        public IConfiguration _config { get; }
+        public IConfiguration Config { get; }
         private readonly IWebHostEnvironment _env;
 
         public Startup(IConfiguration configuration, IWebHostEnvironment env)
         {
-            _config = configuration;
+            Config = configuration;
             _env = env;
         }
 
@@ -44,8 +45,21 @@ namespace Website
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
-            services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(_config.GetConnectionString("DefaultConnection")));
+            services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(Config.GetConnectionString("DefaultConnection")));
+            services.AddTransient<IDbConnector, DbConnector>();
+            services.AddTransient<IDbManager, DbManager>();
             services.AddScoped<IEmailService, EmailService>();
+            services.AddTransient<IMigrateOldDatabase, MigrateOldDatabase>();
+
+            services.AddScoped<IItemRepository, ItemRepository>();
+            services.AddScoped<IBossRepository, BossRepository>();
+            services.AddScoped<ICurseRepository, CurseRepository>();
+            services.AddScoped<IThreatRepository, ThreatRepository>();
+            services.AddScoped<IFloorRepository, FloorRepository>();
+            services.AddScoped<IItemsourceRepository, ItemsourceRepository>();
+            services.AddScoped<ITransformationRepository, TransformationRepository>();
+            services.AddScoped<IVideoRepository, VideoRepository>();
+            services.AddScoped<ICharacterRepository, CharacterRepository>();
 
             services.AddIdentity<IdentityUser, IdentityRole>(options =>
             {
@@ -69,27 +83,27 @@ namespace Website
             services.AddAuthentication()
                 .AddFacebook(options =>
                 {
-                    options.AppId = _config["FacebookAppId"];
-                    options.AppSecret = _config["FacebookAppSecret"];
+                    options.AppId = Config["FacebookAppId"];
+                    options.AppSecret = Config["FacebookAppSecret"];
                 })
                 .AddTwitter(options =>
                 {
-                    options.ConsumerKey = _config["TwitterConsumerKey"];
-                    options.ConsumerSecret = _config["TwitterConsumerSecret"];
+                    options.ConsumerKey = Config["TwitterConsumerKey"];
+                    options.ConsumerSecret = Config["TwitterConsumerSecret"];
                 })
                 .AddGoogle(options =>
                 {
-                    options.ClientId = _config["GoogleClientId"];
-                    options.ClientSecret = _config["GoogleClientSecret"];
+                    options.ClientId = Config["GoogleClientId"];
+                    options.ClientSecret = Config["GoogleClientSecret"];
                 })
                 .AddSteam(options =>
                 {
-                    options.ApplicationKey = _config["SteamApplicationKey"];
+                    options.ApplicationKey = Config["SteamApplicationKey"];
                 })
                 .AddTwitch(options =>
                 {
-                    options.ClientId = _env.IsDevelopment() ? _config["TwitchClientId_Development"] : _config["TwitchClientId_Production"];
-                    options.ClientSecret = _env.IsDevelopment() ? _config["TwitchClientSecret_Development"] : _config["TwitchClientSecret_Production"];
+                    options.ClientId = _env.IsDevelopment() ? Config["TwitchClientId_Development"] : Config["TwitchClientId_Production"];
+                    options.ClientSecret = _env.IsDevelopment() ? Config["TwitchClientSecret_Development"] : Config["TwitchClientSecret_Production"];
                 });
 
             services.AddMvc()
@@ -126,7 +140,10 @@ namespace Website
 
             app.UseAuthentication();
             app.UseAuthorization();
+
             app.CreateAdminUser();
+            app.ResetDatabaseInDevMode();
+            app.MigrateOldDatabase().Wait();
         }
     }
 }

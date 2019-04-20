@@ -14,6 +14,8 @@
         UsedPill,
         UsedTarotCard,
         UsedRune,
-        SwitchedTrinket
+        SwitchedTrinket,
+        Curse,
+        DeprecatedCollectedItem
     }
 }
