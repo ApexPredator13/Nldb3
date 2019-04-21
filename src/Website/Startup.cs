@@ -55,6 +55,7 @@ namespace Website
             services.AddScoped<IBossRepository, BossRepository>();
             services.AddScoped<ICurseRepository, CurseRepository>();
             services.AddScoped<IThreatRepository, ThreatRepository>();
+            services.AddScoped<IModRepository, ModRepository>();
             services.AddScoped<IFloorRepository, FloorRepository>();
             services.AddScoped<IItemsourceRepository, ItemsourceRepository>();
             services.AddScoped<ITransformationRepository, TransformationRepository>();
@@ -143,7 +144,7 @@ namespace Website
 
             app.CreateAdminUser();
             app.ResetDatabaseInDevMode();
-            app.MigrateOldDatabase().Wait();
+            app.MigrateOldDatabaseIfNoDataExists().Wait();
         }
     }
 }

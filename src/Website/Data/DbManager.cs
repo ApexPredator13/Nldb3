@@ -38,8 +38,8 @@ namespace Website.Data
                 "DROP TABLE IF EXISTS encountered_trinkets, used_tarot_cards, swallowed_pills, used_runes, encountered_curses, " +
                 "encountered_items, experienced_deaths, bossfights, played_floors, played_characters, video_submissions, videos, game_character_tags, " +
                 "game_characters, trinket_tags, trinkets, threat_tags, threats, tarot_card_tags, tarot_cards, pill_tags, pills, rune_tags, runes, curse_tags, " +
-                "curses, item_tags, items, item_source_tags, item_sources, transformation_tags, transformations, boss_tags, bosses, " +
-                "floor_tags, floors, mod_url, mods; ";
+                "curses, item_tags, items, item_source_tags, item_sources, other_consumable_tags, other_consumables, boss_tags, bosses, " +
+                "floor_tags, floors, transformation_tags, transformations, mod_url, mods; ";
 
             Execute(query);
         }
@@ -60,6 +60,8 @@ namespace Website.Data
             CreateItemTagsTable();
             CreateCursesTable();
             CreateCurseTagsTable();
+            CreateOtherConsumablesTable();
+            CreateOtherConsumableTagsTable();
             CreateRunesTable();
             CreateRuneTagsTable();
             CreatePillsTable();
@@ -185,7 +187,9 @@ namespace Website.Data
                     "game_mode INTEGER NOT NULL, " +
                     "color VARCHAR(25) NOT NULL DEFAULT 'LightGray', " +
                     "mod INTEGER REFERENCES mods (id), " +
-                    "items_needed INTEGER NOT NULL" +
+                    "items_needed INTEGER NOT NULL, " +
+                    "valid_from TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT '2011-09-01 00:00:00+01', " +
+                    "valid_until TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT '2100-01-01 00:00:00+01'" +
                 ")";
 
             Execute(query);
@@ -245,7 +249,8 @@ namespace Website.Data
                     "w INTEGER NOT NULL, " +
                     "game_mode INTEGER NOT NULL, " +
                     "color VARCHAR(25) NOT NULL DEFAULT 'LightGray', " +
-                    "mod INTEGER REFERENCES mods (id)" +
+                    "mod INTEGER REFERENCES mods (id), " +
+                    "transformation VARCHAR(30) DEFAULT NULL REFERENCES transformations (id)" +
                 ")";
 
             Execute(query);
@@ -305,7 +310,8 @@ namespace Website.Data
                     "w INTEGER NOT NULL, " +
                     "game_mode INTEGER NOT NULL, " +
                     "color VARCHAR(25) NOT NULL DEFAULT 'LightGray', " +
-                    "mod INTEGER REFERENCES mods (id)" +
+                    "mod INTEGER REFERENCES mods (id), " +
+                    "transformation VARCHAR(30) DEFAULT NULL REFERENCES transformations (id)" +
                 ")";
 
             Execute(query);
@@ -335,7 +341,8 @@ namespace Website.Data
                     "w INTEGER NOT NULL, " +
                     "game_mode INTEGER NOT NULL, " +
                     "color VARCHAR(25) NOT NULL DEFAULT 'LightGray', " +
-                    "mod INTEGER REFERENCES mods (id)" +
+                    "mod INTEGER REFERENCES mods (id), " +
+                    "transformation VARCHAR(30) DEFAULT NULL REFERENCES transformations (id)" +
                 ")";
 
             Execute(query);
@@ -365,7 +372,8 @@ namespace Website.Data
                     "w INTEGER NOT NULL, " +
                     "game_mode INTEGER NOT NULL, " +
                     "color VARCHAR(25) NOT NULL DEFAULT 'LightGray', " +
-                    "mod INTEGER REFERENCES mods (id)" +
+                    "mod INTEGER REFERENCES mods (id), " +
+                    "transformation VARCHAR(30) DEFAULT NULL REFERENCES transformations (id)" +
                 ")";
 
             Execute(query);
@@ -395,7 +403,8 @@ namespace Website.Data
                     "w INTEGER NOT NULL, " +
                     "game_mode INTEGER NOT NULL, " +
                     "color VARCHAR(25) NOT NULL DEFAULT 'LightGray', " +
-                    "mod INTEGER REFERENCES mods (id)" +
+                    "mod INTEGER REFERENCES mods (id), " +
+                    "transformation VARCHAR(30) DEFAULT NULL REFERENCES transformations (id)" +
                 ")";
 
             Execute(query);
@@ -408,6 +417,37 @@ namespace Website.Data
                     "id SERIAL PRIMARY KEY, " +
                     "type INTEGER NOT NULL, " +
                     "trinket VARCHAR(30) NOT NULL REFERENCES trinkets (id)" +
+                "); ";
+
+            Execute(query);
+        }
+
+        private void CreateOtherConsumablesTable()
+        {
+            string query =
+                "CREATE TABLE IF NOT EXISTS other_consumables (" +
+                    "id VARCHAR(30) PRIMARY KEY, " +
+                    "name VARCHAR(100) NOT NULL, " +
+                    "exists_in INTEGER NOT NULL, " +
+                    "x INTEGER NOT NULL, " +
+                    "y INTEGER NOT NULL, " +
+                    "w INTEGER NOT NULL, " +
+                    "game_mode INTEGER NOT NULL, " +
+                    "color VARCHAR(25) NOT NULL DEFAULT 'LightGray', " +
+                    "mod INTEGER REFERENCES mods (id), " +
+                    "transformation VARCHAR(30) DEFAULT NULL REFERENCES transformations (id)" +
+                ")";
+
+            Execute(query);
+        }
+
+        private void CreateOtherConsumableTagsTable()
+        {
+            string query =
+                "CREATE TABLE IF NOT EXISTS other_consumable_tags (" +
+                    "id SERIAL PRIMARY KEY, " +
+                    "type INTEGER NOT NULL, " +
+                    "other_consumable VARCHAR(30) NOT NULL REFERENCES other_consumables (id)" +
                 "); ";
 
             Execute(query);
@@ -499,7 +539,7 @@ namespace Website.Data
                     "id SERIAL PRIMARY KEY, " +
                     "video CHAR(11) NOT NULL REFERENCES videos (id), " +
                     "sub TEXT NOT NULL REFERENCES \"AspNetUsers\" (\"Id\"), " +
-                    "lost BOOLEAN NOT NULL DEFAULT FALSE" +
+                    $"s_type INTEGER NOT NULL DEFAULT {(int)Models.Database.Enums.SubmissionType.New}" +
                 "); ";
 
             Execute(query);
@@ -511,7 +551,9 @@ namespace Website.Data
                 "CREATE TABLE IF NOT EXISTS played_characters (" +
                     "id SERIAL PRIMARY KEY, " +
                     "game_character VARCHAR(30) NOT NULL REFERENCES game_characters (id), " +
-                    "submission INTEGER NOT NULL REFERENCES video_submissions (id)" +
+                    "submission INTEGER NOT NULL REFERENCES video_submissions (id), " +
+                    "action INTEGER NOT NULL, " +
+                    "video CHAR(11) NOT NULL REFERENCES videos (id)" +
                 "); ";
 
             Execute(query);
@@ -523,7 +565,9 @@ namespace Website.Data
                 "CREATE TABLE IF NOT EXISTS played_floors (" +
                     "id SERIAL PRIMARY KEY, " +
                     "floor VARCHAR(30) NOT NULL REFERENCES floors (id), " +
-                    "played_character INTEGER NOT NULL REFERENCES played_characters (id)" +
+                    "played_character INTEGER NOT NULL REFERENCES played_characters (id) ," +
+                    "video CHAR(11) NOT NULL REFERENCES videos (id), " +
+                    "action INTEGER NOT NULL" +
                 "); ";
 
             Execute(query);
@@ -535,7 +579,10 @@ namespace Website.Data
                 "CREATE TABLE IF NOT EXISTS bossfights (" +
                     "id SERIAL PRIMARY KEY, " +
                     "boss VARCHAR(30) NOT NULL REFERENCES bosses (id), " +
-                    "floor INTEGER NOT NULL REFERENCES played_floors (id)" +
+                    "floor INTEGER NOT NULL REFERENCES played_floors (id), " +
+                    "video CHAR(11) NOT NULL REFERENCES videos (id), " +
+                    "action INTEGER NOT NULL, " +
+                    "transformation VARCHAR(30) REFERENCES transformations (id)" +
                 "); ";
 
             Execute(query);
@@ -549,7 +596,10 @@ namespace Website.Data
                     "item VARCHAR(30) NOT NULL REFERENCES items (id), " +
                     "source VARCHAR(30) NOT NULL REFERENCES item_sources (id), " +
                     "usage INTEGER NOT NULL, " +
-                    "floor INTEGER NOT NULL REFERENCES played_floors (id)" +
+                    "floor INTEGER NOT NULL REFERENCES played_floors (id), " +
+                    "video CHAR(11) NOT NULL REFERENCES videos (id), " +
+                    "action INTEGER NOT NULL, " +
+                    "transformation VARCHAR(30) REFERENCES transformations (id)" +
                 "); ";
 
             Execute(query);
@@ -561,7 +611,9 @@ namespace Website.Data
                 "CREATE TABLE IF NOT EXISTS encountered_curses (" +
                     "id SERIAL PRIMARY KEY, " +
                     "curse VARCHAR(30) NOT NULL REFERENCES curses (id), " +
-                    "floor INTEGER NOT NULL REFERENCES played_floors (id)" +
+                    "floor INTEGER NOT NULL REFERENCES played_floors (id), " +
+                    "video CHAR(11) NOT NULL REFERENCES videos (id), " +
+                    "action INTEGER NOT NULL" +
                 "); ";
 
             Execute(query);
@@ -573,7 +625,9 @@ namespace Website.Data
                 "CREATE TABLE IF NOT EXISTS used_runes (" +
                     "id SERIAL PRIMARY KEY, " +
                     "rune VARCHAR(30) NOT NULL REFERENCES runes (id), " +
-                    "floor INTEGER NOT NULL REFERENCES played_floors (id)" +
+                    "floor INTEGER NOT NULL REFERENCES played_floors (id), " +
+                    "action INTEGER NOT NULL, " +
+                    "transformation VARCHAR(30) REFERENCES transformations (id)" +
                 "); ";
 
             Execute(query);
@@ -585,7 +639,9 @@ namespace Website.Data
                 "CREATE TABLE IF NOT EXISTS swallowed_pills (" +
                     "id SERIAL PRIMARY KEY, " +
                     "pill VARCHAR(30) NOT NULL REFERENCES pills (id), " +
-                    "floor INTEGER NOT NULL REFERENCES played_floors (id)" +
+                    "floor INTEGER NOT NULL REFERENCES played_floors (id), " +
+                    "action INTEGER NOT NULL, " +
+                    "transformation VARCHAR(30) REFERENCES transformations (id)" +
                 "); ";
 
             Execute(query);
@@ -597,7 +653,9 @@ namespace Website.Data
                 "CREATE TABLE IF NOT EXISTS used_tarot_cards (" +
                     "id SERIAL PRIMARY KEY, " +
                     "tarot_card VARCHAR(30) NOT NULL REFERENCES tarot_cards (id), " +
-                    "floor INTEGER NOT NULL REFERENCES played_floors (id)" +
+                    "floor INTEGER NOT NULL REFERENCES played_floors (id), " +
+                    "action INTEGER NOT NULL, " +
+                    "transformation VARCHAR(30) REFERENCES transformations (id)" +
                 "); ";
 
             Execute(query);
@@ -610,7 +668,9 @@ namespace Website.Data
                     "id SERIAL PRIMARY KEY, " +
                     "trinket VARCHAR(30) NOT NULL REFERENCES trinkets (id), " +
                     "usage INTEGER NOT NULL, " +
-                    "floor INTEGER NOT NULL REFERENCES played_floors (id)" +
+                    "floor INTEGER NOT NULL REFERENCES played_floors (id), " +
+                    "action INTEGER NOT NULL, " +
+                    "transformation VARCHAR(30) REFERENCES transformations (id)" +
                 "); ";
 
             Execute(query);
@@ -622,7 +682,9 @@ namespace Website.Data
                 "CREATE TABLE IF NOT EXISTS experienced_deaths (" +
                     "id SERIAL PRIMARY KEY, " +
                     "threat VARCHAR(30) NOT NULL REFERENCES threats (id), " +
-                    "floor INTEGER NOT NULL REFERENCES played_floors (id)" +
+                    "floor INTEGER NOT NULL REFERENCES played_floors (id), " +
+                    "video CHAR(11) NOT NULL REFERENCES videos (id), " +
+                    "action INTEGER NOT NULL" +
                 "); ";
 
             Execute(query);

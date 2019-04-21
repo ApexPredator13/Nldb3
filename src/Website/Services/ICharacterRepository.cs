@@ -6,5 +6,6 @@ namespace Website.Services
     public interface ICharacterRepository
     {
         Task SaveCharacter(SaveCharacter character);
+        Task<int> CountCharacters();
     }
 }

@@ -190,7 +190,7 @@ namespace WebsiteTests.Controllers
             // assert
             result.Should().BeOfType<RedirectToActionResult>();
             result.ActionName.Should().Be(nameof(MyAccountController.Index));
-            result.RouteValues.Should().ContainKey("message").WhichValue.Should().Be(MyAccountMessage.YourPasswordWasChanged);
+            result.RouteValues.Should().ContainKey("message").WhichValue.Should().NotBeNull();
 
             userManager.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
             userManager.Verify(x => x.HasPasswordAsync(It.IsAny<IdentityUser>()), Times.Once);

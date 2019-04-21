@@ -46,7 +46,7 @@ namespace Website.Infrastructure
             }
         }
 
-        public static async Task MigrateOldDatabase(this IApplicationBuilder app)
+        public static async Task MigrateOldDatabaseIfNoDataExists(this IApplicationBuilder app)
         {
             using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
             {

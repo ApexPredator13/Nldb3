@@ -6,6 +6,9 @@ namespace Website.Models.Validation
     public class PlayedFloor
     {
         [Required]
+        public string VideoId { get; set; } = string.Empty;
+
+        [Required]
         public string FloorId { get; set; } = string.Empty;
 
         public string DeathId { get; set; } = string.Empty;

@@ -16,6 +16,17 @@ namespace Website.Data
             _connector = connector;
         }
 
+        public async Task<int> CountCurses()
+        {
+            using (var c = await _connector.Connect())
+            {
+                using (var q = new NpgsqlCommand("SELECT COUNT(*) FROM curses; ", c))
+                {
+                    return Convert.ToInt32(await q.ExecuteScalarAsync());
+                }
+            }
+        }
+
         public async Task SaveCurse(SaveCurse item)
         {
             string query = "INSERT INTO curses (id, name, exists_in, x, y, w, game_mode, color, mod) VALUES (@I, @N, @E, @X, @Y, @W, @M, @C, @L);";

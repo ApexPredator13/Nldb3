@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using Website.Models.Database;
 
 namespace Website.Models.Validation
 {
@@ -13,5 +12,7 @@ namespace Website.Models.Validation
 
         [Required]
         public List<PlayedCharacter> PlayedCharacters { get; set; } = new List<PlayedCharacter>();
+
+        public int PlayedModId { get; set; }
     }
 }

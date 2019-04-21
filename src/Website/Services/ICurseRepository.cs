@@ -6,5 +6,6 @@ namespace Website.Services
     public interface ICurseRepository
     {
         Task SaveCurse(SaveCurse newCurse);
+        Task<int> CountCurses();
     }
 }

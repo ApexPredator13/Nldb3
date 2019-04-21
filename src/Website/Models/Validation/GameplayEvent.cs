@@ -13,7 +13,5 @@ namespace Website.Models.Validation
         public string RelatedResource1 { get; set; }
 
         public string RelatedResource2 { get; set; }
-
-        public int SomeAmount { get; set; }
     }
 }

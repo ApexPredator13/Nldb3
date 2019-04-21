@@ -1,20 +1,15 @@
-﻿using Microsoft.EntityFrameworkCore.Extensions;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Npgsql;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Website.Data;
-using Website.Models.Database;
 using Website.Models.Database.Enums;
 using Website.Services;
 using System.Threading.Tasks;
-using System.Threading.Channels;
 using Website.Models.Validation;
+using NpgsqlTypes;
 
 namespace Website.Migrations
 {
@@ -72,8 +67,7 @@ namespace Website.Migrations
         {
             if (_userManager.Users.Count() > 1)
             {
-                // _userManager.Users.Where(x => x.UserName != _adminUsername).ToList().ForEach(u => _userManager.DeleteAsync(u).Wait());
-                _logger.LogWarning("skipping user migration, more than 1 user already exists");
+                _logger.LogWarning("skipping user migration, users already exist in the database");
                 return;
             }
 
@@ -166,6 +160,12 @@ namespace Website.Migrations
 
         public async Task MigrateBosses()
         {
+            if (await _bossRepository.CountBosses() > 0)
+            {
+                _logger.LogWarning("bosses already exist in database, skipping migration...");
+                return;
+            }
+
             List<SaveBoss> newBosses = new List<SaveBoss>();
             using (var c = new NpgsqlConnection(_oldConnectionString))
             {
@@ -204,6 +204,12 @@ namespace Website.Migrations
 
         public async Task MigrateCharacters()
         {
+            if (await _characterRepository.CountCharacters() > 0)
+            {
+                _logger.LogWarning("characters already exist in database, skipping migration...");
+                return;
+            }
+
             var newCharacters = new List<SaveCharacter>();
             using (var c = new NpgsqlConnection(_oldConnectionString))
             {
@@ -241,6 +247,12 @@ namespace Website.Migrations
 
         public async Task MigrateCurses()
         {
+            if (await _curseRepository.CountCurses() > 0)
+            {
+                _logger.LogWarning("curses already exist in database, skipping migration...");
+                return;
+            }
+
             var newCurses = new List<SaveCurse>();
             using (var c = new NpgsqlConnection(_oldConnectionString))
             {
@@ -276,6 +288,12 @@ namespace Website.Migrations
 
         public async Task MigrateThreats()
         {
+            if (await _threatRepository.CountThreats() > 0)
+            {
+                _logger.LogWarning("threats already exist in database, skipping migration...");
+                return;
+            }
+
             List<SaveThreat> newThreats = new List<SaveThreat>();
             using (var c = new NpgsqlConnection(_oldConnectionString))
             {
@@ -313,6 +331,12 @@ namespace Website.Migrations
 
         public async Task MigrateFloors()
         {
+            if (await _floorRepository.CountFloors() > 0)
+            {
+                _logger.LogWarning("floors already exist in database, skipping migration...");
+                return;
+            }
+
             var newFloors = new List<SaveFloor>();
             using (var c = new NpgsqlConnection(_oldConnectionString))
             {
@@ -347,6 +371,12 @@ namespace Website.Migrations
 
         public async Task MigrateItems()
         {
+            if (await _itemRepository.CountItems() > 0)
+            {
+                _logger.LogWarning("items already exist in database, skipping migration...");
+                return;
+            }
+
             List<SaveItem> newItems = new List<SaveItem>();
             using (var c = new NpgsqlConnection(_oldConnectionString))
             {
@@ -384,6 +414,12 @@ namespace Website.Migrations
 
         public async Task MigrateItemSources()
         {
+            if (await _itemsourceRepository.CountItemsources() > 0)
+            {
+                _logger.LogWarning("itemsources  already exist in database, skipping migration...");
+                return;
+            }
+
             var newItemsources = new List<SaveItemsource>();
             using (var c = new NpgsqlConnection(_oldConnectionString))
             {
@@ -421,6 +457,12 @@ namespace Website.Migrations
 
         public async Task MigrateTransformations()
         {
+            if (await _transformationRepository.CountTransformations() > 0)
+            {
+                _logger.LogWarning("transformations already exist in database, skipping migration...");
+                return;
+            }
+
             var newTransformations = new List<SaveTransformation>();
             using (var c = new NpgsqlConnection(_oldConnectionString))
             {
@@ -495,6 +537,12 @@ namespace Website.Migrations
 
         public async Task MigrateVideos()
         {
+            if (await _videoRepository.CountVideos() > 0)
+            {
+                _logger.LogWarning("videos already exist in the database, skipping migration...");
+                return;
+            }
+
             var videos = new List<SaveVideo>();
             using (var c = new NpgsqlConnection(_oldConnectionString))
             {
@@ -532,6 +580,12 @@ namespace Website.Migrations
 
         public async Task MigrateRuns()
         {
+            if (await _videoRepository.CountVideoSubmissions() > 0)
+            {
+                _logger.LogWarning("runs already exist in the database, skipping migration...");
+                return;
+            }
+
             var videoIds = new List<string>();
             using (var c = new NpgsqlConnection(_oldConnectionString))
             {
@@ -580,6 +634,11 @@ namespace Website.Migrations
                         }
                     }
 
+                    if (contributors.Count is 0)
+                    {
+                        continue;
+                    }
+
                     // FLOOR IDS
                     var floors = new Dictionary<int, (string floor, string death)>();
 
@@ -617,7 +676,7 @@ namespace Website.Migrations
                         }
 
                         // add floor to character
-                        submission.PlayedCharacters.Last().PlayedFloors.Add(new PlayedFloor() { FloorId = floor.Value.floor });
+                        submission.PlayedCharacters.Last().PlayedFloors.Add(new PlayedFloor() { FloorId = floor.Value.floor, VideoId = videoId });
 
                         // add bossfights fo floor
                         string bossfightQuery = $"SELECT bossfights.urlname FROM visitedfloors RIGHT JOIN bossfights ON bossfights.visitedfloorid = visitedfloors.id WHERE visitedfloors.id = {floor.Key} ORDER BY bossfights.id ASC; ";
@@ -665,7 +724,7 @@ namespace Website.Migrations
                                 {
                                     while (r.Read())
                                     {
-                                        submission.PlayedCharacters.Last().PlayedFloors.Last().gameplayEvents.Add(new GameplayEvent() { RelatedResource1 = r.GetString(0), RelatedResource2 = r.GetString(1), EventType = GameplayEventType.DeprecatedCollectedItem });
+                                        submission.PlayedCharacters.Last().PlayedFloors.Last().gameplayEvents.Add(new GameplayEvent() { RelatedResource1 = r.GetString(0), RelatedResource2 = r.GetString(1), EventType = GameplayEventType.CollectedItem });
                                     }
                                 }
                             }
@@ -674,14 +733,26 @@ namespace Website.Migrations
                         // add death last
                         if (!string.IsNullOrEmpty(floor.Value.death))
                         {
-                            submission.PlayedCharacters.Last().PlayedFloors.Last().DeathId = floor.Value.death;
-                            submission.PlayedCharacters.Last().PlayedFloors.Last().gameplayEvents.Add(new GameplayEvent() { EventType = GameplayEventType.CharacterDied, RelatedResource1 = floor.Value.death });
+                            string getDeathQuery = $"SELECT urlname FROM deaths WHERE name = @A; ";
+                            using (var q = new NpgsqlCommand(getDeathQuery, c))
+                            {
+                                q.Parameters.AddWithValue("@A", NpgsqlDbType.Varchar, floor.Value.death);
+                                using (var r = q.ExecuteReader())
+                                {
+                                    if (r.HasRows)
+                                    {
+                                        r.Read();
+                                        submission.PlayedCharacters.Last().PlayedFloors.Last().DeathId = r.GetString(0);
+                                        submission.PlayedCharacters.Last().PlayedFloors.Last().gameplayEvents.Add(new GameplayEvent() { EventType = GameplayEventType.CharacterDied, RelatedResource1 = r.GetString(0) });
+                                    }
+                                }
+                            }
                         }
                     }
                 }
 
                 // submission complete, now map it to the database
-                await _videoRepository.SubmitEpisode(submission, contributors.Last());
+                await _videoRepository.SubmitEpisode(submission, contributors.Last(), SubmissionType.Old);
 
                 // episodes that have been overwritten
                 if (contributors.Count > 1)

@@ -6,5 +6,6 @@ namespace Website.Services
     public interface IBossRepository
     {
         Task SaveBoss(SaveBoss boss);
+        Task<int> CountBosses();
     }
 }

@@ -16,6 +16,17 @@ namespace Website.Data
             _connector = connector;
         }
 
+        public async Task<int> CountItemsources()
+        {
+            using (var c = await _connector.Connect())
+            {
+                using (var q = new NpgsqlCommand("SELECT COUNT(*) FROM item_sources; ", c))
+                {
+                    return Convert.ToInt32(await q.ExecuteScalarAsync());
+                }
+            }
+        }
+
         public async Task SaveItemsource(SaveItemsource item)
         {
             string query = "INSERT INTO item_sources (id, name, exists_in, x, y, w, game_mode, color, mod) VALUES (@I, @N, @E, @X, @Y, @W, @M, @C, @L);";

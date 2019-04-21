@@ -6,5 +6,6 @@ namespace Website.Services
     public interface IFloorRepository
     {
         Task SaveFloor(SaveFloor boss);
+        Task<int> CountFloors();
     }
 }

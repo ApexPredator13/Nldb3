@@ -6,5 +6,6 @@ namespace Website.Services
     public interface IThreatRepository
     {
         Task SaveThreat(SaveThreat newThreat);
+        Task<int> CountThreats();
     }
 }

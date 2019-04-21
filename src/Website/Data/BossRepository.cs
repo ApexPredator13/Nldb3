@@ -16,6 +16,17 @@ namespace Website.Data
             _connector = connector;
         }
 
+        public async Task<int> CountBosses()
+        {
+            using (var c = await _connector.Connect())
+            {
+                using (var q = new NpgsqlCommand("SELECT COUNT(*) FROM bosses; ", c))
+                {
+                    return Convert.ToInt32(await q.ExecuteScalarAsync());
+                }
+            }
+        }
+
         public async Task SaveBoss(SaveBoss item)
         {
             string query = "INSERT INTO bosses (id, double_trouble, name, exists_in, x, y, w, game_mode, color, mod) VALUES (@I, @D, @N, @E, @X, @Y, @W, @M, @C, @L);";

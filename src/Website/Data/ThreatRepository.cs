@@ -16,6 +16,17 @@ namespace Website.Data
             _connector = connector;
         }
 
+        public async Task<int> CountThreats()
+        {
+            using (var c = await _connector.Connect())
+            {
+                using (var q = new NpgsqlCommand("SELECT COUNT(*) FROM threats; ", c))
+                {
+                    return Convert.ToInt32(await q.ExecuteScalarAsync());
+                }
+            }
+        }
+
         public async Task SaveThreat(SaveThreat item)
         {
             string query = "INSERT INTO threats (id, name, exists_in, x, y, w, game_mode, color, mod) VALUES (@I, @N, @E, @X, @Y, @W, @M, @C, @L);";
