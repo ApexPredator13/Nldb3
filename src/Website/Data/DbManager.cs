@@ -35,7 +35,7 @@ namespace Website.Data
             }
 
             string query =
-                "DROP TABLE IF EXISTS encountered_trinkets, used_tarot_cards, swallowed_pills, used_runes, encountered_curses, " +
+                "DROP TABLE IF EXISTS transformation_items, encountered_items_transformations, experienced_transformations, encountered_trinkets, used_tarot_cards, swallowed_pills, used_runes, encountered_curses, " +
                 "encountered_items, experienced_deaths, bossfights, played_floors, played_characters, video_submissions, videos, game_character_tags, " +
                 "game_characters, trinket_tags, trinkets, threat_tags, threats, tarot_card_tags, tarot_cards, pill_tags, pills, rune_tags, runes, curse_tags, " +
                 "curses, item_tags, items, item_source_tags, item_sources, other_consumable_tags, other_consumables, boss_tags, bosses, " +
@@ -57,6 +57,7 @@ namespace Website.Data
             CreateItemSourcesTable();
             CreateItemSourceTagsTable();
             CreateItemsTable();
+            CreateItemTransformationTable();
             CreateItemTagsTable();
             CreateCursesTable();
             CreateCurseTagsTable();
@@ -87,6 +88,8 @@ namespace Website.Data
             CreateUsedTarotCardsTable();
             CreateEncounteredTrinketsTable();
             CreateExperiencedDeathsTable();
+            CreateExperiencedTransformationsTable();
+            CreateEncounteredItemsTransformationsTable();
         }
 
         private void CreateModsTable()
@@ -179,7 +182,7 @@ namespace Website.Data
             string query =
                 "CREATE TABLE IF NOT EXISTS transformations (" +
                     "id VARCHAR(30) PRIMARY KEY, " +
-                    "name VARCHAR(100) NOT NULL, " +
+                    "name VARCHAR(100) NOT NULL UNIQUE, " +
                     "exists_in INTEGER NOT NULL, " +
                     "x INTEGER NOT NULL, " +
                     "y INTEGER NOT NULL, " +
@@ -187,9 +190,7 @@ namespace Website.Data
                     "game_mode INTEGER NOT NULL, " +
                     "color VARCHAR(25) NOT NULL DEFAULT 'LightGray', " +
                     "mod INTEGER REFERENCES mods (id), " +
-                    "items_needed INTEGER NOT NULL, " +
-                    "valid_from TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT '2011-09-01 00:00:00+01', " +
-                    "valid_until TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT '2100-01-01 00:00:00+01'" +
+                    "items_needed INTEGER NOT NULL DEFAULT 3" +
                 ")";
 
             Execute(query);
@@ -582,7 +583,7 @@ namespace Website.Data
                     "floor INTEGER NOT NULL REFERENCES played_floors (id), " +
                     "video CHAR(11) NOT NULL REFERENCES videos (id), " +
                     "action INTEGER NOT NULL, " +
-                    "transformation VARCHAR(30) REFERENCES transformations (id)" +
+                    "played_character INTEGER NOT NULL REFERENCES played_characters (id)" +
                 "); ";
 
             Execute(query);
@@ -599,7 +600,36 @@ namespace Website.Data
                     "floor INTEGER NOT NULL REFERENCES played_floors (id), " +
                     "video CHAR(11) NOT NULL REFERENCES videos (id), " +
                     "action INTEGER NOT NULL, " +
-                    "transformation VARCHAR(30) REFERENCES transformations (id)" +
+                    "played_character INTEGER NOT NULL REFERENCES played_characters (id)" +
+                "); ";
+
+            Execute(query);
+        }
+
+        private void CreateEncounteredItemsTransformationsTable()
+        {
+            string query =
+                "CREATE TABLE IF NOT EXISTS encountered_items_transformations (" +
+                    "id SERIAL PRIMARY KEY, " +
+                    "encountered_item INTEGER NOT NULL REFERENCES encountered_items (id), " +
+                    "transformation VARCHAR(30) NOT NULL REFERENCES transformations (id), " +
+                    "action INTEGER NOT NULL" +
+                "); ";
+
+            Execute(query);
+        }
+
+        private void CreateExperiencedTransformationsTable()
+        {
+            string query =
+                "CREATE TABLE experienced_transformations (" +
+                    "id SERIAL PRIMARY KEY, " +
+                    "transformation VARCHAR(30) NOT NULL REFERENCES transformations (id), " +
+                    "floor INTEGER NOT NULL REFERENCES played_floors (id), " +
+                    "action INTEGER NOT NULL, " +
+                    "video CHAR(11) NOT NULL REFERENCES videos (id), " +
+                    "triggered_by INTEGER NOT NULL REFERENCES encountered_items (id), " +
+                    "played_character INTEGER NOT NULL REFERENCES played_characters (id)" +
                 "); ";
 
             Execute(query);
@@ -613,7 +643,8 @@ namespace Website.Data
                     "curse VARCHAR(30) NOT NULL REFERENCES curses (id), " +
                     "floor INTEGER NOT NULL REFERENCES played_floors (id), " +
                     "video CHAR(11) NOT NULL REFERENCES videos (id), " +
-                    "action INTEGER NOT NULL" +
+                    "action INTEGER NOT NULL, " +
+                    "played_character INTEGER NOT NULL REFERENCES played_characters (id)" +
                 "); ";
 
             Execute(query);
@@ -627,7 +658,8 @@ namespace Website.Data
                     "rune VARCHAR(30) NOT NULL REFERENCES runes (id), " +
                     "floor INTEGER NOT NULL REFERENCES played_floors (id), " +
                     "action INTEGER NOT NULL, " +
-                    "transformation VARCHAR(30) REFERENCES transformations (id)" +
+                    "transformation VARCHAR(30) REFERENCES transformations (id), " +
+                    "played_character INTEGER NOT NULL REFERENCES played_characters (id)" +
                 "); ";
 
             Execute(query);
@@ -641,7 +673,8 @@ namespace Website.Data
                     "pill VARCHAR(30) NOT NULL REFERENCES pills (id), " +
                     "floor INTEGER NOT NULL REFERENCES played_floors (id), " +
                     "action INTEGER NOT NULL, " +
-                    "transformation VARCHAR(30) REFERENCES transformations (id)" +
+                    "transformation VARCHAR(30) REFERENCES transformations (id), " +
+                    "played_character INTEGER NOT NULL REFERENCES played_characters (id)" +
                 "); ";
 
             Execute(query);
@@ -655,12 +688,13 @@ namespace Website.Data
                     "tarot_card VARCHAR(30) NOT NULL REFERENCES tarot_cards (id), " +
                     "floor INTEGER NOT NULL REFERENCES played_floors (id), " +
                     "action INTEGER NOT NULL, " +
-                    "transformation VARCHAR(30) REFERENCES transformations (id)" +
+                    "transformation VARCHAR(30) REFERENCES transformations (id) ," +
+                    "played_character INTEGER NOT NULL REFERENCES played_characters (id)" +
                 "); ";
 
             Execute(query);
         }
-
+        
         private void CreateEncounteredTrinketsTable()
         {
             string query =
@@ -670,7 +704,8 @@ namespace Website.Data
                     "usage INTEGER NOT NULL, " +
                     "floor INTEGER NOT NULL REFERENCES played_floors (id), " +
                     "action INTEGER NOT NULL, " +
-                    "transformation VARCHAR(30) REFERENCES transformations (id)" +
+                    "transformation VARCHAR(30) REFERENCES transformations (id), " +
+                    "played_character INTEGER NOT NULL REFERENCES played_characters (id)" +
                 "); ";
 
             Execute(query);
@@ -684,7 +719,24 @@ namespace Website.Data
                     "threat VARCHAR(30) NOT NULL REFERENCES threats (id), " +
                     "floor INTEGER NOT NULL REFERENCES played_floors (id), " +
                     "video CHAR(11) NOT NULL REFERENCES videos (id), " +
-                    "action INTEGER NOT NULL" +
+                    "action INTEGER NOT NULL, " +
+                    "played_character INTEGER NOT NULL REFERENCES played_characters (id)" +
+                "); ";
+
+            Execute(query);
+        }
+
+        private void CreateItemTransformationTable()
+        {
+            string query =
+                "CREATE TABLE IF NOT EXISTS transformation_items (" +
+                    "id SERIAL PRIMARY KEY, " +
+                    "item VARCHAR(30) NOT NULL REFERENCES items (id), " +
+                    "transformation VARCHAR(30) NOT NULL REFERENCES transformations (id), " +
+                    "counts_multiple_times BOOLEAN NOT NULL, " +
+                    "requires_title_content VARCHAR(100), " +
+                    "valid_from TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT '2011-09-01 00:00:00+01', " +
+                    "valid_until TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT '2100-01-01 00:00:00+01'" +
                 "); ";
 
             Execute(query);

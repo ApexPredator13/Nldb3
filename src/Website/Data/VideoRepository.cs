@@ -1,7 +1,9 @@
 ﻿using Npgsql;
 using NpgsqlTypes;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Website.Models.Database.Enums;
@@ -58,6 +60,29 @@ namespace Website.Data
             return result;
         }
 
+        public async Task<string?> GetVideoTitle(string videoId)
+        {
+            string? result = null;
+
+            using (var c = await _connector.Connect())
+            {
+                using (var q = new NpgsqlCommand("SELECT title FROM videos WHERE id = @Id; ", c))
+                {
+                    q.Parameters.AddWithValue("@Id", NpgsqlDbType.Char, videoId);
+                    using (var r = await q.ExecuteReaderAsync())
+                    {
+                        if (r.HasRows)
+                        {
+                            r.Read();
+                            result = r.GetString(0);
+                        }
+                    }
+                }
+            }
+
+            return result;
+        }
+
         public async Task<int> CountVideoSubmissions()
         {
             using (var c = await _connector.Connect())
@@ -102,14 +127,21 @@ namespace Website.Data
             }
         }
 
+        public class TransformationProgress
+        {
+            public string Item { get; set; } = string.Empty;
+            public string Transformation { get; set; } = string.Empty;
+        }
+
         public async Task SubmitEpisode(SubmittedEpisode episode, string userId, SubmissionType type = SubmissionType.New)
         {
             // check if any mods were used
             var usedMods = await _modRepository.GetUsedModsForSubmittedEpisode(episode);
             var videoReleasedate = await GetVideoReleasedate(episode.VideoId) ?? DateTime.Now;
+            var videoTitle = await GetVideoTitle(episode.VideoId) ?? string.Empty;
 
             // get available transformations, taking mods and video release date into consideration
-            var availableTransformations = await _transformationRepository.GetAvailableTransformationsForEpisode(videoReleasedate, usedMods);
+            var transformationProgress = new List<TransformationProgress>();
 
             // create submission
             var s = new StringBuilder();
@@ -120,6 +152,8 @@ namespace Website.Data
             int deathCounter = 0;
             int curseCounter = 0;
             int actionCounter = 0;
+            int experiencedTransformationsCounter = 0;
+            int encounteredItemTransformationCounter = 0;
 
             var parameters = new List<NpgsqlParameter>();
 
@@ -137,6 +171,9 @@ namespace Website.Data
                 parameters.Add(new NpgsqlParameter($"@Jf{characterCounter}", NpgsqlDbType.Integer) { NpgsqlValue = actionCounter++ });
                 parameters.Add(new NpgsqlParameter($"@Vv{characterCounter++}", NpgsqlDbType.Char) { NpgsqlValue = episode.VideoId });
 
+                // reset transformation progress
+                transformationProgress.Clear();
+
                 foreach (var floor in character.PlayedFloors)
                 {
                     // save floor into character
@@ -153,29 +190,54 @@ namespace Website.Data
                             case GameplayEventType.CollectedItem:
                             case GameplayEventType.TouchedItem:
                             case GameplayEventType.SkippedItem:
-                                s.Append($"INSERT INTO encountered_items (item, source, usage, floor, video, action, transformation) VALUES (@I{itemCounter}, @S{itemCounter}, @A{itemCounter}, CURRVAL(pg_get_serial_sequence('played_floors', 'id')), @Q{itemCounter}, @Ja{itemCounter}, @Ta{itemCounter}); ");
-                                string? itemTransformation = await _itemRepository.GetTransformationForItem(e.RelatedResource1);
+                                // add item
+                                s.Append($"INSERT INTO encountered_items (item, source, usage, floor, video, action, played_character) VALUES (@I{itemCounter}, @S{itemCounter}, @A{itemCounter}, CURRVAL(pg_get_serial_sequence('played_floors', 'id')), @Q{itemCounter}, @Ja{itemCounter}, CURRVAL(pg_get_serial_sequence('played_characters', 'id'))); ");
                                 parameters.Add(new NpgsqlParameter($"@I{itemCounter}", NpgsqlDbType.Varchar) { NpgsqlValue = e.RelatedResource1 });
                                 parameters.Add(new NpgsqlParameter($"@S{itemCounter}", NpgsqlDbType.Varchar) { NpgsqlValue = e.RelatedResource2 });
                                 parameters.Add(new NpgsqlParameter($"@A{itemCounter}", NpgsqlDbType.Integer) { NpgsqlValue = (int)e.EventType });
                                 parameters.Add(new NpgsqlParameter($"@Q{itemCounter}", NpgsqlDbType.Char) { NpgsqlValue = episode.VideoId });
-                                parameters.Add(new NpgsqlParameter($"@Ja{itemCounter}", NpgsqlDbType.Integer) { NpgsqlValue = actionCounter++ });
-                                parameters.Add(new NpgsqlParameter($"@Ta{itemCounter++}", NpgsqlDbType.Varchar) { NpgsqlValue = itemTransformation is null || !availableTransformations.Contains(itemTransformation) ? (object)DBNull.Value : itemTransformation });
+                                parameters.Add(new NpgsqlParameter($"@Ja{itemCounter++}", NpgsqlDbType.Integer) { NpgsqlValue = actionCounter++ });
+                                
+                                // check if item is part of any transformations
+                                var itemTransformationData = await _transformationRepository.ItemCountsTowardsTransformations(e.RelatedResource1, videoTitle, videoReleasedate);
+
+                                // if it does, go through all transformations it's part of
+                                foreach (var (transformation, countsMultipleTimes, numberOfItemsRequired) in itemTransformationData)
+                                {
+                                    // don't process items that don't count multiple times
+                                    if (countsMultipleTimes || !transformationProgress.Any(x => x.Transformation == transformation && x.Item == e.RelatedResource1))
+                                    {
+                                        // add transformation progress to item
+                                        transformationProgress.Add(new TransformationProgress() { Item = e.RelatedResource1, Transformation = transformation });
+                                        s.Append($"INSERT INTO encountered_items_transformations (encountered_item, transformation, action) VALUES (CURRVAL(pg_get_serial_sequence('encountered_items', 'id')), @EIT{encounteredItemTransformationCounter}, @EIA{encounteredItemTransformationCounter}); ");
+                                        parameters.Add(new NpgsqlParameter($"@EIT{encounteredItemTransformationCounter}", NpgsqlDbType.Varchar) { NpgsqlValue = transformation });
+                                        parameters.Add(new NpgsqlParameter($"@EIA{encounteredItemTransformationCounter++}", NpgsqlDbType.Integer) { NpgsqlValue = actionCounter++ });
+
+                                        // check if transformation happened after this item
+                                        if (transformationProgress.Count(x => x.Transformation == transformation) == numberOfItemsRequired)
+                                        {
+                                            s.Append($"INSERT INTO experienced_transformations (transformation, floor, action, video, triggered_by, played_character) VALUES (@ETT{experiencedTransformationsCounter}, CURRVAL(pg_get_serial_sequence('played_floors', 'id')), @ETA{experiencedTransformationsCounter}, @ETV{experiencedTransformationsCounter}, CURRVAL(pg_get_serial_sequence('encountered_items', 'id')), CURRVAL(pg_get_serial_sequence('played_characters', 'id'))); ");
+                                            parameters.Add(new NpgsqlParameter($"@ETT{experiencedTransformationsCounter}", NpgsqlDbType.Varchar) { NpgsqlValue = transformation });
+                                            parameters.Add(new NpgsqlParameter($"@ETA{experiencedTransformationsCounter}", NpgsqlDbType.Integer) { NpgsqlValue = actionCounter++ });
+                                            parameters.Add(new NpgsqlParameter($"@ETV{experiencedTransformationsCounter++}", NpgsqlDbType.Char) { NpgsqlValue = episode.VideoId });
+                                        }
+                                    }
+                                }
                                 break;
                             case GameplayEventType.Bossfight:
-                                s.Append($"INSERT INTO bossfights (boss, floor, video, action) VALUES (@B{bossCounter}, CURRVAL(pg_get_serial_sequence('played_floors', 'id')), @R{bossCounter}, @Jb{bossCounter}); ");
+                                s.Append($"INSERT INTO bossfights (boss, floor, video, action, played_character) VALUES (@B{bossCounter}, CURRVAL(pg_get_serial_sequence('played_floors', 'id')), @R{bossCounter}, @Jb{bossCounter}, CURRVAL(pg_get_serial_sequence('played_characters', 'id'))); ");
                                 parameters.Add(new NpgsqlParameter($"@B{bossCounter}", NpgsqlDbType.Varchar) { NpgsqlValue = e.RelatedResource1 });
                                 parameters.Add(new NpgsqlParameter($"@R{bossCounter}", NpgsqlDbType.Char) { NpgsqlValue = episode.VideoId });
                                 parameters.Add(new NpgsqlParameter($"@Jb{bossCounter++}", NpgsqlDbType.Integer) { NpgsqlValue = actionCounter++ });
                                 break;
                             case GameplayEventType.CharacterDied:
-                                s.Append($"INSERT INTO experienced_deaths (threat, floor, video, action) VALUES (@D{deathCounter}, CURRVAL(pg_get_serial_sequence('played_floors', 'id')), @O{deathCounter}, @Jc{deathCounter}); ");
+                                s.Append($"INSERT INTO experienced_deaths (threat, floor, video, action, played_character) VALUES (@D{deathCounter}, CURRVAL(pg_get_serial_sequence('played_floors', 'id')), @O{deathCounter}, @Jc{deathCounter}, CURRVAL(pg_get_serial_sequence('played_characters', 'id'))); ");
                                 parameters.Add(new NpgsqlParameter($"@D{deathCounter}", NpgsqlDbType.Varchar) { NpgsqlValue = e.RelatedResource1 });
                                 parameters.Add(new NpgsqlParameter($"@O{deathCounter}", NpgsqlDbType.Char) { NpgsqlValue = episode.VideoId });
                                 parameters.Add(new NpgsqlParameter($"@Jc{deathCounter++}", NpgsqlDbType.Integer) { NpgsqlValue = actionCounter++ });
                                 break;
                             case GameplayEventType.Curse:
-                                s.Append($"INSERT INTO encountered_curses (curse, floor, video, action) VALUES (@U{curseCounter}, CURRVAL(pg_get_serial_sequence('played_floors', 'id')), @M{curseCounter}, @Jd{curseCounter}); ");
+                                s.Append($"INSERT INTO encountered_curses (curse, floor, video, action, played_character) VALUES (@U{curseCounter}, CURRVAL(pg_get_serial_sequence('played_floors', 'id')), @M{curseCounter}, @Jd{curseCounter}, CURRVAL(pg_get_serial_sequence('played_characters', 'id'))); ");
                                 parameters.Add(new NpgsqlParameter($"@U{curseCounter}", NpgsqlDbType.Varchar) { NpgsqlValue = e.RelatedResource1 });
                                 parameters.Add(new NpgsqlParameter($"@M{curseCounter}", NpgsqlDbType.Char) { NpgsqlValue = episode.VideoId });
                                 parameters.Add(new NpgsqlParameter($"@Jd{curseCounter++}", NpgsqlDbType.Integer) { NpgsqlValue = actionCounter++ });

@@ -52,6 +52,8 @@ namespace Website.Infrastructure
             {
                 var migrator = serviceScope.ServiceProvider.GetRequiredService<IMigrateOldDatabase>();
                 migrator.MigrateUsers();
+                await migrator.MigrateMods();
+                await migrator.MigrateTransformations();
                 await migrator.MigrateBosses();
                 await migrator.MigrateCharacters();
                 await migrator.MigrateCurses();
@@ -59,7 +61,6 @@ namespace Website.Infrastructure
                 await migrator.MigrateItems();
                 await migrator.MigrateItemSources();
                 await migrator.MigrateThreats();
-                await migrator.MigrateTransformations();
                 await migrator.MigrateVideos();
                 // await migrator.MigrateQuotes();
                 await migrator.MigrateRuns();

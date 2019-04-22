@@ -8,5 +8,6 @@ namespace Website.Services
         Task SaveItem(SaveItem item);
         Task<int> CountItems();
         Task<string?> GetTransformationForItem(string itemId);
+        Task<string?> GetItemIdByName(string name);
     }
 }

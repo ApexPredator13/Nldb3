@@ -29,9 +29,31 @@ namespace Website.Data
             }
         }
 
+        public async Task<string?> GetItemIdByName(string name)
+        {
+            string? result = null;
+            using (var c = await _connector.Connect())
+            {
+                using (var q = new NpgsqlCommand("SELECT id FROM items WHERE name = @N; ", c))
+                {
+                    q.Parameters.AddWithValue("@N", NpgsqlDbType.Varchar, name);
+                    using (var r = await q.ExecuteReaderAsync())
+                    {
+                        if (r.HasRows)
+                        {
+                            r.Read();
+                            result = r.GetString(0);
+                        }
+                    }
+                }
+            }
+
+            return result;
+        }
+
         public async Task SaveItem(SaveItem item)
         {
-            string query = "INSERT INTO items (id, name, exists_in, x, y, w, game_mode, color, mod) VALUES (@I, @N, @E, @X, @Y, @W, @M, @C, @L);";
+            string query = "INSERT INTO items (id, name, exists_in, x, y, w, game_mode, color, mod, transformation) VALUES (@I, @N, @E, @X, @Y, @W, @M, @C, @L, @T);";
 
             using (var c = await _connector.Connect())
             {
@@ -46,6 +68,7 @@ namespace Website.Data
                     q.Parameters.AddWithValue("@M", NpgsqlDbType.Integer, (int)item.GameMode);
                     q.Parameters.AddWithValue("@C", NpgsqlDbType.Varchar, item.Color);
                     q.Parameters.AddWithValue("@L", NpgsqlDbType.Integer, item.FromMod ?? (object)DBNull.Value);
+                    q.Parameters.AddWithValue("@T", NpgsqlDbType.Varchar, item.TransformationId ?? (object)DBNull.Value);
 
                     await q.ExecuteNonQueryAsync();
                 }

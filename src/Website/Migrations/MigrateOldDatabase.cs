@@ -10,6 +10,8 @@ using Website.Services;
 using System.Threading.Tasks;
 using Website.Models.Validation;
 using NpgsqlTypes;
+using System;
+using System.Globalization;
 
 namespace Website.Migrations
 {
@@ -30,6 +32,7 @@ namespace Website.Migrations
         private readonly IItemsourceRepository _itemsourceRepository;
         private readonly ITransformationRepository _transformationRepository;
         private readonly IVideoRepository _videoRepository;
+        private readonly IModRepository _modRepository;
 
         public MigrateOldDatabase(
             IConfiguration config, 
@@ -43,7 +46,8 @@ namespace Website.Migrations
             IFloorRepository floorRepository,
             IItemsourceRepository itemsourceRepository,
             ITransformationRepository transformationRepository,
-            IVideoRepository videoRepository
+            IVideoRepository videoRepository,
+            IModRepository modRepository
         )
         {
             _oldConnectionString = config.GetConnectionString("OldDatabaseConnection");
@@ -61,6 +65,7 @@ namespace Website.Migrations
             _itemsourceRepository = itemsourceRepository;
             _transformationRepository = transformationRepository;
             _videoRepository = videoRepository;
+            _modRepository = modRepository;
         }
 
         public void MigrateUsers()
@@ -158,6 +163,61 @@ namespace Website.Migrations
             c_identity_new.Dispose();
         }
 
+        public async Task MigrateMods()
+        {
+            var mods = new List<SaveMod>
+            {
+                new SaveMod("Antibirth"),
+                new SaveMod("Community Remix"),
+                new SaveMod("Mei"),
+                new SaveMod("Siren, Playable Character"),
+                new SaveMod("The Binding of NLSS Afterstream+"),
+                new SaveMod("Alphabirth Pack 1: Mom's Closet"),
+                new SaveMod("Faith's Reward"),
+                new SaveMod("The Drawn"),
+                new SaveMod("King Saul"),
+                new SaveMod("Arena Mode"),
+                new SaveMod("alotmoreitems"),
+                new SaveMod("Buddy In A Box"),
+                new SaveMod("Black Hole"),
+                new SaveMod("Mystery Gift"),
+                new SaveMod("Sprinkler"),
+                new SaveMod("AngryFly"),
+                new SaveMod("Bozo"),
+                new SaveMod("Broken Modem"),
+                new SaveMod("Lil' Delirium"),
+                new SaveMod("The Binding of NLSS Afterstream+"),
+                new SaveMod("Booster Pack #1"),
+                new SaveMod("Adventure Sheet"),
+                new SaveMod("Flask of the Gods"),
+                new SaveMod("Moving Box"),
+                new SaveMod("Telepathy"),
+                new SaveMod("Technology Zero"),
+                new SaveMod("Jumper Cables"),
+                new SaveMod("Cereal Cutout"),
+                new SaveMod("Leprosy"),
+                new SaveMod("Mr. Meeseeks"),
+                new SaveMod("Lil Harbingers"),
+                new SaveMod("Thought"),
+                new SaveMod("Bank Shot!"),
+                new SaveMod("The RPGing of Isaac"),
+                new SaveMod("Death's List"),
+                new SaveMod("Water Balloon"),
+                new SaveMod("Hungry Tears"),
+                new SaveMod("Lightshot"),
+                new SaveMod("Satanic Ritual"),
+                new SaveMod("Security Blanket"),
+                new SaveMod("Hydrophobicity"),
+                new SaveMod("Lil Spewer"),
+                new SaveMod("Mystery Egg")
+            };
+
+            foreach (var mod in mods)
+            {
+                await _modRepository.SaveMod(mod);
+            }
+        }
+
         public async Task MigrateBosses()
         {
             if (await _bossRepository.CountBosses() > 0)
@@ -171,7 +231,7 @@ namespace Website.Migrations
             {
                 c.Open();
 
-                using (var q = new NpgsqlCommand("SELECT name, csshorizontaloffset, cssverticaloffset, urlname, width, isdoublebossfight FROM bosses; ", c))
+                using (var q = new NpgsqlCommand("SELECT name, csshorizontaloffset, cssverticaloffset, urlname, width, isdoublebossfight, frommod FROM bosses; ", c))
                 {
                     using (var r = q.ExecuteReader())
                     {
@@ -186,7 +246,8 @@ namespace Website.Migrations
                                     Y = r.GetInt32(2),
                                     W = r.GetInt32(4),
                                     Id = r.GetString(3),
-                                    DoubleTrouble = r.GetBoolean(5)
+                                    DoubleTrouble = r.GetBoolean(5),
+                                    FromMod = r.IsDBNull(6) ? null : await _modRepository.GetModIdByName(r.GetString(6))
                                 });
                             }
                         }
@@ -215,7 +276,7 @@ namespace Website.Migrations
             {
                 c.Open();
 
-                using (var q = new NpgsqlCommand("SELECT name, urlname, csshorizontaloffset, cssverticaloffset FROM characters; ", c))
+                using (var q = new NpgsqlCommand("SELECT name, urlname, csshorizontaloffset, cssverticaloffset, frommod FROM characters; ", c))
                 {
                     using (var r = q.ExecuteReader())
                     {
@@ -229,7 +290,8 @@ namespace Website.Migrations
                                     X = r.GetInt32(2),
                                     Y = r.GetInt32(3),
                                     W = 40,
-                                    Id = r.GetString(1)
+                                    Id = r.GetString(1),
+                                    FromMod = r.IsDBNull(4) ? null : await _modRepository.GetModIdByName(r.GetString(4))
                                 });
                             }
                         }
@@ -258,7 +320,7 @@ namespace Website.Migrations
             {
                 c.Open();
 
-                using (var q = new NpgsqlCommand("SELECT name, urlname FROM curses; ", c))
+                using (var q = new NpgsqlCommand("SELECT name, urlname, frommod FROM curses; ", c))
                 {
                     using (var r = q.ExecuteReader())
                     {
@@ -270,7 +332,8 @@ namespace Website.Migrations
                                 newCurses.Add(new SaveCurse()
                                 {
                                     Id = string.Join(string.Empty, r.GetString(0).Split(" ").Select(a => char.ToUpper(a[0]).ToString() + a.Substring(1))),
-                                    Name = r.GetString(0)
+                                    Name = r.GetString(0),
+                                    FromMod = r.IsDBNull(2) ? null : await _modRepository.GetModIdByName(r.GetString(2))
                                 });
                             }
                         }
@@ -299,7 +362,7 @@ namespace Website.Migrations
             {
                 c.Open();
 
-                using (var q = new NpgsqlCommand("SELECT name, urlname, csshorizontaloffset, cssverticaloffset FROM deaths; ", c))
+                using (var q = new NpgsqlCommand("SELECT name, urlname, csshorizontaloffset, cssverticaloffset, frommod FROM deaths; ", c))
                 {
                     using (var r = q.ExecuteReader())
                     {
@@ -313,7 +376,8 @@ namespace Website.Migrations
                                     Id = r.GetString(1),
                                     W = 40,
                                     X = r.GetInt32(2),
-                                    Y = r.GetInt32(3)
+                                    Y = r.GetInt32(3),
+                                    FromMod = r.IsDBNull(4) ? null : await _modRepository.GetModIdByName(r.GetString(4))
                                 });
                             }
                         }
@@ -342,7 +406,7 @@ namespace Website.Migrations
             {
                 c.Open();
 
-                using (var q = new NpgsqlCommand("SELECT urlname, name FROM floors; ", c))
+                using (var q = new NpgsqlCommand("SELECT urlname, name, frommod FROM floors; ", c))
                 {
                     using (var r = q.ExecuteReader())
                     {
@@ -353,7 +417,8 @@ namespace Website.Migrations
                                 newFloors.Add(new SaveFloor()
                                 {
                                     Id = r.GetString(0),
-                                    Name = r.GetString(1)
+                                    Name = r.GetString(1),
+                                    FromMod = r.IsDBNull(2) ? null : await _modRepository.GetModIdByName(r.GetString(2))
                                 });
                             }
                         }
@@ -382,7 +447,7 @@ namespace Website.Migrations
             {
                 c.Open();
 
-                using (var q = new NpgsqlCommand("SELECT name, urlname, csshorizontaloffset, cssverticaloffset FROM items; ", c))
+                using (var q = new NpgsqlCommand("SELECT name, urlname, csshorizontaloffset, cssverticaloffset, frommod FROM items; ", c))
                 {
                     using (var r = q.ExecuteReader())
                     {
@@ -396,7 +461,8 @@ namespace Website.Migrations
                                     Id = r.GetString(1),
                                     W = 41,
                                     X = r.GetInt32(2),
-                                    Y = r.GetInt32(3)
+                                    Y = r.GetInt32(3),
+                                    FromMod = r.IsDBNull(4) ? null : await _modRepository.GetModIdByName(r.GetString(4))
                                 });
                             }
                         }
@@ -409,6 +475,97 @@ namespace Website.Migrations
             foreach (var i in newItems)
             {
                 await _itemRepository.SaveItem(i);
+            }
+
+            // add transformation info to items
+            // get old list
+            var transformationData = new List<(string itemName, string transformationName)>();
+            using (var c = new NpgsqlConnection(_oldConnectionString))
+            {
+                await c.OpenAsync();
+
+                using (var q = new NpgsqlCommand("SELECT item, transformation FROM transformations_necessaryitems;", c))
+                {
+                    using (var r = await q.ExecuteReaderAsync())
+                    {
+                        if (r.HasRows)
+                        {
+                            while (r.Read())
+                            {
+                                try
+                                {
+                                    transformationData.Add((r.GetString(0), r.GetString(1)));
+                                }
+                                catch { }
+                            }
+                        }
+                    }
+                }
+            }
+
+            using (var c = new NpgsqlConnection(_newConnectionString))
+            {
+                await c.OpenAsync();
+
+                foreach (var (itemName, transformationName) in transformationData)
+                {
+                    string? titleContent = null;
+                    if (transformationName == "Loki" || transformationName == "Tammy")
+                    {
+                        titleContent = "community remix";
+                    }
+                    else if (transformationName == "Waxed")
+                    {
+                        titleContent = "alphabirth";
+                    }
+
+                    var itemId = await _itemRepository.GetItemIdByName(itemName);
+                    var transformationId = await _transformationRepository.GetTransformationIdByName(transformationName);
+                    DateTime? validFrom = null;
+
+                    switch (transformationId)
+                    {
+                        case "MissingTransformation":
+                        case "Guppy":
+                            break;
+                        case "LordOfTheFlies":
+                            validFrom = new DateTime(2014, 11, 4, 0, 0, 0, DateTimeKind.Unspecified);
+                            break;
+                        case "Spun":
+                        case "Conjoined":
+                        case "Seraphim":
+                        case "Bob":
+                        case "Leviathan":
+                        case "Mom":
+                        case "FunGuy":
+                        case "Poop":
+                        case "SuperBum":
+                        case "Bookworm":
+                        case "SpiderBaby":
+                        case "Adult":
+                            validFrom = new DateTime(2015, 10, 30, 7, 0, 0, DateTimeKind.Unspecified);
+                            break;
+                        case "Loki":
+                        case "Tammy":
+                            validFrom = new DateTime(2014, 8, 12, 0, 0, 0, DateTimeKind.Unspecified);
+                            break;
+                        case "Waxed":
+                            validFrom = new DateTime(2017, 3, 16, 0, 0, 0, DateTimeKind.Unspecified);
+                            break;
+                    }
+
+                    using (var q = new NpgsqlCommand(
+                        "INSERT INTO transformation_items (item, transformation, counts_multiple_times, requires_title_content, valid_from, valid_until) " +
+                        $"VALUES (@I, @T, FALSE, @R, {(validFrom is null ? "DEFAULT" : "@V")}, DEFAULT)", c))
+                    {
+                        
+                        q.Parameters.AddWithValue("@I", NpgsqlDbType.Varchar, itemId);
+                        q.Parameters.AddWithValue("@T", NpgsqlDbType.Varchar, transformationId);
+                        q.Parameters.AddWithValue("@R", NpgsqlDbType.Varchar, titleContent is null ? (object)DBNull.Value : titleContent);
+                        if (validFrom != null) q.Parameters.AddWithValue("@V", NpgsqlDbType.TimestampTz, validFrom.Value);
+                        await q.ExecuteNonQueryAsync();
+                    }
+                }
             }
         }
 
@@ -425,7 +582,7 @@ namespace Website.Migrations
             {
                 c.Open();
 
-                using (var q = new NpgsqlCommand("SELECT name, urlname, csshorizontaloffset, cssverticaloffset FROM itemsources; ", c))
+                using (var q = new NpgsqlCommand("SELECT name, urlname, csshorizontaloffset, cssverticaloffset, frommod FROM itemsources; ", c))
                 {
                     using (var r = q.ExecuteReader())
                     {
@@ -439,7 +596,8 @@ namespace Website.Migrations
                                     Name = r.GetString(0),
                                     W = 53,
                                     X = r.GetInt32(2),
-                                    Y = r.GetInt32(3)
+                                    Y = r.GetInt32(3),
+                                    FromMod = r.IsDBNull(4) ? null : await _modRepository.GetModIdByName(r.GetString(4))
                                 });
                             }
                         }
@@ -468,7 +626,7 @@ namespace Website.Migrations
             {
                 c.Open();
 
-                using (var q = new NpgsqlCommand("SELECT name, urlname, csshorizontaloffset, cssverticaloffset FROM transformations; ", c))
+                using (var q = new NpgsqlCommand("SELECT name, urlname, csshorizontaloffset, cssverticaloffset, frommod FROM transformations; ", c))
                 {
                     using (var r = q.ExecuteReader())
                     {
@@ -482,7 +640,9 @@ namespace Website.Migrations
                                     Name = r.GetString(0),
                                     W = 50,
                                     X = r.GetInt32(2),
-                                    Y = r.GetInt32(3)
+                                    Y = r.GetInt32(3),
+                                    FromMod = r.IsDBNull(4) ? null : await _modRepository.GetModIdByName(r.GetString(4)),
+                                    StepsNeeded = 3
                                 });
                             }
                         }

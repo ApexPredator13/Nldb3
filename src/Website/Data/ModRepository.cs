@@ -1,5 +1,6 @@
 ﻿using Npgsql;
 using NpgsqlTypes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -18,33 +19,69 @@ namespace Website.Data
             _connector = connector;
         }
 
-        private bool IsItemEvent(GameplayEventType eventType)
+        public async Task SaveMod(SaveMod mod)
         {
-            switch (eventType)
+            using (var c = await _connector.Connect())
             {
-                case GameplayEventType.SkippedItem:
-                case GameplayEventType.CollectedItem:
-                case GameplayEventType.TouchedItem:
-                    return true;
-                default:
-                    return false;
+                using (var q = new NpgsqlCommand("INSERT INTO mods (name) VALUES (@N); ", c))
+                {
+                    q.Parameters.AddWithValue("@N", NpgsqlDbType.Varchar, mod.ModName);
+                    await q.ExecuteNonQueryAsync();
+                }
             }
         }
 
-        private bool IsTrinketEventType(GameplayEventType eventType)
+        public async Task<int?> GetModIdByName(string name)
         {
-            switch (eventType)
+            int? result = null;
+
+            using (var c = await _connector.Connect())
             {
-                case GameplayEventType.CollectedTrinket:
-                    return true;
-                default:
-                    return false;
+                using (var q = new NpgsqlCommand("SELECT id FROM mods WHERE name = @N; ", c))
+                {
+                    q.Parameters.AddWithValue("@N", NpgsqlDbType.Varchar, name);
+                    using (var r = await q.ExecuteReaderAsync())
+                    {
+                        if (r.HasRows)
+                        {
+                            r.Read();
+                            result = r.GetInt32(0);
+                        }
+                    }
+                }
             }
+
+            return result;
         }
 
         public async Task<List<int>> GetUsedModsForSubmittedEpisode(SubmittedEpisode episode)
         {
             var usedMods = new List<int>();
+
+            // helper functions
+            bool IsTrinketEventType(GameplayEventType eventType)
+            {
+                switch (eventType)
+                {
+                    case GameplayEventType.CollectedTrinket:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+
+            bool IsItemEvent(GameplayEventType eventType)
+            {
+                switch (eventType)
+                {
+                    case GameplayEventType.SkippedItem:
+                    case GameplayEventType.CollectedItem:
+                    case GameplayEventType.TouchedItem:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
 
             async Task ExecuteModQuery(string query, IEnumerable<NpgsqlParameter> parameters)
             {
@@ -70,6 +107,42 @@ namespace Website.Data
                 }
             }
 
+
+            // preparation
+            var episodeName = string.Empty;
+            var communityRemixId = 0;
+            var antibirthId = 0;
+
+            using (var c = await _connector.Connect())
+            {
+                // get episode name, to manually filter antibirth and community remix episodes
+                using (var q = new NpgsqlCommand("SELECT title FROM videos WHERE id = @X", c))
+                {
+                    q.Parameters.AddWithValue("@X", NpgsqlDbType.Char, episode.VideoId);
+                    using (var r = await q.ExecuteReaderAsync())
+                    {
+                        if (r.HasRows)
+                        {
+                            r.Read();
+                            episodeName = r.GetString(0);
+                        }
+                    }
+                }
+
+                // get mod ids of antibirth and community remix
+                using (var q = new NpgsqlCommand("SELECT id FROM mods WHERE name = 'Community Remix'", c))
+                {
+                    q.Parameters.AddWithValue("@X", NpgsqlDbType.Char, episode.VideoId);
+                    communityRemixId = Convert.ToInt32(await q.ExecuteScalarAsync());
+                }
+                using (var q = new NpgsqlCommand("SELECT id FROM mods WHERE name = 'Antibirth'", c))
+                {
+                    q.Parameters.AddWithValue("@X", NpgsqlDbType.Char, episode.VideoId);
+                    antibirthId = Convert.ToInt32(await q.ExecuteScalarAsync());
+                }
+            }
+
+            // extract all isaac resources
             var playedCharacters = episode.PlayedCharacters.Select(x => x.CharacterId);
             var collectedItems = episode.PlayedCharacters.SelectMany(x => x.PlayedFloors.SelectMany(y => y.gameplayEvents.Where(z => IsItemEvent(z.EventType)).Select(a => a.RelatedResource1)));
             var collectedTrinkets = episode.PlayedCharacters.SelectMany(x => x.PlayedFloors.SelectMany(y => y.gameplayEvents.Where(z => IsTrinketEventType(z.EventType)).Select(a => a.RelatedResource1)));
@@ -81,9 +154,7 @@ namespace Website.Data
 
             var i = 0;
 
-            
-                
-
+            // create all parameters
             var characterParameters = playedCharacters.Select(item => { i++; return new NpgsqlParameter($"@I{i}", NpgsqlDbType.Varchar) { NpgsqlValue = item }; }).ToList();
             var itemParameters = collectedItems.Select(item => new NpgsqlParameter($"@I{i++}", NpgsqlDbType.Varchar) { NpgsqlValue = item }).ToList();
             var trinketParameters = collectedTrinkets.Select(item => new NpgsqlParameter($"@I{i++}", NpgsqlDbType.Varchar) { NpgsqlValue = item }).ToList();
@@ -93,6 +164,7 @@ namespace Website.Data
             var bossParameters = foughtBosses.Select(item => new NpgsqlParameter($"@I{i++}", NpgsqlDbType.Varchar) { NpgsqlValue = item }).ToList();
             var itemsourceParameters = itemsources.Select(item => new NpgsqlParameter($"@I{i++}", NpgsqlDbType.Varchar) { NpgsqlValue = item }).ToList();
 
+            // find available mods for all resources
             if (characterParameters.Count() > 0) await ExecuteModQuery($"SELECT mod FROM game_characters WHERE id IN ({string.Join(", ", characterParameters.Select(x => x.ParameterName))}) AND mod IS NOT NULL; ", characterParameters);
             if (itemParameters.Count() > 0) await ExecuteModQuery($"SELECT mod FROM items WHERE id IN ({string.Join(", ", itemParameters.Select(x => x.ParameterName ))}) AND mod IS NOT NULL; ", itemParameters);
             if (trinketParameters.Count() > 0) await ExecuteModQuery($"SELECT mod FROM trinkets WHERE id IN ({string.Join(", ", trinketParameters.Select(x => x.ParameterName ))}) AND mod IS NOT NULL; ", trinketParameters);
@@ -101,6 +173,16 @@ namespace Website.Data
             if (otherParameters.Count() > 0) await ExecuteModQuery($"SELECT mod FROM other_consumables WHERE id IN ({string.Join(", ", otherParameters.Select(x => x.ParameterName ))}) AND mod IS NOT NULL; ", otherParameters);
             if (bossParameters.Count() > 0) await ExecuteModQuery($"SELECT mod FROM bosses WHERE id IN ({string.Join(", ", bossParameters.Select(x => x.ParameterName ))}) AND mod IS NOT NULL; ", bossParameters);
             if (itemsourceParameters.Count() > 0) await ExecuteModQuery($"SELECT mod FROM item_sources WHERE id IN ({string.Join(", ", itemsourceParameters.Select(x => x.ParameterName ))}) AND mod IS NOT NULL; ", itemsourceParameters);
+
+            // filter based on video title
+            if (usedMods.Contains(communityRemixId) && !episodeName.ToLower().Contains("community remix"))
+            {
+                usedMods.Remove(communityRemixId);
+            }
+            if (usedMods.Contains(antibirthId) && !episodeName.ToLower().Contains("antibirth"))
+            {
+                usedMods.Remove(antibirthId);
+            }
 
             return usedMods;
         }
