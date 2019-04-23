@@ -2,7 +2,7 @@
 using Website.Models.Database.Enums;
 
 #nullable disable
-namespace Website.Models.Validation
+namespace Website.Models.Validation.SubmitEpisode
 {
     public class GameplayEvent
     {

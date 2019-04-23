@@ -1,6 +1,6 @@
 ﻿namespace Website.Models.Database.Enums
 {
-    public enum Effects
+    public enum Effect
     {
         ChangesDropBehavior,
         ChangesItemBehavior,

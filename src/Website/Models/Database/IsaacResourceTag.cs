@@ -9,6 +9,6 @@ namespace Website.Models.Database
         public int Id { get; set; }
 
         [Required]
-        public Effects Effect { get; set; }
+        public Effect Effect { get; set; }
     }
 }

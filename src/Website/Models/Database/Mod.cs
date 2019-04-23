@@ -1,16 +1,13 @@
 ﻿using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 
-#nullable disable
 namespace Website.Models.Database
 {
     public class Mod
     {
-        public int Id { get; set; }
+        public int Id { get; set; } = 0;
 
-        [Required]
-        public string Name { get; set; }
+        public string ModName { get; set; } = string.Empty;
 
-        public List<ModUrl> ModUrls { get; set; }
+        public List<ModUrl> ModUrls { get; set; } = new List<ModUrl>();
     }
 }

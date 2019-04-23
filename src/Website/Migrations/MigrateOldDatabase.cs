@@ -12,6 +12,7 @@ using Website.Models.Validation;
 using NpgsqlTypes;
 using System;
 using System.Globalization;
+using Website.Models.Validation.SubmitEpisode;
 
 namespace Website.Migrations
 {
@@ -226,7 +227,7 @@ namespace Website.Migrations
                 return;
             }
 
-            List<SaveBoss> newBosses = new List<SaveBoss>();
+            List<SaveBossModel> newBosses = new List<SaveBossModel>();
             using (var c = new NpgsqlConnection(_oldConnectionString))
             {
                 c.Open();
@@ -239,7 +240,7 @@ namespace Website.Migrations
                         {
                             while (r.Read())
                             {
-                                newBosses.Add(new SaveBoss()
+                                newBosses.Add(new SaveBossModel()
                                 {
                                     Name = r.GetString(0),
                                     X = r.GetInt32(1),

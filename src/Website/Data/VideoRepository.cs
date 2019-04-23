@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Website.Models.Database.Enums;
 using Website.Models.Validation;
+using Website.Models.Validation.SubmitEpisode;
 using Website.Services;
 
 namespace Website.Data

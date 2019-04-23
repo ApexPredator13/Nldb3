@@ -170,7 +170,7 @@ namespace Website.Data
             string query =
                 "CREATE TABLE IF NOT EXISTS boss_tags (" +
                     "id SERIAL PRIMARY KEY, " +
-                    "type INTEGER NOT NULL, " +
+                    "value INTEGER NOT NULL, " +
                     "boss VARCHAR(30) NOT NULL REFERENCES bosses (id)" +
                 "); ";
 

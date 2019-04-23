@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Website.Models.Validation;
+using Website.Models.Validation.SubmitEpisode;
 
 #nullable disable
 namespace Website.Models.Database

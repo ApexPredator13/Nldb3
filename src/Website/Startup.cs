@@ -128,13 +128,10 @@ namespace Website
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-
-            app.UseRouting(routes =>
+            app.UseRouting();
+            app.UseEndpoints(endpoints =>
             {
-                routes.MapControllers();
-                routes.MapControllerRoute(
-                    name: "default",
-                    template: "{controller=Home}/{action=Index}/{id?}");
+                endpoints.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
             });
 
             app.UseCookiePolicy();
@@ -143,8 +140,8 @@ namespace Website
             app.UseAuthorization();
 
             app.CreateAdminUser();
-            app.ResetDatabaseInDevMode();
-            app.MigrateOldDatabaseIfNoDataExists().Wait();
+            //app.ResetDatabaseInDevMode();
+            //app.MigrateOldDatabaseIfNoDataExists().Wait();
         }
     }
 }

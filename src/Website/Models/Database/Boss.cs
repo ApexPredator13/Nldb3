@@ -1,34 +1,20 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
 using Website.Models.Database.Enums;
 
-namespace Website.Models.Validation
+namespace Website.Models.Database
 {
-    public class SaveIsaacResource
+    public class Boss
     {
-        [Required]
-        [StringLength(30)]
         public string Id { get; set; } = string.Empty;
-
-        [Required]
+        public bool DoubleTrouble { get; set; } = false;
         public string Name { get; set; } = string.Empty;
-
-        [Required]
         public ExistsIn ExistsIn { get; set; } = ExistsIn.Unspecified;
-
-        [Required]
         public int X { get; set; } = 0;
-
-        [Required]
         public int Y { get; set; } = 0;
-
-        [Required]
         public int W { get; set; } = 0;
-
-        [Required]
         public GameMode GameMode { get; set; } = GameMode.Unspecified;
-
-        [StringLength(25)]
-        public string Color { get; set; } = "rgba(0,0,0,0.3)";
-        public int? FromMod { get; set; } = null;
+        public string Color { get; set; } = string.Empty;
+        public Mod? Mod { get; set; } = null;
+        public List<BossTag> BossTags { get; set; } = new List<BossTag>();
     }
 }

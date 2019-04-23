@@ -4,8 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Website.Models.Database;
 using Website.Models.Database.Enums;
 using Website.Models.Validation;
+using Website.Models.Validation.SubmitEpisode;
 using Website.Services;
 
 namespace Website.Data
@@ -31,6 +33,94 @@ namespace Website.Data
             }
         }
 
+        public async Task<Mod?> GetModById(int id)
+        {
+            Mod? mod = null;
+            using (var c = await _connector.Connect())
+            {
+                using (var q = new NpgsqlCommand("SELECT m.id, m.name, u.id, u.url, u.name, u.mod FROM mods m LEFT JOIN mod_url u ON m.id = u.mod WHERE m.id = @Id; ", c))
+                {
+                    q.Parameters.AddWithValue("@Id", NpgsqlDbType.Integer, id);
+                    
+                    using (var r = await q.ExecuteReaderAsync())
+                    {
+                        if (r.HasRows)
+                        {
+                            while (r.Read())
+                            {
+                                int i = 0;
+                                if (mod is null)
+                                {
+                                    mod = new Mod()
+                                    {
+                                        Id = r.GetInt32(i++),
+                                        ModName = r.GetString(i++)
+                                    };
+                                }
+                                else i += 2;
+
+                                if (!r.IsDBNull(i) && !mod.ModUrls.Any(x => x.Id == r.GetInt32(i)))
+                                {
+                                    mod.ModUrls.Add(new ModUrl()
+                                    {
+                                        Id = r.GetInt32(i++),
+                                        Url = r.GetString(i++),
+                                        LinkText = r.GetString(i++)
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return mod;
+        }
+
+        public async Task<Mod?> GetModByName(string name)
+        {
+            Mod? mod = null;
+            using (var c = await _connector.Connect())
+            {
+                using (var q = new NpgsqlCommand("SELECT m.id, m.name, u.id, u.url, u.name, u.mod FROM mods m LEFT JOIN mod_url u ON m.id = u.mod WHERE m.name = @N; ", c))
+                {
+                    q.Parameters.AddWithValue("@N", NpgsqlDbType.Varchar, name);
+
+                    using (var r = await q.ExecuteReaderAsync())
+                    {
+                        if (r.HasRows)
+                        {
+                            while (r.Read())
+                            {
+                                int i = 0;
+                                if (mod is null)
+                                {
+                                    mod = new Mod()
+                                    {
+                                        Id = r.GetInt32(i++),
+                                        ModName = r.GetString(i++)
+                                    };
+                                }
+                                else i += 2;
+
+                                if (!r.IsDBNull(i) && !mod.ModUrls.Any(x => x.Id == r.GetInt32(i)))
+                                {
+                                    mod.ModUrls.Add(new ModUrl()
+                                    {
+                                        Id = r.GetInt32(i++),
+                                        Url = r.GetString(i++),
+                                        LinkText = r.GetString(i++)
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return mod;
+        }
+
         public async Task<int?> GetModIdByName(string name)
         {
             int? result = null;
@@ -52,6 +142,21 @@ namespace Website.Data
             }
 
             return result;
+        }
+
+        public async Task AddUrlToMod(AddModUrl model)
+        {
+            using (var c = await _connector.Connect())
+            {
+                using (var q = new NpgsqlCommand("INSERT INTO mod_url (url, name, mod) VALUES (@U, @N, @M); ", c))
+                {
+                    q.Parameters.AddWithValue("@U", NpgsqlDbType.Varchar, model.Url);
+                    q.Parameters.AddWithValue("@N", NpgsqlDbType.Varchar, model.LinkText);
+                    q.Parameters.AddWithValue("@M", NpgsqlDbType.Varchar, model.ModId);
+
+                    await q.ExecuteNonQueryAsync();
+                }
+            }
         }
 
         public async Task<List<int>> GetUsedModsForSubmittedEpisode(SubmittedEpisode episode)
@@ -185,6 +290,32 @@ namespace Website.Data
             }
 
             return usedMods;
+        }
+
+        public async Task AddModUrl(AddModUrl modUrl)
+        {
+            using (var c = await _connector.Connect())
+            {
+                using (var q = new NpgsqlCommand("INSERT INTO mod_url (url, name, mod) VALUES (@U, @N, @M); ", c))
+                {
+                    q.Parameters.AddWithValue("@U", NpgsqlDbType.Varchar, modUrl.Url);
+                    q.Parameters.AddWithValue("@N", NpgsqlDbType.Varchar, modUrl.LinkText);
+                    q.Parameters.AddWithValue("@M", NpgsqlDbType.Integer, modUrl.ModId);
+                    await q.ExecuteNonQueryAsync();
+                }
+            }
+        }
+
+        public async Task RemoveModUrl(int modUrlId)
+        {
+            using (var c = await _connector.Connect())
+            {
+                using (var q = new NpgsqlCommand("DELETE FROM mod_url WHERE id = @Id", c))
+                {
+                    q.Parameters.AddWithValue("@Id", NpgsqlDbType.Integer, modUrlId);
+                    await q.ExecuteNonQueryAsync();
+                }
+            }
         }
     }
 }

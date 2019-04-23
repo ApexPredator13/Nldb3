@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace Website.Models.Validation
+namespace Website.Models.Validation.SubmitEpisode
 {
     public class PlayedFloor
     {

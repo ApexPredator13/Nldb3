@@ -2,7 +2,7 @@
 
 namespace Website.Models.Validation
 {
-    public class SaveBoss : SaveIsaacResource
+    public class SaveBossModel : SaveIsaacResource
     {
         [Required]
         public bool DoubleTrouble { get; set; } = false;
