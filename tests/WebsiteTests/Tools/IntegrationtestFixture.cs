@@ -30,7 +30,7 @@ namespace WebsiteTests.Tools
             services.AddTransient<IDbManager, DbManager>();
 
             services.AddTransient<IItemRepository, ItemRepository>();
-            services.AddTransient<IBossRepository, BossRepository>();
+            services.AddTransient<IIsaacRepository, IsaacRepository>();
             services.AddTransient<ICurseRepository, CurseRepository>();
             services.AddTransient<IThreatRepository, ThreatRepository>();
             services.AddTransient<IModRepository, ModRepository>();

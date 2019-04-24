@@ -2,6 +2,7 @@
 {
     public enum ResourceType
     {
+        Unspecified,
         Boss,
         Challenge,
         Character,

@@ -52,7 +52,7 @@ namespace Website
             services.AddTransient<IMigrateOldDatabase, MigrateOldDatabase>();
 
             services.AddScoped<IItemRepository, ItemRepository>();
-            services.AddScoped<IBossRepository, BossRepository>();
+            services.AddScoped<IIsaacRepository, IsaacRepository>();
             services.AddScoped<ICurseRepository, CurseRepository>();
             services.AddScoped<IThreatRepository, ThreatRepository>();
             services.AddScoped<IModRepository, ModRepository>();

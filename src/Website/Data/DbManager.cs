@@ -46,34 +46,8 @@ namespace Website.Data
 
         public void CreateAllTables()
         {
-            CreateModsTable();
-            CreateModUrlTable();
-            CreateFloorsTable();
-            CreateBossesTable();
-            CreateBossTagsTable();
-            CreateTransformationsTable();
-            CreateTransformationTagsTable();
-            CreateItemSourcesTable();
-            CreateItemSourceTagsTable();
-            CreateItemsTable();
-            CreateItemTransformationTable();
-            CreateItemTagsTable();
-            CreateCursesTable();
-            CreateCurseTagsTable();
-            CreateOtherConsumablesTable();
-            CreateOtherConsumableTagsTable();
-            CreateRunesTable();
-            CreateRuneTagsTable();
-            CreatePillsTable();
-            CreatePillTagsTable();
-            CreateTarotCardsTable();
-            CreateTarotCardTagsTable();
-            CreateTrinketsTable();
-            CreateTrinketTagsTable();
-            CreateThreatsTable();
-            CreateThreatTagsTable();
-            CreateCharactersTable();
-            CreateCharacterTagTable();
+            CreateModTables();
+            CreateTransformativeResourcesTable();
             CreateVideoTable();
             CreateVideoSubmissionTable();
             CreatePlayedCharacterTable();
@@ -91,417 +65,51 @@ namespace Website.Data
             CreateEncounteredItemsTransformationsTable();
         }
 
-        private void CreateModsTable()
+        private void CreateModTables()
         {
             string query =
                 "CREATE TABLE IF NOT EXISTS mods (" +
                     "id SERIAL PRIMARY KEY, " +
                     "name VARCHAR(256) NOT NULL" +
-                ")";
-
-            Execute(query);
-        }
-
-        private void CreateModUrlTable()
-        {
-            string query =
-                "CREATE TABLE IF NOT EXISTS mod_url (" +
+                "); " +
+                "CREATE TABLE IF NOT EXISTS mod_url(" +
                     "id SERIAL PRIMARY KEY, " +
                     "url VARCHAR(256) NOT NULL, " +
                     "name VARCHAR(100) NOT NULL, " +
-                    "mod INTEGER REFERENCES mods (id) ON DELETE CASCADE" +
+                    "mod INTEGER REFERENCES mods (id) ON DELETE CASCADE ON UPDATE CASCADE" +
                 ")";
 
             Execute(query);
         }
 
-        private void CreateFloorsTable()
+        private void CreateIsaacStuffTable()
         {
             string query =
-                "CREATE TABLE IF NOT EXISTS floors (" +
+                "CREATE TABLE IF NOT EXISTS isaac_resources (" +
                     "id VARCHAR(30) PRIMARY KEY, " +
                     "name VARCHAR(100) NOT NULL UNIQUE, " +
+                    "type INTEGER NOT NULL, " +
                     "exists_in INTEGER NOT NULL, " +
                     "x INTEGER NOT NULL, " +
                     "y INTEGER NOT NULL, " +
                     "w INTEGER NOT NULL, " +
-                    "game_mode INTEGER NOT NULL, " +
-                    "color VARCHAR(25) NOT NULL, " +
-                    "mod INTEGER REFERENCES mods (id) ON DELETE SET NULL, " +
-                    "display_order INTEGER NOT NULL DEFAULT 0, " +
-                    "difficulty INTEGER NOT NULL DEFAULT 0" +
-                "); ";
-
-            Execute(query);
-        }
-
-        private void CreateBossesTable()
-        {
-            string query =
-                "CREATE TABLE IF NOT EXISTS bosses (" +
-                    "id VARCHAR(30) PRIMARY KEY, " +
-                    "double_trouble BOOLEAN NOT NULL, " +
-                    "name VARCHAR(100) NOT NULL, " +
-                    "exists_in INTEGER NOT NULL, " +
-                    "x INTEGER NOT NULL, " +
-                    "y INTEGER NOT NULL, " +
-                    "w INTEGER NOT NULL, " +
+                    "h INTEGER NOT NULL, " +
                     "game_mode INTEGER NOT NULL, " +
                     "color VARCHAR(25) NOT NULL DEFAULT 'LightGray', " +
-                    "mod INTEGER REFERENCES mods (id)" +
-                ")";
+                    "mod INTEGER REFERENCES mods (id) ON DELETE SET NULL ON UPDATE CASCADE, " +
+                    "display_order INTEGER, " +
+                    "difficulty INTEGER" +
+                "); " +
 
-            Execute(query);
-        }
-
-        private void CreateBossTagsTable()
-        {
-            string query =
-                "CREATE TABLE IF NOT EXISTS boss_tags (" +
+                "CREATE TABLE IF NOT EXISTS tags (" +
                     "id SERIAL PRIMARY KEY, " +
                     "value INTEGER NOT NULL, " +
-                    "boss VARCHAR(30) NOT NULL REFERENCES bosses (id)" +
+                    "isaac_resource VARCHAR(30) NOT NULL REFERENCES isaac_stuff (id) ON UPDATE CASCADE ON DELETE CASCADE" +
                 "); ";
 
             Execute(query);
         }
 
-        private void CreateTransformationsTable()
-        {
-            string query =
-                "CREATE TABLE IF NOT EXISTS transformations (" +
-                    "id VARCHAR(30) PRIMARY KEY, " +
-                    "name VARCHAR(100) NOT NULL UNIQUE, " +
-                    "exists_in INTEGER NOT NULL, " +
-                    "x INTEGER NOT NULL, " +
-                    "y INTEGER NOT NULL, " +
-                    "w INTEGER NOT NULL, " +
-                    "game_mode INTEGER NOT NULL, " +
-                    "color VARCHAR(25) NOT NULL DEFAULT 'LightGray', " +
-                    "mod INTEGER REFERENCES mods (id), " +
-                    "items_needed INTEGER NOT NULL DEFAULT 3" +
-                ")";
-
-            Execute(query);
-        }
-
-        private void CreateTransformationTagsTable()
-        {
-            string query =
-                "CREATE TABLE IF NOT EXISTS transformation_tags (" +
-                    "id SERIAL PRIMARY KEY, " +
-                    "type INTEGER NOT NULL, " +
-                    "transformation VARCHAR(30) NOT NULL REFERENCES transformations (id)" +
-                "); ";
-
-            Execute(query);
-        }
-
-        private void CreateItemSourcesTable()
-        {
-            string query =
-                "CREATE TABLE IF NOT EXISTS item_sources (" +
-                    "id VARCHAR(30) PRIMARY KEY, " +
-                    "name VARCHAR(100) NOT NULL, " +
-                    "exists_in INTEGER NOT NULL, " +
-                    "x INTEGER NOT NULL, " +
-                    "y INTEGER NOT NULL, " +
-                    "w INTEGER NOT NULL, " +
-                    "game_mode INTEGER NOT NULL, " +
-                    "color VARCHAR(25) NOT NULL DEFAULT 'LightGray', " +
-                    "mod INTEGER REFERENCES mods (id)" +
-                ")";
-
-            Execute(query);
-        }
-
-        private void CreateItemSourceTagsTable()
-        {
-            string query =
-                "CREATE TABLE IF NOT EXISTS item_source_tags (" +
-                    "id SERIAL PRIMARY KEY, " +
-                    "type INTEGER NOT NULL, " +
-                    "item_source VARCHAR(30) NOT NULL REFERENCES item_sources (id)" +
-                "); ";
-
-            Execute(query);
-        }
-
-        private void CreateItemsTable()
-        {
-            string query =
-                "CREATE TABLE IF NOT EXISTS items (" +
-                    "id VARCHAR(30) PRIMARY KEY, " +
-                    "name VARCHAR(100) NOT NULL, " +
-                    "exists_in INTEGER NOT NULL, " +
-                    "x INTEGER NOT NULL, " +
-                    "y INTEGER NOT NULL, " +
-                    "w INTEGER NOT NULL, " +
-                    "game_mode INTEGER NOT NULL, " +
-                    "color VARCHAR(25) NOT NULL DEFAULT 'LightGray', " +
-                    "mod INTEGER REFERENCES mods (id), " +
-                    "transformation VARCHAR(30) DEFAULT NULL REFERENCES transformations (id)" +
-                ")";
-
-            Execute(query);
-        }
-
-        private void CreateItemTagsTable()
-        {
-            string query =
-                "CREATE TABLE IF NOT EXISTS item_tags (" +
-                    "id SERIAL PRIMARY KEY, " +
-                    "type INTEGER NOT NULL, " +
-                    "item VARCHAR(30) NOT NULL REFERENCES items (id)" +
-                "); ";
-
-            Execute(query);
-        }
-
-        private void CreateCursesTable()
-        {
-            string query =
-                "CREATE TABLE IF NOT EXISTS curses (" +
-                    "id VARCHAR(30) PRIMARY KEY, " +
-                    "name VARCHAR(100) NOT NULL, " +
-                    "exists_in INTEGER NOT NULL, " +
-                    "x INTEGER NOT NULL, " +
-                    "y INTEGER NOT NULL, " +
-                    "w INTEGER NOT NULL, " +
-                    "game_mode INTEGER NOT NULL, " +
-                    "color VARCHAR(25) NOT NULL DEFAULT 'LightGray', " +
-                    "mod INTEGER REFERENCES mods (id)" +
-                ")";
-
-            Execute(query);
-        }
-
-        private void CreateCurseTagsTable()
-        {
-            string query =
-                "CREATE TABLE IF NOT EXISTS curse_tags (" +
-                    "id SERIAL PRIMARY KEY, " +
-                    "type INTEGER NOT NULL, " +
-                    "curse VARCHAR(30) NOT NULL REFERENCES curses (id)" +
-                "); ";
-
-            Execute(query);
-        }
-
-        private void CreateRunesTable()
-        {
-            string query =
-                "CREATE TABLE IF NOT EXISTS runes (" +
-                    "id VARCHAR(30) PRIMARY KEY, " +
-                    "name VARCHAR(100) NOT NULL, " +
-                    "exists_in INTEGER NOT NULL, " +
-                    "x INTEGER NOT NULL, " +
-                    "y INTEGER NOT NULL, " +
-                    "w INTEGER NOT NULL, " +
-                    "game_mode INTEGER NOT NULL, " +
-                    "color VARCHAR(25) NOT NULL DEFAULT 'LightGray', " +
-                    "mod INTEGER REFERENCES mods (id), " +
-                    "transformation VARCHAR(30) DEFAULT NULL REFERENCES transformations (id)" +
-                ")";
-
-            Execute(query);
-        }
-
-        private void CreateRuneTagsTable()
-        {
-            string query =
-                "CREATE TABLE IF NOT EXISTS rune_tags (" +
-                    "id SERIAL PRIMARY KEY, " +
-                    "type INTEGER NOT NULL, " +
-                    "rune VARCHAR(30) NOT NULL REFERENCES runes (id)" +
-                "); ";
-
-            Execute(query);
-        }
-
-        private void CreatePillsTable()
-        {
-            string query =
-                "CREATE TABLE IF NOT EXISTS pills (" +
-                    "id VARCHAR(30) PRIMARY KEY, " +
-                    "name VARCHAR(100) NOT NULL, " +
-                    "exists_in INTEGER NOT NULL, " +
-                    "x INTEGER NOT NULL, " +
-                    "y INTEGER NOT NULL, " +
-                    "w INTEGER NOT NULL, " +
-                    "game_mode INTEGER NOT NULL, " +
-                    "color VARCHAR(25) NOT NULL DEFAULT 'LightGray', " +
-                    "mod INTEGER REFERENCES mods (id), " +
-                    "transformation VARCHAR(30) DEFAULT NULL REFERENCES transformations (id)" +
-                ")";
-
-            Execute(query);
-        }
-
-        private void CreatePillTagsTable()
-        {
-            string query =
-                "CREATE TABLE IF NOT EXISTS pill_tags (" +
-                    "id SERIAL PRIMARY KEY, " +
-                    "type INTEGER NOT NULL, " +
-                    "pill VARCHAR(30) NOT NULL REFERENCES pills (id)" +
-                "); ";
-
-            Execute(query);
-        }
-
-        private void CreateTarotCardsTable()
-        {
-            string query =
-                "CREATE TABLE IF NOT EXISTS tarot_cards (" +
-                    "id VARCHAR(30) PRIMARY KEY, " +
-                    "name VARCHAR(100) NOT NULL, " +
-                    "exists_in INTEGER NOT NULL, " +
-                    "x INTEGER NOT NULL, " +
-                    "y INTEGER NOT NULL, " +
-                    "w INTEGER NOT NULL, " +
-                    "game_mode INTEGER NOT NULL, " +
-                    "color VARCHAR(25) NOT NULL DEFAULT 'LightGray', " +
-                    "mod INTEGER REFERENCES mods (id), " +
-                    "transformation VARCHAR(30) DEFAULT NULL REFERENCES transformations (id)" +
-                ")";
-
-            Execute(query);
-        }
-
-        private void CreateTarotCardTagsTable()
-        {
-            string query =
-                "CREATE TABLE IF NOT EXISTS tarot_card_tags (" +
-                    "id SERIAL PRIMARY KEY, " +
-                    "type INTEGER NOT NULL, " +
-                    "tarot_card VARCHAR(30) NOT NULL REFERENCES tarot_cards (id)" +
-                "); ";
-
-            Execute(query);
-        }
-
-        private void CreateTrinketsTable()
-        {
-            string query =
-                "CREATE TABLE IF NOT EXISTS trinkets (" +
-                    "id VARCHAR(30) PRIMARY KEY, " +
-                    "name VARCHAR(100) NOT NULL, " +
-                    "exists_in INTEGER NOT NULL, " +
-                    "x INTEGER NOT NULL, " +
-                    "y INTEGER NOT NULL, " +
-                    "w INTEGER NOT NULL, " +
-                    "game_mode INTEGER NOT NULL, " +
-                    "color VARCHAR(25) NOT NULL DEFAULT 'LightGray', " +
-                    "mod INTEGER REFERENCES mods (id), " +
-                    "transformation VARCHAR(30) DEFAULT NULL REFERENCES transformations (id)" +
-                ")";
-
-            Execute(query);
-        }
-
-        private void CreateTrinketTagsTable()
-        {
-            string query =
-                "CREATE TABLE IF NOT EXISTS trinket_tags (" +
-                    "id SERIAL PRIMARY KEY, " +
-                    "type INTEGER NOT NULL, " +
-                    "trinket VARCHAR(30) NOT NULL REFERENCES trinkets (id)" +
-                "); ";
-
-            Execute(query);
-        }
-
-        private void CreateOtherConsumablesTable()
-        {
-            string query =
-                "CREATE TABLE IF NOT EXISTS other_consumables (" +
-                    "id VARCHAR(30) PRIMARY KEY, " +
-                    "name VARCHAR(100) NOT NULL, " +
-                    "exists_in INTEGER NOT NULL, " +
-                    "x INTEGER NOT NULL, " +
-                    "y INTEGER NOT NULL, " +
-                    "w INTEGER NOT NULL, " +
-                    "game_mode INTEGER NOT NULL, " +
-                    "color VARCHAR(25) NOT NULL DEFAULT 'LightGray', " +
-                    "mod INTEGER REFERENCES mods (id), " +
-                    "transformation VARCHAR(30) DEFAULT NULL REFERENCES transformations (id)" +
-                ")";
-
-            Execute(query);
-        }
-
-        private void CreateOtherConsumableTagsTable()
-        {
-            string query =
-                "CREATE TABLE IF NOT EXISTS other_consumable_tags (" +
-                    "id SERIAL PRIMARY KEY, " +
-                    "type INTEGER NOT NULL, " +
-                    "other_consumable VARCHAR(30) NOT NULL REFERENCES other_consumables (id)" +
-                "); ";
-
-            Execute(query);
-        }
-
-        private void CreateThreatsTable()
-        {
-            string query =
-                "CREATE TABLE IF NOT EXISTS threats (" +
-                    "id VARCHAR(30) PRIMARY KEY, " +
-                    "name VARCHAR(100) NOT NULL, " +
-                    "exists_in INTEGER NOT NULL, " +
-                    "x INTEGER NOT NULL, " +
-                    "y INTEGER NOT NULL, " +
-                    "w INTEGER NOT NULL, " +
-                    "game_mode INTEGER NOT NULL, " +
-                    "color VARCHAR(25) NOT NULL DEFAULT 'LightGray', " +
-                    "mod INTEGER REFERENCES mods (id)" +
-                ")";
-
-            Execute(query);
-        }
-
-        private void CreateThreatTagsTable()
-        {
-            string query =
-                "CREATE TABLE IF NOT EXISTS threat_tags (" +
-                    "id SERIAL PRIMARY KEY, " +
-                    "type INTEGER NOT NULL, " +
-                    "threat VARCHAR(30) NOT NULL REFERENCES threats (id)" +
-                "); ";
-
-            Execute(query);
-        }
-
-        private void CreateCharactersTable()
-        {
-            string query =
-                "CREATE TABLE IF NOT EXISTS game_characters (" +
-                    "id VARCHAR(30) PRIMARY KEY, " +
-                    "name VARCHAR(100) NOT NULL, " +
-                    "exists_in INTEGER NOT NULL, " +
-                    "x INTEGER NOT NULL, " +
-                    "y INTEGER NOT NULL, " +
-                    "w INTEGER NOT NULL, " +
-                    "game_mode INTEGER NOT NULL, " +
-                    "color VARCHAR(25) NOT NULL DEFAULT 'LightGray', " +
-                    "mod INTEGER REFERENCES mods (id)" +
-                ")";
-
-            Execute(query);
-        }
-
-        private void CreateCharacterTagTable()
-        {
-            string query =
-                "CREATE TABLE IF NOT EXISTS game_character_tags (" +
-                    "id SERIAL PRIMARY KEY, " +
-                    "type INTEGER NOT NULL, " +
-                    "game_character VARCHAR(30) NOT NULL REFERENCES game_characters (id)" +
-                "); ";
-
-            Execute(query);
-        }
 
         private void CreateVideoTable()
         {
@@ -540,7 +148,7 @@ namespace Website.Data
             string query =
                 "CREATE TABLE IF NOT EXISTS played_characters (" +
                     "id SERIAL PRIMARY KEY, " +
-                    "game_character VARCHAR(30) NOT NULL REFERENCES game_characters (id), " +
+                    "game_character VARCHAR(30) NOT NULL REFERENCES isaac_resources (id), " +
                     "submission INTEGER NOT NULL REFERENCES video_submissions (id), " +
                     "action INTEGER NOT NULL, " +
                     "video CHAR(11) NOT NULL REFERENCES videos (id)" +
@@ -569,7 +177,7 @@ namespace Website.Data
                 "CREATE TABLE IF NOT EXISTS bossfights (" +
                     "id SERIAL PRIMARY KEY, " +
                     "boss VARCHAR(30) NOT NULL REFERENCES bosses (id), " +
-                    "floor INTEGER NOT NULL REFERENCES played_floors (id), " +
+                    "played_floor INTEGER NOT NULL REFERENCES played_floors (id), " +
                     "video CHAR(11) NOT NULL REFERENCES videos (id), " +
                     "action INTEGER NOT NULL, " +
                     "played_character INTEGER NOT NULL REFERENCES played_characters (id)" +
@@ -586,7 +194,7 @@ namespace Website.Data
                     "item VARCHAR(30) NOT NULL REFERENCES items (id), " +
                     "source VARCHAR(30) NOT NULL REFERENCES item_sources (id), " +
                     "usage INTEGER NOT NULL, " +
-                    "floor INTEGER NOT NULL REFERENCES played_floors (id), " +
+                    "played_floor INTEGER NOT NULL REFERENCES played_floors (id), " +
                     "video CHAR(11) NOT NULL REFERENCES videos (id), " +
                     "action INTEGER NOT NULL, " +
                     "played_character INTEGER NOT NULL REFERENCES played_characters (id)" +
@@ -598,10 +206,14 @@ namespace Website.Data
         private void CreateEncounteredItemsTransformationsTable()
         {
             string query =
-                "CREATE TABLE IF NOT EXISTS encountered_items_transformations (" +
+                "CREATE TABLE IF NOT EXISTS item_transformation_progress (" +
                     "id SERIAL PRIMARY KEY, " +
                     "encountered_item INTEGER NOT NULL REFERENCES encountered_items (id), " +
                     "transformation VARCHAR(30) NOT NULL REFERENCES transformations (id), " +
+                    "played_floor INTEGER NOT NULL REFERENCES played_floors (id), " +
+                    "video CHAR(11) NOT NULL REFERENCES videos (id), " +
+                    "action INTEGER NOT NULL, " +
+                    "played_character INTEGER NOT NULL REFERENCES played_characters (id)" +
                     "action INTEGER NOT NULL" +
                 "); ";
 
@@ -614,7 +226,7 @@ namespace Website.Data
                 "CREATE TABLE experienced_transformations (" +
                     "id SERIAL PRIMARY KEY, " +
                     "transformation VARCHAR(30) NOT NULL REFERENCES transformations (id), " +
-                    "floor INTEGER NOT NULL REFERENCES played_floors (id), " +
+                    "played_floor INTEGER NOT NULL REFERENCES played_floors (id), " +
                     "action INTEGER NOT NULL, " +
                     "video CHAR(11) NOT NULL REFERENCES videos (id), " +
                     "triggered_by INTEGER NOT NULL REFERENCES encountered_items (id), " +
@@ -630,7 +242,7 @@ namespace Website.Data
                 "CREATE TABLE IF NOT EXISTS encountered_curses (" +
                     "id SERIAL PRIMARY KEY, " +
                     "curse VARCHAR(30) NOT NULL REFERENCES curses (id), " +
-                    "floor INTEGER NOT NULL REFERENCES played_floors (id), " +
+                    "played_floor INTEGER NOT NULL REFERENCES played_floors (id), " +
                     "video CHAR(11) NOT NULL REFERENCES videos (id), " +
                     "action INTEGER NOT NULL, " +
                     "played_character INTEGER NOT NULL REFERENCES played_characters (id)" +
@@ -645,7 +257,7 @@ namespace Website.Data
                 "CREATE TABLE IF NOT EXISTS used_runes (" +
                     "id SERIAL PRIMARY KEY, " +
                     "rune VARCHAR(30) NOT NULL REFERENCES runes (id), " +
-                    "floor INTEGER NOT NULL REFERENCES played_floors (id), " +
+                    "played_floor INTEGER NOT NULL REFERENCES played_floors (id), " +
                     "action INTEGER NOT NULL, " +
                     "transformation VARCHAR(30) REFERENCES transformations (id), " +
                     "played_character INTEGER NOT NULL REFERENCES played_characters (id)" +
@@ -660,7 +272,7 @@ namespace Website.Data
                 "CREATE TABLE IF NOT EXISTS swallowed_pills (" +
                     "id SERIAL PRIMARY KEY, " +
                     "pill VARCHAR(30) NOT NULL REFERENCES pills (id), " +
-                    "floor INTEGER NOT NULL REFERENCES played_floors (id), " +
+                    "played_floor INTEGER NOT NULL REFERENCES played_floors (id), " +
                     "action INTEGER NOT NULL, " +
                     "transformation VARCHAR(30) REFERENCES transformations (id), " +
                     "played_character INTEGER NOT NULL REFERENCES played_characters (id)" +
@@ -675,7 +287,7 @@ namespace Website.Data
                 "CREATE TABLE IF NOT EXISTS used_tarot_cards (" +
                     "id SERIAL PRIMARY KEY, " +
                     "tarot_card VARCHAR(30) NOT NULL REFERENCES tarot_cards (id), " +
-                    "floor INTEGER NOT NULL REFERENCES played_floors (id), " +
+                    "played_floor INTEGER NOT NULL REFERENCES played_floors (id), " +
                     "action INTEGER NOT NULL, " +
                     "transformation VARCHAR(30) REFERENCES transformations (id) ," +
                     "played_character INTEGER NOT NULL REFERENCES played_characters (id)" +
@@ -691,7 +303,7 @@ namespace Website.Data
                     "id SERIAL PRIMARY KEY, " +
                     "trinket VARCHAR(30) NOT NULL REFERENCES trinkets (id), " +
                     "usage INTEGER NOT NULL, " +
-                    "floor INTEGER NOT NULL REFERENCES played_floors (id), " +
+                    "played_floor INTEGER NOT NULL REFERENCES played_floors (id), " +
                     "action INTEGER NOT NULL, " +
                     "transformation VARCHAR(30) REFERENCES transformations (id), " +
                     "played_character INTEGER NOT NULL REFERENCES played_characters (id)" +
@@ -706,7 +318,7 @@ namespace Website.Data
                 "CREATE TABLE IF NOT EXISTS experienced_deaths (" +
                     "id SERIAL PRIMARY KEY, " +
                     "threat VARCHAR(30) NOT NULL REFERENCES threats (id), " +
-                    "floor INTEGER NOT NULL REFERENCES played_floors (id), " +
+                    "played_floor INTEGER NOT NULL REFERENCES played_floors (id), " +
                     "video CHAR(11) NOT NULL REFERENCES videos (id), " +
                     "action INTEGER NOT NULL, " +
                     "played_character INTEGER NOT NULL REFERENCES played_characters (id)" +
@@ -715,13 +327,13 @@ namespace Website.Data
             Execute(query);
         }
 
-        private void CreateItemTransformationTable()
+        private void CreateTransformativeResourcesTable()
         {
             string query =
-                "CREATE TABLE IF NOT EXISTS transformation_items (" +
+                "CREATE TABLE IF NOT EXISTS transformative_resources (" +
                     "id SERIAL PRIMARY KEY, " +
-                    "item VARCHAR(30) NOT NULL REFERENCES items (id), " +
-                    "transformation VARCHAR(30) NOT NULL REFERENCES transformations (id), " +
+                    "isaac_resource VARCHAR(30) NOT NULL REFERENCES isaac_resources (id), " +
+                    "transformation VARCHAR(30) NOT NULL REFERENCES isaac_resource (id), " +
                     "counts_multiple_times BOOLEAN NOT NULL, " +
                     "requires_title_content VARCHAR(100), " +
                     "valid_from TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT '2011-09-01 00:00:00+01', " +

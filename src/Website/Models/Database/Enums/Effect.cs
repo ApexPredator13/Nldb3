@@ -2,6 +2,7 @@
 {
     public enum Effect
     {
+        Unspecified,
         ChangesDropBehavior,
         ChangesItemBehavior,
         ModifiesFamiliars,
@@ -141,24 +142,14 @@
         ChangesChestBehavior,
         HasRandomEffect,
         CrushesRocks,
-        CountsTowardsGuppy,
-        CountsTowardsBeelzebub,
-        CountsTowardsSuperBum,
-        CountsTowardsYesMother,
-        CountsTowardsBob,
-        CountsTowardsFunGuy,
-        CountsTowardsLeviathan,
-        CountsTowardsConjoined,
-        CountsTowardsSpun,
-        CountsTowardsSeraphim,
-        CountsTowardsOhCrap,
-        CountsTowardsBookworm,
-        CountsTowardsSpiderBaby,
-        CountsTowardsAdult,
-        CountsTowardsStompy,
-        CountsTowardsWaxed,
         IsSpacebarItem,
-        IsActiveItem,
-        IsFamiliar
+        IsPassiveItem,
+        IsFamiliar,
+        DoubleTroubleBossfight,
+        NormalBossfight,
+        GoodPill,
+        BadPill,
+        ThreeStepsToTransformation,
+        TwoStepsToTransform,
     }
 }

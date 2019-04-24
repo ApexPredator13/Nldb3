@@ -4,17 +4,15 @@
     {
         NewCharacter,
         CharacterDied,
-        CollectedItem,
-        TouchedItem,
-        SkippedItem,
+        Item,
+        SwitchedSpacebarItem,
         NextFloor,
         Bossfight,
-        UsedPill,
-        UsedTarotCard,
-        UsedRune,
-        CollectedTrinket,
-        SkippedTrinket,
+        Pill,
+        TarotCard,
+        Rune,
+        Trinket,
         Curse,
-        UsedOtherConsumable
+        OtherConsumable
     }
 }

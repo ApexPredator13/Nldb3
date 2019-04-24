@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Website.Models.Validation;
 using NpgsqlTypes;
 using System;
-using System.Globalization;
 using Website.Models.Validation.SubmitEpisode;
 
 namespace Website.Migrations
@@ -24,14 +23,7 @@ namespace Website.Migrations
         private readonly string _adminUsername;
         private readonly ILogger<MigrateOldDatabase> _logger;
         private readonly UserManager<IdentityUser> _userManager;
-        private readonly IItemRepository _itemRepository;
-        private readonly IBossRepository _bossRepository;
-        private readonly ICharacterRepository _characterRepository;
-        private readonly ICurseRepository _curseRepository;
-        private readonly IThreatRepository _threatRepository;
-        private readonly IFloorRepository _floorRepository;
-        private readonly IItemsourceRepository _itemsourceRepository;
-        private readonly ITransformationRepository _transformationRepository;
+        private readonly IIsaacRepository _isaacRepository;
         private readonly IVideoRepository _videoRepository;
         private readonly IModRepository _modRepository;
 
@@ -39,14 +31,7 @@ namespace Website.Migrations
             IConfiguration config, 
             ILogger<MigrateOldDatabase> logger, 
             UserManager<IdentityUser> userManager,
-            IItemRepository itemRepository,
-            IBossRepository bossRepository,
-            ICharacterRepository characterRepository,
-            ICurseRepository curseRepository,
-            IThreatRepository threatRepository,
-            IFloorRepository floorRepository,
-            IItemsourceRepository itemsourceRepository,
-            ITransformationRepository transformationRepository,
+            IIsaacRepository bossRepository,
             IVideoRepository videoRepository,
             IModRepository modRepository
         )
@@ -57,14 +42,7 @@ namespace Website.Migrations
             _adminUsername = config["AdminUsername"];
             _logger = logger;
             _userManager = userManager;
-            _itemRepository = itemRepository;
-            _bossRepository = bossRepository;
-            _characterRepository = characterRepository;
-            _curseRepository = curseRepository;
-            _threatRepository = threatRepository;
-            _floorRepository = floorRepository;
-            _itemsourceRepository = itemsourceRepository;
-            _transformationRepository = transformationRepository;
+            _isaacRepository = bossRepository;
             _videoRepository = videoRepository;
             _modRepository = modRepository;
         }
@@ -221,13 +199,13 @@ namespace Website.Migrations
 
         public async Task MigrateBosses()
         {
-            if (await _bossRepository.CountBosses() > 0)
+            if (await _isaacRepository.CountResources(ResourceType.Boss) > 0)
             {
                 _logger.LogWarning("bosses already exist in database, skipping migration...");
                 return;
             }
 
-            List<SaveBossModel> newBosses = new List<SaveBossModel>();
+            List<SaveIsaacResource> newBosses = new List<SaveIsaacResource>();
             using (var c = new NpgsqlConnection(_oldConnectionString))
             {
                 c.Open();
@@ -240,15 +218,16 @@ namespace Website.Migrations
                         {
                             while (r.Read())
                             {
-                                newBosses.Add(new SaveBossModel()
+                                newBosses.Add(new SaveIsaacResource()
                                 {
                                     Name = r.GetString(0),
                                     X = r.GetInt32(1),
                                     Y = r.GetInt32(2),
                                     W = r.GetInt32(4),
                                     Id = r.GetString(3),
-                                    DoubleTrouble = r.GetBoolean(5),
-                                    FromMod = r.IsDBNull(6) ? null : await _modRepository.GetModIdByName(r.GetString(6))
+                                    FromMod = r.IsDBNull(6) ? null : await _modRepository.GetModIdByName(r.GetString(6)),
+                                    ResourceType = ResourceType.Boss,
+                                    H = 0
                                 });
                             }
                         }
@@ -260,19 +239,19 @@ namespace Website.Migrations
 
             foreach (var b in newBosses)
             {
-                await _bossRepository.SaveBoss(b);
+                await _isaacRepository.SaveResource(b);
             }
         }
 
         public async Task MigrateCharacters()
         {
-            if (await _characterRepository.CountCharacters() > 0)
+            if (await _isaacRepository.CountResources(ResourceType.Character) > 0)
             {
                 _logger.LogWarning("characters already exist in database, skipping migration...");
                 return;
             }
 
-            var newCharacters = new List<SaveCharacter>();
+            var newCharacters = new List<SaveIsaacResource>();
             using (var c = new NpgsqlConnection(_oldConnectionString))
             {
                 c.Open();
@@ -285,14 +264,15 @@ namespace Website.Migrations
                         {
                             while (r.Read())
                             {
-                                newCharacters.Add(new SaveCharacter()
+                                newCharacters.Add(new SaveIsaacResource()
                                 {
                                     Name = r.GetString(0),
                                     X = r.GetInt32(2),
                                     Y = r.GetInt32(3),
                                     W = 40,
                                     Id = r.GetString(1),
-                                    FromMod = r.IsDBNull(4) ? null : await _modRepository.GetModIdByName(r.GetString(4))
+                                    FromMod = r.IsDBNull(4) ? null : await _modRepository.GetModIdByName(r.GetString(4)),
+                                    ResourceType = ResourceType.Character
                                 });
                             }
                         }
@@ -304,19 +284,19 @@ namespace Website.Migrations
 
             foreach (var c in newCharacters)
             {
-                await _characterRepository.SaveCharacter(c);
+                await _isaacRepository.SaveResource(c);
             }
         }
 
         public async Task MigrateCurses()
         {
-            if (await _curseRepository.CountCurses() > 0)
+            if (await _isaacRepository.CountResources(ResourceType.Curse) > 0)
             {
                 _logger.LogWarning("curses already exist in database, skipping migration...");
                 return;
             }
 
-            var newCurses = new List<SaveCurse>();
+            var newCurses = new List<SaveIsaacResource>();
             using (var c = new NpgsqlConnection(_oldConnectionString))
             {
                 c.Open();
@@ -330,11 +310,12 @@ namespace Website.Migrations
                             while (r.Read())
                             {
                                 var x = r.GetString(1);
-                                newCurses.Add(new SaveCurse()
+                                newCurses.Add(new SaveIsaacResource()
                                 {
                                     Id = string.Join(string.Empty, r.GetString(0).Split(" ").Select(a => char.ToUpper(a[0]).ToString() + a.Substring(1))),
                                     Name = r.GetString(0),
-                                    FromMod = r.IsDBNull(2) ? null : await _modRepository.GetModIdByName(r.GetString(2))
+                                    FromMod = r.IsDBNull(2) ? null : await _modRepository.GetModIdByName(r.GetString(2)),
+                                    ResourceType = ResourceType.Curse
                                 });
                             }
                         }
@@ -346,19 +327,19 @@ namespace Website.Migrations
 
             foreach (var c in newCurses)
             {
-                await _curseRepository.SaveCurse(c);
+                await _isaacRepository.SaveResource(c);
             }
         }
 
         public async Task MigrateThreats()
         {
-            if (await _threatRepository.CountThreats() > 0)
+            if (await _isaacRepository.CountResources(ResourceType.Threat) > 0)
             {
                 _logger.LogWarning("threats already exist in database, skipping migration...");
                 return;
             }
 
-            List<SaveThreat> newThreats = new List<SaveThreat>();
+            var newThreats = new List<SaveIsaacResource>();
             using (var c = new NpgsqlConnection(_oldConnectionString))
             {
                 c.Open();
@@ -371,14 +352,15 @@ namespace Website.Migrations
                         {
                             while (r.Read())
                             {
-                                newThreats.Add(new SaveThreat()
+                                newThreats.Add(new SaveIsaacResource()
                                 {
                                     Name = r.GetString(0),
                                     Id = r.GetString(1),
                                     W = 40,
                                     X = r.GetInt32(2),
                                     Y = r.GetInt32(3),
-                                    FromMod = r.IsDBNull(4) ? null : await _modRepository.GetModIdByName(r.GetString(4))
+                                    FromMod = r.IsDBNull(4) ? null : await _modRepository.GetModIdByName(r.GetString(4)),
+                                    ResourceType = ResourceType.Threat
                                 });
                             }
                         }
@@ -390,19 +372,19 @@ namespace Website.Migrations
 
             foreach (var t in newThreats)
             {
-                await _threatRepository.SaveThreat(t);
+                await _isaacRepository.SaveResource(t);
             }
         }
 
         public async Task MigrateFloors()
         {
-            if (await _floorRepository.CountFloors() > 0)
+            if (await _isaacRepository.CountResources(ResourceType.Floor) > 0)
             {
                 _logger.LogWarning("floors already exist in database, skipping migration...");
                 return;
             }
 
-            var newFloors = new List<SaveFloor>();
+            var newFloors = new List<SaveIsaacResource>();
             using (var c = new NpgsqlConnection(_oldConnectionString))
             {
                 c.Open();
@@ -415,11 +397,12 @@ namespace Website.Migrations
                         {
                             while (r.Read())
                             {
-                                newFloors.Add(new SaveFloor()
+                                newFloors.Add(new SaveIsaacResource()
                                 {
                                     Id = r.GetString(0),
                                     Name = r.GetString(1),
-                                    FromMod = r.IsDBNull(2) ? null : await _modRepository.GetModIdByName(r.GetString(2))
+                                    FromMod = r.IsDBNull(2) ? null : await _modRepository.GetModIdByName(r.GetString(2)),
+                                    ResourceType = ResourceType.Floor
                                 });
                             }
                         }
@@ -431,19 +414,19 @@ namespace Website.Migrations
 
             foreach (var f in newFloors)
             {
-                await _floorRepository.SaveFloor(f);
+                await _isaacRepository.SaveResource(f);
             }
         }
 
         public async Task MigrateItems()
         {
-            if (await _itemRepository.CountItems() > 0)
+            if (await _isaacRepository.CountResources(ResourceType.Item) > 0)
             {
                 _logger.LogWarning("items already exist in database, skipping migration...");
                 return;
             }
 
-            List<SaveItem> newItems = new List<SaveItem>();
+            List<SaveIsaacResource> newItems = new List<SaveIsaacResource>();
             using (var c = new NpgsqlConnection(_oldConnectionString))
             {
                 c.Open();
@@ -456,14 +439,15 @@ namespace Website.Migrations
                         {
                             while (r.Read())
                             {
-                                newItems.Add(new SaveItem()
+                                newItems.Add(new SaveIsaacResource()
                                 {
                                     Name = r.GetString(0),
                                     Id = r.GetString(1),
                                     W = 41,
                                     X = r.GetInt32(2),
                                     Y = r.GetInt32(3),
-                                    FromMod = r.IsDBNull(4) ? null : await _modRepository.GetModIdByName(r.GetString(4))
+                                    FromMod = r.IsDBNull(4) ? null : await _modRepository.GetModIdByName(r.GetString(4)),
+                                    ResourceType = ResourceType.Item
                                 });
                             }
                         }
@@ -475,7 +459,7 @@ namespace Website.Migrations
 
             foreach (var i in newItems)
             {
-                await _itemRepository.SaveItem(i);
+                await _isaacRepository.SaveResource(i);
             }
 
             // add transformation info to items
@@ -504,81 +488,75 @@ namespace Website.Migrations
                 }
             }
 
-            using (var c = new NpgsqlConnection(_newConnectionString))
+            // make new list
+            foreach (var (itemName, transformationName) in transformationData)
             {
-                await c.OpenAsync();
-
-                foreach (var (itemName, transformationName) in transformationData)
+                string? titleContent = null;
+                if (transformationName == "Loki" || transformationName == "Tammy")
                 {
-                    string? titleContent = null;
-                    if (transformationName == "Loki" || transformationName == "Tammy")
-                    {
-                        titleContent = "community remix";
-                    }
-                    else if (transformationName == "Waxed")
-                    {
-                        titleContent = "alphabirth";
-                    }
-
-                    var itemId = await _itemRepository.GetItemIdByName(itemName);
-                    var transformationId = await _transformationRepository.GetTransformationIdByName(transformationName);
-                    DateTime? validFrom = null;
-
-                    switch (transformationId)
-                    {
-                        case "MissingTransformation":
-                        case "Guppy":
-                            break;
-                        case "LordOfTheFlies":
-                            validFrom = new DateTime(2014, 11, 4, 0, 0, 0, DateTimeKind.Unspecified);
-                            break;
-                        case "Spun":
-                        case "Conjoined":
-                        case "Seraphim":
-                        case "Bob":
-                        case "Leviathan":
-                        case "Mom":
-                        case "FunGuy":
-                        case "Poop":
-                        case "SuperBum":
-                        case "Bookworm":
-                        case "SpiderBaby":
-                        case "Adult":
-                            validFrom = new DateTime(2015, 10, 30, 7, 0, 0, DateTimeKind.Unspecified);
-                            break;
-                        case "Loki":
-                        case "Tammy":
-                            validFrom = new DateTime(2014, 8, 12, 0, 0, 0, DateTimeKind.Unspecified);
-                            break;
-                        case "Waxed":
-                            validFrom = new DateTime(2017, 3, 16, 0, 0, 0, DateTimeKind.Unspecified);
-                            break;
-                    }
-
-                    using (var q = new NpgsqlCommand(
-                        "INSERT INTO transformation_items (item, transformation, counts_multiple_times, requires_title_content, valid_from, valid_until) " +
-                        $"VALUES (@I, @T, FALSE, @R, {(validFrom is null ? "DEFAULT" : "@V")}, DEFAULT)", c))
-                    {
-                        
-                        q.Parameters.AddWithValue("@I", NpgsqlDbType.Varchar, itemId);
-                        q.Parameters.AddWithValue("@T", NpgsqlDbType.Varchar, transformationId);
-                        q.Parameters.AddWithValue("@R", NpgsqlDbType.Varchar, titleContent is null ? (object)DBNull.Value : titleContent);
-                        if (validFrom != null) q.Parameters.AddWithValue("@V", NpgsqlDbType.TimestampTz, validFrom.Value);
-                        await q.ExecuteNonQueryAsync();
-                    }
+                    titleContent = "community remix";
                 }
+                else if (transformationName == "Waxed")
+                {
+                    titleContent = "alphabirth";
+                }
+
+                var itemId = await _isaacRepository.GetResourceIdFromName(itemName);
+                var transformationId = await _isaacRepository.GetResourceIdFromName(transformationName);
+                DateTime? validFrom = null;
+
+                switch (transformationId)
+                {
+                    case "MissingTransformation":
+                    case "Guppy":
+                        break;
+                    case "LordOfTheFlies":
+                        validFrom = new DateTime(2014, 11, 4, 0, 0, 0, DateTimeKind.Unspecified);
+                        break;
+                    case "Spun":
+                    case "Conjoined":
+                    case "Seraphim":
+                    case "Bob":
+                    case "Leviathan":
+                    case "Mom":
+                    case "FunGuy":
+                    case "Poop":
+                    case "SuperBum":
+                    case "Bookworm":
+                    case "SpiderBaby":
+                    case "Adult":
+                        validFrom = new DateTime(2015, 10, 30, 7, 0, 0, DateTimeKind.Unspecified);
+                        break;
+                    case "Loki":
+                    case "Tammy":
+                        validFrom = new DateTime(2014, 8, 12, 0, 0, 0, DateTimeKind.Unspecified);
+                        break;
+                    case "Waxed":
+                        validFrom = new DateTime(2017, 3, 16, 0, 0, 0, DateTimeKind.Unspecified);
+                        break;
+                }
+
+                await _isaacRepository.MakeIsaacResourceTransformative(new MakeIsaacResourceTransformative()
+                {
+                    CanCountMultipleTimes = false,
+                    RequiresTitleContent = titleContent,
+                    ResourceId = itemId,
+                    TransformationId = transformationId,
+                    ValidFrom = validFrom,
+                    ValidUntil = null
+                });
             }
         }
 
         public async Task MigrateItemSources()
         {
-            if (await _itemsourceRepository.CountItemsources() > 0)
+            if (await _isaacRepository.CountResources(ResourceType.ItemSource) > 0)
             {
                 _logger.LogWarning("itemsources  already exist in database, skipping migration...");
                 return;
             }
 
-            var newItemsources = new List<SaveItemsource>();
+            var newItemsources = new List<SaveIsaacResource>();
             using (var c = new NpgsqlConnection(_oldConnectionString))
             {
                 c.Open();
@@ -591,14 +569,15 @@ namespace Website.Migrations
                         {
                             while (r.Read())
                             {
-                                newItemsources.Add(new SaveItemsource()
+                                newItemsources.Add(new SaveIsaacResource()
                                 {
                                     Id = r.GetString(1),
                                     Name = r.GetString(0),
                                     W = 53,
                                     X = r.GetInt32(2),
                                     Y = r.GetInt32(3),
-                                    FromMod = r.IsDBNull(4) ? null : await _modRepository.GetModIdByName(r.GetString(4))
+                                    FromMod = r.IsDBNull(4) ? null : await _modRepository.GetModIdByName(r.GetString(4)),
+                                    ResourceType = ResourceType.ItemSource
                                 });
                             }
                         }
@@ -610,19 +589,19 @@ namespace Website.Migrations
 
             foreach (var i in newItemsources)
             {
-                await _itemsourceRepository.SaveItemsource(i);
+                await _isaacRepository.SaveResource(i);
             }
         }
 
         public async Task MigrateTransformations()
         {
-            if (await _transformationRepository.CountTransformations() > 0)
+            if (await _isaacRepository.CountResources(ResourceType.Transformation) > 0)
             {
                 _logger.LogWarning("transformations already exist in database, skipping migration...");
                 return;
             }
 
-            var newTransformations = new List<SaveTransformation>();
+            var newTransformations = new List<SaveIsaacResource>();
             using (var c = new NpgsqlConnection(_oldConnectionString))
             {
                 c.Open();
@@ -635,7 +614,7 @@ namespace Website.Migrations
                         {
                             while (r.Read())
                             {
-                                newTransformations.Add(new SaveTransformation()
+                                newTransformations.Add(new SaveIsaacResource()
                                 {
                                     Id = r.GetString(1),
                                     Name = r.GetString(0),
@@ -643,7 +622,7 @@ namespace Website.Migrations
                                     X = r.GetInt32(2),
                                     Y = r.GetInt32(3),
                                     FromMod = r.IsDBNull(4) ? null : await _modRepository.GetModIdByName(r.GetString(4)),
-                                    StepsNeeded = 3
+                                    ResourceType = ResourceType.Transformation
                                 });
                             }
                         }
@@ -655,7 +634,8 @@ namespace Website.Migrations
             
             foreach (var t in newTransformations)
             {
-                await _transformationRepository.SaveTransformation(t);
+                var id = await _isaacRepository.SaveResource(t);
+                await _isaacRepository.AddTag(new AddTag() { Effect = Effect.ThreeStepsToTransformation, ResourceId = id });
             }
         }
 
@@ -780,7 +760,7 @@ namespace Website.Migrations
                     c.Open();
 
                     // get submitters
-                    string getSubmittersQuery = $"SELECT sub FROM watchedvideos WHERE video = '{videoId}' ORDER BY id ASC; ";
+                    string getSubmittersQuery = $"SELECT sub FROM watchedvideos WHERE video = '{videoId}' ORDER BY id DESC; ";
                     using (var q = new NpgsqlCommand(getSubmittersQuery, c))
                     {
                         using (var r = q.ExecuteReader())
@@ -885,7 +865,7 @@ namespace Website.Migrations
                                 {
                                     while (r.Read())
                                     {
-                                        submission.PlayedCharacters.Last().PlayedFloors.Last().gameplayEvents.Add(new GameplayEvent() { RelatedResource1 = r.GetString(0), RelatedResource2 = r.GetString(1), EventType = GameplayEventType.CollectedItem });
+                                        submission.PlayedCharacters.Last().PlayedFloors.Last().gameplayEvents.Add(new GameplayEvent() { RelatedResource1 = r.GetString(0), RelatedResource2 = r.GetString(1), EventType = GameplayEventType.Item });
                                     }
                                 }
                             }

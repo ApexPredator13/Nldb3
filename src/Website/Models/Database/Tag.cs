@@ -4,7 +4,7 @@ using Website.Models.Database.Enums;
 #nullable disable
 namespace Website.Models.Database
 {
-    public class IsaacResourceTag
+    public class Tag
     {
         public int Id { get; set; }
 
