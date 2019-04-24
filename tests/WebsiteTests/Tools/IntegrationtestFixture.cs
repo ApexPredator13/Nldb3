@@ -29,16 +29,16 @@ namespace WebsiteTests.Tools
             services.AddTransient<IDbConnector, DbConnector>();
             services.AddTransient<IDbManager, DbManager>();
 
-            services.AddScoped<IItemRepository, ItemRepository>();
-            services.AddScoped<IBossRepository, BossRepository>();
-            services.AddScoped<ICurseRepository, CurseRepository>();
-            services.AddScoped<IThreatRepository, ThreatRepository>();
-            services.AddScoped<IModRepository, ModRepository>();
-            services.AddScoped<IFloorRepository, FloorRepository>();
-            services.AddScoped<IItemsourceRepository, ItemsourceRepository>();
-            services.AddScoped<ITransformationRepository, TransformationRepository>();
-            services.AddScoped<IVideoRepository, VideoRepository>();
-            services.AddScoped<ICharacterRepository, CharacterRepository>();
+            services.AddTransient<IItemRepository, ItemRepository>();
+            services.AddTransient<IBossRepository, BossRepository>();
+            services.AddTransient<ICurseRepository, CurseRepository>();
+            services.AddTransient<IThreatRepository, ThreatRepository>();
+            services.AddTransient<IModRepository, ModRepository>();
+            services.AddTransient<IFloorRepository, FloorRepository>();
+            services.AddTransient<IItemsourceRepository, ItemsourceRepository>();
+            services.AddTransient<ITransformationRepository, TransformationRepository>();
+            services.AddTransient<IVideoRepository, VideoRepository>();
+            services.AddTransient<ICharacterRepository, CharacterRepository>();
         }
 
         public void Configure(IApplicationBuilder app)

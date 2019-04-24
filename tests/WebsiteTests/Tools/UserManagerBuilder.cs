@@ -38,7 +38,8 @@ namespace WebsiteTests.Tools
             _passwordValidator.Setup(x => x.ValidateAsync(It.IsAny<UserManager<IdentityUser>>(), It.IsAny<IdentityUser>(), It.IsAny<string>())).ReturnsAsync(IdentityResult.Success);
 
             _lookupNormalizer = new Mock<ILookupNormalizer>();
-            _lookupNormalizer.Setup(x => x.Normalize(It.IsAny<string>())).Returns("normalized string");
+            _lookupNormalizer.Setup(x => x.NormalizeName(It.IsAny<string>())).Returns("normalized string");
+            _lookupNormalizer.Setup(x => x.NormalizeEmail(It.IsAny<string>())).Returns("normalized string");
 
             _serviceProvider = new Mock<IServiceProvider>();
 

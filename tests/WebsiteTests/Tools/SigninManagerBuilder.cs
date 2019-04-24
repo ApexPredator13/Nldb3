@@ -37,8 +37,8 @@ namespace WebsiteTests.Tools
             _identityOptions = new Mock<IOptions<IdentityOptions>>();
             _identityOptions.SetupGet(x => x.Value).Returns(new IdentityOptions());
 
-            _signinManager = new Mock<SignInManager<IdentityUser>>(userManager, _httpContextAccessor.Object, _userClaimsPrincipalFactory.Object, _identityOptions.Object, null, null);
-
+            _signinManager = new Mock<SignInManager<IdentityUser>>(userManager, _httpContextAccessor.Object, _userClaimsPrincipalFactory.Object, _identityOptions.Object, null, null, null);
+            
             // things that never fail
             _signinManager.Setup(x => x.SignOutAsync()).Returns(Task.CompletedTask);
             _signinManager.Setup(x => x.SignInAsync(It.IsAny<IdentityUser>(), It.IsAny<bool>(), It.IsAny<string>())).Returns(Task.CompletedTask);

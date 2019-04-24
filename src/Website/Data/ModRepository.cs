@@ -21,14 +21,14 @@ namespace Website.Data
             _connector = connector;
         }
 
-        public async Task SaveMod(SaveMod mod)
+        public async Task<int> SaveMod(SaveMod mod)
         {
             using (var c = await _connector.Connect())
             {
-                using (var q = new NpgsqlCommand("INSERT INTO mods (name) VALUES (@N); ", c))
+                using (var q = new NpgsqlCommand("INSERT INTO mods (id, name) VALUES (DEFAULT, @N) RETURNING id; ", c))
                 {
                     q.Parameters.AddWithValue("@N", NpgsqlDbType.Varchar, mod.ModName);
-                    await q.ExecuteNonQueryAsync();
+                    return Convert.ToInt32(await q.ExecuteScalarAsync());
                 }
             }
         }
@@ -38,7 +38,7 @@ namespace Website.Data
             Mod? mod = null;
             using (var c = await _connector.Connect())
             {
-                using (var q = new NpgsqlCommand("SELECT m.id, m.name, u.id, u.url, u.name, u.mod FROM mods m LEFT JOIN mod_url u ON m.id = u.mod WHERE m.id = @Id; ", c))
+                using (var q = new NpgsqlCommand("SELECT m.id, m.name, u.id, u.url, u.name FROM mods m LEFT JOIN mod_url u ON m.id = u.mod WHERE m.id = @Id; ", c))
                 {
                     q.Parameters.AddWithValue("@Id", NpgsqlDbType.Integer, id);
                     
@@ -82,7 +82,7 @@ namespace Website.Data
             Mod? mod = null;
             using (var c = await _connector.Connect())
             {
-                using (var q = new NpgsqlCommand("SELECT m.id, m.name, u.id, u.url, u.name, u.mod FROM mods m LEFT JOIN mod_url u ON m.id = u.mod WHERE m.name = @N; ", c))
+                using (var q = new NpgsqlCommand("SELECT m.id, m.name, u.id, u.url, u.name FROM mods m LEFT JOIN mod_url u ON m.id = u.mod WHERE m.name = @N; ", c))
                 {
                     q.Parameters.AddWithValue("@N", NpgsqlDbType.Varchar, name);
 
@@ -142,21 +142,6 @@ namespace Website.Data
             }
 
             return result;
-        }
-
-        public async Task AddUrlToMod(AddModUrl model)
-        {
-            using (var c = await _connector.Connect())
-            {
-                using (var q = new NpgsqlCommand("INSERT INTO mod_url (url, name, mod) VALUES (@U, @N, @M); ", c))
-                {
-                    q.Parameters.AddWithValue("@U", NpgsqlDbType.Varchar, model.Url);
-                    q.Parameters.AddWithValue("@N", NpgsqlDbType.Varchar, model.LinkText);
-                    q.Parameters.AddWithValue("@M", NpgsqlDbType.Varchar, model.ModId);
-
-                    await q.ExecuteNonQueryAsync();
-                }
-            }
         }
 
         public async Task<List<int>> GetUsedModsForSubmittedEpisode(SubmittedEpisode episode)
@@ -292,30 +277,71 @@ namespace Website.Data
             return usedMods;
         }
 
-        public async Task AddModUrl(AddModUrl modUrl)
+        public async Task<int> AddModUrl(AddModUrl modUrl)
         {
             using (var c = await _connector.Connect())
             {
-                using (var q = new NpgsqlCommand("INSERT INTO mod_url (url, name, mod) VALUES (@U, @N, @M); ", c))
+                using (var q = new NpgsqlCommand("INSERT INTO mod_url (id, url, name, mod) VALUES (DEFAULT, @U, @N, @M) RETURNING id; ", c))
                 {
                     q.Parameters.AddWithValue("@U", NpgsqlDbType.Varchar, modUrl.Url);
                     q.Parameters.AddWithValue("@N", NpgsqlDbType.Varchar, modUrl.LinkText);
                     q.Parameters.AddWithValue("@M", NpgsqlDbType.Integer, modUrl.ModId);
-                    await q.ExecuteNonQueryAsync();
+                    return Convert.ToInt32(await q.ExecuteScalarAsync());
                 }
             }
         }
 
-        public async Task RemoveModUrl(int modUrlId)
+        public async Task<int> RemoveModUrl(int modUrlId)
         {
             using (var c = await _connector.Connect())
             {
                 using (var q = new NpgsqlCommand("DELETE FROM mod_url WHERE id = @Id", c))
                 {
                     q.Parameters.AddWithValue("@Id", NpgsqlDbType.Integer, modUrlId);
-                    await q.ExecuteNonQueryAsync();
+                    return await q.ExecuteNonQueryAsync();
                 }
             }
+        }
+
+        public async Task<int> RemoveMod(int modId)
+        {
+            using (var c = await _connector.Connect())
+            {
+                using (var q = new NpgsqlCommand("DELETE FROM mods WHERE id = @Id", c))
+                {
+                    q.Parameters.AddWithValue("@Id", NpgsqlDbType.Integer, modId);
+                    return await q.ExecuteNonQueryAsync();
+                }
+            }
+        }
+
+        public async Task<ModUrl?> GetModUrlById(int id)
+        {
+            ModUrl? url = null;
+
+            using (var c = await _connector.Connect())
+            {
+                using (var q = new NpgsqlCommand("SELECT id, url, name FROM mod_url WHERE id = @Id; ", c))
+                {
+                    q.Parameters.AddWithValue("@Id", NpgsqlDbType.Integer, id);
+                    
+                    using (var r = await q.ExecuteReaderAsync())
+                    {
+                        if (r.HasRows)
+                        {
+                            r.Read();
+                            url = new ModUrl()
+                            {
+                                Id = r.GetInt32(0),
+                                Url = r.GetString(1),
+                                LinkText = r.GetString(2)
+                            };
+                        }
+                    }
+                }
+            }
+
+            return url;
         }
     }
 }

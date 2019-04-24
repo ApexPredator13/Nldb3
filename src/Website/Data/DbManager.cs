@@ -39,7 +39,7 @@ namespace Website.Data
                 "encountered_items, experienced_deaths, bossfights, played_floors, played_characters, video_submissions, videos, game_character_tags, " +
                 "game_characters, trinket_tags, trinkets, threat_tags, threats, tarot_card_tags, tarot_cards, pill_tags, pills, rune_tags, runes, curse_tags, " +
                 "curses, item_tags, items, item_source_tags, item_sources, other_consumable_tags, other_consumables, boss_tags, bosses, " +
-                "floor_tags, floors, transformation_tags, transformations, mod_url, mods; ";
+                "floors, transformation_tags, transformations, mod_url, mods; ";
 
             Execute(query);
         }
@@ -49,7 +49,6 @@ namespace Website.Data
             CreateModsTable();
             CreateModUrlTable();
             CreateFloorsTable();
-            CreateFloorTagsTable();
             CreateBossesTable();
             CreateBossTagsTable();
             CreateTransformationsTable();
@@ -110,7 +109,7 @@ namespace Website.Data
                     "id SERIAL PRIMARY KEY, " +
                     "url VARCHAR(256) NOT NULL, " +
                     "name VARCHAR(100) NOT NULL, " +
-                    "mod INTEGER REFERENCES mods (id)" +
+                    "mod INTEGER REFERENCES mods (id) ON DELETE CASCADE" +
                 ")";
 
             Execute(query);
@@ -121,26 +120,16 @@ namespace Website.Data
             string query =
                 "CREATE TABLE IF NOT EXISTS floors (" +
                     "id VARCHAR(30) PRIMARY KEY, " +
-                    "name VARCHAR(100) NOT NULL, " +
+                    "name VARCHAR(100) NOT NULL UNIQUE, " +
                     "exists_in INTEGER NOT NULL, " +
                     "x INTEGER NOT NULL, " +
                     "y INTEGER NOT NULL, " +
                     "w INTEGER NOT NULL, " +
                     "game_mode INTEGER NOT NULL, " +
                     "color VARCHAR(25) NOT NULL, " +
-                    "mod INTEGER REFERENCES mods (id)" +
-                "); ";
-
-            Execute(query);
-        }
-
-        private void CreateFloorTagsTable()
-        {
-            string query =
-                "CREATE TABLE IF NOT EXISTS floor_tags (" +
-                    "id SERIAL PRIMARY KEY, " +
-                    "type INTEGER NOT NULL, " +
-                    "floor VARCHAR(30) NOT NULL REFERENCES floors (id)" +
+                    "mod INTEGER REFERENCES mods (id) ON DELETE SET NULL, " +
+                    "display_order INTEGER NOT NULL DEFAULT 0, " +
+                    "difficulty INTEGER NOT NULL DEFAULT 0" +
                 "); ";
 
             Execute(query);
