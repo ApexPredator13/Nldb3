@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Npgsql;
+using Website.Models.Database.Enums;
 using Website.Services;
 
 namespace Website.Data
@@ -9,11 +11,13 @@ namespace Website.Data
     {
         private readonly IDbConnector _connector;
         private readonly IWebHostEnvironment _env;
+        private readonly IConfiguration _config;
 
-        public DbManager(IDbConnector connector, IWebHostEnvironment env)
+        public DbManager(IDbConnector connector, IWebHostEnvironment env, IConfiguration config)
         {
             _connector = connector;
             _env = env;
+            _config = config;
         }
 
         void Execute(string query)
@@ -34,12 +38,7 @@ namespace Website.Data
                 return;
             }
 
-            string query =
-                "DROP TABLE IF EXISTS transformation_items, encountered_items_transformations, experienced_transformations, encountered_trinkets, used_tarot_cards, swallowed_pills, used_runes, encountered_curses, " +
-                "encountered_items, experienced_deaths, bossfights, played_floors, played_characters, video_submissions, videos, game_character_tags, " +
-                "game_characters, trinket_tags, trinkets, threat_tags, threats, tarot_card_tags, tarot_cards, pill_tags, pills, rune_tags, runes, curse_tags, " +
-                "curses, item_tags, items, item_source_tags, item_sources, other_consumable_tags, other_consumables, boss_tags, bosses, " +
-                "floors, transformation_tags, transformations, mod_url, mods; ";
+            string query = "DROP TABLE IF EXISTS mods, mod_url, isaac_resources, tags, videos, video_submissions, played_characters, played_floors, gameplay_events, transformative_resources; ";
 
             Execute(query);
         }
@@ -47,22 +46,13 @@ namespace Website.Data
         public void CreateAllTables()
         {
             CreateModTables();
+            CreateIsaacResourcesTable();
             CreateTransformativeResourcesTable();
             CreateVideoTable();
             CreateVideoSubmissionTable();
             CreatePlayedCharacterTable();
             CreatePlayedFloorTable();
-            CreateBossfightTable();
-            CreateEncounteredItemsTable();
-            CreateEncounteredCursesTable();
-            CreateUsedRunesTable();
-            CreateSwallowedPillsTable();
-            CreateSwallowedPillsTable();
-            CreateUsedTarotCardsTable();
-            CreateEncounteredTrinketsTable();
-            CreateExperiencedDeathsTable();
-            CreateExperiencedTransformationsTable();
-            CreateEncounteredItemsTransformationsTable();
+            CreateGameplayEventsTable();
         }
 
         private void CreateModTables()
@@ -82,12 +72,13 @@ namespace Website.Data
             Execute(query);
         }
 
-        private void CreateIsaacStuffTable()
+        private void CreateIsaacResourcesTable()
         {
+            // create table
             string query =
                 "CREATE TABLE IF NOT EXISTS isaac_resources (" +
                     "id VARCHAR(30) PRIMARY KEY, " +
-                    "name VARCHAR(100) NOT NULL UNIQUE, " +
+                    "name VARCHAR(100) NOT NULL, " +
                     "type INTEGER NOT NULL, " +
                     "exists_in INTEGER NOT NULL, " +
                     "x INTEGER NOT NULL, " +
@@ -101,11 +92,29 @@ namespace Website.Data
                     "difficulty INTEGER" +
                 "); " +
 
+                // create tags table
                 "CREATE TABLE IF NOT EXISTS tags (" +
                     "id SERIAL PRIMARY KEY, " +
                     "value INTEGER NOT NULL, " +
-                    "isaac_resource VARCHAR(30) NOT NULL REFERENCES isaac_stuff (id) ON UPDATE CASCADE ON DELETE CASCADE" +
-                "); ";
+                    "isaac_resource VARCHAR(30) NOT NULL REFERENCES isaac_resources (id) ON UPDATE CASCADE ON DELETE CASCADE" +
+                "); " +
+
+                // create default entries
+                "INSERT INTO isaac_resources (id, name, type, exists_in, x, y, w, h, game_mode, color, mod, display_order, difficulty) VALUES " +
+                $"('MissingCharacter', 'Missing Character', {(int)ResourceType.Character}, {(int)ExistsIn.Nowhere}, 0, 0, 0, 0, {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
+                $"('MissingCurse', 'Missing Curse', {(int)ResourceType.Curse}, {(int)ExistsIn.Nowhere}, 0, 0, 0, 0, {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
+                $"('MissingOtherEvent', 'Missing Event', {(int)ResourceType.OtherEvent}, {(int)ExistsIn.Nowhere}, 0, 0, 0, 0, {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
+                $"('MissingFloor', 'Missing Floor', {(int)ResourceType.Floor}, {(int)ExistsIn.Nowhere}, 0, 0, 0, 0, {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
+                $"('MissingItem', 'Missing Item', {(int)ResourceType.Item}, {(int)ExistsIn.Nowhere}, 0, 0, 0, 0, {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
+                $"('MissingItemSource', 'Missing Itemsource', {(int)ResourceType.ItemSource}, {(int)ExistsIn.Nowhere}, 0, 0, 0, 0, {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
+                $"('MissingPill', 'Missing Pill', {(int)ResourceType.Pill}, {(int)ExistsIn.Nowhere}, 0, 0, 0, 0, {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
+                $"('MissingRune', 'Missing Rune', {(int)ResourceType.Rune}, {(int)ExistsIn.Nowhere}, 0, 0, 0, 0, {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
+                $"('MissingTarotCard', 'Missing Tarot Card', {(int)ResourceType.TarotCard}, {(int)ExistsIn.Nowhere}, 0, 0, 0, 0, {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
+                $"('MissingEnemy', 'Missing Enemy', {(int)ResourceType.Enemy}, {(int)ExistsIn.Nowhere}, 0, 0, 0, 0, {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
+                $"('MissingTransformation', 'Missing Transformation', {(int)ResourceType.Transformation}, {(int)ExistsIn.Nowhere}, 0, 0, 0, 0, {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
+                $"('MissingTrinket', 'Missing Trinket', {(int)ResourceType.Trinket}, {(int)ExistsIn.Nowhere}, 0, 0, 0, 0, {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
+                $"('MissingBoss', 'Missing Boss', {(int)ResourceType.Boss}, {(int)ExistsIn.Nowhere}, 0, 0, 0, 0, {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
+                $"('DeletedResource', 'Deleted Resource', {(int)ResourceType.Unspecified}, {(int)ExistsIn.Nowhere}, 0, 0, 0, 0, {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL); ";
 
             Execute(query);
         }
@@ -135,9 +144,9 @@ namespace Website.Data
             string query =
                 "CREATE TABLE IF NOT EXISTS video_submissions (" +
                     "id SERIAL PRIMARY KEY, " +
-                    "video CHAR(11) NOT NULL REFERENCES videos (id), " +
-                    "sub TEXT NOT NULL REFERENCES \"AspNetUsers\" (\"Id\"), " +
-                    $"s_type INTEGER NOT NULL DEFAULT {(int)Models.Database.Enums.SubmissionType.New}" +
+                    "video CHAR(11) NOT NULL REFERENCES videos (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
+                    $"sub TEXT NOT NULL DEFAULT '{_config["DeletedUserId"]}' REFERENCES \"AspNetUsers\" (\"Id\") ON UPDATE CASCADE ON DELETE SET DEFAULT, " +
+                    $"s_type INTEGER NOT NULL DEFAULT {(int)SubmissionType.New}" +
                 "); ";
 
             Execute(query);
@@ -148,10 +157,12 @@ namespace Website.Data
             string query =
                 "CREATE TABLE IF NOT EXISTS played_characters (" +
                     "id SERIAL PRIMARY KEY, " +
-                    "game_character VARCHAR(30) NOT NULL REFERENCES isaac_resources (id), " +
-                    "submission INTEGER NOT NULL REFERENCES video_submissions (id), " +
+                    "game_character VARCHAR(30) NOT NULL DEFAULT 'DeletedResource' REFERENCES isaac_resources (id) ON UPDATE CASCADE ON DELETE SET DEFAULT, " +
+                    "submission INTEGER NOT NULL REFERENCES video_submissions (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
                     "action INTEGER NOT NULL, " +
-                    "video CHAR(11) NOT NULL REFERENCES videos (id)" +
+                    "video CHAR(11) NOT NULL REFERENCES videos (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
+                    "run_number INTEGER NOT NULL DEFAULT 1, " +
+                    "died_from VARCHAR(30) REFERENCES isaac_resources (id) ON UPDATE CASCADE ON DELETE SET NULL" +
                 "); ";
 
             Execute(query);
@@ -162,166 +173,35 @@ namespace Website.Data
             string query =
                 "CREATE TABLE IF NOT EXISTS played_floors (" +
                     "id SERIAL PRIMARY KEY, " +
-                    "floor VARCHAR(30) NOT NULL REFERENCES floors (id), " +
-                    "played_character INTEGER NOT NULL REFERENCES played_characters (id) ," +
-                    "video CHAR(11) NOT NULL REFERENCES videos (id), " +
-                    "action INTEGER NOT NULL" +
+                    "floor VARCHAR(30) NOT NULL REFERENCES isaac_resources (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
+                    "played_character INTEGER NOT NULL REFERENCES played_characters (id) ON UPDATE CASCADE ON DELETE CASCADE," +
+                    "video CHAR(11) NOT NULL REFERENCES videos (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
+                    "action INTEGER NOT NULL, " +
+                    "run_number INTEGER NOT NULL, " +
+                    "floor_number INTEGER NOT NULL, " +
+                    "died_from VARCHAR(30) REFERENCES isaac_resources (id) ON UPDATE CASCADE ON DELETE SET NULL" +
                 "); ";
 
             Execute(query);
         }
 
-        private void CreateBossfightTable()
+        private void CreateGameplayEventsTable()
         {
             string query =
-                "CREATE TABLE IF NOT EXISTS bossfights (" +
+                "CREATE TABLE IF NOT EXISTS gameplay_events (" +
                     "id SERIAL PRIMARY KEY, " +
-                    "boss VARCHAR(30) NOT NULL REFERENCES bosses (id), " +
-                    "played_floor INTEGER NOT NULL REFERENCES played_floors (id), " +
-                    "video CHAR(11) NOT NULL REFERENCES videos (id), " +
+                    "event_type INTEGER NOT NULL, " +
+                    "resource_one VARCHAR(30) NOT NULL DEFAULT 'DeletedResource' REFERENCES isaac_resources (id) ON UPDATE CASCADE ON DELETE SET DEFAULT, " +
+                    "resource_two VARCHAR(30) REFERENCES isaac_resources (id) ON UPDATE CASCADE ON DELETE SET NULL, " +
+                    "resource_three INTEGER, " +
+                    "played_floor INTEGER NOT NULL REFERENCES played_floors (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
+                    "video CHAR(11) NOT NULL REFERENCES videos (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
                     "action INTEGER NOT NULL, " +
-                    "played_character INTEGER NOT NULL REFERENCES played_characters (id)" +
-                "); ";
-
-            Execute(query);
-        }
-
-        private void CreateEncounteredItemsTable()
-        {
-            string query =
-                "CREATE TABLE IF NOT EXISTS encountered_items (" +
-                    "id SERIAL PRIMARY KEY, " +
-                    "item VARCHAR(30) NOT NULL REFERENCES items (id), " +
-                    "source VARCHAR(30) NOT NULL REFERENCES item_sources (id), " +
-                    "usage INTEGER NOT NULL, " +
-                    "played_floor INTEGER NOT NULL REFERENCES played_floors (id), " +
-                    "video CHAR(11) NOT NULL REFERENCES videos (id), " +
-                    "action INTEGER NOT NULL, " +
-                    "played_character INTEGER NOT NULL REFERENCES played_characters (id)" +
-                "); ";
-
-            Execute(query);
-        }
-
-        private void CreateEncounteredItemsTransformationsTable()
-        {
-            string query =
-                "CREATE TABLE IF NOT EXISTS item_transformation_progress (" +
-                    "id SERIAL PRIMARY KEY, " +
-                    "encountered_item INTEGER NOT NULL REFERENCES encountered_items (id), " +
-                    "transformation VARCHAR(30) NOT NULL REFERENCES transformations (id), " +
-                    "played_floor INTEGER NOT NULL REFERENCES played_floors (id), " +
-                    "video CHAR(11) NOT NULL REFERENCES videos (id), " +
-                    "action INTEGER NOT NULL, " +
-                    "played_character INTEGER NOT NULL REFERENCES played_characters (id)" +
-                    "action INTEGER NOT NULL" +
-                "); ";
-
-            Execute(query);
-        }
-
-        private void CreateExperiencedTransformationsTable()
-        {
-            string query =
-                "CREATE TABLE experienced_transformations (" +
-                    "id SERIAL PRIMARY KEY, " +
-                    "transformation VARCHAR(30) NOT NULL REFERENCES transformations (id), " +
-                    "played_floor INTEGER NOT NULL REFERENCES played_floors (id), " +
-                    "action INTEGER NOT NULL, " +
-                    "video CHAR(11) NOT NULL REFERENCES videos (id), " +
-                    "triggered_by INTEGER NOT NULL REFERENCES encountered_items (id), " +
-                    "played_character INTEGER NOT NULL REFERENCES played_characters (id)" +
-                "); ";
-
-            Execute(query);
-        }
-
-        private void CreateEncounteredCursesTable()
-        {
-            string query =
-                "CREATE TABLE IF NOT EXISTS encountered_curses (" +
-                    "id SERIAL PRIMARY KEY, " +
-                    "curse VARCHAR(30) NOT NULL REFERENCES curses (id), " +
-                    "played_floor INTEGER NOT NULL REFERENCES played_floors (id), " +
-                    "video CHAR(11) NOT NULL REFERENCES videos (id), " +
-                    "action INTEGER NOT NULL, " +
-                    "played_character INTEGER NOT NULL REFERENCES played_characters (id)" +
-                "); ";
-
-            Execute(query);
-        }
-
-        private void CreateUsedRunesTable()
-        {
-            string query =
-                "CREATE TABLE IF NOT EXISTS used_runes (" +
-                    "id SERIAL PRIMARY KEY, " +
-                    "rune VARCHAR(30) NOT NULL REFERENCES runes (id), " +
-                    "played_floor INTEGER NOT NULL REFERENCES played_floors (id), " +
-                    "action INTEGER NOT NULL, " +
-                    "transformation VARCHAR(30) REFERENCES transformations (id), " +
-                    "played_character INTEGER NOT NULL REFERENCES played_characters (id)" +
-                "); ";
-
-            Execute(query);
-        }
-
-        private void CreateSwallowedPillsTable()
-        {
-            string query =
-                "CREATE TABLE IF NOT EXISTS swallowed_pills (" +
-                    "id SERIAL PRIMARY KEY, " +
-                    "pill VARCHAR(30) NOT NULL REFERENCES pills (id), " +
-                    "played_floor INTEGER NOT NULL REFERENCES played_floors (id), " +
-                    "action INTEGER NOT NULL, " +
-                    "transformation VARCHAR(30) REFERENCES transformations (id), " +
-                    "played_character INTEGER NOT NULL REFERENCES played_characters (id)" +
-                "); ";
-
-            Execute(query);
-        }
-
-        private void CreateUsedTarotCardsTable()
-        {
-            string query =
-                "CREATE TABLE IF NOT EXISTS used_tarot_cards (" +
-                    "id SERIAL PRIMARY KEY, " +
-                    "tarot_card VARCHAR(30) NOT NULL REFERENCES tarot_cards (id), " +
-                    "played_floor INTEGER NOT NULL REFERENCES played_floors (id), " +
-                    "action INTEGER NOT NULL, " +
-                    "transformation VARCHAR(30) REFERENCES transformations (id) ," +
-                    "played_character INTEGER NOT NULL REFERENCES played_characters (id)" +
-                "); ";
-
-            Execute(query);
-        }
-        
-        private void CreateEncounteredTrinketsTable()
-        {
-            string query =
-                "CREATE TABLE IF NOT EXISTS encountered_trinkets (" +
-                    "id SERIAL PRIMARY KEY, " +
-                    "trinket VARCHAR(30) NOT NULL REFERENCES trinkets (id), " +
-                    "usage INTEGER NOT NULL, " +
-                    "played_floor INTEGER NOT NULL REFERENCES played_floors (id), " +
-                    "action INTEGER NOT NULL, " +
-                    "transformation VARCHAR(30) REFERENCES transformations (id), " +
-                    "played_character INTEGER NOT NULL REFERENCES played_characters (id)" +
-                "); ";
-
-            Execute(query);
-        }
-
-        private void CreateExperiencedDeathsTable()
-        {
-            string query =
-                "CREATE TABLE IF NOT EXISTS experienced_deaths (" +
-                    "id SERIAL PRIMARY KEY, " +
-                    "threat VARCHAR(30) NOT NULL REFERENCES threats (id), " +
-                    "played_floor INTEGER NOT NULL REFERENCES played_floors (id), " +
-                    "video CHAR(11) NOT NULL REFERENCES videos (id), " +
-                    "action INTEGER NOT NULL, " +
-                    "played_character INTEGER NOT NULL REFERENCES played_characters (id)" +
+                    "played_character INTEGER NOT NULL REFERENCES played_characters (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
+                    "in_consequence_of INTEGER REFERENCES gameplay_events (id) ON UPDATE CASCADE ON DELETE SET NULL, " +
+                    "run_number INTEGER NOT NULL, " +
+                    "player INTEGER, " +
+                    "floor_number INTEGER NOT NULL" +
                 "); ";
 
             Execute(query);
@@ -332,12 +212,13 @@ namespace Website.Data
             string query =
                 "CREATE TABLE IF NOT EXISTS transformative_resources (" +
                     "id SERIAL PRIMARY KEY, " +
-                    "isaac_resource VARCHAR(30) NOT NULL REFERENCES isaac_resources (id), " +
-                    "transformation VARCHAR(30) NOT NULL REFERENCES isaac_resource (id), " +
+                    "isaac_resource VARCHAR(30) NOT NULL REFERENCES isaac_resources (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
+                    "transformation VARCHAR(30) NOT NULL REFERENCES isaac_resources (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
                     "counts_multiple_times BOOLEAN NOT NULL, " +
                     "requires_title_content VARCHAR(100), " +
                     "valid_from TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT '2011-09-01 00:00:00+01', " +
-                    "valid_until TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT '2100-01-01 00:00:00+01'" +
+                    "valid_until TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT '2100-01-01 00:00:00+01', " +
+                    "steps_needed INTEGER NOT NULL DEFAULT 3" +
                 "); ";
 
             Execute(query);

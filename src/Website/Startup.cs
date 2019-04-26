@@ -51,16 +51,9 @@ namespace Website
             services.AddScoped<IEmailService, EmailService>();
             services.AddTransient<IMigrateOldDatabase, MigrateOldDatabase>();
 
-            services.AddScoped<IItemRepository, ItemRepository>();
             services.AddScoped<IIsaacRepository, IsaacRepository>();
-            services.AddScoped<ICurseRepository, CurseRepository>();
-            services.AddScoped<IThreatRepository, ThreatRepository>();
             services.AddScoped<IModRepository, ModRepository>();
-            services.AddScoped<IFloorRepository, FloorRepository>();
-            services.AddScoped<IItemsourceRepository, ItemsourceRepository>();
-            services.AddScoped<ITransformationRepository, TransformationRepository>();
             services.AddScoped<IVideoRepository, VideoRepository>();
-            services.AddScoped<ICharacterRepository, CharacterRepository>();
 
             services.AddIdentity<IdentityUser, IdentityRole>(options =>
             {
@@ -139,9 +132,9 @@ namespace Website
             app.UseAuthentication();
             app.UseAuthorization();
 
-            app.CreateAdminUser();
-            //app.ResetDatabaseInDevMode();
-            //app.MigrateOldDatabaseIfNoDataExists().Wait();
+            app.CreateRequiredUserAccountsIfMissing();
+            app.ResetDatabaseInDevMode();
+            app.MigrateOldDatabaseIfNoDataExists().Wait();
         }
     }
 }

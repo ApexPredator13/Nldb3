@@ -4,19 +4,18 @@
     {
         Unspecified,
         Boss,
-        Challenge,
         Character,
         Curse,
-        Event,
+        OtherEvent,
         Floor,
         Item,
         ItemSource,
         Pill,
         Rune,
         TarotCard,
-        Threat,
+        Enemy,
         Transformation,
         Trinket,
-        Glitch
+        CharacterReroll
     }
 }

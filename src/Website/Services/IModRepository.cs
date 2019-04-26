@@ -17,5 +17,6 @@ namespace Website.Services
         Task<int> RemoveModUrl(int modUrlId);
         Task<int> RemoveMod(int modId);
         Task<ModUrl?> GetModUrlById(int id);
+        Task<int> CountMods();
     }
 }

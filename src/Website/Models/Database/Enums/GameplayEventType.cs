@@ -2,17 +2,21 @@
 {
     public enum GameplayEventType
     {
-        NewCharacter,
+        Unspecified,
         CharacterDied,
-        Item,
-        SwitchedSpacebarItem,
-        NextFloor,
-        Bossfight,
+        ItemCollected,  // 2
+        DownToTheNextFloor,
+        Bossfight, // 4
         Pill,
         TarotCard,
         Rune,
         Trinket,
         Curse,
-        OtherConsumable
+        OtherConsumable,
+        TransformationComplete, // 11
+        TransformationProgress, // 12
+        LastFloor,
+        AbsorbedItem,
+        CharacterReroll
     }
 }

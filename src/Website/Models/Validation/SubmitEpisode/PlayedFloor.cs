@@ -11,8 +11,6 @@ namespace Website.Models.Validation.SubmitEpisode
         [Required]
         public string FloorId { get; set; } = string.Empty;
 
-        public string DeathId { get; set; } = string.Empty;
-
         [Required]
         public List<GameplayEvent> gameplayEvents = new List<GameplayEvent>();
     }

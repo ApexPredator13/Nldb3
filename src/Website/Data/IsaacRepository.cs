@@ -36,7 +36,8 @@ namespace Website.Data
                         q.Parameters.AddWithValue("@Type", NpgsqlDbType.Integer, (int)type);
                     }
 
-                    return Convert.ToInt32(await q.ExecuteScalarAsync());
+                    var result = Convert.ToInt32(await q.ExecuteScalarAsync());
+                    return result;
                 }
             }
         }
@@ -558,8 +559,8 @@ namespace Website.Data
         public async Task<int> MakeIsaacResourceTransformative(MakeIsaacResourceTransformative model)
         {
             string query =
-                "INSERT INTO transformative_resources (id, isaac_resource, transformation, counts_multiple_times, requires_title_content, valid_from, valid_until) " +
-                "VALUES (DEFAULT, @IR, @TR, @CM, @RT, @VF, @VU) RETURNING id;";
+                "INSERT INTO transformative_resources (id, isaac_resource, transformation, counts_multiple_times, requires_title_content, valid_from, valid_until, steps_needed) " +
+                $"VALUES (DEFAULT, @IR, @TR, @CM, @RT, {(model.ValidFrom.HasValue ? "@VF" : "DEFAULT")}, {(model.ValidUntil.HasValue ? "@VU" : "DEFAULT")}, @SN) RETURNING id;";
 
             using (var c = await _connector.Connect())
             {
@@ -569,12 +570,74 @@ namespace Website.Data
                     q.Parameters.AddWithValue("@TR", NpgsqlDbType.Varchar, model.TransformationId);
                     q.Parameters.AddWithValue("@CM", NpgsqlDbType.Boolean, model.CanCountMultipleTimes);
                     q.Parameters.AddWithValue("@RT", NpgsqlDbType.Varchar, model.RequiresTitleContent ?? (object)DBNull.Value);
-                    q.Parameters.AddWithValue("@VF", NpgsqlDbType.TimestampTz, model.ValidFrom ?? (object)DBNull.Value);
-                    q.Parameters.AddWithValue("@VU", NpgsqlDbType.TimestampTz, model.ValidUntil ?? (object)DBNull.Value);
+                    q.Parameters.AddWithValue("@SN", NpgsqlDbType.Integer, model.StepsNeeded);
+                    if (model.ValidFrom.HasValue) q.Parameters.AddWithValue("@VF", NpgsqlDbType.TimestampTz, model.ValidFrom ?? (object)DBNull.Value);
+                    if (model.ValidUntil.HasValue) q.Parameters.AddWithValue("@VU", NpgsqlDbType.TimestampTz, model.ValidUntil ?? (object)DBNull.Value);
 
                     return Convert.ToInt32(await q.ExecuteScalarAsync());
                 }
             }
+        }
+
+        public async Task<bool> IsSpacebarItem(string resourceId)
+        {
+            bool isSpacebarItem = false;
+
+            using (var c = await _connector.Connect())
+            {
+                using (var q = new NpgsqlCommand($"SELECT 1 FROM tags WHERE isaac_resources = @Resource AND value = {Effect.IsSpacebarItem}; ", c))
+                {
+                    q.Parameters.AddWithValue("@Resource", NpgsqlDbType.Varchar, resourceId);
+                    using (var r = await q.ExecuteReaderAsync())
+                    {
+                        if (r.HasRows)
+                        {
+                            isSpacebarItem = true;
+                        }
+                    }
+                }
+            }
+
+            return isSpacebarItem;
+        }
+
+        public async Task<List<(string transformation, bool countsMultipleTimes, int stepsNeeded)>> GetResourceTransformationData(string resourceId, string videoTitle, DateTime videoReleasedate)
+        {
+            var result = new List<(string, bool, int)>();
+
+            using (var c = await _connector.Connect())
+            {
+                using (var q = new NpgsqlCommand(
+                    "SELECT t.isaac_resource, t.transformation, t.counts_multiple_times, t.requires_title_content, t.valid_from, t.valid_until, t.steps_needed " +
+                    "FROM transformative_resources t " +
+                    "WHERE isaac_resource = @I " +
+                    "AND valid_from <= @R " +
+                    "AND valid_until >= @R; ", c))
+                {
+                    q.Parameters.AddWithValue("@I", NpgsqlDbType.Varchar, resourceId);
+                    q.Parameters.AddWithValue("@R", NpgsqlDbType.TimestampTz, videoReleasedate);
+
+                    using (var r = await q.ExecuteReaderAsync())
+                    {
+                        if (r.HasRows)
+                        {
+                            while (r.Read())
+                            {
+                                string? requiredTitleContent = r.IsDBNull(3) ? null : r.GetString(3);
+
+                                if (requiredTitleContent != null && !videoTitle.ToLower().Contains(requiredTitleContent))
+                                {
+                                    continue;
+                                }
+
+                                result.Add((r.GetString(1), r.GetBoolean(2), r.GetInt32(6)));
+                            }
+                        }
+                    }
+                }
+            }
+
+            return result;
         }
     }
 }

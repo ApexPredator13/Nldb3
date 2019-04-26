@@ -14,11 +14,14 @@ namespace Website.Models.Validation
         [Required]
         public bool CanCountMultipleTimes { get; set; } = false;
 
+        [Required]
+        public int StepsNeeded { get; set; } = 3;
 
         public string? RequiresTitleContent { get; set; } = string.Empty;
 
         public DateTime? ValidFrom { get; set; } = null;
 
         public DateTime? ValidUntil { get; set; } = null;
+
     }
 }

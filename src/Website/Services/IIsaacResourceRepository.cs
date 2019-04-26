@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Website.Models.Database;
 using Website.Models.Database.Enums;
@@ -20,5 +21,7 @@ namespace Website.Services
         Task<int> RemoveTag(int tagId);
         Task<int> MakeIsaacResourceTransformative(MakeIsaacResourceTransformative model);
         Task<string> GetResourceIdFromName(string name);
+        Task<List<(string transformation, bool countsMultipleTimes, int stepsNeeded)>> GetResourceTransformationData(string resourceId, string videoTitle, DateTime videoReleasedate);
+        Task<bool> IsSpacebarItem(string resourceId);
     }
 }
