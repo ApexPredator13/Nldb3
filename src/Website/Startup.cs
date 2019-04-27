@@ -126,22 +126,23 @@ namespace Website
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
+            app.UseCookiePolicy();
+
+            app.UseAuthorization();
+            app.UseAuthentication();
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseRouting();
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapControllerRoute("area", "{area:exists}/{controller=Home}/{action=Index}/{id?}");
                 endpoints.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
             });
 
-            app.UseCookiePolicy();
-
-            app.UseAuthentication();
-            app.UseAuthorization();
 
             app.CreateRequiredUserAccountsIfMissing();
-            app.ResetDatabaseInDevMode();
+            // app.ResetDatabaseInDevMode();
             app.MigrateOldDatabaseIfNoDataExists().Wait();
         }
     }

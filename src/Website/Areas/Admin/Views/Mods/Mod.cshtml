@@ -1,0 +1,58 @@
+﻿@{
+    ViewData["Title"] = Model?.ModName ?? "Mod was not found";
+}
+
+@model Mod
+
+@if (Model is null)
+{
+    <h1>This Mod was not found</h1>
+}
+else
+{
+    <h1>Overview for "@Model.ModName"</h1>
+
+    if (Model.ModUrls.Count is 0)
+    {
+        <p>
+            No Links have been created yet.<br />
+        </p>
+    }
+    else
+    {
+        @Html.ValidationSummary()
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Link Text</th>
+                    <th>Link Url</th>
+                    <th>Delete</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var link in Model.ModUrls)
+                {
+                    <tr>
+                        <td>@link.LinkText</td>
+                        <td><a href="@link.Url" target="_blank">@link.Url</a></td>
+                        <td class="simple-confirm-element">
+                            <button>Delete Link</button>
+                        </td>
+                        <td class="display-none">
+                            @{ var deleteModel = new DeleteModLink { ModId = Model.Id, LinkId = link.Id }; }
+                            <partial name="_DeleteModLinkFormPartial" model="deleteModel" />
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    <p>
+        <a asp-action="@nameof(ModsController.CreateLink)" asp-route-modId="@Model.Id">Create a new Link</a>
+    </p>
+}
+
+@section Scripts  {
+    <script src="~/js/dist/simple_confirmation_button.min.js" asp-append-version="true"></script>
+}

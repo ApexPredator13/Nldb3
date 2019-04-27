@@ -1,9 +1,11 @@
-﻿using Npgsql;
+﻿using Microsoft.AspNetCore.Authorization;
+using Npgsql;
 using NpgsqlTypes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Website.Areas.Admin.ViewModels;
 using Website.Models.Database;
 using Website.Models.Database.Enums;
 using Website.Models.Validation;
@@ -21,7 +23,7 @@ namespace Website.Data
             _connector = connector;
         }
 
-        public async Task<int> SaveMod(SaveMod mod)
+        public async Task<int> SaveMod(CreateMod mod)
         {
             using (var c = await _connector.Connect())
             {
@@ -31,6 +33,47 @@ namespace Website.Data
                     return Convert.ToInt32(await q.ExecuteScalarAsync());
                 }
             }
+        }
+
+        public async Task<List<Mod>> GetAllMods()
+        {
+            var result = new List<Mod>();
+
+            using (var c = await _connector.Connect())
+            {
+                using (var q = new NpgsqlCommand("SELECT m.id, m.name, u.id, u.url, u.name FROM mods m LEFT JOIN mod_url u ON u.mod = m.id;", c))
+                {
+                    using (var r = await q.ExecuteReaderAsync())
+                    {
+                        if (r.HasRows)
+                        {
+                            while (r.Read())
+                            {
+                                if (!result.Any(m => m.Id == r.GetInt32(0)))
+                                {
+                                    result.Add(new Mod()
+                                    {
+                                        Id = r.GetInt32(0),
+                                        ModName = r.GetString(1),
+                                        ModUrls = new List<ModUrl>()
+                                    });
+                                }
+                                if (!r.IsDBNull(2) && !result.First(m => m.Id == r.GetInt32(0)).ModUrls.Any(u => u.Id == r.GetInt32(2)))
+                                {
+                                    result.First(m => m.Id == r.GetInt32(0)).ModUrls.Add(new ModUrl()
+                                    {
+                                        Id = r.GetInt32(2),
+                                        Url = r.GetString(3),
+                                        LinkText = r.GetString(4)
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return result;
         }
 
         public async Task<Mod?> GetModById(int id)
@@ -244,7 +287,7 @@ namespace Website.Data
             return usedMods;
         }
 
-        public async Task<int> AddModUrl(AddModUrl modUrl)
+        public async Task<int> AddModUrl(CreateModLink modUrl)
         {
             using (var c = await _connector.Connect())
             {

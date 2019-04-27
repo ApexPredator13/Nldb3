@@ -308,20 +308,7 @@ namespace Website.Data
                 using (var q = new NpgsqlCommand(s.ToString(), c))
                 {
                     q.Parameters.AddRange(parameters.ToArray());
-
-
-                    try
-                    {
-                        int dbChanges = await q.ExecuteNonQueryAsync();
-                    }
-                    catch (Exception e)
-                    {
-                        await File.WriteAllLinesAsync(@"E:\OneDrive\Desktop\SQLTESTGAGA.txt", q.Statements.Select(x => x.SQL));
-                        var x = Convert.ToInt32(e.Data["Position"]);
-                        var pos = string.Concat(q.Statements.Select(x => x.SQL + "; "));
-                        var y = pos.Substring(x - 100, 200);
-                        throw e;
-                    }
+                    int dbChanges = await q.ExecuteNonQueryAsync();
                 }
             }
         }

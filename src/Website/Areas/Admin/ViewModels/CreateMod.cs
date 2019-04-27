@@ -1,20 +1,21 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Website.Models.Validation
+namespace Website.Areas.Admin.ViewModels
 {
-    public class SaveMod
+    public class CreateMod
     {
-        public SaveMod()
+        public CreateMod()
         {
             ModName = string.Empty;
         }
 
-        public SaveMod(string modName)
+        public CreateMod(string modName)
         {
             ModName = modName;
         }
 
         [Required]
+        [StringLength(256)]
         public string ModName { get; set; }
     }
 }

@@ -12,7 +12,7 @@
     @Html.ValidationSummary()
 </p>
 
-<form method="post" asp-route-returnUrl="returnUrl">
+<form method="post" asp-route-returnUrl="@returnUrl">
     <div>
         <label asp-for="EmailOrUsername"></label>
         <input asp-for="EmailOrUsername" type="text" data-required />

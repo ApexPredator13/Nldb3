@@ -4,3 +4,15 @@
 .error-message {
     color: darkorange;
 }
+.display-normal {
+    display: normal;
+}
+.display-none {
+    display: none;
+}
+.display-table-cell {
+    display: table-cell;
+}
+form {
+    display: block;
+}

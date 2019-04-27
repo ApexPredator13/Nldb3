@@ -12,6 +12,7 @@ using Website.Models.Validation;
 using NpgsqlTypes;
 using System;
 using Website.Models.Validation.SubmitEpisode;
+using Website.Areas.Admin.ViewModels;
 
 namespace Website.Migrations
 {
@@ -147,53 +148,54 @@ namespace Website.Migrations
             if (await _modRepository.CountMods() > 0)
             {
                 _logger.LogWarning("mods already exist in the database, skipping migration...");
+                return;
             }
 
-            var mods = new List<SaveMod>
+            var mods = new List<CreateMod>
             {
-                new SaveMod("Antibirth"),
-                new SaveMod("Community Remix"),
-                new SaveMod("Mei"),
-                new SaveMod("Siren, Playable Character"),
-                new SaveMod("The Binding of NLSS Afterstream+"),
-                new SaveMod("Alphabirth Pack 1: Mom's Closet"),
-                new SaveMod("Faith's Reward"),
-                new SaveMod("The Drawn"),
-                new SaveMod("King Saul"),
-                new SaveMod("Arena Mode"),
-                new SaveMod("alotmoreitems"),
-                new SaveMod("Buddy In A Box"),
-                new SaveMod("Black Hole"),
-                new SaveMod("Mystery Gift"),
-                new SaveMod("Sprinkler"),
-                new SaveMod("AngryFly"),
-                new SaveMod("Bozo"),
-                new SaveMod("Broken Modem"),
-                new SaveMod("Lil' Delirium"),
-                new SaveMod("The Binding of NLSS Afterstream+"),
-                new SaveMod("Booster Pack #1"),
-                new SaveMod("Adventure Sheet"),
-                new SaveMod("Flask of the Gods"),
-                new SaveMod("Moving Box"),
-                new SaveMod("Telepathy"),
-                new SaveMod("Technology Zero"),
-                new SaveMod("Jumper Cables"),
-                new SaveMod("Cereal Cutout"),
-                new SaveMod("Leprosy"),
-                new SaveMod("Mr. Meeseeks"),
-                new SaveMod("Lil Harbingers"),
-                new SaveMod("Thought"),
-                new SaveMod("Bank Shot!"),
-                new SaveMod("The RPGing of Isaac"),
-                new SaveMod("Death's List"),
-                new SaveMod("Water Balloon"),
-                new SaveMod("Hungry Tears"),
-                new SaveMod("Lightshot"),
-                new SaveMod("Satanic Ritual"),
-                new SaveMod("Security Blanket"),
-                new SaveMod("Hydrophobicity"),
-                new SaveMod("Lil Spewer"),
-                new SaveMod("Mystery Egg")
+                new CreateMod("Antibirth"),
+                new CreateMod("Community Remix"),
+                new CreateMod("Mei"),
+                new CreateMod("Siren, Playable Character"),
+                new CreateMod("The Binding of NLSS Afterstream+"),
+                new CreateMod("Alphabirth Pack 1: Mom's Closet"),
+                new CreateMod("Faith's Reward"),
+                new CreateMod("The Drawn"),
+                new CreateMod("King Saul"),
+                new CreateMod("Arena Mode"),
+                new CreateMod("alotmoreitems"),
+                new CreateMod("Buddy In A Box"),
+                new CreateMod("Black Hole"),
+                new CreateMod("Mystery Gift"),
+                new CreateMod("Sprinkler"),
+                new CreateMod("AngryFly"),
+                new CreateMod("Bozo"),
+                new CreateMod("Broken Modem"),
+                new CreateMod("Lil' Delirium"),
+                new CreateMod("The Binding of NLSS Afterstream+"),
+                new CreateMod("Booster Pack #1"),
+                new CreateMod("Adventure Sheet"),
+                new CreateMod("Flask of the Gods"),
+                new CreateMod("Moving Box"),
+                new CreateMod("Telepathy"),
+                new CreateMod("Technology Zero"),
+                new CreateMod("Jumper Cables"),
+                new CreateMod("Cereal Cutout"),
+                new CreateMod("Leprosy"),
+                new CreateMod("Mr. Meeseeks"),
+                new CreateMod("Lil Harbingers"),
+                new CreateMod("Thought"),
+                new CreateMod("Bank Shot!"),
+                new CreateMod("The RPGing of Isaac"),
+                new CreateMod("Death's List"),
+                new CreateMod("Water Balloon"),
+                new CreateMod("Hungry Tears"),
+                new CreateMod("Lightshot"),
+                new CreateMod("Satanic Ritual"),
+                new CreateMod("Security Blanket"),
+                new CreateMod("Hydrophobicity"),
+                new CreateMod("Lil Spewer"),
+                new CreateMod("Mystery Egg")
             };
 
             foreach (var mod in mods)

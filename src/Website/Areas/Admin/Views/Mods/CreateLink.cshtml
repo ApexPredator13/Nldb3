@@ -1,0 +1,30 @@
+﻿@{
+    ViewData["Title"] = "Creating a new Link";
+}
+
+@model CreateModLink
+
+<h1>Creating a new link</h1>
+<hr/>
+
+<form method="post">
+    <input type="hidden" asp-for="ModId" />
+    <div>
+        <label asp-for="LinkText"></label>
+        <input type="text" asp-for="LinkText" />
+        <div class="error-message"></div>
+    </div>
+    <div>
+        <label asp-for="Url"></label>
+        <input type="text" asp-for="Url" />
+        <div class="error-message"></div>
+    </div>
+    <div>
+        <button type="submit">Create Link</button>
+    </div>
+</form>
+
+@section Scripts {
+    <script src="~/js/dist/validation.min.js" asp-append-version="true"></script>
+}
+

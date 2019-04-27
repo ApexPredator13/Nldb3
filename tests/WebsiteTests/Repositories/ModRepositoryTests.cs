@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Website.Areas.Admin.ViewModels;
 using Website.Models.Validation;
 using Website.Services;
 using WebsiteTests.Tools;
@@ -22,7 +23,7 @@ namespace WebsiteTests.Repositories
         }
 
         [Theory(DisplayName = "SaveMod can create and read a mod"), AutoData]
-        public async Task T1(SaveMod model)
+        public async Task T1(CreateMod model)
         {
             // ARRANGE
             var repo = _fixture.TestServer.Host.Services.GetService(typeof(IModRepository)) as IModRepository;
@@ -40,7 +41,7 @@ namespace WebsiteTests.Repositories
         }
 
         [Theory(DisplayName = "AddModUrl can add mod urls to a mod"), AutoData]
-        public async Task T2(SaveMod mod, AddModUrl modUrl1, AddModUrl modUrl2)
+        public async Task T2(CreateMod mod, CreateModLink modUrl1, CreateModLink modUrl2)
         {
             // ARRANGE - create a mod
             var repo = _fixture.TestServer.Host.Services.GetService(typeof(IModRepository)) as IModRepository;
@@ -63,7 +64,7 @@ namespace WebsiteTests.Repositories
         }
 
         [Theory(DisplayName = "RemoveModUrl can remove a mod url"), AutoData]
-        public async Task T3(SaveMod mod, AddModUrl modUrl1, AddModUrl modUrl2)
+        public async Task T3(CreateMod mod, CreateModLink modUrl1, CreateModLink modUrl2)
         {
             // ARRANGE - create mod, include 2 urls
             var repo = _fixture.TestServer.Host.Services.GetService(typeof(IModRepository)) as IModRepository;
@@ -86,7 +87,7 @@ namespace WebsiteTests.Repositories
         }
 
         [Theory(DisplayName = "RemoveMod can remove a mod (including its urls)"), AutoData]
-        public async Task T4(SaveMod mod, AddModUrl modUrl)
+        public async Task T4(CreateMod mod, CreateModLink modUrl)
         {
             // ARRANGE - create mod, include a url
             var repo = _fixture.TestServer.Host.Services.GetService(typeof(IModRepository)) as IModRepository;
@@ -106,7 +107,7 @@ namespace WebsiteTests.Repositories
         }
 
         [Theory(DisplayName = "GetModUrlById can return a mod url"), AutoData]
-        public async Task T5(SaveMod mod, AddModUrl modUrl)
+        public async Task T5(CreateMod mod, CreateModLink modUrl)
         {
             // ARRANGE - create mod, include a url
             var repo = _fixture.TestServer.Host.Services.GetService(typeof(IModRepository)) as IModRepository;

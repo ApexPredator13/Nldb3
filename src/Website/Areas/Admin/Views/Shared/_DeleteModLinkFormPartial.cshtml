@@ -1,0 +1,8 @@
+﻿@model DeleteModLink
+
+<form method="post" asp-area="Admin" asp-controller="@ModsController.Controllername" asp-action="@nameof(ModsController.DeleteLink)" asp-route-modId="@Model.ModId">
+    <input type="hidden" asp-for="@Model.LinkId" />
+    <input type="hidden" asp-for="@Model.ModId" />
+    <button type="submit">Confirm</button>
+    <button class="cancel">Cancel</button>
+</form>

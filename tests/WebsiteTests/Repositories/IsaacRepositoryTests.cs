@@ -3,6 +3,7 @@ using FluentAssertions;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Website.Areas.Admin.ViewModels;
 using Website.Models.Database.Enums;
 using Website.Models.Validation;
 using Website.Services;
@@ -22,7 +23,7 @@ namespace WebsiteTests.Repositories
         }
 
         [Theory(DisplayName = "SaveResource/GetById can create and read a resource with/-out mods and tags"), AutoData]
-        public async Task T1(SaveIsaacResource item, SaveMod mod, AddModUrl url, AddTag tag)
+        public async Task T1(SaveIsaacResource item, CreateMod mod, CreateModLink url, AddTag tag)
         {
             // ARRANGE - create mod, transformation, tag
             var isaacRepo = _fixture.TestServer.Host.Services.GetService(typeof(IIsaacRepository)) as IIsaacRepository;
@@ -109,7 +110,7 @@ namespace WebsiteTests.Repositories
         }
 
         [Theory(DisplayName = "GetResources can return a list of resources with/without mods or tags"), AutoData]
-        public async Task T2(SaveIsaacResource item, SaveMod mod, AddModUrl url, AddTag tag, GetResource getAllRequest, GetResource getModsRequest, GetResource getTagsRequest, GetResource getNothingRequest)
+        public async Task T2(SaveIsaacResource item, CreateMod mod, CreateModLink url, AddTag tag, GetResource getAllRequest, GetResource getModsRequest, GetResource getTagsRequest, GetResource getNothingRequest)
         {
             // ARRANGE - create mod, resource, tag, prepare requests
             var isaacRepo = _fixture.TestServer.Host.Services.GetService(typeof(IIsaacRepository)) as IIsaacRepository;

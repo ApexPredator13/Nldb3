@@ -1,0 +1,7 @@
+﻿@model DeleteMod
+
+<form method="post" asp-action="@nameof(ModsController.DeleteMod)">
+    <input type="hidden" asp-for="@Model.ModId" />
+    <button type="submit">Confirm</button>
+    <button class="cancel">Cancel</button>
+</form>

@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Website.Models.Validation
+namespace Website.Areas.Admin.ViewModels
 {
-    public class AddModUrl
+    public class CreateModLink
     {
         [Required]
         public string Url { get; set; } = string.Empty;
