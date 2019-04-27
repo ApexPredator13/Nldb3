@@ -74,6 +74,14 @@ namespace Website
                 .AddDefaultTokenProviders()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("admin", policy =>
+                {
+                    policy.RequireClaim("admin");
+                });
+            });
+
             services.AddAuthentication()
                 .AddFacebook(options =>
                 {
