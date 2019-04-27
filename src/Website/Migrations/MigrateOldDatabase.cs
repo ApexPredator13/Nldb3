@@ -520,7 +520,7 @@ namespace Website.Migrations
 
             // add transformation info to items
             // get old list
-            var transformationData = new List<(string itemName, string transformationName)>();
+            var oldTransformationData = new List<(string itemName, string transformationName)>();
             using (var c = new NpgsqlConnection(_oldConnectionString))
             {
                 await c.OpenAsync();
@@ -535,7 +535,7 @@ namespace Website.Migrations
                             {
                                 try
                                 {
-                                    transformationData.Add((r.GetString(0), r.GetString(1)));
+                                    oldTransformationData.Add((r.GetString(0), r.GetString(1)));
                                 }
                                 catch { }
                             }
@@ -545,7 +545,7 @@ namespace Website.Migrations
             }
 
             // make new list
-            foreach (var (itemName, transformationName) in transformationData)
+            foreach (var (itemName, transformationName) in oldTransformationData)
             {
                 string? titleContent = null;
                 if (transformationName == "Loki" || transformationName == "Tammy")
@@ -557,8 +557,8 @@ namespace Website.Migrations
                     titleContent = "alphabirth";
                 }
 
-                var itemId = await _isaacRepository.GetResourceIdFromName(itemName);
-                var transformationId = await _isaacRepository.GetResourceIdFromName(transformationName);
+                var itemId = await _isaacRepository.GetFirstResourceIdFromName(itemName);
+                var transformationId = await _isaacRepository.GetFirstResourceIdFromName(transformationName);
                 DateTime? validFrom = null;
 
                 switch (transformationId)
@@ -595,7 +595,7 @@ namespace Website.Migrations
                         break;
                 }
 
-                await _isaacRepository.MakeIsaacResourceTransformative(new MakeIsaacResourceTransformative()
+                await _isaacRepository.MakeTransformative(new MakeIsaacResourceTransformative()
                 {
                     CanCountMultipleTimes = false,
                     RequiresTitleContent = titleContent,

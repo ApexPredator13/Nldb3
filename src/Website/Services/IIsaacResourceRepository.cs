@@ -12,16 +12,15 @@ namespace Website.Services
         Task<string> SaveResource(SaveIsaacResource resource);
         Task<int> CountResources(ResourceType type = ResourceType.Unspecified);
         Task<IsaacResource?> GetResourceById(string id, bool includeMod, bool includeTags);
-        Task<IsaacResource?> GetResourceByName(string name, bool includeMod, bool includeTags);
         Task<int> AddTag(AddTag tag);
-        Task<List<IsaacResource>> GetResources(ResourceType resourceType, bool includeMod, bool includeTags, ResourceOrderBy orderBy1 = ResourceOrderBy.Unspecified, ResourceOrderBy orderBy2 = ResourceOrderBy.Unspecified, bool asc = true, params Effect[] requiredTags);
+        Task<List<IsaacResource>> GetResources(GetResource request);
         Task<int> DeleteResource(string resourceId);
         Task<Tag?> GetTagById(int tagId);
-        Task<List<Tag>> GetTags(string bossId);
+        Task<List<Tag>> GetTags(string resourceId);
         Task<int> RemoveTag(int tagId);
-        Task<int> MakeIsaacResourceTransformative(MakeIsaacResourceTransformative model);
-        Task<string> GetResourceIdFromName(string name);
-        Task<List<(string transformation, bool countsMultipleTimes, int stepsNeeded)>> GetResourceTransformationData(string resourceId, string videoTitle, DateTime videoReleasedate);
+        Task<int> MakeTransformative(MakeIsaacResourceTransformative model);
+        Task<string> GetFirstResourceIdFromName(string name);
+        Task<List<(string transformation, bool countsMultipleTimes, int stepsNeeded)>> GetTransformationData(string resourceId, string videoTitle, DateTime videoReleasedate);
         Task<bool> IsSpacebarItem(string resourceId);
     }
 }

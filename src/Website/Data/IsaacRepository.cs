@@ -42,7 +42,7 @@ namespace Website.Data
             }
         }
 
-        public async Task<string> GetResourceIdFromName(string name)
+        public async Task<string> GetFirstResourceIdFromName(string name)
         {
             using (var c = await _connector.Connect())
             {
@@ -95,104 +95,139 @@ namespace Website.Data
             }
         }
 
-        private string GetOrderByClause(ResourceOrderBy orderBy, string prefix)
+        private string GetOrderByClause(ResourceOrderBy orderBy, string prefix, bool asc)
         {
             switch (orderBy)
             {
-                case ResourceOrderBy.Color: return $"{prefix}.color";
-                case ResourceOrderBy.Difficulty: return $"{prefix}.difficulty NULLS LAST";
-                case ResourceOrderBy.DisplayOrder: return $"{prefix}.display_order NULLS LAST";
-                case ResourceOrderBy.ExistsIn: return $"{prefix}.exists_in";
-                case ResourceOrderBy.GameMode: return $"{prefix}.game_mode";
-                case ResourceOrderBy.Id: return $"{prefix}.id";
-                case ResourceOrderBy.Name: return $"{prefix}.name";
-                case ResourceOrderBy.Type: return $"{prefix}.type";
+                case ResourceOrderBy.Color: return $"{prefix}.color {(asc ? "ASC" : "DESC")}";
+                case ResourceOrderBy.Difficulty: return $"{prefix}.difficulty {(asc ? "ASC" : "DESC")} NULLS LAST";
+                case ResourceOrderBy.DisplayOrder: return $"{prefix}.display_order {(asc ? "ASC" : "DESC")} NULLS LAST";
+                case ResourceOrderBy.ExistsIn: return $"{prefix}.exists_in {(asc ? "ASC" : "DESC")}";
+                case ResourceOrderBy.GameMode: return $"{prefix}.game_mode {(asc ? "ASC" : "DESC")}";
+                case ResourceOrderBy.Id: return $"{prefix}.id {(asc ? "ASC" : "DESC")}";
+                case ResourceOrderBy.Name: return $"{prefix}.name {(asc ? "ASC" : "DESC")}";
+                case ResourceOrderBy.Type: return $"{prefix}.type {(asc ? "ASC" : "DESC")}";
                 default: return $"{prefix}.id";
             }
         }
 
-        public async Task<List<IsaacResource>> GetResources(ResourceType resourceType, bool includeMod, bool includeTags, ResourceOrderBy orderBy1 = ResourceOrderBy.Unspecified, ResourceOrderBy orderBy2 = ResourceOrderBy.Unspecified, bool asc = true, params Effect[] requiredTags)
+        #region StatementCreatorsForGetResources
+
+        private void CreateSelectStatementForRequest(StringBuilder s, GetResource request)
+        {
+            s.Append($"SELECT i.id, i.name, i.type, i.exists_in, i.x, i.y, i.w, i.h, i.game_mode, i.color, i.display_order, i.difficulty");
+
+            if (request.IncludeMod)
+            {
+                s.Append($", m.id, m.name, u.id, u.url, u.name");
+            }
+            if (request.IncludeTags || request.RequiredTags.Count > 0)
+            {
+                s.Append($", t.id, t.value");
+            }
+        }
+
+        private void CreateFromAndJoinStatementFromRequest(StringBuilder s, GetResource request)
+        {
+            s.Append(" FROM isaac_resources i");
+
+            if (request.IncludeMod)
+            {
+                s.Append(" LEFT JOIN mods m ON i.mod = m.id");
+                s.Append(" LEFT JOIN mod_url u ON m.id = u.mod");
+            }
+            if (request.IncludeTags || request.RequiredTags.Count > 0)
+            {
+                s.Append(" LEFT JOIN tags t ON t.isaac_resource = i.id");
+            }
+        }
+
+        private List<NpgsqlParameter> CreateWhereStatementForRequest(StringBuilder s, GetResource request)
+        {
+            var parameters = new List<NpgsqlParameter>();
+
+            if (request.ResourceType == ResourceType.Unspecified && request.RequiredTags.Count is 0)
+            {
+                return parameters;
+            }
+
+            s.Append(" WHERE");
+            bool needAnd = false;
+
+            if (request.ResourceType != ResourceType.Unspecified)
+            {
+                needAnd = true;
+                s.Append(" i.type = @T");
+                parameters.Add(new NpgsqlParameter("@T", NpgsqlDbType.Integer) { NpgsqlValue = (int)request.ResourceType });
+            }
+            
+            if (request.RequiredTags.Count > 0)
+            {
+                if (needAnd)
+                {
+                    s.Append(" AND");
+                }
+
+                s.Append(" t.value IN (");
+                for (int i = 0; i < request.RequiredTags.Count; i++)
+                {
+                    s.Append($"@R{i}, ");
+                    parameters.Add(new NpgsqlParameter($"@R{i}", NpgsqlDbType.Integer) { NpgsqlValue = (int)request.RequiredTags[i] });
+                }
+                s.Length -= 2;
+                s.Append(")");
+            }
+
+            return parameters;
+        }
+
+        private void CreateGroupByStatementForRequest(StringBuilder s, GetResource request)
+        {
+            s.Append(" GROUP BY i.id");
+
+            if (request.IncludeMod)
+            {
+                s.Append(", m.id, u.id");
+            }
+            if (request.IncludeTags || request.RequiredTags.Count > 0)
+            {
+                s.Append(", t.id");
+            }
+        }
+
+        private void CreateOrderByStatementForRequest(StringBuilder s, GetResource request)
+        {
+            if (request.OrderBy1 != ResourceOrderBy.Unspecified)
+            {
+                s.Append($" ORDER BY {GetOrderByClause(request.OrderBy1, "i", request.Asc)}");
+            }
+            if (request.OrderBy2 != ResourceOrderBy.Unspecified)
+            {
+                s.Append($", {GetOrderByClause(request.OrderBy2, "i", request.Asc)}");
+            }
+        }
+
+        #endregion
+
+        public async Task<List<IsaacResource>> GetResources(GetResource request)
         {
             var resources = new List<IsaacResource>();
             var parameters = new List<NpgsqlParameter>();
 
             var s = new StringBuilder();
 
-            // SELECT
-            s.Append($"SELECT i.id, i.name, i.type, i.exists_in, i.x, i.y, i.w, i.h, i.game_mode, i.color, i.display_order, i.difficulty");
-
-            if (includeMod)
-            {
-                s.Append($", m.id, m.name, u.id, u.url, u.name");
-            }
-            if (includeTags || requiredTags.Length > 0)
-            {
-                s.Append($", t.id, t.value");
-            }
-
-            // FROM
-            s.Append(" FROM isaac_resources i");
-
-            // JOIN
-            if (includeMod)
-            {
-                s.Append(" LEFT JOIN mods m ON i.mod = m.id");
-                s.Append(" LEFT JOIN mod_url u ON m.id = u.mod");
-            }
-            if (includeTags || requiredTags.Length > 0)
-            {
-                s.Append(" LEFT JOIN tags t ON t.isaac_resource = i.id");
-            }
-
-            // WHERE
-            if (resourceType != ResourceType.Unspecified)
-            {
-                s.Append(" WHERE i.type = @T");
-                parameters.Add(new NpgsqlParameter("@T", NpgsqlDbType.Integer) { NpgsqlValue = (int)resourceType });
-            }
-            if (requiredTags.Length > 0)
-            {
-                s.Append(" AND t.isaac_resource IN (");
-                for (int i = 0; i < requiredTags.Length; i++)
-                {
-                    s.Append($"@R{i}, ");
-                    parameters.Add(new NpgsqlParameter($"@R{i}", NpgsqlDbType.Integer) { NpgsqlValue = (int)requiredTags[i] });
-                }
-                s.Length -= 2;
-                s.Append(")");
-            }
-
-            // GROUP BY
-            s.Append(" GROUP BY i.id");
-
-            if (includeMod)
-            {
-                s.Append(", m.id, u.id");
-            }
-            if (includeTags || requiredTags.Length > 0)
-            {
-                s.Append(", t.id");
-            }
-
-            // ORDER BY
-            if (orderBy1 != ResourceOrderBy.Unspecified)
-            {
-                s.Append($" ORDER BY {GetOrderByClause(orderBy1, "i")} {(asc ? " ASC" : " DESC")}");
-            }
-            if (orderBy2 != ResourceOrderBy.Unspecified)
-            {
-                s.Append($", {GetOrderByClause(orderBy2, "i")} {(asc ? " ASC" : " DESC")}");
-            }
+            CreateSelectStatementForRequest(s, request);
+            CreateFromAndJoinStatementFromRequest(s, request);
+            parameters.AddRange(CreateWhereStatementForRequest(s, request));
+            CreateGroupByStatementForRequest(s, request);
+            CreateOrderByStatementForRequest(s, request);
 
             // ...Execute
             using (var c = await _connector.Connect())
             {
                 using (var q = new NpgsqlCommand(s.ToString(), c))
                 {
-                    if (resourceType != ResourceType.Unspecified)
-                    {
-                        q.Parameters.AddWithValue("@T", NpgsqlDbType.Integer, (int)resourceType);
-                    }
+                    q.Parameters.AddRange(parameters.ToArray());
 
                     using (var r = await q.ExecuteReaderAsync())
                     {
@@ -216,15 +251,15 @@ namespace Website.Data
                                         H = r.GetInt32(i++),
                                         GameMode = (GameMode)r.GetInt32(i++),
                                         Color = r.GetString(i++),
-                                        DisplayOrder = r.IsDBNull(i++) ? (int?)r.GetInt32(i - 1) : null,
-                                        Difficulty = r.IsDBNull(i++) ? (int?)r.GetInt32(i - 1) : null
+                                        DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
+                                        Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1)
                                     });
                                 }
                                 else i += 9;
 
                                 var currentResource = resources.First(x => x.Id == resourceId);
 
-                                if (includeMod)
+                                if (request.IncludeMod)
                                 {
                                     if (!r.IsDBNull(i) && currentResource.Mod is null)
                                     {
@@ -248,7 +283,7 @@ namespace Website.Data
                                     else i += 3;
                                 }
 
-                                if (includeTags && !r.IsDBNull(i) && !currentResource.Tags.Any(x => x.Id == r.GetInt32(i)))
+                                if (request.IncludeTags && !r.IsDBNull(i) && !currentResource.Tags.Any(x => x.Id == r.GetInt32(i)))
                                 {
                                     currentResource.Tags.Add(new Tag()
                                     {
@@ -285,7 +320,7 @@ namespace Website.Data
 
             if (includeMod)
             {
-                s.Append(" LEFT JOIN mods m ON b.mod = m.id");
+                s.Append(" LEFT JOIN mods m ON i.mod = m.id");
                 s.Append(" LEFT JOIN mod_url u ON m.id = u.mod");
             }
             if (includeTags)
@@ -322,8 +357,8 @@ namespace Website.Data
                                         H = r.GetInt32(i++),
                                         GameMode = (GameMode)r.GetInt32(i++),
                                         Color = r.GetString(i++),
-                                        DisplayOrder = r.IsDBNull(i++) ? (int?)r.GetInt32(i - 1) : null,
-                                        Difficulty = r.IsDBNull(i++) ? (int?)r.GetInt32(i - 1) : null
+                                        DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
+                                        Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1)
                                     };
                                 }
                                 else i += 9;
@@ -369,110 +404,6 @@ namespace Website.Data
             return result;
         }
 
-
-        public async Task<IsaacResource?> GetResourceByName(string name, bool includeMod, bool includeTags)
-        {
-            IsaacResource? result = null;
-
-            var s = new StringBuilder();
-            s.Append($"SELECT i.id, i.name, i.type, i.exists_in, i.x, i.y, i.w, i.h, i.game_mode, i.color, i.display_order, i.difficulty");
-
-            if (includeMod)
-            {
-                s.Append($", m.id, m.name, u.id, u.url, u.name");
-            }
-            if (includeTags)
-            {
-                s.Append($", t.id, t.value");
-            }
-
-            s.Append(" FROM isaac_resources i");
-
-            if (includeMod)
-            {
-                s.Append(" LEFT JOIN mods m ON b.mod = m.id");
-                s.Append(" LEFT JOIN mod_url u ON m.id = u.mod");
-            }
-            if (includeTags)
-            {
-                s.Append(" LEFT JOIN tags t ON t.isaac_resource = i.id");
-            }
-
-            s.Append(" WHERE i.name = @N; ");
-
-            using (var c = await _connector.Connect())
-            {
-                using (var q = new NpgsqlCommand(s.ToString(), c))
-                {
-                    q.Parameters.AddWithValue("@N", NpgsqlDbType.Varchar, name);
-
-                    using (var r = await q.ExecuteReaderAsync())
-                    {
-                        if (r.HasRows)
-                        {
-                            while (r.Read())
-                            {
-                                int i = 0;
-                                if (result is null)
-                                {
-                                    result = new IsaacResource()
-                                    {
-                                        Id = r.GetString(i++),
-                                        Name = r.GetString(i++),
-                                        ResourceType = (ResourceType)r.GetInt32(i++),
-                                        ExistsIn = (ExistsIn)r.GetInt32(i++),
-                                        X = r.GetInt32(i++),
-                                        Y = r.GetInt32(i++),
-                                        W = r.GetInt32(i++),
-                                        H = r.GetInt32(i++),
-                                        GameMode = (GameMode)r.GetInt32(i++),
-                                        Color = r.GetString(i++),
-                                        DisplayOrder = r.IsDBNull(i++) ? (int?)r.GetInt32(i - 1) : null,
-                                        Difficulty = r.IsDBNull(i++) ? (int?)r.GetInt32(i - 1) : null
-                                    };
-                                }
-                                else i += 9;
-
-                                if (includeMod)
-                                {
-                                    if (!r.IsDBNull(i) && result.Mod is null)
-                                    {
-                                        result.Mod = new Mod()
-                                        {
-                                            Id = r.GetInt32(i++),
-                                            ModName = r.GetString(i++),
-                                        };
-                                    }
-                                    else i += 2;
-
-                                    if (!r.IsDBNull(i) && result.Mod != null && !result.Mod.ModUrls.Any(x => x.Id == r.GetInt32(i)))
-                                    {
-                                        result.Mod.ModUrls.Add(new ModUrl()
-                                        {
-                                            Id = r.GetInt32(i++),
-                                            Url = r.GetString(i++),
-                                            LinkText = r.GetString(i++)
-                                        });
-                                    }
-                                    else i += 3;
-                                }
-
-                                if (includeTags && !r.IsDBNull(i) && !result.Tags.Any(x => x.Id == r.GetInt32(i)))
-                                {
-                                    result.Tags.Add(new Tag()
-                                    {
-                                        Id = r.GetInt32(i++),
-                                        Effect = (Effect)r.GetInt32(i)
-                                    });
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            return result;
-        }
 
         public async Task<int> DeleteResource(string resourceId)
         {
@@ -556,7 +487,7 @@ namespace Website.Data
             }
         }
 
-        public async Task<int> MakeIsaacResourceTransformative(MakeIsaacResourceTransformative model)
+        public async Task<int> MakeTransformative(MakeIsaacResourceTransformative model)
         {
             string query =
                 "INSERT INTO transformative_resources (id, isaac_resource, transformation, counts_multiple_times, requires_title_content, valid_from, valid_until, steps_needed) " +
@@ -585,7 +516,7 @@ namespace Website.Data
 
             using (var c = await _connector.Connect())
             {
-                using (var q = new NpgsqlCommand($"SELECT 1 FROM tags WHERE isaac_resources = @Resource AND value = {Effect.IsSpacebarItem}; ", c))
+                using (var q = new NpgsqlCommand($"SELECT 1 FROM tags WHERE isaac_resource = @Resource AND value = {(int)Effect.IsSpacebarItem}; ", c))
                 {
                     q.Parameters.AddWithValue("@Resource", NpgsqlDbType.Varchar, resourceId);
                     using (var r = await q.ExecuteReaderAsync())
@@ -601,7 +532,7 @@ namespace Website.Data
             return isSpacebarItem;
         }
 
-        public async Task<List<(string transformation, bool countsMultipleTimes, int stepsNeeded)>> GetResourceTransformationData(string resourceId, string videoTitle, DateTime videoReleasedate)
+        public async Task<List<(string transformation, bool countsMultipleTimes, int stepsNeeded)>> GetTransformationData(string resourceId, string videoTitle, DateTime videoReleasedate)
         {
             var result = new List<(string, bool, int)>();
 
@@ -625,7 +556,7 @@ namespace Website.Data
                             {
                                 string? requiredTitleContent = r.IsDBNull(3) ? null : r.GetString(3);
 
-                                if (requiredTitleContent != null && !videoTitle.ToLower().Contains(requiredTitleContent))
+                                if (requiredTitleContent != null && !videoTitle.ToLower().Contains(requiredTitleContent.ToLower()))
                                 {
                                     continue;
                                 }

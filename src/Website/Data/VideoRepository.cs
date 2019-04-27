@@ -214,7 +214,7 @@ namespace Website.Data
                         parameters.Add(new NpgsqlParameter($"@FNum{eventCounter++}", NpgsqlDbType.Integer) { NpgsqlValue = currentFloorNumber });
 
                         // check if resource is part of any transformations
-                        var itemTransformationData = await _isaacRepository.GetResourceTransformationData(e.RelatedResource1, videoTitle, videoReleasedate);
+                        var itemTransformationData = await _isaacRepository.GetTransformationData(e.RelatedResource1, videoTitle, videoReleasedate);
 
                         // needed to relate multiple next events to the event above. will be subtracted from the serial ID
                         int subtractFromSequence = 1;
