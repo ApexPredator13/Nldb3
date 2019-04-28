@@ -440,5 +440,44 @@ namespace WebsiteTests.Repositories
             isSpacebarItemBefore.Should().BeFalse();
             isSpacebarItemAfter.Should().BeTrue();
         }
+
+        [Theory(DisplayName = "UpdateName can change a resource name"), AutoData]
+        public async Task T11(SaveIsaacResource item)
+        {
+            // ARRANGE - create item
+            var isaacRepo = _fixture.TestServer.Host.Services.GetService(typeof(IIsaacRepository)) as IIsaacRepository;
+
+            item.FromMod = null;
+            var itemId = await isaacRepo.SaveResource(item);
+
+            // ACT - get name, change name, get name again
+            var nameBefore = (await isaacRepo.GetResourceById(itemId, false, false)).Name;
+            var updateChange = await isaacRepo.UpdateName(itemId, "NEW NAME");
+            var nameAfter = (await isaacRepo.GetResourceById(itemId, false, false)).Name;
+
+            // ASSERT
+            nameBefore.Should().Be(item.Name);
+            updateChange.Should().Be(1);
+            nameAfter.Should().Be("NEW NAME");
+        }
+
+        [Theory(DisplayName = "UpdateId can change a resource id"), AutoData]
+        public async Task T12(SaveIsaacResource item)
+        {
+            // ARRANGE - create item
+            var isaacRepo = _fixture.TestServer.Host.Services.GetService(typeof(IIsaacRepository)) as IIsaacRepository;
+
+            item.FromMod = null;
+            var itemId = await isaacRepo.SaveResource(item);
+
+            // ACT - get id, change id, get id again
+            var updateChange = await isaacRepo.UpdateId(itemId, "NEW_ID");
+            var resourceWithNewId = await isaacRepo.GetResourceById("NEW_ID", false, false);
+
+            // ASSERT
+            updateChange.Should().Be(1);
+            resourceWithNewId.Should().NotBeNull();
+            resourceWithNewId.Id.Should().Be("NEW_ID");
+        }
     }
 }

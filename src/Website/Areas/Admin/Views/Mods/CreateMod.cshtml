@@ -1,0 +1,22 @@
+﻿@{ 
+    ViewData["Title"] = "New Mod";
+}
+
+@model CreateMod
+
+<h1>New Mod</h1>
+
+<form method="post">
+    <div>
+        <label asp-for="ModName"></label>
+        <input type="text" asp-for="ModName" />
+        <div class="error-message"></div>
+    </div>
+   <div>
+       <button type="submit">Create Mod</button>
+   </div>
+</form>
+
+@section Scripts {
+    <script src="~/js/dist/validation.min.js"></script>
+}

@@ -1,16 +1,16 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Newtonsoft.Json;
 
-#nullable disable
 namespace Website.Models.Database
 {
     public class ModUrl
     {
-        public int Id { get; set; }
+        [JsonProperty("id")]
+        public int Id { get; set; } = 0;
 
-        [Required]
-        public string Url { get; set; }
+        [JsonProperty("url")]
+        public string Url { get; set; } = string.Empty;
 
-        [Required]
-        public string LinkText { get; set; }
+        [JsonProperty("link_text")]
+        public string LinkText { get; set; } = string.Empty;
     }
 }

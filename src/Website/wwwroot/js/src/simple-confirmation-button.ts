@@ -1,4 +1,4 @@
-﻿import { swapClass } from './dom-operations';
+﻿import { swapClass } from './lib/dom-operations';
 
 (() => {
     document.addEventListener("DOMContentLoaded", () => {

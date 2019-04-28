@@ -10,7 +10,13 @@
 
   <ItemGroup>
     <Content Remove="wwwroot\js\src\dom-operations.ts" />
+    <Content Remove="wwwroot\js\src\enum-converters.ts" />
+    <Content Remove="wwwroot\js\src\interfaces\isaac-resource.ts" />
+    <Content Remove="wwwroot\js\src\interfaces\mod-url.ts" />
+    <Content Remove="wwwroot\js\src\interfaces\mod.ts" />
+    <Content Remove="wwwroot\js\src\interfaces\Tag.ts" />
     <Content Remove="wwwroot\js\src\polyfills.ts" />
+    <Content Remove="wwwroot\js\src\resource-selector.ts" />
     <Content Remove="wwwroot\js\src\validation.ts" />
   </ItemGroup>
 
@@ -41,12 +47,19 @@
 
   <ItemGroup>
     <Folder Include="wwwroot\js\dist\" />
+    <Folder Include="wwwroot\img\" />
   </ItemGroup>
 
 
   <ItemGroup>
-    <TypeScriptCompile Include="wwwroot\js\src\dom-operations.ts" />
-    <TypeScriptCompile Include="wwwroot\js\src\polyfills.ts" />
+    <TypeScriptCompile Include="wwwroot\js\src\lib\dom-operations.ts" />
+    <TypeScriptCompile Include="wwwroot\js\src\lib\enum-converters.ts" />
+    <TypeScriptCompile Include="wwwroot\js\src\interfaces\isaac-resource.ts" />
+    <TypeScriptCompile Include="wwwroot\js\src\interfaces\mod.ts" />
+    <TypeScriptCompile Include="wwwroot\js\src\interfaces\mod-url.ts" />
+    <TypeScriptCompile Include="wwwroot\js\src\interfaces\tag.ts" />
+    <TypeScriptCompile Include="wwwroot\js\src\lib\polyfills.ts" />
+    <TypeScriptCompile Include="wwwroot\js\src\resource-selector.ts" />
     <TypeScriptCompile Include="wwwroot\js\src\validation.ts" />
   </ItemGroup>
 

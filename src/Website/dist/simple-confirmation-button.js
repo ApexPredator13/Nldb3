@@ -1,4 +1,4 @@
-import { swapClass } from './dom-operations';
+import { swapClass } from './lib/dom-operations';
 (function () {
     document.addEventListener("DOMContentLoaded", function () {
         var confirmElements = document.getElementsByClassName('simple-confirm-element');

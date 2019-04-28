@@ -21,6 +21,32 @@ namespace Website.Data
             _connector = connector;
         }
 
+        public async Task<int> UpdateName(string id, string newName)
+        {
+            using (var c = await _connector.Connect())
+            {
+                using (var q = new NpgsqlCommand("UPDATE isaac_resources SET name = @N WHERE id = @I;", c))
+                {
+                    q.Parameters.AddWithValue("@N", NpgsqlDbType.Varchar, newName);
+                    q.Parameters.AddWithValue("@I", NpgsqlDbType.Varchar, id);
+                    return await q.ExecuteNonQueryAsync();
+                }
+            }
+        }
+
+        public async Task<int> UpdateId(string oldId, string newId)
+        {
+            using (var c = await _connector.Connect())
+            {
+                using (var q = new NpgsqlCommand("UPDATE isaac_resources SET id = @NewId WHERE id = @OldId;", c))
+                {
+                    q.Parameters.AddWithValue("@NewId", NpgsqlDbType.Varchar, newId);
+                    q.Parameters.AddWithValue("@OldId", NpgsqlDbType.Varchar, oldId);
+                    return await q.ExecuteNonQueryAsync();
+                }
+            }
+        }
+
         public async Task<int> CountResources(ResourceType type = ResourceType.Unspecified)
         {
             string query = type == ResourceType.Unspecified

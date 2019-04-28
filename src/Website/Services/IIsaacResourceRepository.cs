@@ -22,5 +22,7 @@ namespace Website.Services
         Task<string> GetFirstResourceIdFromName(string name);
         Task<List<(string transformation, bool countsMultipleTimes, int stepsNeeded)>> GetTransformationData(string resourceId, string videoTitle, DateTime videoReleasedate);
         Task<bool> IsSpacebarItem(string resourceId);
+        Task<int> UpdateName(string id, string newName);
+        Task<int> UpdateId(string oldId, string newId);
     }
 }

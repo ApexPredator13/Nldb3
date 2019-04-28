@@ -1,0 +1,19 @@
+﻿@{ 
+    ViewData["Title"] = $"Overview for '{Model.Name}'";
+}
+
+@model IsaacResource
+
+<h1>Overview for @Model.Name</h1>
+<hr/>
+
+<h3>Name</h3>
+<p>
+    Current Name is: '@Model.Name' - <a asp-action="@nameof(IsaacController.ChangeName)" asp-route-id="@Model.Id">Change</a>
+</p>
+<hr/>
+
+<h3>ID</h3>
+<p>
+    Current resource ID is '@Model.Id' - <a asp-action="@nameof(IsaacController.ChangeId)" asp-route-id="@Model.Id">Change</a>
+</p>

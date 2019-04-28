@@ -1,0 +1,27 @@
+﻿@{ 
+    ViewData["Title"] =  $"Change Name of {ViewData["CurrentName"]}";
+}
+
+@model ChangeName
+
+<h1>Resource Name Change</h1>
+<hr/>
+
+<p>The current name is @ViewData["CurrentName"]</p>
+
+<form method="post">
+    <input type="hidden" asp-for="ResourceId" />
+
+    <div>
+        <label asp-for="NewName"></label>
+        <input type="text" asp-for="NewName" />
+        <div class="error-message"></div>
+    </div>
+    <div>
+        <button type="submit">Change Name</button>
+    </div>
+</form>
+
+@section Scripts {
+    <script src="~/js/dist/validation.min.js"></script>
+}

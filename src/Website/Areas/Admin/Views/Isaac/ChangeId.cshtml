@@ -1,0 +1,24 @@
+﻿@{
+    ViewData["Title"] = $"Change ID for '{Model.CurrentId}'";
+}
+
+@model ChangeId
+
+<h1>Change ID for '@Model.CurrentId'</h1>
+
+<form method="post">
+    <input type="hidden" asp-for="CurrentId" />
+
+    <div>
+        <label asp-for="NewId"></label>
+        <input type="text" asp-for="NewId" />
+        <div class="error-message"></div>
+    </div>
+    <div>
+        <button type="submit">Change ID</button>
+    </div>
+</form>
+
+@section Scripts {
+    <script src="~/js/dist/validation.min.js"></script>
+}

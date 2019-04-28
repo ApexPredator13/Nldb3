@@ -30,6 +30,7 @@
         BoosterPack4Onwards,
         BoosterPack5Onwards,
         RepentanceOnwards,
-        Unspecified
+        Unspecified,
+        AntibirthAndRepentanceOnwards
     }
 }

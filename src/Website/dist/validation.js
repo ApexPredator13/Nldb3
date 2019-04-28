@@ -1,4 +1,4 @@
-import { elementClosest } from './polyfills';
+import { elementClosest } from './lib/polyfills';
 elementClosest();
 var emailRegex = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/;
 var inputElementTypeWhitelist = ["text", "password"];
