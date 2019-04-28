@@ -23,5 +23,24 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
+  
+  <ItemGroup>
+    <Folder Include="contentRoot\wwwroot\img\" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Update="contentRoot\wwwroot\img\test1.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="contentRoot\wwwroot\img\test2.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="contentRoot\wwwroot\img\test3.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="contentRoot\wwwroot\img\test5.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 
 </Project>

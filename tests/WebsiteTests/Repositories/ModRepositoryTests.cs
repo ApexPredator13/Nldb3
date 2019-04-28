@@ -15,9 +15,9 @@ namespace WebsiteTests.Repositories
     [Collection("database_tests")]
     public class ModRepositoryTests
     {
-        private readonly IntegrationtestFixture _fixture;
+        private readonly DatabaseTestFixture _fixture;
 
-        public ModRepositoryTests(IntegrationtestFixture fixture)
+        public ModRepositoryTests(DatabaseTestFixture fixture)
         {
             _fixture = fixture;
         }

@@ -9,6 +9,7 @@ using Microsoft.Extensions.Hosting;
 using Npgsql;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Website.Data;
@@ -32,6 +33,8 @@ namespace WebsiteTests.Tools
             services.AddTransient<IIsaacRepository, IsaacRepository>();
             services.AddTransient<IModRepository, ModRepository>();
             services.AddTransient<IVideoRepository, VideoRepository>();
+
+            services.AddTransient<IIsaacIconManager, IsaacIconManager>();
         }
 
         public void Configure(IApplicationBuilder app)
@@ -40,11 +43,11 @@ namespace WebsiteTests.Tools
         }
     }
 
-    public class IntegrationtestFixture : IDisposable
+    public class DatabaseTestFixture : IDisposable
     {
         public TestServer TestServer { get; }
 
-        public IntegrationtestFixture()
+        public DatabaseTestFixture()
         {
             // create fake config
             var config = new ConfigurationBuilder()
@@ -64,9 +67,17 @@ namespace WebsiteTests.Tools
                 }
             }
 
+            // provide fake wwwroot and contentroot folders
+            var contentRoot = Path.Combine(Directory.GetCurrentDirectory(), "contentRoot");
+            var wwwRoot = Path.Combine(Directory.GetCurrentDirectory(), "contentRoot", "wwwroot");
+            Directory.CreateDirectory(contentRoot);
+            Directory.CreateDirectory(wwwRoot);
+
             // create web host
             var webHost = new WebHostBuilder()
                 .UseConfiguration(config)
+                .UseContentRoot(contentRoot)
+                .UseWebRoot(wwwRoot)
                 .UseEnvironment("Development")
                 .UseStartup<Startup>();
 

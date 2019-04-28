@@ -21,6 +21,30 @@ namespace Website.Data
             _connector = connector;
         }
 
+        public async Task<bool> CoordinatesAreTaken(int x, int y, int h, int w)
+        {
+            var query = "SELECT 1 FROM isaac_resources WHERE x && @X IS TRUE;";
+
+            using (var c = await _connector.Connect())
+            {
+                using (var q = new NpgsqlCommand(query, c))
+                {
+                    // y-coordinate needs to be flipped
+                    q.Parameters.AddWithValue("@X", NpgsqlDbType.Box, new NpgsqlBox(-y, x + (w - 1), -y - (h - 1), x));
+
+                    using (var r = await q.ExecuteReaderAsync())
+                    {
+                        if (r.HasRows)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
         public async Task<int> UpdateName(string id, string newName)
         {
             using (var c = await _connector.Connect())
@@ -82,8 +106,8 @@ namespace Website.Data
 
         public async Task<string> SaveResource(SaveIsaacResource resource)
         {
-            string query = "INSERT INTO isaac_resources (id, name, type, exists_in, x, y, w, h, game_mode, color, mod, display_order, difficulty) VALUES (" +
-                "@I, @N, @D, @E, @X, @Y, @W, @H, @M, @C, @L, @O, @U) RETURNING id;";
+            string query = "INSERT INTO isaac_resources (id, name, type, exists_in, x, game_mode, color, mod, display_order, difficulty) VALUES (" +
+                "@I, @N, @D, @E, @X, @M, @C, @L, @O, @U) RETURNING id;";
 
             using (var c = await _connector.Connect())
             {
@@ -93,10 +117,8 @@ namespace Website.Data
                     q.Parameters.AddWithValue("@N", NpgsqlDbType.Varchar, resource.Name);
                     q.Parameters.AddWithValue("@D", NpgsqlDbType.Integer, (int)resource.ResourceType);
                     q.Parameters.AddWithValue("@E", NpgsqlDbType.Integer, (int)resource.ExistsIn);
-                    q.Parameters.AddWithValue("@X", NpgsqlDbType.Integer, resource.X);
-                    q.Parameters.AddWithValue("@Y", NpgsqlDbType.Integer, resource.Y);
-                    q.Parameters.AddWithValue("@W", NpgsqlDbType.Integer, resource.W);
-                    q.Parameters.AddWithValue("@H", NpgsqlDbType.Integer, resource.H);
+                    // y-coordinate needs to be flipped
+                    q.Parameters.AddWithValue("@X", NpgsqlDbType.Box, new NpgsqlBox(-resource.Y, resource.X + (resource.W - 1), -resource.Y - (resource.H - 1), resource.X));
                     q.Parameters.AddWithValue("@M", NpgsqlDbType.Integer, (int)resource.GameMode);
                     q.Parameters.AddWithValue("@C", NpgsqlDbType.Varchar, resource.Color);
                     q.Parameters.AddWithValue("@L", NpgsqlDbType.Integer, resource.FromMod ?? (object)DBNull.Value);
@@ -141,7 +163,7 @@ namespace Website.Data
 
         private void CreateSelectStatementForRequest(StringBuilder s, GetResource request)
         {
-            s.Append($"SELECT i.id, i.name, i.type, i.exists_in, i.x, i.y, i.w, i.h, i.game_mode, i.color, i.display_order, i.difficulty");
+            s.Append($"SELECT i.id, i.name, i.type, i.exists_in, i.x, i.game_mode, i.color, i.display_order, i.difficulty");
 
             if (request.IncludeMod)
             {
@@ -271,10 +293,7 @@ namespace Website.Data
                                         Name = r.GetString(i++),
                                         ResourceType = (ResourceType)r.GetInt32(i++),
                                         ExistsIn = (ExistsIn)r.GetInt32(i++),
-                                        X = r.GetInt32(i++),
-                                        Y = r.GetInt32(i++),
-                                        W = r.GetInt32(i++),
-                                        H = r.GetInt32(i++),
+                                        CssCoordinates = (NpgsqlBox)r[i++],
                                         GameMode = (GameMode)r.GetInt32(i++),
                                         Color = r.GetString(i++),
                                         DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
@@ -331,7 +350,7 @@ namespace Website.Data
             IsaacResource? result = null;
 
             var s = new StringBuilder();
-            s.Append($"SELECT i.id, i.name, i.type, i.exists_in, i.x, i.y, i.w, i.h, i.game_mode, i.color, i.display_order, i.difficulty");
+            s.Append($"SELECT i.id, i.name, i.type, i.exists_in, i.x, i.game_mode, i.color, i.display_order, i.difficulty");
 
             if (includeMod)
             {
@@ -377,10 +396,7 @@ namespace Website.Data
                                         Name = r.GetString(i++),
                                         ResourceType = (ResourceType)r.GetInt32(i++),
                                         ExistsIn = (ExistsIn)r.GetInt32(i++),
-                                        X = r.GetInt32(i++),
-                                        Y = r.GetInt32(i++),
-                                        W = r.GetInt32(i++),
-                                        H = r.GetInt32(i++),
+                                        CssCoordinates = (NpgsqlBox)r[i++],
                                         GameMode = (GameMode)r.GetInt32(i++),
                                         Color = r.GetString(i++),
                                         DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),

@@ -24,5 +24,6 @@ namespace Website.Services
         Task<bool> IsSpacebarItem(string resourceId);
         Task<int> UpdateName(string id, string newName);
         Task<int> UpdateId(string oldId, string newId);
+        Task<bool> CoordinatesAreTaken(int x, int y, int h, int w);
     }
 }

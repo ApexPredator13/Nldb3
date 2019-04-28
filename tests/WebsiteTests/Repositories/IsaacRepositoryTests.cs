@@ -15,9 +15,9 @@ namespace WebsiteTests.Repositories
     [Collection("database_tests")]
     public class IsaacRepositoryTests
     {
-        private readonly IntegrationtestFixture _fixture;
+        private readonly DatabaseTestFixture _fixture;
 
-        public IsaacRepositoryTests(IntegrationtestFixture fixture)
+        public IsaacRepositoryTests(DatabaseTestFixture fixture)
         {
             _fixture = fixture;
         }
@@ -478,6 +478,40 @@ namespace WebsiteTests.Repositories
             updateChange.Should().Be(1);
             resourceWithNewId.Should().NotBeNull();
             resourceWithNewId.Id.Should().Be("NEW_ID");
+        }
+
+        [Theory(DisplayName = "CoordinatesAreTaken can tell if resource image bounding box is overlapped by requested coordinates"), AutoData]
+        public async Task T13(SaveIsaacResource item)
+        {
+            // ARRANGE - create item - icon of the item starts at 1000x1000 and is 30 pixels wide and high
+            var isaacRepo = _fixture.TestServer.Host.Services.GetService(typeof(IIsaacRepository)) as IIsaacRepository;
+
+            item.FromMod = null;
+            item.X = 1000;
+            item.Y = 1000;
+            item.W = 30;
+            item.H = 30;
+            var _ = await isaacRepo.SaveResource(item);
+
+            // ACT
+            var overlapsExact = await isaacRepo.CoordinatesAreTaken(1000, 1000, 20, 20);                // same origin, but shorter
+            var overlapsPartiallyMiddle = await isaacRepo.CoordinatesAreTaken(1015, 1015, 30, 30);      // same size, starts in the middle of the rectangle
+            var overlapsLastPixel = await isaacRepo.CoordinatesAreTaken(1029, 1029, 30, 30);            // same size, overlaps only the last pixel
+
+            var toTheRight = await isaacRepo.CoordinatesAreTaken(1030, 1000, 30, 30);                   // rectangle starts exactly at the right border
+            var toTheLeft = await isaacRepo.CoordinatesAreTaken(970, 1000, 30, 30);                     // rectangle ends directly at the left border
+            var toTheTop = await isaacRepo.CoordinatesAreTaken(1000, 970, 30, 30);                      // rectangle starts directly at the top
+            var toTheBottom = await isaacRepo.CoordinatesAreTaken(1000, 1030, 30, 30);                  // rectangle starts directly at the bottom
+
+            // ASSERT
+            overlapsExact.Should().BeTrue();
+            overlapsPartiallyMiddle.Should().BeTrue();
+            overlapsLastPixel.Should().BeTrue();
+
+            toTheRight.Should().BeFalse();
+            toTheLeft.Should().BeFalse();
+            toTheTop.Should().BeFalse();
+            toTheBottom.Should().BeFalse();
         }
     }
 }

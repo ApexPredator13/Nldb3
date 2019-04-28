@@ -50,6 +50,7 @@ namespace Website
             services.AddTransient<IDbManager, DbManager>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddTransient<IMigrateOldDatabase, MigrateOldDatabase>();
+            services.AddTransient<IIsaacIconManager, IsaacIconManager>();
 
             services.AddScoped<IIsaacRepository, IsaacRepository>();
             services.AddScoped<IModRepository, ModRepository>();

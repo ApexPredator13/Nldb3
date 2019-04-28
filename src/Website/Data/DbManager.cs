@@ -81,10 +81,7 @@ namespace Website.Data
                     "name VARCHAR(100) NOT NULL, " +
                     "type INTEGER NOT NULL, " +
                     "exists_in INTEGER NOT NULL, " +
-                    "x INTEGER NOT NULL, " +
-                    "y INTEGER NOT NULL, " +
-                    "w INTEGER NOT NULL, " +
-                    "h INTEGER NOT NULL, " +
+                    "x BOX NOT NULL DEFAULT '((0,0),(0,0))', " +
                     "game_mode INTEGER NOT NULL, " +
                     "color VARCHAR(25) NOT NULL DEFAULT 'LightGray', " +
                     "mod INTEGER REFERENCES mods (id) ON DELETE SET NULL ON UPDATE CASCADE, " +
@@ -100,21 +97,21 @@ namespace Website.Data
                 "); " +
 
                 // create default entries
-                "INSERT INTO isaac_resources (id, name, type, exists_in, x, y, w, h, game_mode, color, mod, display_order, difficulty) VALUES " +
-                $"('MissingCharacter', 'Missing Character', {(int)ResourceType.Character}, {(int)ExistsIn.Nowhere}, 0, 0, 0, 0, {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
-                $"('MissingCurse', 'Missing Curse', {(int)ResourceType.Curse}, {(int)ExistsIn.Nowhere}, 0, 0, 0, 0, {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
-                $"('MissingOtherEvent', 'Missing Event', {(int)ResourceType.OtherEvent}, {(int)ExistsIn.Nowhere}, 0, 0, 0, 0, {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
-                $"('MissingFloor', 'Missing Floor', {(int)ResourceType.Floor}, {(int)ExistsIn.Nowhere}, 0, 0, 0, 0, {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
-                $"('MissingItem', 'Missing Item', {(int)ResourceType.Item}, {(int)ExistsIn.Nowhere}, 0, 0, 0, 0, {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
-                $"('MissingItemSource', 'Missing Itemsource', {(int)ResourceType.ItemSource}, {(int)ExistsIn.Nowhere}, 0, 0, 0, 0, {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
-                $"('MissingPill', 'Missing Pill', {(int)ResourceType.Pill}, {(int)ExistsIn.Nowhere}, 0, 0, 0, 0, {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
-                $"('MissingRune', 'Missing Rune', {(int)ResourceType.Rune}, {(int)ExistsIn.Nowhere}, 0, 0, 0, 0, {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
-                $"('MissingTarotCard', 'Missing Tarot Card', {(int)ResourceType.TarotCard}, {(int)ExistsIn.Nowhere}, 0, 0, 0, 0, {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
-                $"('MissingEnemy', 'Missing Enemy', {(int)ResourceType.Enemy}, {(int)ExistsIn.Nowhere}, 0, 0, 0, 0, {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
-                $"('MissingTransformation', 'Missing Transformation', {(int)ResourceType.Transformation}, {(int)ExistsIn.Nowhere}, 0, 0, 0, 0, {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
-                $"('MissingTrinket', 'Missing Trinket', {(int)ResourceType.Trinket}, {(int)ExistsIn.Nowhere}, 0, 0, 0, 0, {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
-                $"('MissingBoss', 'Missing Boss', {(int)ResourceType.Boss}, {(int)ExistsIn.Nowhere}, 0, 0, 0, 0, {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
-                $"('DeletedResource', 'Deleted Resource', {(int)ResourceType.Unspecified}, {(int)ExistsIn.Nowhere}, 0, 0, 0, 0, {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL); ";
+                "INSERT INTO isaac_resources (id, name, type, exists_in, x, game_mode, color, mod, display_order, difficulty) VALUES " +
+                $"('MissingCharacter', 'Missing Character', {(int)ResourceType.Character}, {(int)ExistsIn.Nowhere}, '((0,0),(0,0))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
+                $"('MissingCurse', 'Missing Curse', {(int)ResourceType.Curse}, {(int)ExistsIn.Nowhere}, '((0,0),(0,0))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
+                $"('MissingOtherEvent', 'Missing Event', {(int)ResourceType.OtherEvent}, {(int)ExistsIn.Nowhere}, '((0,0),(0,0))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
+                $"('MissingFloor', 'Missing Floor', {(int)ResourceType.Floor}, {(int)ExistsIn.Nowhere}, '((0,0),(0,0))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
+                $"('MissingItem', 'Missing Item', {(int)ResourceType.Item}, {(int)ExistsIn.Nowhere}, '((0,0),(0,0))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
+                $"('MissingItemSource', 'Missing Itemsource', {(int)ResourceType.ItemSource}, {(int)ExistsIn.Nowhere}, '((0,0),(0,0))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
+                $"('MissingPill', 'Missing Pill', {(int)ResourceType.Pill}, {(int)ExistsIn.Nowhere}, '((0,0),(0,0))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
+                $"('MissingRune', 'Missing Rune', {(int)ResourceType.Rune}, {(int)ExistsIn.Nowhere}, '((0,0),(0,0))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
+                $"('MissingTarotCard', 'Missing Tarot Card', {(int)ResourceType.TarotCard}, {(int)ExistsIn.Nowhere}, '((0,0),(0,0))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
+                $"('MissingEnemy', 'Missing Enemy', {(int)ResourceType.Enemy}, {(int)ExistsIn.Nowhere}, '((0,0),(0,0))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
+                $"('MissingTransformation', 'Missing Transformation', {(int)ResourceType.Transformation}, {(int)ExistsIn.Nowhere}, '((0,0),(0,0))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
+                $"('MissingTrinket', 'Missing Trinket', {(int)ResourceType.Trinket}, {(int)ExistsIn.Nowhere}, '((0,0),(0,0))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
+                $"('MissingBoss', 'Missing Boss', {(int)ResourceType.Boss}, {(int)ExistsIn.Nowhere}, '((0,0),(0,0))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
+                $"('DeletedResource', 'Deleted Resource', {(int)ResourceType.Unspecified}, {(int)ExistsIn.Nowhere}, '((0,0),(0,0))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL); ";
 
             Execute(query);
         }
