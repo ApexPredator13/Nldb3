@@ -129,5 +129,32 @@ namespace Website.Areas.Admin.Controllers
 
             return RedirectToAction(nameof(Details), new { id });
         }
+
+        [HttpGet]
+        public ViewResult ChangeIcon([FromRoute] string id) => View(new ChangeIcon() { ResourceId = id });
+
+        [HttpPost]
+        public async Task<ActionResult> ChangeIcon(ChangeIcon model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var resource = await _isaacRepository.GetResourceById(model.ResourceId, false, false);
+
+            if (resource is null)
+            {
+                return RedirectToAction(nameof(Index), new { message = $"The isaac resource with id '{model.ResourceId}' was not found!" });
+            }
+
+            _iconManager.ClearRectangle(resource.X, resource.Y, resource.W, resource.H);
+            var (w, h) = await _iconManager.GetPostedImageSize(model.NewIcon!);
+            var (x, y) = await _iconManager.FindEmptySquare(w, h);
+            _iconManager.EmbedIcon(model.NewIcon!, x, y, w, h);
+
+            await _isaacRepository.UpdateIconCoordinates(model.ResourceId, x, y, w, h);
+            return RedirectToAction(nameof(Details), new { id = model.ResourceId });
+        }
     }
 }

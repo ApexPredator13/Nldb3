@@ -516,5 +516,33 @@ namespace WebsiteTests.Repositories
             toTheTop.Should().BeFalse();
             toTheBottom.Should().BeFalse();
         }
+
+        [Theory(DisplayName = "UpdateIconCoordinates can update the css coordinates"), AutoDataMoq]
+        public async Task T14(CreateIsaacResource item)
+        {
+            // ARRANGE - create item
+            var isaacRepo = _fixture.TestServer.Host.Services.GetService(typeof(IIsaacRepository)) as IIsaacRepository;
+
+            item.FromMod = null;
+            var itemId = await isaacRepo.SaveResource(item, 0, 10, 20, 30);
+
+            // ACT - change coordinates
+            var itemBefore = await isaacRepo.GetResourceById(itemId, false, false);
+            int updateChanges = await isaacRepo.UpdateIconCoordinates(itemId, 100, 110, 40, 50);
+            var itemAfter = await isaacRepo.GetResourceById(itemId, false, false);
+
+            // ASSERT - coordinates are updated
+            itemBefore.X.Should().Be(0);
+            itemBefore.Y.Should().Be(10);
+            itemBefore.W.Should().Be(20);
+            itemBefore.H.Should().Be(30);
+
+            updateChanges.Should().Be(1);
+
+            itemAfter.X.Should().Be(100);
+            itemAfter.Y.Should().Be(110);
+            itemAfter.W.Should().Be(40);
+            itemAfter.H.Should().Be(50);
+        }
     }
 }

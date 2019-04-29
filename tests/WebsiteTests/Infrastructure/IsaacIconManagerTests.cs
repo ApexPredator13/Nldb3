@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http.Internal;
 using Moq;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -28,6 +29,7 @@ namespace WebsiteTests.Infrastructure
         private readonly string testImage5 = Path.Combine(Directory.GetCurrentDirectory(), "contentRoot", "wwwroot", "img", "test5.png");
         private readonly string testImage6 = Path.Combine(Directory.GetCurrentDirectory(), "contentRoot", "wwwroot", "img", "test6.png");
         private readonly string testImage7 = Path.Combine(Directory.GetCurrentDirectory(), "contentRoot", "wwwroot", "img", "embed_test.png");
+        private readonly string testImage8 = Path.Combine(Directory.GetCurrentDirectory(), "contentRoot", "wwwroot", "img", "test8.png");
 
         public IsaacIconManagerTests(DatabaseTestFixture fixture)
         {
@@ -200,6 +202,32 @@ namespace WebsiteTests.Infrastructure
                         var bottomPixel = img[x, y + 30];
 
                         topPixel.Equals(bottomPixel).Should().BeTrue();
+                    }
+                }
+            }
+        }
+
+        [Fact(DisplayName = "ClearRectangle can set an area in the picture to (0,0,0,0)")]
+        public void T9()
+        {
+            // arrange
+            var environment = _fixture.TestServer.Host.Services.GetService(typeof(IWebHostEnvironment)) as IWebHostEnvironment;
+            var isaacRepo = new Mock<IIsaacRepository>();
+            IIsaacIconManager iconManager = new IsaacIconManager(environment, isaacRepo.Object);
+            iconManager.SetDefaultImage(testImage8);
+
+            // act
+            iconManager.ClearRectangle(0, 30, 30, 30);
+
+            // assert - make sure the entire bottom is now clear
+            var emptyPixel = new Rgba32(0, 0, 0, 0);
+            using (var img = Image.Load(testImage8))
+            {
+                for (int y = 30; y < 60; y++)
+                {
+                    for (int x = 0; x < 30; x++)
+                    {
+                        img[x, y].Equals(emptyPixel).Should().BeTrue();
                     }
                 }
             }

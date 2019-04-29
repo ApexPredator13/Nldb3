@@ -22,6 +22,10 @@ namespace Website.Data
             _connector = connector;
         }
 
+        private NpgsqlBox CreateBoxCoordinatesFromScreenCoordinates(int x, int y, int w, int h)
+            => new NpgsqlBox(-y, x + (w - 1), -y - (h - 1), x);
+        
+
         public async Task<bool> CoordinatesAreTaken(int x, int y, int h, int w)
         {
             var query = "SELECT 1 FROM isaac_resources WHERE x && @X IS TRUE;";
@@ -30,8 +34,7 @@ namespace Website.Data
             {
                 using (var q = new NpgsqlCommand(query, c))
                 {
-                    // y-coordinate needs to be flipped
-                    q.Parameters.AddWithValue("@X", NpgsqlDbType.Box, new NpgsqlBox(-y, x + (w - 1), -y - (h - 1), x));
+                    q.Parameters.AddWithValue("@X", NpgsqlDbType.Box, CreateBoxCoordinatesFromScreenCoordinates(x, y, w, h));
 
                     using (var r = await q.ExecuteReaderAsync())
                     {
@@ -118,8 +121,7 @@ namespace Website.Data
                     q.Parameters.AddWithValue("@N", NpgsqlDbType.Varchar, resource.Name);
                     q.Parameters.AddWithValue("@D", NpgsqlDbType.Integer, (int)resource.ResourceType);
                     q.Parameters.AddWithValue("@E", NpgsqlDbType.Integer, (int)resource.ExistsIn);
-                    // y-coordinate needs to be flipped
-                    q.Parameters.AddWithValue("@X", NpgsqlDbType.Box, new NpgsqlBox(-y, x + (w - 1), -y - (h - 1), x));
+                    q.Parameters.AddWithValue("@X", NpgsqlDbType.Box, CreateBoxCoordinatesFromScreenCoordinates(x, y, w, h));
                     q.Parameters.AddWithValue("@M", NpgsqlDbType.Integer, (int)resource.GameMode);
                     q.Parameters.AddWithValue("@C", NpgsqlDbType.Varchar, resource.Color);
                     q.Parameters.AddWithValue("@L", NpgsqlDbType.Integer, resource.FromMod ?? (object)DBNull.Value);
@@ -127,6 +129,19 @@ namespace Website.Data
                     q.Parameters.AddWithValue("@U", NpgsqlDbType.Integer, resource.Difficulty ?? (object)DBNull.Value);
 
                     return Convert.ToString(await q.ExecuteScalarAsync());
+                }
+            }
+        }
+
+        public async Task<int> UpdateIconCoordinates(string resourceId, int x, int y, int w, int h)
+        {
+            using (var c = await _connector.Connect())
+            {
+                using (var q = new NpgsqlCommand("UPDATE isaac_resources SET x = @X WHERE id = @I;", c))
+                {
+                    q.Parameters.AddWithValue("@X", NpgsqlDbType.Box, CreateBoxCoordinatesFromScreenCoordinates(x, y, w, h));
+                    q.Parameters.AddWithValue("@I", NpgsqlDbType.Varchar, resourceId);
+                    return await q.ExecuteNonQueryAsync();
                 }
             }
         }

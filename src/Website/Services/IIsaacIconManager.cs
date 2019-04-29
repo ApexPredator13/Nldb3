@@ -12,5 +12,6 @@ namespace Website.Services
         void SetDefaultImage(string path);
         Task<(int width, int height)> GetPostedImageSize(IFormFile file);
         void EmbedIcon(IFormFile image, int xCoordinate, int yCoordinate, int width, int height);
+        void ClearRectangle(int xCoordinate, int yCoordinate, int width, int height);
     }
 }

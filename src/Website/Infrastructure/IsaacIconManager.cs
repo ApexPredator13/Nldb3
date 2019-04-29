@@ -138,5 +138,26 @@ namespace Website.Infrastructure
                 bigImage.Save(_defaultIsaacImage);
             }
         }
+
+        public void ClearRectangle(int xCoordinate, int yCoordinate, int width, int height)
+        {
+            if (width <= 0 || height <= 0 || xCoordinate < 0 || yCoordinate < 0)
+            {
+                return;
+            }
+
+            using (var bigImage = GetDefaultImage())
+            {
+                for (int y = yCoordinate; y < yCoordinate + height; y++)
+                {
+                    for (int x = xCoordinate; x < xCoordinate + width; x++)
+                    {
+                        bigImage[x, y] = new Rgba32(0, 0, 0, 0);
+                    }
+                }
+
+                bigImage.Save(_defaultIsaacImage);
+            }
+        }
     }
 }

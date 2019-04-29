@@ -45,6 +45,12 @@
     <None Update="contentRoot\wwwroot\img\test6.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="contentRoot\wwwroot\img\test7.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="contentRoot\wwwroot\img\test8.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
