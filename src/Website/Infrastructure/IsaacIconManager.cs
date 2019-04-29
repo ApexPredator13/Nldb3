@@ -8,6 +8,8 @@ using SixLabors.ImageSharp.Processing;
 using Microsoft.AspNetCore.Hosting;
 using SixLabors.ImageSharp.PixelFormats;
 using Website.Services;
+using Microsoft.AspNetCore.Http;
+using SixLabors.ImageSharp.Formats.Png;
 
 namespace Website.Infrastructure
 {
@@ -39,6 +41,38 @@ namespace Website.Infrastructure
         public Image<Rgba32> GetDefaultImage()
         {
             return Image.Load(_defaultIsaacImage);
+        }
+
+        public async Task<(int width, int height)> GetPostedImageSize(IFormFile file)
+        {
+            var fileExtension = Path.GetExtension(file.FileName);
+
+            if (fileExtension != ".png")
+            {
+                throw new Exception("invalid file format - must be .png!");
+            }
+
+            using (var ms = new MemoryStream())
+            {
+                await file.CopyToAsync(ms);
+                var imageDecoder = new PngDecoder();
+
+                if (ms.Position == ms.Length)
+                {
+                    ms.Position = ms.Seek(0, SeekOrigin.Begin);
+                }
+
+                var image = imageDecoder.Decode<Rgba32>(Configuration.Default, ms);
+
+                if (image != null)
+                {
+                    return (image.Width, image.Height);
+                }
+                else
+                {
+                    throw new Exception("invalid png!");
+                }
+            }
         }
 
         // tries to find an empty space 
@@ -78,6 +112,31 @@ namespace Website.Infrastructure
                 }
             }
             return true;
+        }
+
+        public void EmbedIcon(IFormFile image, int xCoordinate, int yCoordinate, int width, int height)
+        {
+            using (var bigImage = GetDefaultImage())
+            {
+                using (var icon = Image.Load<Rgba32>(image.OpenReadStream()))
+                {
+                    int iconX = 0;
+                    int iconY = 0;
+                    for (int y = yCoordinate; y < yCoordinate + height; y++)
+                    {
+                        for (int x = xCoordinate; x < xCoordinate + width; x++)
+                        {
+                            var pixel = icon[iconX, iconY];
+                            bigImage[x, y] = pixel;
+                            iconX++;
+                        }
+                        iconX = 0;
+                        iconY++;
+                    }
+                }
+
+                bigImage.Save(_defaultIsaacImage);
+            }
         }
     }
 }

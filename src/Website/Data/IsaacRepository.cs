@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Website.Areas.Admin.ViewModels;
 using Website.Models.Database;
 using Website.Models.Database.Enums;
 using Website.Models.Validation;
@@ -104,7 +105,7 @@ namespace Website.Data
             }
         }
 
-        public async Task<string> SaveResource(SaveIsaacResource resource)
+        public async Task<string> SaveResource(CreateIsaacResource resource, int x, int y, int w, int h)
         {
             string query = "INSERT INTO isaac_resources (id, name, type, exists_in, x, game_mode, color, mod, display_order, difficulty) VALUES (" +
                 "@I, @N, @D, @E, @X, @M, @C, @L, @O, @U) RETURNING id;";
@@ -118,7 +119,7 @@ namespace Website.Data
                     q.Parameters.AddWithValue("@D", NpgsqlDbType.Integer, (int)resource.ResourceType);
                     q.Parameters.AddWithValue("@E", NpgsqlDbType.Integer, (int)resource.ExistsIn);
                     // y-coordinate needs to be flipped
-                    q.Parameters.AddWithValue("@X", NpgsqlDbType.Box, new NpgsqlBox(-resource.Y, resource.X + (resource.W - 1), -resource.Y - (resource.H - 1), resource.X));
+                    q.Parameters.AddWithValue("@X", NpgsqlDbType.Box, new NpgsqlBox(-y, x + (w - 1), -y - (h - 1), x));
                     q.Parameters.AddWithValue("@M", NpgsqlDbType.Integer, (int)resource.GameMode);
                     q.Parameters.AddWithValue("@C", NpgsqlDbType.Varchar, resource.Color);
                     q.Parameters.AddWithValue("@L", NpgsqlDbType.Integer, resource.FromMod ?? (object)DBNull.Value);

@@ -1,3 +1,5 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var swapClass = function (e, from, to) {
     if (e.classList.contains(from)) {
         e.classList.remove(from);
@@ -6,6 +8,7 @@ var swapClass = function (e, from, to) {
         e.classList.add(to);
     }
 };
+exports.swapClass = swapClass;
 var fillTableCells = function (tr) {
     var contents = [];
     for (var _i = 1; _i < arguments.length; _i++) {
@@ -35,4 +38,4 @@ var fillTableCells = function (tr) {
         }
     });
 };
-export { swapClass, fillTableCells };
+exports.fillTableCells = fillTableCells;

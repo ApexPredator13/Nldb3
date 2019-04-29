@@ -1,3 +1,5 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var convertGameModeToString = function (mode) {
     switch (mode) {
         case 0: return 'All Modes';
@@ -11,6 +13,7 @@ var convertGameModeToString = function (mode) {
         default: return '';
     }
 };
+exports.convertGameModeToString = convertGameModeToString;
 var convertExistsInToString = function (n) {
     switch (n) {
         case 0: return 'Nowhere';
@@ -46,6 +49,7 @@ var convertExistsInToString = function (n) {
         default: return '';
     }
 };
+exports.convertExistsInToString = convertExistsInToString;
 var convertResourceTypeToString = function (r) {
     switch (r) {
         case 0: return 'Unspecified';
@@ -66,4 +70,4 @@ var convertResourceTypeToString = function (r) {
         default: return '';
     }
 };
-export { convertGameModeToString, convertExistsInToString, convertResourceTypeToString };
+exports.convertResourceTypeToString = convertResourceTypeToString;

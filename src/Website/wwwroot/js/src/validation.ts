@@ -2,7 +2,7 @@
 elementClosest();
 
 const emailRegex = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/;
-const inputElementTypeWhitelist: Array<string | null> = ["text", "password"];
+const inputElementTypeWhitelist: Array<string | null> = ["text", "password", "color", "number"];
 
 const applyErrormessage = (inputElement: HTMLInputElement, message: string | null): void => {
     const errorMessageContainer = inputElement.nextElementSibling;

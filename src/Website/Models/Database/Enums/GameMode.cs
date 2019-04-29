@@ -9,6 +9,7 @@
         Greedier,
         SpecialChallenge,
         SpecialSeed,
-        Unspecified
+        Unspecified,
+        HardAndNormal
     }
 }

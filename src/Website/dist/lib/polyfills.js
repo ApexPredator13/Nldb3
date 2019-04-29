@@ -1,3 +1,5 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var elementClosest = function () {
     console.log('applying patch');
     if (!Element.prototype.matches) {
@@ -16,4 +18,4 @@ var elementClosest = function () {
         };
     }
 };
-export { elementClosest };
+exports.elementClosest = elementClosest;

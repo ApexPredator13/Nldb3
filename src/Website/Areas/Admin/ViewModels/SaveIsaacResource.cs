@@ -1,9 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Http;
+using System.ComponentModel.DataAnnotations;
 using Website.Models.Database.Enums;
 
-namespace Website.Models.Validation
+namespace Website.Areas.Admin.ViewModels
 {
-    public class SaveIsaacResource
+    public class CreateIsaacResource
     {
         [Required]
         [StringLength(30)]
@@ -16,16 +17,7 @@ namespace Website.Models.Validation
         public ExistsIn ExistsIn { get; set; } = ExistsIn.Unspecified;
 
         [Required]
-        public int X { get; set; } = 0;
-
-        [Required]
-        public int Y { get; set; } = 0;
-
-        [Required]
-        public int W { get; set; } = 0;
-
-        [Required]
-        public int H { get; set; } = 0;
+        public IFormFile? Icon { get; set; } = null;
 
         [Required]
         public GameMode GameMode { get; set; } = GameMode.Unspecified;
@@ -33,9 +25,10 @@ namespace Website.Models.Validation
         [StringLength(25)]
         public string Color { get; set; } = "rgba(0,0,0,0.3)";
 
-        public int? FromMod { get; set; } = null;
-
+        [Required]
         public ResourceType ResourceType { get; set; } = ResourceType.Unspecified;
+
+        public int? FromMod { get; set; } = null;
 
         public int? DisplayOrder { get; set; } = null;
 

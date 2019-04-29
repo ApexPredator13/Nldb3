@@ -1,4 +1,6 @@
-import { swapClass } from './lib/dom-operations';
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var dom_operations_1 = require("./lib/dom-operations");
 (function () {
     document.addEventListener("DOMContentLoaded", function () {
         var confirmElements = document.getElementsByClassName('simple-confirm-element');
@@ -11,13 +13,13 @@ import { swapClass } from './lib/dom-operations';
             var cancelButton = cancelButtons && cancelButtons.length > 0 ? cancelButtons[0] : null;
             if (initialButton && cancelButton && sibling) {
                 initialButton.addEventListener('click', function () {
-                    swapClass(initialElement, 'display-normal', 'display-none');
-                    swapClass(sibling, 'display-none', 'display-normal');
+                    dom_operations_1.swapClass(initialElement, 'display-normal', 'display-none');
+                    dom_operations_1.swapClass(sibling, 'display-none', 'display-normal');
                 });
                 cancelButton.addEventListener('click', function (e) {
                     e.preventDefault();
-                    swapClass(initialElement, 'display-none', 'display-normal');
-                    swapClass(sibling, 'display-normal', 'display-none');
+                    dom_operations_1.swapClass(initialElement, 'display-none', 'display-normal');
+                    dom_operations_1.swapClass(sibling, 'display-normal', 'display-none');
                 });
             }
         };

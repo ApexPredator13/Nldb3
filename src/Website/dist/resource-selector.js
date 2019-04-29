@@ -1,5 +1,7 @@
-import { fillTableCells } from './lib/dom-operations';
-import { convertGameModeToString, convertExistsInToString } from './lib/enum-converters';
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var dom_operations_1 = require("./lib/dom-operations");
+var enum_converters_1 = require("./lib/enum-converters");
 (function () {
     document.addEventListener("DOMContentLoaded", function () {
         var selector = document.getElementById('resource-selector');
@@ -25,7 +27,7 @@ import { convertGameModeToString, convertExistsInToString } from './lib/enum-con
                         adminLink.innerText = 'Edit';
                         adminLink.href = "/Admin/Isaac/Details/" + r.id;
                     }
-                    fillTableCells(tr, r.name, r.id, convertGameModeToString(r.game_mode), convertExistsInToString(r.exists_in), "x: " + r.x + ", y: " + r.y + ", w: " + r.w + ", h: " + r.h, r.color, r.mod ? r.mod.name : null, r.display_order ? r.display_order : null, r.difficulty ? r.difficulty : null, adminLink);
+                    dom_operations_1.fillTableCells(tr, r.name, r.id, enum_converters_1.convertGameModeToString(r.game_mode), enum_converters_1.convertExistsInToString(r.exists_in), "x: " + r.x + ", y: " + r.y + ", w: " + r.w + ", h: " + r.h, r.color, r.mod ? r.mod.name : null, r.display_order ? r.display_order : null, r.difficulty ? r.difficulty : null, adminLink);
                     tableBody.appendChild(tr);
                     if (r.id === 'TwoSpooky') {
                         console.log(r);

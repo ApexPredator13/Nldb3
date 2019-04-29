@@ -1,5 +1,9 @@
-﻿using AutoFixture.Xunit2;
+﻿using AutoFixture;
+using AutoFixture.Xunit2;
 using FluentAssertions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Internal;
+using Moq;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -16,14 +20,17 @@ namespace WebsiteTests.Repositories
     public class IsaacRepositoryTests
     {
         private readonly DatabaseTestFixture _fixture;
+        private readonly IFixture _f;
 
         public IsaacRepositoryTests(DatabaseTestFixture fixture)
         {
             _fixture = fixture;
+            _f = new Fixture();
+            _f.Register<IFormFile>(() => new Mock<IFormFile>().Object);
         }
 
-        [Theory(DisplayName = "SaveResource/GetById can create and read a resource with/-out mods and tags"), AutoData]
-        public async Task T1(SaveIsaacResource item, CreateMod mod, CreateModLink url, AddTag tag)
+        [Theory(DisplayName = "SaveResource/GetById can create and read a resource with/-out mods and tags"), AutoDataMoq]
+        public async Task T1(CreateIsaacResource item, CreateMod mod, CreateModLink url, AddTag tag)
         {
             // ARRANGE - create mod, transformation, tag
             var isaacRepo = _fixture.TestServer.Host.Services.GetService(typeof(IIsaacRepository)) as IIsaacRepository;
@@ -36,7 +43,7 @@ namespace WebsiteTests.Repositories
             var savedMod = await modRepo.GetModById(modId);
 
             item.FromMod = modId;
-            var resourceId = await isaacRepo.SaveResource(item);
+            var resourceId = await isaacRepo.SaveResource(item, 1, 2, 3, 4);
 
             tag.ResourceId = resourceId;
             var tagId = await isaacRepo.AddTag(tag);
@@ -56,10 +63,10 @@ namespace WebsiteTests.Repositories
             withModAndTag.ExistsIn.Should().Be(item.ExistsIn);
             withModAndTag.GameMode.Should().Be(item.GameMode);
             withModAndTag.Mod.Should().BeEquivalentTo(savedMod);
-            withModAndTag.W.Should().Be(item.W);
-            withModAndTag.X.Should().Be(item.X);
-            withModAndTag.Y.Should().Be(item.Y);
-            withModAndTag.H.Should().Be(item.H);
+            withModAndTag.W.Should().Be(3);
+            withModAndTag.X.Should().Be(1);
+            withModAndTag.Y.Should().Be(2);
+            withModAndTag.H.Should().Be(4);
             withModAndTag.Difficulty.Should().Be(item.Difficulty);
             withModAndTag.DisplayOrder.Should().Be(item.DisplayOrder);
             withModAndTag.ResourceType.Should().Be(item.ResourceType);
@@ -70,10 +77,10 @@ namespace WebsiteTests.Repositories
             withMod.ExistsIn.Should().Be(item.ExistsIn);
             withMod.GameMode.Should().Be(item.GameMode);
             withMod.Mod.Should().BeEquivalentTo(savedMod);
-            withMod.W.Should().Be(item.W);
-            withMod.X.Should().Be(item.X);
-            withMod.Y.Should().Be(item.Y);
-            withMod.H.Should().Be(item.H);
+            withMod.W.Should().Be(3);
+            withMod.X.Should().Be(1);
+            withMod.Y.Should().Be(2);
+            withMod.H.Should().Be(4);
             withMod.Difficulty.Should().Be(item.Difficulty);
             withMod.DisplayOrder.Should().Be(item.DisplayOrder);
             withMod.ResourceType.Should().Be(item.ResourceType);
@@ -86,10 +93,10 @@ namespace WebsiteTests.Repositories
             withTag.ExistsIn.Should().Be(item.ExistsIn);
             withTag.GameMode.Should().Be(item.GameMode);
             withTag.Mod.Should().BeNull();
-            withTag.W.Should().Be(item.W);
-            withTag.X.Should().Be(item.X);
-            withTag.Y.Should().Be(item.Y);
-            withTag.H.Should().Be(item.H);
+            withTag.W.Should().Be(3);
+            withTag.X.Should().Be(1);
+            withTag.Y.Should().Be(2);
+            withTag.H.Should().Be(4);
             withTag.Difficulty.Should().Be(item.Difficulty);
             withTag.DisplayOrder.Should().Be(item.DisplayOrder);
             withTag.ResourceType.Should().Be(item.ResourceType);
@@ -100,17 +107,17 @@ namespace WebsiteTests.Repositories
             withNothing.ExistsIn.Should().Be(item.ExistsIn);
             withNothing.GameMode.Should().Be(item.GameMode);
             withNothing.Mod.Should().BeNull();
-            withNothing.W.Should().Be(item.W);
-            withNothing.X.Should().Be(item.X);
-            withNothing.Y.Should().Be(item.Y);
-            withNothing.H.Should().Be(item.H);
+            withNothing.W.Should().Be(3);
+            withNothing.X.Should().Be(1);
+            withNothing.Y.Should().Be(2);
+            withNothing.H.Should().Be(4);
             withNothing.Difficulty.Should().Be(item.Difficulty);
             withNothing.DisplayOrder.Should().Be(item.DisplayOrder);
             withNothing.ResourceType.Should().Be(item.ResourceType);
         }
 
-        [Theory(DisplayName = "GetResources can return a list of resources with/without mods or tags"), AutoData]
-        public async Task T2(SaveIsaacResource item, CreateMod mod, CreateModLink url, AddTag tag, GetResource getAllRequest, GetResource getModsRequest, GetResource getTagsRequest, GetResource getNothingRequest)
+        [Theory(DisplayName = "GetResources can return a list of resources with/without mods or tags"), AutoDataMoq]
+        public async Task T2(CreateIsaacResource item, CreateMod mod, CreateModLink url, AddTag tag, GetResource getAllRequest, GetResource getModsRequest, GetResource getTagsRequest, GetResource getNothingRequest)
         {
             // ARRANGE - create mod, resource, tag, prepare requests
             var isaacRepo = _fixture.TestServer.Host.Services.GetService(typeof(IIsaacRepository)) as IIsaacRepository;
@@ -123,7 +130,7 @@ namespace WebsiteTests.Repositories
             var savedMod = await modRepo.GetModById(modId);
 
             item.FromMod = modId;
-            var itemId = await isaacRepo.SaveResource(item);
+            var itemId = await isaacRepo.SaveResource(item, 1, 2, 3, 4);
 
             tag.ResourceId = itemId;
             var tagId = await isaacRepo.AddTag(tag);
@@ -182,10 +189,10 @@ namespace WebsiteTests.Repositories
             itemWithModAndTag.ExistsIn.Should().Be(item.ExistsIn);
             itemWithModAndTag.GameMode.Should().Be(item.GameMode);
             itemWithModAndTag.Mod.Should().BeEquivalentTo(savedMod);
-            itemWithModAndTag.W.Should().Be(item.W);
-            itemWithModAndTag.X.Should().Be(item.X);
-            itemWithModAndTag.Y.Should().Be(item.Y);
-            itemWithModAndTag.H.Should().Be(item.H);
+            itemWithModAndTag.W.Should().Be(3);
+            itemWithModAndTag.X.Should().Be(1);
+            itemWithModAndTag.Y.Should().Be(2);
+            itemWithModAndTag.H.Should().Be(4);
             itemWithModAndTag.Difficulty.Should().Be(item.Difficulty);
             itemWithModAndTag.DisplayOrder.Should().Be(item.DisplayOrder);
             itemWithModAndTag.ResourceType.Should().Be(item.ResourceType);
@@ -196,10 +203,10 @@ namespace WebsiteTests.Repositories
             itemWithMod.ExistsIn.Should().Be(item.ExistsIn);
             itemWithMod.GameMode.Should().Be(item.GameMode);
             itemWithMod.Mod.Should().BeEquivalentTo(savedMod);
-            itemWithMod.W.Should().Be(item.W);
-            itemWithMod.X.Should().Be(item.X);
-            itemWithMod.Y.Should().Be(item.Y);
-            itemWithMod.H.Should().Be(item.H);
+            itemWithMod.W.Should().Be(3);
+            itemWithMod.X.Should().Be(1);
+            itemWithMod.Y.Should().Be(2);
+            itemWithMod.H.Should().Be(4);
             itemWithMod.Difficulty.Should().Be(item.Difficulty);
             itemWithMod.DisplayOrder.Should().Be(item.DisplayOrder);
             itemWithMod.ResourceType.Should().Be(item.ResourceType);
@@ -212,10 +219,10 @@ namespace WebsiteTests.Repositories
             itemWithTag.ExistsIn.Should().Be(item.ExistsIn);
             itemWithTag.GameMode.Should().Be(item.GameMode);
             itemWithTag.Mod.Should().BeNull();
-            itemWithTag.W.Should().Be(item.W);
-            itemWithTag.X.Should().Be(item.X);
-            itemWithTag.Y.Should().Be(item.Y);
-            itemWithTag.H.Should().Be(item.H);
+            itemWithTag.W.Should().Be(3);
+            itemWithTag.X.Should().Be(1);
+            itemWithTag.Y.Should().Be(2);
+            itemWithTag.H.Should().Be(4);
             itemWithTag.Difficulty.Should().Be(item.Difficulty);
             itemWithTag.DisplayOrder.Should().Be(item.DisplayOrder);
             itemWithTag.ResourceType.Should().Be(item.ResourceType);
@@ -226,23 +233,23 @@ namespace WebsiteTests.Repositories
             itemWithNothing.ExistsIn.Should().Be(item.ExistsIn);
             itemWithNothing.GameMode.Should().Be(item.GameMode);
             itemWithNothing.Mod.Should().BeNull();
-            itemWithNothing.W.Should().Be(item.W);
-            itemWithNothing.X.Should().Be(item.X);
-            itemWithNothing.Y.Should().Be(item.Y);
-            itemWithNothing.H.Should().Be(item.H);
+            itemWithNothing.W.Should().Be(3);
+            itemWithNothing.X.Should().Be(1);
+            itemWithNothing.Y.Should().Be(2);
+            itemWithNothing.H.Should().Be(4);
             itemWithNothing.Difficulty.Should().Be(item.Difficulty);
             itemWithNothing.DisplayOrder.Should().Be(item.DisplayOrder);
             itemWithNothing.ResourceType.Should().Be(item.ResourceType);
         }
 
-        [Theory(DisplayName = "DeleteResource can delete a resource (including its tags)"), AutoData]
-        public async Task T3(SaveIsaacResource item, AddTag tag)
+        [Theory(DisplayName = "DeleteResource can delete a resource (including its tags)"), AutoDataMoq]
+        public async Task T3(CreateIsaacResource item, AddTag tag)
         {
             // ARRANGE - create item and tag
             var isaacRepo = _fixture.TestServer.Host.Services.GetService(typeof(IIsaacRepository)) as IIsaacRepository;
 
             item.FromMod = null;
-            var itemId = await isaacRepo.SaveResource(item);
+            var itemId = await isaacRepo.SaveResource(item, 1, 2, 3, 4);
 
             tag.ResourceId = itemId;
             var tagId = await isaacRepo.AddTag(tag);
@@ -266,14 +273,14 @@ namespace WebsiteTests.Repositories
             deletedTag.Should().BeNull();
         }
 
-        [Theory(DisplayName = "GetTags can return a list of tags for a resource"), AutoData]
-        public async Task T4(SaveIsaacResource item, AddTag tag1, AddTag tag2, AddTag tag3)
+        [Theory(DisplayName = "GetTags can return a list of tags for a resource"), AutoDataMoq]
+        public async Task T4(CreateIsaacResource item, AddTag tag1, AddTag tag2, AddTag tag3)
         {
             // ARRANGE - create item and tags
             var isaacRepo = _fixture.TestServer.Host.Services.GetService(typeof(IIsaacRepository)) as IIsaacRepository;
 
             item.FromMod = null;
-            var itemId = await isaacRepo.SaveResource(item);
+            var itemId = await isaacRepo.SaveResource(item, 1, 2, 3, 4);
 
             tag1.ResourceId = itemId;
             tag2.ResourceId = itemId;
@@ -295,14 +302,14 @@ namespace WebsiteTests.Repositories
             tags[2].Effect.Should().Be(tag3.Effect);
         }
 
-        [Theory(DisplayName = "RemoveTag can remove a single tag"), AutoData]
-        public async Task T5(SaveIsaacResource item, AddTag tag1, AddTag tag2, AddTag tag3)
+        [Theory(DisplayName = "RemoveTag can remove a single tag"), AutoDataMoq]
+        public async Task T5(CreateIsaacResource item, AddTag tag1, AddTag tag2, AddTag tag3)
         {
             // ARRANGE - create item and tags
             var isaacRepo = _fixture.TestServer.Host.Services.GetService(typeof(IIsaacRepository)) as IIsaacRepository;
 
             item.FromMod = null;
-            var itemId = await isaacRepo.SaveResource(item);
+            var itemId = await isaacRepo.SaveResource(item, 1, 2, 3, 4);
 
             tag1.ResourceId = itemId;
             tag2.ResourceId = itemId;
@@ -327,14 +334,14 @@ namespace WebsiteTests.Repositories
             tagsAfter[1].Effect.Should().Be(tag3.Effect);
         }
 
-        [Theory(DisplayName = "MakeTransformative/GetTransformationData can add transformation data and read it back"), AutoData]
-        public async Task T6(SaveIsaacResource item, MakeIsaacResourceTransformative data)
+        [Theory(DisplayName = "MakeTransformative/GetTransformationData can add transformation data and read it back"), AutoDataMoq]
+        public async Task T6(CreateIsaacResource item, MakeIsaacResourceTransformative data)
         {
             // ARRANGE - create item, add it to 'MissingTransformation' because that always exists
             var isaacRepo = _fixture.TestServer.Host.Services.GetService(typeof(IIsaacRepository)) as IIsaacRepository;
 
             item.FromMod = null;
-            var itemId = await isaacRepo.SaveResource(item);
+            var itemId = await isaacRepo.SaveResource(item, 1, 2, 3, 4);
 
             data.TransformationId = "MissingTransformation";
             data.ResourceId = itemId;
@@ -353,14 +360,14 @@ namespace WebsiteTests.Repositories
             createdData[0].countsMultipleTimes.Should().Be(data.CanCountMultipleTimes);
         }
 
-        [Theory(DisplayName = "GetTransformationData returns nothing if required title content doesn't match"), AutoData]
-        public async Task T7(SaveIsaacResource item, MakeIsaacResourceTransformative data)
+        [Theory(DisplayName = "GetTransformationData returns nothing if required title content doesn't match"), AutoDataMoq]
+        public async Task T7(CreateIsaacResource item, MakeIsaacResourceTransformative data)
         {
             // ARRANGE - create item, add it to 'MissingTransformation' because that always exists
             var isaacRepo = _fixture.TestServer.Host.Services.GetService(typeof(IIsaacRepository)) as IIsaacRepository;
 
             item.FromMod = null;
-            var itemId = await isaacRepo.SaveResource(item);
+            var itemId = await isaacRepo.SaveResource(item, 1, 2, 3, 4);
 
             data.TransformationId = "MissingTransformation";
             data.ResourceId = itemId;
@@ -376,14 +383,14 @@ namespace WebsiteTests.Repositories
             createdData.Should().BeEmpty();
         }
 
-        [Theory(DisplayName = "GetTransformationData returns nothing if it expired"), AutoData]
-        public async Task T8(SaveIsaacResource item, MakeIsaacResourceTransformative data)
+        [Theory(DisplayName = "GetTransformationData returns nothing if it expired"), AutoDataMoq]
+        public async Task T8(CreateIsaacResource item, MakeIsaacResourceTransformative data)
         {
             // ARRANGE - create item, add it to 'MissingTransformation' because that always exists
             var isaacRepo = _fixture.TestServer.Host.Services.GetService(typeof(IIsaacRepository)) as IIsaacRepository;
 
             item.FromMod = null;
-            var itemId = await isaacRepo.SaveResource(item);
+            var itemId = await isaacRepo.SaveResource(item, 1, 2, 3, 4);
 
             data.TransformationId = "MissingTransformation";
             data.ResourceId = itemId;
@@ -399,14 +406,14 @@ namespace WebsiteTests.Repositories
             createdData.Should().BeEmpty();
         }
 
-        [Theory(DisplayName = "GetTransformationData returns nothing if it isn't valid yet"), AutoData]
-        public async Task T9(SaveIsaacResource item, MakeIsaacResourceTransformative data)
+        [Theory(DisplayName = "GetTransformationData returns nothing if it isn't valid yet"), AutoDataMoq]
+        public async Task T9(CreateIsaacResource item, MakeIsaacResourceTransformative data)
         {
             // ARRANGE - create item, add it to 'MissingTransformation' because that always exists
             var isaacRepo = _fixture.TestServer.Host.Services.GetService(typeof(IIsaacRepository)) as IIsaacRepository;
 
             item.FromMod = null;
-            var itemId = await isaacRepo.SaveResource(item);
+            var itemId = await isaacRepo.SaveResource(item, 1, 2, 3, 4);
 
             data.TransformationId = "MissingTransformation";
             data.ResourceId = itemId;
@@ -422,14 +429,14 @@ namespace WebsiteTests.Repositories
             createdData.Should().BeEmpty();
         }
 
-        [Theory(DisplayName = "IsSpacebarItem returns true / false if spacebar tag exists / doesn't exist"), AutoData]
-        public async Task T10(SaveIsaacResource item)
+        [Theory(DisplayName = "IsSpacebarItem returns true / false if spacebar tag exists / doesn't exist"), AutoDataMoq]
+        public async Task T10(CreateIsaacResource item)
         {
             // ARRANGE - create item
             var isaacRepo = _fixture.TestServer.Host.Services.GetService(typeof(IIsaacRepository)) as IIsaacRepository;
 
             item.FromMod = null;
-            var itemId = await isaacRepo.SaveResource(item);
+            var itemId = await isaacRepo.SaveResource(item, 1, 2, 3, 4);
 
             // ACT - check if item is spacebar item, add spacebar item tag, then check again
             var isSpacebarItemBefore = await isaacRepo.IsSpacebarItem(itemId);
@@ -441,14 +448,14 @@ namespace WebsiteTests.Repositories
             isSpacebarItemAfter.Should().BeTrue();
         }
 
-        [Theory(DisplayName = "UpdateName can change a resource name"), AutoData]
-        public async Task T11(SaveIsaacResource item)
+        [Theory(DisplayName = "UpdateName can change a resource name"), AutoDataMoq]
+        public async Task T11(CreateIsaacResource item)
         {
             // ARRANGE - create item
             var isaacRepo = _fixture.TestServer.Host.Services.GetService(typeof(IIsaacRepository)) as IIsaacRepository;
 
             item.FromMod = null;
-            var itemId = await isaacRepo.SaveResource(item);
+            var itemId = await isaacRepo.SaveResource(item, 1, 2, 3, 4);
 
             // ACT - get name, change name, get name again
             var nameBefore = (await isaacRepo.GetResourceById(itemId, false, false)).Name;
@@ -461,14 +468,14 @@ namespace WebsiteTests.Repositories
             nameAfter.Should().Be("NEW NAME");
         }
 
-        [Theory(DisplayName = "UpdateId can change a resource id"), AutoData]
-        public async Task T12(SaveIsaacResource item)
+        [Theory(DisplayName = "UpdateId can change a resource id"), AutoDataMoq]
+        public async Task T12(CreateIsaacResource item)
         {
             // ARRANGE - create item
             var isaacRepo = _fixture.TestServer.Host.Services.GetService(typeof(IIsaacRepository)) as IIsaacRepository;
 
             item.FromMod = null;
-            var itemId = await isaacRepo.SaveResource(item);
+            var itemId = await isaacRepo.SaveResource(item, 1, 2, 3, 4);
 
             // ACT - get id, change id, get id again
             var updateChange = await isaacRepo.UpdateId(itemId, "NEW_ID");
@@ -480,18 +487,14 @@ namespace WebsiteTests.Repositories
             resourceWithNewId.Id.Should().Be("NEW_ID");
         }
 
-        [Theory(DisplayName = "CoordinatesAreTaken can tell if resource image bounding box is overlapped by requested coordinates"), AutoData]
-        public async Task T13(SaveIsaacResource item)
+        [Theory(DisplayName = "CoordinatesAreTaken can tell if resource image bounding box is overlapped by requested coordinates"), AutoDataMoq]
+        public async Task T13(CreateIsaacResource item)
         {
             // ARRANGE - create item - icon of the item starts at 1000x1000 and is 30 pixels wide and high
             var isaacRepo = _fixture.TestServer.Host.Services.GetService(typeof(IIsaacRepository)) as IIsaacRepository;
 
             item.FromMod = null;
-            item.X = 1000;
-            item.Y = 1000;
-            item.W = 30;
-            item.H = 30;
-            var _ = await isaacRepo.SaveResource(item);
+            var _ = await isaacRepo.SaveResource(item, 1000, 1000, 30, 30);
 
             // ACT
             var overlapsExact = await isaacRepo.CoordinatesAreTaken(1000, 1000, 20, 20);                // same origin, but shorter

@@ -212,7 +212,7 @@ namespace Website.Migrations
                 return;
             }
 
-            List<SaveIsaacResource> newBosses = new List<SaveIsaacResource>();
+            List<CreateIsaacResource> newBosses = new List<CreateIsaacResource>();
             List<string> doubleTroubleBosses = new List<string>();
             using (var c = new NpgsqlConnection(_oldConnectionString))
             {
@@ -226,16 +226,12 @@ namespace Website.Migrations
                         {
                             while (r.Read())
                             {
-                                newBosses.Add(new SaveIsaacResource()
+                                newBosses.Add(new CreateIsaacResource()
                                 {
                                     Name = r.GetString(0),
-                                    X = r.GetInt32(1),
-                                    Y = r.GetInt32(2),
-                                    W = r.GetInt32(4),
                                     Id = r.GetString(3),
                                     FromMod = r.IsDBNull(6) ? null : await _modRepository.GetModIdByName(r.GetString(6)),
-                                    ResourceType = ResourceType.Boss,
-                                    H = 0
+                                    ResourceType = ResourceType.Boss
                                 });
 
                                 if (r.GetBoolean(5))
@@ -260,7 +256,7 @@ namespace Website.Migrations
                 if (b.Id == "Steven") b.Id = "StevenBoss";
                 if (b.Id == "LittleHorn") b.Id = "LittleHornBoss";
 
-                await _isaacRepository.SaveResource(b);
+                await _isaacRepository.SaveResource(b, -1, -1, -1, -1);
             }
             foreach (var b in doubleTroubleBosses)
             {
@@ -276,7 +272,7 @@ namespace Website.Migrations
                 return;
             }
 
-            var newCharacters = new List<SaveIsaacResource>();
+            var newCharacters = new List<CreateIsaacResource>();
             using (var c = new NpgsqlConnection(_oldConnectionString))
             {
                 await c.OpenAsync();
@@ -289,12 +285,9 @@ namespace Website.Migrations
                         {
                             while (r.Read())
                             {
-                                newCharacters.Add(new SaveIsaacResource()
+                                newCharacters.Add(new CreateIsaacResource()
                                 {
                                     Name = r.GetString(0),
-                                    X = r.GetInt32(2),
-                                    Y = r.GetInt32(3),
-                                    W = 40,
                                     Id = r.GetString(1),
                                     FromMod = r.IsDBNull(4) ? null : await _modRepository.GetModIdByName(r.GetString(4)),
                                     ResourceType = ResourceType.Character
@@ -309,7 +302,7 @@ namespace Website.Migrations
 
             foreach (var c in newCharacters)
             {
-                await _isaacRepository.SaveResource(c);
+                await _isaacRepository.SaveResource(c, -1, -1, -1, -1);
             }
         }
 
@@ -321,7 +314,7 @@ namespace Website.Migrations
                 return;
             }
 
-            var newCurses = new List<SaveIsaacResource>();
+            var newCurses = new List<CreateIsaacResource>();
             using (var c = new NpgsqlConnection(_oldConnectionString))
             {
                 await c.OpenAsync();
@@ -335,7 +328,7 @@ namespace Website.Migrations
                             while (r.Read())
                             {
                                 var x = r.GetString(1);
-                                newCurses.Add(new SaveIsaacResource()
+                                newCurses.Add(new CreateIsaacResource()
                                 {
                                     Id = string.Join(string.Empty, r.GetString(0).Split(" ").Select(a => char.ToUpper(a[0]).ToString() + a.Substring(1))),
                                     Name = r.GetString(0),
@@ -352,7 +345,7 @@ namespace Website.Migrations
 
             foreach (var c in newCurses)
             {
-                await _isaacRepository.SaveResource(c);
+                await _isaacRepository.SaveResource(c, -1, -1, -1, -1);
             }
         }
 
@@ -364,7 +357,7 @@ namespace Website.Migrations
                 return;
             }
 
-            var newThreats = new List<SaveIsaacResource>();
+            var newThreats = new List<CreateIsaacResource>();
             using (var c = new NpgsqlConnection(_oldConnectionString))
             {
                 await c.OpenAsync();
@@ -377,13 +370,10 @@ namespace Website.Migrations
                         {
                             while (r.Read())
                             {
-                                newThreats.Add(new SaveIsaacResource()
+                                newThreats.Add(new CreateIsaacResource()
                                 {
                                     Name = r.GetString(0),
                                     Id = r.GetString(1),
-                                    W = 40,
-                                    X = r.GetInt32(2),
-                                    Y = r.GetInt32(3),
                                     FromMod = r.IsDBNull(4) ? null : await _modRepository.GetModIdByName(r.GetString(4)),
                                     ResourceType = ResourceType.Enemy
                                 });
@@ -399,13 +389,13 @@ namespace Website.Migrations
             {
                 try
                 {
-                    await _isaacRepository.SaveResource(t);
+                    await _isaacRepository.SaveResource(t, -1, -1, -1, -1);
                 }
                 // just add 'Threat' if name collision occurs
                 catch
                 {
                     t.Id += "Threat";
-                    await _isaacRepository.SaveResource(t);
+                    await _isaacRepository.SaveResource(t, -1, -1, -1, -1);
                 }
             }
         }
@@ -418,7 +408,7 @@ namespace Website.Migrations
                 return;
             }
 
-            var newFloors = new List<SaveIsaacResource>();
+            var newFloors = new List<CreateIsaacResource>();
             using (var c = new NpgsqlConnection(_oldConnectionString))
             {
                 await c.OpenAsync();
@@ -431,7 +421,7 @@ namespace Website.Migrations
                         {
                             while (r.Read())
                             {
-                                newFloors.Add(new SaveIsaacResource()
+                                newFloors.Add(new CreateIsaacResource()
                                 {
                                     Id = r.GetString(0),
                                     Name = r.GetString(1),
@@ -451,7 +441,7 @@ namespace Website.Migrations
                 // special cases
                 if (f.Id == "BlueBaby") f.Id = "BlueWomb";
 
-                await _isaacRepository.SaveResource(f);
+                await _isaacRepository.SaveResource(f, -1, -1, -1, -1);
             }
         }
 
@@ -463,7 +453,7 @@ namespace Website.Migrations
                 return;
             }
 
-            var newItems = new List<SaveIsaacResource>();
+            var newItems = new List<CreateIsaacResource>();
             var spacebarItems = new List<string>();
             var passiveItems = new List<string>();
 
@@ -479,13 +469,10 @@ namespace Website.Migrations
                         {
                             while (r.Read())
                             {
-                                newItems.Add(new SaveIsaacResource()
+                                newItems.Add(new CreateIsaacResource()
                                 {
                                     Name = r.GetString(0),
                                     Id = r.GetString(1),
-                                    W = 41,
-                                    X = r.GetInt32(2),
-                                    Y = r.GetInt32(3),
                                     FromMod = r.IsDBNull(4) ? null : await _modRepository.GetModIdByName(r.GetString(4)),
                                     ResourceType = ResourceType.Item
                                 });
@@ -508,7 +495,7 @@ namespace Website.Migrations
 
             foreach (var i in newItems)
             {
-                await _isaacRepository.SaveResource(i);
+                await _isaacRepository.SaveResource(i, -1, -1, -1, -1);
             }
 
             foreach (var i in spacebarItems)
@@ -618,7 +605,7 @@ namespace Website.Migrations
                 return;
             }
 
-            var newItemsources = new List<SaveIsaacResource>();
+            var newItemsources = new List<CreateIsaacResource>();
             using (var c = new NpgsqlConnection(_oldConnectionString))
             {
                 await c.OpenAsync();
@@ -631,13 +618,10 @@ namespace Website.Migrations
                         {
                             while (r.Read())
                             {
-                                newItemsources.Add(new SaveIsaacResource()
+                                newItemsources.Add(new CreateIsaacResource()
                                 {
                                     Id = r.GetString(1),
                                     Name = r.GetString(0),
-                                    W = 53,
-                                    X = r.GetInt32(2),
-                                    Y = r.GetInt32(3),
                                     FromMod = r.IsDBNull(4) ? null : await _modRepository.GetModIdByName(r.GetString(4)),
                                     ResourceType = ResourceType.ItemSource
                                 });
@@ -647,12 +631,12 @@ namespace Website.Migrations
                 }
             }
 
-            newItemsources.Add(new SaveIsaacResource()
+            newItemsources.Add(new CreateIsaacResource()
             {
                 Name = "Uriel",
                 Id = "Uriel"
             });
-            newItemsources.Add(new SaveIsaacResource()
+            newItemsources.Add(new CreateIsaacResource()
             {
                 Name = "Gabriel",
                 Id = "Gabriel"
@@ -679,7 +663,7 @@ namespace Website.Migrations
                 if (i.Id == "Hornfel") i.Id = "HornfelItemSource";
                 if (i.Id == "LostSoul") i.Id = "LostSoulItemSource";
 
-                await _isaacRepository.SaveResource(i);
+                await _isaacRepository.SaveResource(i, -1, -1, -1, -1);
             }
         }
 
@@ -691,7 +675,7 @@ namespace Website.Migrations
                 return;
             }
 
-            var newTransformations = new List<SaveIsaacResource>();
+            var newTransformations = new List<CreateIsaacResource>();
             using (var c = new NpgsqlConnection(_oldConnectionString))
             {
                 await c.OpenAsync();
@@ -704,13 +688,10 @@ namespace Website.Migrations
                         {
                             while (r.Read())
                             {
-                                newTransformations.Add(new SaveIsaacResource()
+                                newTransformations.Add(new CreateIsaacResource()
                                 {
                                     Id = r.GetString(1),
                                     Name = r.GetString(0),
-                                    W = 50,
-                                    X = r.GetInt32(2),
-                                    Y = r.GetInt32(3),
                                     FromMod = r.IsDBNull(4) ? null : await _modRepository.GetModIdByName(r.GetString(4)),
                                     ResourceType = ResourceType.Transformation
                                 });
@@ -731,7 +712,7 @@ namespace Website.Migrations
                 if (t.Id == "SpiderBaby") t.Id = "SpiderBabyTransformation";
                 if (t.Id == "Seraphim") t.Id = "SeraphimTransformation";
 
-                var id = await _isaacRepository.SaveResource(t);
+                var id = await _isaacRepository.SaveResource(t, -1, -1, -1, -1);
                 await _isaacRepository.AddTag(new AddTag() { Effect = Effect.ThreeStepsToTransformation, ResourceId = id });
             }
         }

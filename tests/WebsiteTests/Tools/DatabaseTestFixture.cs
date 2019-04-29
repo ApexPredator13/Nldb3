@@ -83,6 +83,8 @@ namespace WebsiteTests.Tools
 
             // start server
             TestServer = new TestServer(webHost);
+
+            // configure autofixture
         }
 
         public IDbConnector TestDbConnector()

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Website.Areas.Admin.ViewModels;
+using Website.Models.Validation;
 using Website.Services;
 
 namespace Website.Areas.Admin.Controllers
@@ -15,10 +16,14 @@ namespace Website.Areas.Admin.Controllers
         public const string Controllername = "Isaac";
 
         private readonly IIsaacRepository _isaacRepository;
+        private readonly IIsaacIconManager _iconManager;
+        private readonly IModRepository _modRepository;
 
-        public IsaacController(IIsaacRepository isaacRepository)
+        public IsaacController(IIsaacRepository isaacRepository, IIsaacIconManager iconManager, IModRepository modRepository)
         {
             _isaacRepository = isaacRepository;
+            _iconManager = iconManager;
+            _modRepository = modRepository;
         }
 
         [HttpGet]
@@ -96,6 +101,33 @@ namespace Website.Areas.Admin.Controllers
             {
                 return RedirectToAction(nameof(Index), new { message = "The item ID could not be changed!" });
             }
+        }
+
+        [HttpGet]
+        public async Task<ViewResult> Create()
+        {
+            ViewData["Mods"] = await _modRepository.GetAllMods();
+            return View(new CreateIsaacResource());
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> Create([FromForm] CreateIsaacResource model)
+        {
+            if (!ModelState.IsValid)
+            {
+                ViewData["Mods"] = await _modRepository.GetAllMods();
+                return View(model);
+            }
+
+            var icon = model.Icon!;
+
+            var (w, h) = await _iconManager.GetPostedImageSize(icon);
+            var (x, y) = await _iconManager.FindEmptySquare(w, h);
+            _iconManager.EmbedIcon(icon, x, y, w, h);
+
+            var id = await _isaacRepository.SaveResource(model, x, y, w, h);
+
+            return RedirectToAction(nameof(Details), new { id });
         }
     }
 }

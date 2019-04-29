@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Website.Areas.Admin.ViewModels;
 using Website.Models.Database;
 using Website.Models.Database.Enums;
 using Website.Models.Validation;
@@ -9,7 +10,7 @@ namespace Website.Services
 {
     public interface IIsaacRepository
     {
-        Task<string> SaveResource(SaveIsaacResource resource);
+        Task<string> SaveResource(CreateIsaacResource resource, int x, int y, int w, int h);
         Task<int> CountResources(ResourceType type = ResourceType.Unspecified);
         Task<IsaacResource?> GetResourceById(string id, bool includeMod, bool includeTags);
         Task<int> AddTag(AddTag tag);

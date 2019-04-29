@@ -1,7 +1,9 @@
 ﻿using AutoFixture.Xunit2;
 using FluentAssertions;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http.Internal;
 using Moq;
+using SixLabors.ImageSharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -24,6 +26,8 @@ namespace WebsiteTests.Infrastructure
         private readonly string testImage3 = Path.Combine(Directory.GetCurrentDirectory(), "contentRoot", "wwwroot", "img", "test3.png");
         private readonly string testImage4 = Path.Combine(Directory.GetCurrentDirectory(), "contentRoot", "wwwroot", "img", "test4.png");
         private readonly string testImage5 = Path.Combine(Directory.GetCurrentDirectory(), "contentRoot", "wwwroot", "img", "test5.png");
+        private readonly string testImage6 = Path.Combine(Directory.GetCurrentDirectory(), "contentRoot", "wwwroot", "img", "test6.png");
+        private readonly string testImage7 = Path.Combine(Directory.GetCurrentDirectory(), "contentRoot", "wwwroot", "img", "embed_test.png");
 
         public IsaacIconManagerTests(DatabaseTestFixture fixture)
         {
@@ -137,5 +141,69 @@ namespace WebsiteTests.Infrastructure
             x.Should().Be(60);
             y.Should().Be(60);
         }
+
+        [Fact(DisplayName = "GetPostedImageSize returns correct image size")]
+        public async Task T7()
+        {
+            // arrange
+            var environment = _fixture.TestServer.Host.Services.GetService(typeof(IWebHostEnvironment)) as IWebHostEnvironment;
+            var isaacRepo = new Mock<IIsaacRepository>();
+            IIsaacIconManager iconManager = new IsaacIconManager(environment, isaacRepo.Object);
+
+            using (var fs = new FileStream(testImage1, FileMode.Open))
+            {
+                var file = new FormFile(fs, 0, fs.Length, "name", "image.png");
+
+                // act
+                var (w, h) = await iconManager.GetPostedImageSize(file);
+
+                // assert
+                w.Should().Be(30);
+                h.Should().Be(60);
+            }
+        }
+
+        [Fact(DisplayName = "EmbedIcon can embed an icon in a bigger image")]
+        public void T8()
+        {
+            // arrange
+            File.Copy(testImage1, testImage7, true);
+            var environment = _fixture.TestServer.Host.Services.GetService(typeof(IWebHostEnvironment)) as IWebHostEnvironment;
+            var isaacRepo = new Mock<IIsaacRepository>();
+            IIsaacIconManager iconManager = new IsaacIconManager(environment, isaacRepo.Object);
+            iconManager.SetDefaultImage(testImage7);
+
+            using (var fs = new FileStream(testImage6, FileMode.Open))
+            {
+                var postedFile = new FormFile(fs, 0, fs.Length, "icon", "icon.png");
+
+                // act
+                iconManager.EmbedIcon(postedFile, 0, 30, 30, 30);
+            }
+
+            // assert - compare top and lower half of the images
+            using (var img = Image.Load(testImage7))
+            {
+                for (var y = 0; y < 30; y++)
+                {
+                    for (var x = 0; x < 30; x++)
+                    {
+                        var topPixel = img[x, y];
+
+                        // exchange (255,255,255,0) with (0,0,0,0), because they are effectively the same
+                        // imagesharp seems to always write (0,0,0,0), but the original image can have pixels with (255,255,255,0)
+                        if (topPixel == new SixLabors.ImageSharp.PixelFormats.Rgba32(255,255,255,0))
+                        {
+                            topPixel = new SixLabors.ImageSharp.PixelFormats.Rgba32(0, 0, 0, 0);
+                        }
+
+                        var bottomPixel = img[x, y + 30];
+
+                        topPixel.Equals(bottomPixel).Should().BeTrue();
+                    }
+                }
+            }
+        }
     }
 }
+

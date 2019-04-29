@@ -1,7 +1,9 @@
-import { elementClosest } from './lib/polyfills';
-elementClosest();
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var polyfills_1 = require("./lib/polyfills");
+polyfills_1.elementClosest();
 var emailRegex = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/;
-var inputElementTypeWhitelist = ["text", "password"];
+var inputElementTypeWhitelist = ["text", "password", "color", "number"];
 var applyErrormessage = function (inputElement, message) {
     var errorMessageContainer = inputElement.nextElementSibling;
     if (errorMessageContainer) {

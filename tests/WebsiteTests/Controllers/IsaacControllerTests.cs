@@ -22,7 +22,8 @@ namespace WebsiteTests.Controllers
             // arrange
             var repo = new Mock<IIsaacRepository>();
             repo.Setup(x => x.GetResourceById(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>())).ReturnsAsync((IsaacResource)null);
-            var controller = new IsaacController(repo.Object);
+            var iconManager = new Mock<IIsaacIconManager>();
+            var controller = new IsaacController(repo.Object, iconManager.Object);
 
             // act
             var result = await controller.ChangeName("x") as RedirectToActionResult;
@@ -39,7 +40,8 @@ namespace WebsiteTests.Controllers
             // arrange
             var repo = new Mock<IIsaacRepository>();
             repo.Setup(x => x.GetResourceById(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>())).ReturnsAsync(new IsaacResource());
-            var controller = new IsaacController(repo.Object);
+            var iconManager = new Mock<IIsaacIconManager>();
+            var controller = new IsaacController(repo.Object, iconManager.Object);
 
             // act
             var result = await controller.ChangeName("x") as ViewResult;
@@ -55,7 +57,8 @@ namespace WebsiteTests.Controllers
         {
             // arrange
             var repo = new Mock<IIsaacRepository>();
-            var controller = new IsaacController(repo.Object);
+            var iconManager = new Mock<IIsaacIconManager>();
+            var controller = new IsaacController(repo.Object, iconManager.Object);
             controller.ModelState.AddModelError("some", "error");
 
             // act
@@ -75,7 +78,8 @@ namespace WebsiteTests.Controllers
             // arrange
             var repo = new Mock<IIsaacRepository>();
             repo.Setup(x => x.UpdateName(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(0);
-            var controller = new IsaacController(repo.Object);
+            var iconManager = new Mock<IIsaacIconManager>();
+            var controller = new IsaacController(repo.Object, iconManager.Object);
 
             // act
             var result = await controller.ChangeName(viewModel) as RedirectToActionResult;
@@ -94,7 +98,8 @@ namespace WebsiteTests.Controllers
             // arrange
             var repo = new Mock<IIsaacRepository>();
             repo.Setup(x => x.UpdateName(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(1);
-            var controller = new IsaacController(repo.Object);
+            var iconManager = new Mock<IIsaacIconManager>();
+            var controller = new IsaacController(repo.Object, iconManager.Object);
 
             // act
             var result = await controller.ChangeName(viewModel) as RedirectToActionResult;
@@ -112,7 +117,8 @@ namespace WebsiteTests.Controllers
             // arrange
             var repo = new Mock<IIsaacRepository>();
             repo.Setup(x => x.GetResourceById(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>())).ReturnsAsync((IsaacResource)null);
-            var controller = new IsaacController(repo.Object);
+            var iconManager = new Mock<IIsaacIconManager>();
+            var controller = new IsaacController(repo.Object, iconManager.Object);
 
             // act
             var result = await controller.ChangeId("x") as RedirectToActionResult;
@@ -129,7 +135,8 @@ namespace WebsiteTests.Controllers
             // arrange
             var repo = new Mock<IIsaacRepository>();
             repo.Setup(x => x.GetResourceById(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>())).ReturnsAsync(new IsaacResource());
-            var controller = new IsaacController(repo.Object);
+            var iconManager = new Mock<IIsaacIconManager>();
+            var controller = new IsaacController(repo.Object, iconManager.Object);
 
             // act
             var result = await controller.ChangeId("x") as ViewResult;
@@ -145,7 +152,8 @@ namespace WebsiteTests.Controllers
         {
             // arrange
             var repo = new Mock<IIsaacRepository>();
-            var controller = new IsaacController(repo.Object);
+            var iconManager = new Mock<IIsaacIconManager>();
+            var controller = new IsaacController(repo.Object, iconManager.Object);
             controller.ModelState.AddModelError("some", "error");
 
             // act
@@ -165,7 +173,8 @@ namespace WebsiteTests.Controllers
             // arrange
             var repo = new Mock<IIsaacRepository>();
             repo.Setup(x => x.UpdateId(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(0);
-            var controller = new IsaacController(repo.Object);
+            var iconManager = new Mock<IIsaacIconManager>();
+            var controller = new IsaacController(repo.Object, iconManager.Object);
 
             // act
             var result = await controller.ChangeId(viewModel) as RedirectToActionResult;
@@ -184,7 +193,8 @@ namespace WebsiteTests.Controllers
             // arrange
             var repo = new Mock<IIsaacRepository>();
             repo.Setup(x => x.UpdateId(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(1);
-            var controller = new IsaacController(repo.Object);
+            var iconManager = new Mock<IIsaacIconManager>();
+            var controller = new IsaacController(repo.Object, iconManager.Object);
 
             // act
             var result = await controller.ChangeId(viewModel) as RedirectToActionResult;
