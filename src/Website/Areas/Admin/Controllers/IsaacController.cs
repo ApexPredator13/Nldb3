@@ -156,5 +156,51 @@ namespace Website.Areas.Admin.Controllers
             await _isaacRepository.UpdateIconCoordinates(model.ResourceId, x, y, w, h);
             return RedirectToAction(nameof(Details), new { id = model.ResourceId });
         }
+
+        [HttpGet]
+        public ViewResult ChangeExistsIn([FromRoute] string id) => View(new ChangeExistsIn() { ResourceId = id });
+
+        [HttpPost]
+        public async Task<ActionResult> ChangeExistsIn(ChangeExistsIn model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            int result = await _isaacRepository.UpdateExistsIn(model.ResourceId, model.NewExistsIn);
+
+            if (result > 0)
+            {
+                return RedirectToAction(nameof(Details), new { id = model.ResourceId });
+            }
+            else
+            {
+                return RedirectToAction(nameof(Index), new { message = $"could not update 'exists in' value for item with id '{model.ResourceId}'" });
+            }
+        }
+
+        [HttpGet]
+        public ViewResult ChangeGameMode([FromRoute] string id) => View(new ChangeGameMode() { ResourceId = id });
+
+        [HttpPost]
+        public async Task<ActionResult> ChangeGameMode(ChangeGameMode model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            int result = await _isaacRepository.UpdateGameMode(model.ResourceId, model.NewGameMode);
+
+            if (result > 0)
+            {
+                return RedirectToAction(nameof(Details), new { id = model.ResourceId });
+            }
+            else
+            {
+                return RedirectToAction(nameof(Index), new { message = $"could not update game mode value for item with id '{model.ResourceId}'" });
+            }
+        }
     }
 }

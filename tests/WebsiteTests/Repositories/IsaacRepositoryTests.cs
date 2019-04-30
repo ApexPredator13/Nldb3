@@ -544,5 +544,45 @@ namespace WebsiteTests.Repositories
             itemAfter.W.Should().Be(40);
             itemAfter.H.Should().Be(50);
         }
+
+        [Theory(DisplayName = "UpdateExistsIn can update exists_in"), AutoDataMoq]
+        public async Task T15(CreateIsaacResource item)
+        {
+            // ARRANGE - create item
+            var isaacRepo = _fixture.TestServer.Host.Services.GetService(typeof(IIsaacRepository)) as IIsaacRepository;
+
+            item.FromMod = null;
+            var itemId = await isaacRepo.SaveResource(item, 0, 10, 20, 30);
+
+            // ACT - get item, change exists_in, get item again and compare
+            var itemBefore = await isaacRepo.GetResourceById(itemId, false, false);
+            var updateChanges = await isaacRepo.UpdateExistsIn(itemId, ExistsIn.VanillaOnly);
+            var itemAfter = await isaacRepo.GetResourceById(itemId, false, false);
+
+            // ASSERT make sure exists_in changed
+            itemBefore.ExistsIn.Should().Be(item.ExistsIn);
+            updateChanges.Should().Be(1);
+            itemAfter.ExistsIn.Should().Be(ExistsIn.VanillaOnly);
+        }
+
+        [Theory(DisplayName = "UpdateGameMode can update game_mode"), AutoDataMoq]
+        public async Task T16(CreateIsaacResource item)
+        {
+            // ARRANGE - create item
+            var isaacRepo = _fixture.TestServer.Host.Services.GetService(typeof(IIsaacRepository)) as IIsaacRepository;
+
+            item.FromMod = null;
+            var itemId = await isaacRepo.SaveResource(item, 0, 10, 20, 30);
+
+            // ACT - get item, change game_mode, get item again and compare
+            var itemBefore = await isaacRepo.GetResourceById(itemId, false, false);
+            var updateChanges = await isaacRepo.UpdateGameMode(itemId, GameMode.SpecialChallenge);
+            var itemAfter = await isaacRepo.GetResourceById(itemId, false, false);
+
+            // ASSERT make sure game_mode changed
+            itemBefore.GameMode.Should().Be(item.GameMode);
+            updateChanges.Should().Be(1);
+            itemAfter.GameMode.Should().Be(GameMode.SpecialChallenge);
+        }
     }
 }

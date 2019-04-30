@@ -1,0 +1,58 @@
+﻿@{ 
+    ViewData["Title"] = "Change Exists In";
+}
+
+@model ChangeExistsIn
+
+<h1>Change Exists In</h1>
+<hr/>
+
+@Html.ValidationSummary()
+
+<form method="post">
+    <input type="hidden" asp-for="ResourceId" />
+    <div>
+        <label asp-for="NewExistsIn"></label>
+        <select asp-for="NewExistsIn">
+            <option value="" selected>Choose...</option>
+            <option value="@ExistsIn.Unspecified">Unspecified</option>
+            <option value="@ExistsIn.Nowhere">Nowhere</option>
+            <option value="@ExistsIn.VanillaOnly">Vanilla Exclusive</option>
+            <option value="@ExistsIn.WrathOfTheLambOnly">Wrath of the Lamb Exclusive</option>
+            <option value="@ExistsIn.CommunityRemixOnly">Community Remix Exclusive</option>
+            <option value="@ExistsIn.RebirthOnly">Rebirth Exclusive</option>
+            <option value="@ExistsIn.AfterbirthOnly">Afterbirth Exclusive</option>
+            <option value="@ExistsIn.AfterbirthPlusOnly">Afterbirth† Exclusive</option>
+            <option value="@ExistsIn.RepentanceOnly">Repentance Exclusive</option>
+            <option value="@ExistsIn.BoosterPack1Only">Booster Pack 1 Exclusive</option>
+            <option value="@ExistsIn.BoosterPack2Only">Booster Pack 2 Exclusive</option>
+            <option value="@ExistsIn.BoosterPack3Only">Booster Pack 3 Exclusive</option>
+            <option value="@ExistsIn.BoosterPack4Only">Booster Pack 4 Exclusive</option>
+            <option value="@ExistsIn.BoosterPack5Only">Booster Pack 5 Exclusive</option>
+            <option value="@ExistsIn.VanillaOnwards">Vanilla Onwards</option>
+            <option value="@ExistsIn.WrathOfTheLambOnwards">Wrath of the Lamb Onwards</option>
+            <option value="@ExistsIn.CommunityRemixOnwards">Community Remix Onwards</option>
+            <option value="@ExistsIn.RebirthOnwards">Rebirth Onwards</option>
+            <option value="@ExistsIn.AfterbirthOnwards">Afterbirth Onwards</option>
+            <option value="@ExistsIn.AnitbirthOnwards">Antibirth Onwards</option>
+            <option value="@ExistsIn.AfterbirthPlusOnwards">Afterbirth† Onwards</option>
+            <option value="@ExistsIn.BoosterPack1Onwards">Booster Pack 1 Onwards</option>
+            <option value="@ExistsIn.BoosterPack2Onwards">Booster Pack 2 Onwards</option>
+            <option value="@ExistsIn.BoosterPack3Onwards">Booster Pack 3 Onwards</option>
+            <option value="@ExistsIn.BoosterPack4Onwards">Booster Pack 4 Onwards</option>
+            <option value="@ExistsIn.BoosterPack5Onwards">Booster Pack 5 Onwards</option>
+            <option value="@ExistsIn.RepentanceOnwards">Repentance Onwards</option>
+            <option value="@ExistsIn.AntibirthAndRepentanceOnwards">Antibirth, then Repentance Onwards</option>
+        </select>
+        <div class="error-message"></div>
+    </div>
+    <div>
+        <button type="submit"></button>
+    </div>
+</form>
+
+@section Scripts {
+    <script src="~/js/dist/validation.min.js"></script>
+}
+
+

@@ -49,6 +49,32 @@ namespace Website.Data
             return false;
         }
 
+        public async Task<int> UpdateExistsIn(string id, ExistsIn newExistsIn)
+        {
+            using (var c = await _connector.Connect())
+            {
+                using (var q = new NpgsqlCommand("UPDATE isaac_resources SET exists_in = @E WHERE id = @I;", c))
+                {
+                    q.Parameters.AddWithValue("@E", NpgsqlDbType.Integer, (int)newExistsIn);
+                    q.Parameters.AddWithValue("@I", NpgsqlDbType.Varchar, id);
+                    return await q.ExecuteNonQueryAsync();
+                }
+            }
+        }
+
+        public async Task<int> UpdateGameMode(string id, GameMode newGameMode)
+        {
+            using (var c = await _connector.Connect())
+            {
+                using (var q = new NpgsqlCommand("UPDATE isaac_resources SET game_mode = @G WHERE id = @I;", c))
+                {
+                    q.Parameters.AddWithValue("@G", NpgsqlDbType.Integer, (int)newGameMode);
+                    q.Parameters.AddWithValue("@I", NpgsqlDbType.Varchar, id);
+                    return await q.ExecuteNonQueryAsync();
+                }
+            }
+        }
+
         public async Task<int> UpdateName(string id, string newName)
         {
             using (var c = await _connector.Connect())

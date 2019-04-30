@@ -26,3 +26,8 @@
 <p>
     <a asp-action="@nameof(IsaacController.ChangeIcon)" asp-route-id="@Model.Id">Change Icon</a>
 </p>
+
+
+<h3>Existance</h3>
+<p>
+    The resource currently exists in: '@Model.ExistsIn.ToString()'; - <a asp-action="@nameof(IsaacController.ChangeExistsIn)">Change</a></p>

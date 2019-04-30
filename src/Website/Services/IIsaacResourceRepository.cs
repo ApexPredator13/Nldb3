@@ -27,5 +27,7 @@ namespace Website.Services
         Task<int> UpdateId(string oldId, string newId);
         Task<bool> CoordinatesAreTaken(int x, int y, int h, int w);
         Task<int> UpdateIconCoordinates(string resourceId, int x, int y, int w, int h);
+        Task<int> UpdateExistsIn(string id, ExistsIn newExistsIn);
+        Task<int> UpdateGameMode(string id, GameMode newGameMode);
     }
 }
