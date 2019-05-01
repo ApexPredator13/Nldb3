@@ -20,6 +20,7 @@ using Website.Infrastructure;
 using Website.Services;
 using Microsoft.Extensions.Hosting;
 using Website.Migrations;
+using Microsoft.Extensions.Primitives;
 
 namespace Website
 {
@@ -116,6 +117,19 @@ namespace Website
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.Use((context, next) =>
+            {
+                var csp = new StringValues(
+                    "default-src 'self'; " +
+                    "child-src 'self' www.youtube.com; " +
+                    "style-src 'self' fonts.googleapis.com; " +
+                    "font-src 'self' fonts.gstatic.com; " +
+                    "block-all-mixed-content;");
+
+                context.Response.Headers.Add("Content-Security-Policy", csp);
+                return next();
+            });
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -140,7 +154,6 @@ namespace Website
                 endpoints.MapControllerRoute("area", "{area:exists}/{controller=Home}/{action=Index}/{id?}");
                 endpoints.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
             });
-
 
             app.CreateRequiredUserAccountsIfMissing();
             // app.ResetDatabaseInDevMode();
