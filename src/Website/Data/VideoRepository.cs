@@ -29,32 +29,25 @@ namespace Website.Data
 
         public async Task<int> CountVideos()
         {
-            using (var c = await _connector.Connect())
-            {
-                using (var q = new NpgsqlCommand("SELECT COUNT(*) FROM videos; ", c))
-                {
-                    return Convert.ToInt32(await q.ExecuteScalarAsync());
-                }
-            }
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand("SELECT COUNT(*) FROM videos; ", c);
+            return Convert.ToInt32(await q.ExecuteScalarAsync());
         }
 
         public async Task<DateTime?> GetVideoReleasedate(string videoId)
         {
             DateTime? result = null;
-            using (var c = await _connector.Connect())
+
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand("SELECT published FROM videos WHERE id = @Id; ", c);
+            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Char, videoId);
+
+            using var r = await q.ExecuteReaderAsync();
+
+            if (r.HasRows)
             {
-                using (var q = new NpgsqlCommand("SELECT published FROM videos WHERE id = @Id; ", c))
-                {
-                    q.Parameters.AddWithValue("@Id", NpgsqlDbType.Char, videoId);
-                    using (var r = await q.ExecuteReaderAsync())
-                    {
-                        if (r.HasRows)
-                        {
-                            r.Read();
-                            result = r.GetDateTime(0);
-                        }
-                    }
-                }
+                r.Read();
+                result = r.GetDateTime(0);
             }
 
             return result;
@@ -64,20 +57,16 @@ namespace Website.Data
         {
             string? result = null;
 
-            using (var c = await _connector.Connect())
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand("SELECT title FROM videos WHERE id = @Id; ", c);
+            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Char, videoId);
+
+            using var r = await q.ExecuteReaderAsync();
+
+            if (r.HasRows)
             {
-                using (var q = new NpgsqlCommand("SELECT title FROM videos WHERE id = @Id; ", c))
-                {
-                    q.Parameters.AddWithValue("@Id", NpgsqlDbType.Char, videoId);
-                    using (var r = await q.ExecuteReaderAsync())
-                    {
-                        if (r.HasRows)
-                        {
-                            r.Read();
-                            result = r.GetString(0);
-                        }
-                    }
-                }
+                r.Read();
+                result = r.GetString(0);
             }
 
             return result;
@@ -85,47 +74,35 @@ namespace Website.Data
 
         public async Task<int> CountVideoSubmissions()
         {
-            using (var c = await _connector.Connect())
-            {
-                using (var q = new NpgsqlCommand("SELECT COUNT(*) FROM video_submissions; ", c))
-                {
-                    return Convert.ToInt32(await q.ExecuteScalarAsync());
-                }
-            }
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand("SELECT COUNT(*) FROM video_submissions; ", c);
+            return Convert.ToInt32(await q.ExecuteScalarAsync());
         }
 
         public async Task SaveVideo(SaveVideo newVideo)
         {
-            string query = "INSERT INTO videos (id, title, published, duration, latest) VALUES (@I, @T, @P, @D, @L); ";
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand("INSERT INTO videos (id, title, published, duration, latest) VALUES (@I, @T, @P, @D, @L); ", c);
 
-            using (var c = await _connector.Connect())
-            {
-                using (var q = new NpgsqlCommand(query, c))
-                {
-                    q.Parameters.AddWithValue("@I", NpgsqlDbType.Varchar, newVideo.Id);
-                    q.Parameters.AddWithValue("@T", NpgsqlDbType.Varchar, newVideo.Title);
-                    q.Parameters.AddWithValue("@P", NpgsqlDbType.TimestampTz, newVideo.Published);
-                    q.Parameters.AddWithValue("@D", NpgsqlDbType.Integer, newVideo.Duration);
-                    q.Parameters.AddWithValue("@L", NpgsqlDbType.Boolean, newVideo.Latest);
+            q.Parameters.AddWithValue("@I", NpgsqlDbType.Varchar, newVideo.Id);
+            q.Parameters.AddWithValue("@T", NpgsqlDbType.Varchar, newVideo.Title);
+            q.Parameters.AddWithValue("@P", NpgsqlDbType.TimestampTz, newVideo.Published);
+            q.Parameters.AddWithValue("@D", NpgsqlDbType.Integer, newVideo.Duration);
+            q.Parameters.AddWithValue("@L", NpgsqlDbType.Boolean, newVideo.Latest);
 
-                    await q.ExecuteNonQueryAsync();
-                }
-            }
+            await q.ExecuteNonQueryAsync();
         }
 
         public async Task SubmitLostEpisode(string videoId, string userId)
         {
-            string query = $"INSERT INTO video_submissions (video, sub, s_type, latest) VALUES (@V, @U, @ST, FALSE); ";
-            using (var c = await _connector.Connect())
-            {
-                using (var q = new NpgsqlCommand(query, c))
-                {
-                    q.Parameters.AddWithValue("@V", NpgsqlDbType.Char, videoId);
-                    q.Parameters.AddWithValue("@U", NpgsqlDbType.Varchar, userId);
-                    q.Parameters.AddWithValue("@ST", NpgsqlDbType.Integer, (int)SubmissionType.Lost);
-                    await q.ExecuteNonQueryAsync();
-                }
-            }
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand($"INSERT INTO video_submissions (video, sub, s_type, latest) VALUES (@V, @U, @ST, FALSE); ", c);
+
+            q.Parameters.AddWithValue("@V", NpgsqlDbType.Char, videoId);
+            q.Parameters.AddWithValue("@U", NpgsqlDbType.Varchar, userId);
+            q.Parameters.AddWithValue("@ST", NpgsqlDbType.Integer, (int)SubmissionType.Lost);
+
+            await q.ExecuteNonQueryAsync();
         }
 
         public class TransformationProgress
@@ -308,14 +285,10 @@ namespace Website.Data
 
             s.Append("COMMIT; ");
 
-            using (var c = await _connector.Connect())
-            {
-                using (var q = new NpgsqlCommand(s.ToString(), c))
-                {
-                    q.Parameters.AddRange(parameters.ToArray());
-                    int dbChanges = await q.ExecuteNonQueryAsync();
-                }
-            }
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand(s.ToString(), c);
+            q.Parameters.AddRange(parameters.ToArray());
+            int dbChanges = await q.ExecuteNonQueryAsync();
         }
     }
 }

@@ -30,75 +30,49 @@ namespace Website.Data
         {
             var query = "SELECT 1 FROM isaac_resources WHERE x && @X IS TRUE;";
 
-            using (var c = await _connector.Connect())
-            {
-                using (var q = new NpgsqlCommand(query, c))
-                {
-                    q.Parameters.AddWithValue("@X", NpgsqlDbType.Box, CreateBoxCoordinatesFromScreenCoordinates(x, y, w, h));
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand(query, c);
+            q.Parameters.AddWithValue("@X", NpgsqlDbType.Box, CreateBoxCoordinatesFromScreenCoordinates(x, y, w, h));
 
-                    using (var r = await q.ExecuteReaderAsync())
-                    {
-                        if (r.HasRows)
-                        {
-                            return true;
-                        }
-                    }
-                }
-            }
+            using var r = await q.ExecuteReaderAsync();
 
-            return false;
+            return r.HasRows;
         }
 
         public async Task<int> UpdateExistsIn(string id, ExistsIn newExistsIn)
         {
-            using (var c = await _connector.Connect())
-            {
-                using (var q = new NpgsqlCommand("UPDATE isaac_resources SET exists_in = @E WHERE id = @I;", c))
-                {
-                    q.Parameters.AddWithValue("@E", NpgsqlDbType.Integer, (int)newExistsIn);
-                    q.Parameters.AddWithValue("@I", NpgsqlDbType.Varchar, id);
-                    return await q.ExecuteNonQueryAsync();
-                }
-            }
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand("UPDATE isaac_resources SET exists_in = @E WHERE id = @I;", c);
+            q.Parameters.AddWithValue("@E", NpgsqlDbType.Integer, (int)newExistsIn);
+            q.Parameters.AddWithValue("@I", NpgsqlDbType.Varchar, id);
+            return await q.ExecuteNonQueryAsync();
         }
 
         public async Task<int> UpdateGameMode(string id, GameMode newGameMode)
         {
-            using (var c = await _connector.Connect())
-            {
-                using (var q = new NpgsqlCommand("UPDATE isaac_resources SET game_mode = @G WHERE id = @I;", c))
-                {
-                    q.Parameters.AddWithValue("@G", NpgsqlDbType.Integer, (int)newGameMode);
-                    q.Parameters.AddWithValue("@I", NpgsqlDbType.Varchar, id);
-                    return await q.ExecuteNonQueryAsync();
-                }
-            }
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand("UPDATE isaac_resources SET game_mode = @G WHERE id = @I;", c);
+            q.Parameters.AddWithValue("@G", NpgsqlDbType.Integer, (int)newGameMode);
+            q.Parameters.AddWithValue("@I", NpgsqlDbType.Varchar, id);
+            return await q.ExecuteNonQueryAsync();
         }
 
         public async Task<int> UpdateName(string id, string newName)
         {
-            using (var c = await _connector.Connect())
-            {
-                using (var q = new NpgsqlCommand("UPDATE isaac_resources SET name = @N WHERE id = @I;", c))
-                {
-                    q.Parameters.AddWithValue("@N", NpgsqlDbType.Varchar, newName);
-                    q.Parameters.AddWithValue("@I", NpgsqlDbType.Varchar, id);
-                    return await q.ExecuteNonQueryAsync();
-                }
-            }
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand("UPDATE isaac_resources SET name = @N WHERE id = @I;", c);
+            q.Parameters.AddWithValue("@N", NpgsqlDbType.Varchar, newName);
+            q.Parameters.AddWithValue("@I", NpgsqlDbType.Varchar, id);
+            return await q.ExecuteNonQueryAsync();
         }
 
         public async Task<int> UpdateId(string oldId, string newId)
         {
-            using (var c = await _connector.Connect())
-            {
-                using (var q = new NpgsqlCommand("UPDATE isaac_resources SET id = @NewId WHERE id = @OldId;", c))
-                {
-                    q.Parameters.AddWithValue("@NewId", NpgsqlDbType.Varchar, newId);
-                    q.Parameters.AddWithValue("@OldId", NpgsqlDbType.Varchar, oldId);
-                    return await q.ExecuteNonQueryAsync();
-                }
-            }
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand("UPDATE isaac_resources SET id = @NewId WHERE id = @OldId;", c);
+            q.Parameters.AddWithValue("@NewId", NpgsqlDbType.Varchar, newId);
+            q.Parameters.AddWithValue("@OldId", NpgsqlDbType.Varchar, oldId);
+            return await q.ExecuteNonQueryAsync();
         }
 
         public async Task<int> CountResources(ResourceType type = ResourceType.Unspecified)
@@ -107,31 +81,24 @@ namespace Website.Data
                 ? "SELECT COUNT(*) FROM isaac_resources;"
                 : "SELECT COUNT(*) FROM isaac_resources WHERE type = @Type;";
 
-            using (var c = await _connector.Connect())
-            {
-                using (var q = new NpgsqlCommand(query, c))
-                {
-                    if (type != ResourceType.Unspecified)
-                    {
-                        q.Parameters.AddWithValue("@Type", NpgsqlDbType.Integer, (int)type);
-                    }
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand(query, c);
 
-                    var result = Convert.ToInt32(await q.ExecuteScalarAsync());
-                    return result;
-                }
+            if (type != ResourceType.Unspecified)
+            {
+                q.Parameters.AddWithValue("@Type", NpgsqlDbType.Integer, (int)type);
             }
+
+            var result = Convert.ToInt32(await q.ExecuteScalarAsync());
+            return result;
         }
 
         public async Task<string> GetFirstResourceIdFromName(string name)
         {
-            using (var c = await _connector.Connect())
-            {
-                using (var q = new NpgsqlCommand("SELECT id FROM isaac_resources WHERE name = @Name", c))
-                {
-                    q.Parameters.AddWithValue("@Name", NpgsqlDbType.Varchar, name);
-                    return Convert.ToString(await q.ExecuteScalarAsync());
-                }
-            }
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand("SELECT id FROM isaac_resources WHERE name = @Name", c);
+            q.Parameters.AddWithValue("@Name", NpgsqlDbType.Varchar, name);
+            return Convert.ToString(await q.ExecuteScalarAsync());
         }
 
         public async Task<string> SaveResource(CreateIsaacResource resource, int x, int y, int w, int h)
@@ -139,50 +106,38 @@ namespace Website.Data
             string query = "INSERT INTO isaac_resources (id, name, type, exists_in, x, game_mode, color, mod, display_order, difficulty) VALUES (" +
                 "@I, @N, @D, @E, @X, @M, @C, @L, @O, @U) RETURNING id;";
 
-            using (var c = await _connector.Connect())
-            {
-                using (var q = new NpgsqlCommand(query, c))
-                {
-                    q.Parameters.AddWithValue("@I", NpgsqlDbType.Varchar, resource.Id);
-                    q.Parameters.AddWithValue("@N", NpgsqlDbType.Varchar, resource.Name);
-                    q.Parameters.AddWithValue("@D", NpgsqlDbType.Integer, (int)resource.ResourceType);
-                    q.Parameters.AddWithValue("@E", NpgsqlDbType.Integer, (int)resource.ExistsIn);
-                    q.Parameters.AddWithValue("@X", NpgsqlDbType.Box, CreateBoxCoordinatesFromScreenCoordinates(x, y, w, h));
-                    q.Parameters.AddWithValue("@M", NpgsqlDbType.Integer, (int)resource.GameMode);
-                    q.Parameters.AddWithValue("@C", NpgsqlDbType.Varchar, resource.Color);
-                    q.Parameters.AddWithValue("@L", NpgsqlDbType.Integer, resource.FromMod ?? (object)DBNull.Value);
-                    q.Parameters.AddWithValue("@O", NpgsqlDbType.Integer, resource.DisplayOrder ?? (object)DBNull.Value);
-                    q.Parameters.AddWithValue("@U", NpgsqlDbType.Integer, resource.Difficulty ?? (object)DBNull.Value);
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand(query, c);
+            q.Parameters.AddWithValue("@I", NpgsqlDbType.Varchar, resource.Id);
+            q.Parameters.AddWithValue("@N", NpgsqlDbType.Varchar, resource.Name);
+            q.Parameters.AddWithValue("@D", NpgsqlDbType.Integer, (int)resource.ResourceType);
+            q.Parameters.AddWithValue("@E", NpgsqlDbType.Integer, (int)resource.ExistsIn);
+            q.Parameters.AddWithValue("@X", NpgsqlDbType.Box, CreateBoxCoordinatesFromScreenCoordinates(x, y, w, h));
+            q.Parameters.AddWithValue("@M", NpgsqlDbType.Integer, (int)resource.GameMode);
+            q.Parameters.AddWithValue("@C", NpgsqlDbType.Varchar, resource.Color);
+            q.Parameters.AddWithValue("@L", NpgsqlDbType.Integer, resource.FromMod ?? (object)DBNull.Value);
+            q.Parameters.AddWithValue("@O", NpgsqlDbType.Integer, resource.DisplayOrder ?? (object)DBNull.Value);
+            q.Parameters.AddWithValue("@U", NpgsqlDbType.Integer, resource.Difficulty ?? (object)DBNull.Value);
 
-                    return Convert.ToString(await q.ExecuteScalarAsync());
-                }
-            }
+            return Convert.ToString(await q.ExecuteScalarAsync());
         }
 
         public async Task<int> UpdateIconCoordinates(string resourceId, int x, int y, int w, int h)
         {
-            using (var c = await _connector.Connect())
-            {
-                using (var q = new NpgsqlCommand("UPDATE isaac_resources SET x = @X WHERE id = @I;", c))
-                {
-                    q.Parameters.AddWithValue("@X", NpgsqlDbType.Box, CreateBoxCoordinatesFromScreenCoordinates(x, y, w, h));
-                    q.Parameters.AddWithValue("@I", NpgsqlDbType.Varchar, resourceId);
-                    return await q.ExecuteNonQueryAsync();
-                }
-            }
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand("UPDATE isaac_resources SET x = @X WHERE id = @I;", c);
+            q.Parameters.AddWithValue("@X", NpgsqlDbType.Box, CreateBoxCoordinatesFromScreenCoordinates(x, y, w, h));
+            q.Parameters.AddWithValue("@I", NpgsqlDbType.Varchar, resourceId);
+            return await q.ExecuteNonQueryAsync();
         }
 
         public async Task<int> AddTag(AddTag tag)
         {
-            using (var c = await _connector.Connect())
-            {
-                using (var q = new NpgsqlCommand("INSERT INTO tags (id, value, isaac_resource) VALUES (DEFAULT, @V, @I) RETURNING id; ", c))
-                {
-                    q.Parameters.AddWithValue("@V", NpgsqlDbType.Integer, (int)tag.Effect);
-                    q.Parameters.AddWithValue("@I", NpgsqlDbType.Varchar, tag.ResourceId);
-                    return Convert.ToInt32(await q.ExecuteScalarAsync());
-                }
-            }
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand("INSERT INTO tags (id, value, isaac_resource) VALUES (DEFAULT, @V, @I) RETURNING id; ", c);
+            q.Parameters.AddWithValue("@V", NpgsqlDbType.Integer, (int)tag.Effect);
+            q.Parameters.AddWithValue("@I", NpgsqlDbType.Varchar, tag.ResourceId);
+            return Convert.ToInt32(await q.ExecuteScalarAsync());
         }
 
         private string GetOrderByClause(ResourceOrderBy orderBy, string prefix, bool asc)
@@ -313,73 +268,68 @@ namespace Website.Data
             CreateOrderByStatementForRequest(s, request);
 
             // ...Execute
-            using (var c = await _connector.Connect())
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand(s.ToString(), c);
+            q.Parameters.AddRange(parameters.ToArray());
+
+            using var r = await q.ExecuteReaderAsync();
+
+            if (r.HasRows)
             {
-                using (var q = new NpgsqlCommand(s.ToString(), c))
+                while (r.Read())
                 {
-                    q.Parameters.AddRange(parameters.ToArray());
-
-                    using (var r = await q.ExecuteReaderAsync())
+                    int i = 0;
+                    var resourceId = r.GetString(i);
+                    if (!resources.Any(x => x.Id == resourceId))
                     {
-                        if (r.HasRows)
+                        resources.Add(new IsaacResource()
                         {
-                            while (r.Read())
+                            Id = r.GetString(i++),
+                            Name = r.GetString(i++),
+                            ResourceType = (ResourceType)r.GetInt32(i++),
+                            ExistsIn = (ExistsIn)r.GetInt32(i++),
+                            CssCoordinates = (NpgsqlBox)r[i++],
+                            GameMode = (GameMode)r.GetInt32(i++),
+                            Color = r.GetString(i++),
+                            DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
+                            Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1)
+                        });
+                    }
+                    else i += 9;
+
+                    var currentResource = resources.First(x => x.Id == resourceId);
+
+                    if (request.IncludeMod)
+                    {
+                        if (!r.IsDBNull(i) && currentResource.Mod is null)
+                        {
+                            resources.First(x => x.Id == resourceId).Mod = new Mod()
                             {
-                                int i = 0;
-                                var resourceId = r.GetString(i);
-                                if (!resources.Any(x => x.Id == resourceId))
-                                {
-                                    resources.Add(new IsaacResource()
-                                    {
-                                        Id = r.GetString(i++),
-                                        Name = r.GetString(i++),
-                                        ResourceType = (ResourceType)r.GetInt32(i++),
-                                        ExistsIn = (ExistsIn)r.GetInt32(i++),
-                                        CssCoordinates = (NpgsqlBox)r[i++],
-                                        GameMode = (GameMode)r.GetInt32(i++),
-                                        Color = r.GetString(i++),
-                                        DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                                        Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1)
-                                    });
-                                }
-                                else i += 9;
-
-                                var currentResource = resources.First(x => x.Id == resourceId);
-
-                                if (request.IncludeMod)
-                                {
-                                    if (!r.IsDBNull(i) && currentResource.Mod is null)
-                                    {
-                                        resources.First(x => x.Id == resourceId).Mod = new Mod()
-                                        {
-                                            Id = r.GetInt32(i++),
-                                            ModName = r.GetString(i++),
-                                        };
-                                    }
-                                    else i += 2;
-
-                                    if (!r.IsDBNull(i) && currentResource.Mod != null && !currentResource.Mod!.ModUrls.Any(x => x.Id == r.GetInt32(i)))
-                                    {
-                                        currentResource.Mod!.ModUrls.Add(new ModUrl()
-                                        {
-                                            Id = r.GetInt32(i++),
-                                            Url = r.GetString(i++),
-                                            LinkText = r.GetString(i++)
-                                        });
-                                    }
-                                    else i += 3;
-                                }
-
-                                if (request.IncludeTags && !r.IsDBNull(i) && !currentResource.Tags.Any(x => x.Id == r.GetInt32(i)))
-                                {
-                                    currentResource.Tags.Add(new Tag()
-                                    {
-                                        Id = r.GetInt32(i++),
-                                        Effect = (Effect)r.GetInt32(i)
-                                    });
-                                }
-                            }
+                                Id = r.GetInt32(i++),
+                                ModName = r.GetString(i++),
+                            };
                         }
+                        else i += 2;
+
+                        if (!r.IsDBNull(i) && currentResource.Mod != null && !currentResource.Mod!.ModUrls.Any(x => x.Id == r.GetInt32(i)))
+                        {
+                            currentResource.Mod!.ModUrls.Add(new ModUrl()
+                            {
+                                Id = r.GetInt32(i++),
+                                Url = r.GetString(i++),
+                                LinkText = r.GetString(i++)
+                            });
+                        }
+                        else i += 3;
+                    }
+
+                    if (request.IncludeTags && !r.IsDBNull(i) && !currentResource.Tags.Any(x => x.Id == r.GetInt32(i)))
+                    {
+                        currentResource.Tags.Add(new Tag()
+                        {
+                            Id = r.GetInt32(i++),
+                            Effect = (Effect)r.GetInt32(i)
+                        });
                     }
                 }
             }
@@ -417,70 +367,65 @@ namespace Website.Data
 
             s.Append(" WHERE i.id = @Id; ");
 
-            using (var c = await _connector.Connect())
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand(s.ToString(), c);
+            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Varchar, id);
+
+            using var r = await q.ExecuteReaderAsync();
+
+            if (r.HasRows)
             {
-                using (var q = new NpgsqlCommand(s.ToString(), c))
+                while (r.Read())
                 {
-                    q.Parameters.AddWithValue("@Id", NpgsqlDbType.Varchar, id);
-
-                    using (var r = await q.ExecuteReaderAsync())
+                    int i = 0;
+                    if (result is null)
                     {
-                        if (r.HasRows)
+                        result = new IsaacResource()
                         {
-                            while (r.Read())
+                            Id = r.GetString(i++),
+                            Name = r.GetString(i++),
+                            ResourceType = (ResourceType)r.GetInt32(i++),
+                            ExistsIn = (ExistsIn)r.GetInt32(i++),
+                            CssCoordinates = (NpgsqlBox)r[i++],
+                            GameMode = (GameMode)r.GetInt32(i++),
+                            Color = r.GetString(i++),
+                            DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
+                            Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1)
+                        };
+                    }
+                    else i += 9;
+
+                    if (includeMod)
+                    {
+                        if (!r.IsDBNull(i) && result.Mod is null)
+                        {
+                            result.Mod = new Mod()
                             {
-                                int i = 0;
-                                if (result is null)
-                                {
-                                    result = new IsaacResource()
-                                    {
-                                        Id = r.GetString(i++),
-                                        Name = r.GetString(i++),
-                                        ResourceType = (ResourceType)r.GetInt32(i++),
-                                        ExistsIn = (ExistsIn)r.GetInt32(i++),
-                                        CssCoordinates = (NpgsqlBox)r[i++],
-                                        GameMode = (GameMode)r.GetInt32(i++),
-                                        Color = r.GetString(i++),
-                                        DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                                        Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1)
-                                    };
-                                }
-                                else i += 9;
-
-                                if (includeMod)
-                                {
-                                    if (!r.IsDBNull(i) && result.Mod is null)
-                                    {
-                                        result.Mod = new Mod()
-                                        {
-                                            Id = r.GetInt32(i++),
-                                            ModName = r.GetString(i++),
-                                        };
-                                    }
-                                    else i += 2;
-
-                                    if (!r.IsDBNull(i) && result.Mod != null && !result.Mod.ModUrls.Any(x => x.Id == r.GetInt32(i)))
-                                    {
-                                        result.Mod.ModUrls.Add(new ModUrl()
-                                        {
-                                            Id = r.GetInt32(i++),
-                                            Url = r.GetString(i++),
-                                            LinkText = r.GetString(i++)
-                                        });
-                                    }
-                                    else i += 3;
-                                }
-
-                                if (includeTags && !r.IsDBNull(i) && !result.Tags.Any(x => x.Id == r.GetInt32(i)))
-                                {
-                                    result.Tags.Add(new Tag()
-                                    {
-                                        Id = r.GetInt32(i++),
-                                        Effect = (Effect)r.GetInt32(i)
-                                    });
-                                }
-                            }
+                                Id = r.GetInt32(i++),
+                                ModName = r.GetString(i++),
+                            };
                         }
+                        else i += 2;
+
+                        if (!r.IsDBNull(i) && result.Mod != null && !result.Mod.ModUrls.Any(x => x.Id == r.GetInt32(i)))
+                        {
+                            result.Mod.ModUrls.Add(new ModUrl()
+                            {
+                                Id = r.GetInt32(i++),
+                                Url = r.GetString(i++),
+                                LinkText = r.GetString(i++)
+                            });
+                        }
+                        else i += 3;
+                    }
+
+                    if (includeTags && !r.IsDBNull(i) && !result.Tags.Any(x => x.Id == r.GetInt32(i)))
+                    {
+                        result.Tags.Add(new Tag()
+                        {
+                            Id = r.GetInt32(i++),
+                            Effect = (Effect)r.GetInt32(i)
+                        });
                     }
                 }
             }
@@ -491,40 +436,31 @@ namespace Website.Data
 
         public async Task<int> DeleteResource(string resourceId)
         {
-            using (var c = await _connector.Connect())
-            {
-                using (var q = new NpgsqlCommand("DELETE FROM isaac_resources WHERE id = @Id; ", c))
-                {
-                    q.Parameters.AddWithValue("@Id", NpgsqlDbType.Varchar, resourceId);
-                    return await q.ExecuteNonQueryAsync();
-                }
-            }
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand("DELETE FROM isaac_resources WHERE id = @Id; ", c);
+            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Varchar, resourceId);
+            return await q.ExecuteNonQueryAsync();
         }
 
         public async Task<List<Tag>> GetTags(string resourceId)
         {
             var tags = new List<Tag>();
 
-            using (var c = await _connector.Connect())
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand("SELECT id, value FROM tags WHERE isaac_resource = @Id; ", c);
+            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Varchar, resourceId);
+
+            using var r = await q.ExecuteReaderAsync();
+
+            if (r.HasRows)
             {
-                using (var q = new NpgsqlCommand("SELECT id, value FROM tags WHERE isaac_resource = @Id; ", c))
+                while (r.Read())
                 {
-                    q.Parameters.AddWithValue("@Id", NpgsqlDbType.Varchar, resourceId);
-                    
-                    using (var r = await q.ExecuteReaderAsync())
+                    tags.Add(new Tag()
                     {
-                        if (r.HasRows)
-                        {
-                            while (r.Read())
-                            {
-                                tags.Add(new Tag()
-                                {
-                                    Id = r.GetInt32(0),
-                                    Effect = (Effect)r.GetInt32(1)
-                                });
-                            }
-                        }
-                    }
+                        Id = r.GetInt32(0),
+                        Effect = (Effect)r.GetInt32(1)
+                    });
                 }
             }
 
@@ -535,25 +471,20 @@ namespace Website.Data
         {
             Tag? tag = null;
 
-            using (var c = await _connector.Connect())
-            {
-                using (var q = new NpgsqlCommand("SELECT id, value FROM tags WHERE id = @Id; ", c))
-                {
-                    q.Parameters.AddWithValue("@Id", NpgsqlDbType.Integer, tagId);
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand("SELECT id, value FROM tags WHERE id = @Id; ", c);
+            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Integer, tagId);
 
-                    using (var r = await q.ExecuteReaderAsync())
-                    {
-                        if (r.HasRows)
-                        {
-                            r.Read();
-                            tag = new Tag()
-                            {
-                                Id = r.GetInt32(0),
-                                Effect = (Effect)r.GetInt32(1)
-                            };
-                        }
-                    }
-                }
+            using var r = await q.ExecuteReaderAsync();
+
+            if (r.HasRows)
+            {
+                r.Read();
+                tag = new Tag()
+                {
+                    Id = r.GetInt32(0),
+                    Effect = (Effect)r.GetInt32(1)
+                };
             }
 
             return tag;
@@ -561,14 +492,10 @@ namespace Website.Data
 
         public async Task<int> RemoveTag(int tagId)
         {
-            using (var c = await _connector.Connect())
-            {
-                using (var q = new NpgsqlCommand("DELETE FROM tags WHERE id = @Id; ", c))
-                {
-                    q.Parameters.AddWithValue("@Id", NpgsqlDbType.Integer, tagId);
-                    return await q.ExecuteNonQueryAsync();
-                }
-            }
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand("DELETE FROM tags WHERE id = @Id; ", c);
+            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Integer, tagId);
+            return await q.ExecuteNonQueryAsync();
         }
 
         public async Task<int> MakeTransformative(MakeIsaacResourceTransformative model)
@@ -577,40 +504,32 @@ namespace Website.Data
                 "INSERT INTO transformative_resources (id, isaac_resource, transformation, counts_multiple_times, requires_title_content, valid_from, valid_until, steps_needed) " +
                 $"VALUES (DEFAULT, @IR, @TR, @CM, @RT, {(model.ValidFrom.HasValue ? "@VF" : "DEFAULT")}, {(model.ValidUntil.HasValue ? "@VU" : "DEFAULT")}, @SN) RETURNING id;";
 
-            using (var c = await _connector.Connect())
-            {
-                using (var q = new NpgsqlCommand(query, c))
-                {
-                    q.Parameters.AddWithValue("@IR", NpgsqlDbType.Varchar, model.ResourceId);
-                    q.Parameters.AddWithValue("@TR", NpgsqlDbType.Varchar, model.TransformationId);
-                    q.Parameters.AddWithValue("@CM", NpgsqlDbType.Boolean, model.CanCountMultipleTimes);
-                    q.Parameters.AddWithValue("@RT", NpgsqlDbType.Varchar, model.RequiresTitleContent ?? (object)DBNull.Value);
-                    q.Parameters.AddWithValue("@SN", NpgsqlDbType.Integer, model.StepsNeeded);
-                    if (model.ValidFrom.HasValue) q.Parameters.AddWithValue("@VF", NpgsqlDbType.TimestampTz, model.ValidFrom ?? (object)DBNull.Value);
-                    if (model.ValidUntil.HasValue) q.Parameters.AddWithValue("@VU", NpgsqlDbType.TimestampTz, model.ValidUntil ?? (object)DBNull.Value);
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand(query, c);
+            q.Parameters.AddWithValue("@IR", NpgsqlDbType.Varchar, model.ResourceId);
+            q.Parameters.AddWithValue("@TR", NpgsqlDbType.Varchar, model.TransformationId);
+            q.Parameters.AddWithValue("@CM", NpgsqlDbType.Boolean, model.CanCountMultipleTimes);
+            q.Parameters.AddWithValue("@RT", NpgsqlDbType.Varchar, model.RequiresTitleContent ?? (object)DBNull.Value);
+            q.Parameters.AddWithValue("@SN", NpgsqlDbType.Integer, model.StepsNeeded);
+            if (model.ValidFrom.HasValue) q.Parameters.AddWithValue("@VF", NpgsqlDbType.TimestampTz, model.ValidFrom ?? (object)DBNull.Value);
+            if (model.ValidUntil.HasValue) q.Parameters.AddWithValue("@VU", NpgsqlDbType.TimestampTz, model.ValidUntil ?? (object)DBNull.Value);
 
-                    return Convert.ToInt32(await q.ExecuteScalarAsync());
-                }
-            }
+            return Convert.ToInt32(await q.ExecuteScalarAsync());
         }
 
         public async Task<bool> IsSpacebarItem(string resourceId)
         {
             bool isSpacebarItem = false;
 
-            using (var c = await _connector.Connect())
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand($"SELECT 1 FROM tags WHERE isaac_resource = @Resource AND value = {(int)Effect.IsSpacebarItem}; ", c);
+            q.Parameters.AddWithValue("@Resource", NpgsqlDbType.Varchar, resourceId);
+
+            using var r = await q.ExecuteReaderAsync();
+
+            if (r.HasRows)
             {
-                using (var q = new NpgsqlCommand($"SELECT 1 FROM tags WHERE isaac_resource = @Resource AND value = {(int)Effect.IsSpacebarItem}; ", c))
-                {
-                    q.Parameters.AddWithValue("@Resource", NpgsqlDbType.Varchar, resourceId);
-                    using (var r = await q.ExecuteReaderAsync())
-                    {
-                        if (r.HasRows)
-                        {
-                            isSpacebarItem = true;
-                        }
-                    }
-                }
+                isSpacebarItem = true;
             }
 
             return isSpacebarItem;
@@ -620,35 +539,30 @@ namespace Website.Data
         {
             var result = new List<(string, bool, int)>();
 
-            using (var c = await _connector.Connect())
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand(
+                "SELECT t.isaac_resource, t.transformation, t.counts_multiple_times, t.requires_title_content, t.valid_from, t.valid_until, t.steps_needed " +
+                "FROM transformative_resources t " +
+                "WHERE isaac_resource = @I " +
+                "AND valid_from <= @R " +
+                "AND valid_until >= @R; ", c);
+            q.Parameters.AddWithValue("@I", NpgsqlDbType.Varchar, resourceId);
+            q.Parameters.AddWithValue("@R", NpgsqlDbType.TimestampTz, videoReleasedate);
+
+            using var r = await q.ExecuteReaderAsync();
+
+            if (r.HasRows)
             {
-                using (var q = new NpgsqlCommand(
-                    "SELECT t.isaac_resource, t.transformation, t.counts_multiple_times, t.requires_title_content, t.valid_from, t.valid_until, t.steps_needed " +
-                    "FROM transformative_resources t " +
-                    "WHERE isaac_resource = @I " +
-                    "AND valid_from <= @R " +
-                    "AND valid_until >= @R; ", c))
+                while (r.Read())
                 {
-                    q.Parameters.AddWithValue("@I", NpgsqlDbType.Varchar, resourceId);
-                    q.Parameters.AddWithValue("@R", NpgsqlDbType.TimestampTz, videoReleasedate);
+                    string? requiredTitleContent = r.IsDBNull(3) ? null : r.GetString(3);
 
-                    using (var r = await q.ExecuteReaderAsync())
+                    if (requiredTitleContent != null && !videoTitle.ToLower().Contains(requiredTitleContent.ToLower()))
                     {
-                        if (r.HasRows)
-                        {
-                            while (r.Read())
-                            {
-                                string? requiredTitleContent = r.IsDBNull(3) ? null : r.GetString(3);
-
-                                if (requiredTitleContent != null && !videoTitle.ToLower().Contains(requiredTitleContent.ToLower()))
-                                {
-                                    continue;
-                                }
-
-                                result.Add((r.GetString(1), r.GetBoolean(2), r.GetInt32(6)));
-                            }
-                        }
+                        continue;
                     }
+
+                    result.Add((r.GetString(1), r.GetBoolean(2), r.GetInt32(6)));
                 }
             }
 

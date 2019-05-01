@@ -25,50 +25,41 @@ namespace Website.Data
 
         public async Task<int> SaveMod(CreateMod mod)
         {
-            using (var c = await _connector.Connect())
-            {
-                using (var q = new NpgsqlCommand("INSERT INTO mods (id, name) VALUES (DEFAULT, @N) RETURNING id; ", c))
-                {
-                    q.Parameters.AddWithValue("@N", NpgsqlDbType.Varchar, mod.ModName);
-                    return Convert.ToInt32(await q.ExecuteScalarAsync());
-                }
-            }
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand("INSERT INTO mods (id, name) VALUES (DEFAULT, @N) RETURNING id; ", c);
+            q.Parameters.AddWithValue("@N", NpgsqlDbType.Varchar, mod.ModName);
+            return Convert.ToInt32(await q.ExecuteScalarAsync());
         }
 
         public async Task<List<Mod>> GetAllMods()
         {
             var result = new List<Mod>();
 
-            using (var c = await _connector.Connect())
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand("SELECT m.id, m.name, u.id, u.url, u.name FROM mods m LEFT JOIN mod_url u ON u.mod = m.id;", c);
+            using var r = await q.ExecuteReaderAsync();
+
+            if (r.HasRows)
             {
-                using (var q = new NpgsqlCommand("SELECT m.id, m.name, u.id, u.url, u.name FROM mods m LEFT JOIN mod_url u ON u.mod = m.id;", c))
+                while (r.Read())
                 {
-                    using (var r = await q.ExecuteReaderAsync())
+                    if (!result.Any(m => m.Id == r.GetInt32(0)))
                     {
-                        if (r.HasRows)
+                        result.Add(new Mod()
                         {
-                            while (r.Read())
-                            {
-                                if (!result.Any(m => m.Id == r.GetInt32(0)))
-                                {
-                                    result.Add(new Mod()
-                                    {
-                                        Id = r.GetInt32(0),
-                                        ModName = r.GetString(1),
-                                        ModUrls = new List<ModUrl>()
-                                    });
-                                }
-                                if (!r.IsDBNull(2) && !result.First(m => m.Id == r.GetInt32(0)).ModUrls.Any(u => u.Id == r.GetInt32(2)))
-                                {
-                                    result.First(m => m.Id == r.GetInt32(0)).ModUrls.Add(new ModUrl()
-                                    {
-                                        Id = r.GetInt32(2),
-                                        Url = r.GetString(3),
-                                        LinkText = r.GetString(4)
-                                    });
-                                }
-                            }
-                        }
+                            Id = r.GetInt32(0),
+                            ModName = r.GetString(1),
+                            ModUrls = new List<ModUrl>()
+                        });
+                    }
+                    if (!r.IsDBNull(2) && !result.First(m => m.Id == r.GetInt32(0)).ModUrls.Any(u => u.Id == r.GetInt32(2)))
+                    {
+                        result.First(m => m.Id == r.GetInt32(0)).ModUrls.Add(new ModUrl()
+                        {
+                            Id = r.GetInt32(2),
+                            Url = r.GetString(3),
+                            LinkText = r.GetString(4)
+                        });
                     }
                 }
             }
@@ -79,40 +70,35 @@ namespace Website.Data
         public async Task<Mod?> GetModById(int id)
         {
             Mod? mod = null;
-            using (var c = await _connector.Connect())
-            {
-                using (var q = new NpgsqlCommand("SELECT m.id, m.name, u.id, u.url, u.name FROM mods m LEFT JOIN mod_url u ON m.id = u.mod WHERE m.id = @Id; ", c))
-                {
-                    q.Parameters.AddWithValue("@Id", NpgsqlDbType.Integer, id);
-                    
-                    using (var r = await q.ExecuteReaderAsync())
-                    {
-                        if (r.HasRows)
-                        {
-                            while (r.Read())
-                            {
-                                int i = 0;
-                                if (mod is null)
-                                {
-                                    mod = new Mod()
-                                    {
-                                        Id = r.GetInt32(i++),
-                                        ModName = r.GetString(i++)
-                                    };
-                                }
-                                else i += 2;
+            using var c = await _connector.Connect();
 
-                                if (!r.IsDBNull(i) && !mod.ModUrls.Any(x => x.Id == r.GetInt32(i)))
-                                {
-                                    mod.ModUrls.Add(new ModUrl()
-                                    {
-                                        Id = r.GetInt32(i++),
-                                        Url = r.GetString(i++),
-                                        LinkText = r.GetString(i++)
-                                    });
-                                }
-                            }
-                        }
+            using var q = new NpgsqlCommand("SELECT m.id, m.name, u.id, u.url, u.name FROM mods m LEFT JOIN mod_url u ON m.id = u.mod WHERE m.id = @Id; ", c);
+            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Integer, id);
+
+            using var r = await q.ExecuteReaderAsync();
+            if (r.HasRows)
+            {
+                while (r.Read())
+                {
+                    int i = 0;
+                    if (mod is null)
+                    {
+                        mod = new Mod()
+                        {
+                            Id = r.GetInt32(i++),
+                            ModName = r.GetString(i++)
+                        };
+                    }
+                    else i += 2;
+
+                    if (!r.IsDBNull(i) && !mod.ModUrls.Any(x => x.Id == r.GetInt32(i)))
+                    {
+                        mod.ModUrls.Add(new ModUrl()
+                        {
+                            Id = r.GetInt32(i++),
+                            Url = r.GetString(i++),
+                            LinkText = r.GetString(i++)
+                        });
                     }
                 }
             }
@@ -123,40 +109,35 @@ namespace Website.Data
         public async Task<Mod?> GetModByName(string name)
         {
             Mod? mod = null;
-            using (var c = await _connector.Connect())
+            using var c = await _connector.Connect();
+            
+            using var q = new NpgsqlCommand("SELECT m.id, m.name, u.id, u.url, u.name FROM mods m LEFT JOIN mod_url u ON m.id = u.mod WHERE m.name = @N; ", c);
+            q.Parameters.AddWithValue("@N", NpgsqlDbType.Varchar, name);
+
+            using var r = await q.ExecuteReaderAsync();
+            if (r.HasRows)
             {
-                using (var q = new NpgsqlCommand("SELECT m.id, m.name, u.id, u.url, u.name FROM mods m LEFT JOIN mod_url u ON m.id = u.mod WHERE m.name = @N; ", c))
+                while (r.Read())
                 {
-                    q.Parameters.AddWithValue("@N", NpgsqlDbType.Varchar, name);
-
-                    using (var r = await q.ExecuteReaderAsync())
+                    int i = 0;
+                    if (mod is null)
                     {
-                        if (r.HasRows)
+                        mod = new Mod()
                         {
-                            while (r.Read())
-                            {
-                                int i = 0;
-                                if (mod is null)
-                                {
-                                    mod = new Mod()
-                                    {
-                                        Id = r.GetInt32(i++),
-                                        ModName = r.GetString(i++)
-                                    };
-                                }
-                                else i += 2;
+                            Id = r.GetInt32(i++),
+                            ModName = r.GetString(i++)
+                        };
+                    }
+                    else i += 2;
 
-                                if (!r.IsDBNull(i) && !mod.ModUrls.Any(x => x.Id == r.GetInt32(i)))
-                                {
-                                    mod.ModUrls.Add(new ModUrl()
-                                    {
-                                        Id = r.GetInt32(i++),
-                                        Url = r.GetString(i++),
-                                        LinkText = r.GetString(i++)
-                                    });
-                                }
-                            }
-                        }
+                    if (!r.IsDBNull(i) && !mod.ModUrls.Any(x => x.Id == r.GetInt32(i)))
+                    {
+                        mod.ModUrls.Add(new ModUrl()
+                        {
+                            Id = r.GetInt32(i++),
+                            Url = r.GetString(i++),
+                            LinkText = r.GetString(i++)
+                        });
                     }
                 }
             }
@@ -168,34 +149,26 @@ namespace Website.Data
         {
             int? result = null;
 
-            using (var c = await _connector.Connect())
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand("SELECT id FROM mods WHERE name = @N; ", c);
+            q.Parameters.AddWithValue("@N", NpgsqlDbType.Varchar, name);
+
+            using var r = await q.ExecuteReaderAsync();
+            if (r.HasRows)
             {
-                using (var q = new NpgsqlCommand("SELECT id FROM mods WHERE name = @N; ", c))
-                {
-                    q.Parameters.AddWithValue("@N", NpgsqlDbType.Varchar, name);
-                    using (var r = await q.ExecuteReaderAsync())
-                    {
-                        if (r.HasRows)
-                        {
-                            r.Read();
-                            result = r.GetInt32(0);
-                        }
-                    }
-                }
+                r.Read();
+                result = r.GetInt32(0);
             }
+            
 
             return result;
         }
 
         public async Task<int> CountMods()
         {
-            using (var c = await _connector.Connect())
-            {
-                using (var q = new NpgsqlCommand("SELECT COUNT(*) FROM mods;", c))
-                {
-                    return Convert.ToInt32(await q.ExecuteScalarAsync());
-                }
-            }
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand("SELECT COUNT(*) FROM mods;", c);
+            return Convert.ToInt32(await q.ExecuteScalarAsync());
         }
 
         public async Task<List<int>> GetUsedModsForSubmittedEpisode(SubmittedEpisode episode)
@@ -207,34 +180,29 @@ namespace Website.Data
             var communityRemixId = 0;
             var antibirthId = 0;
 
-            using (var c = await _connector.Connect())
-            {
-                // get episode name, to manually filter antibirth and community remix episodes
-                using (var q = new NpgsqlCommand("SELECT title FROM videos WHERE id = @X", c))
-                {
-                    q.Parameters.AddWithValue("@X", NpgsqlDbType.Char, episode.VideoId);
-                    using (var r = await q.ExecuteReaderAsync())
-                    {
-                        if (r.HasRows)
-                        {
-                            r.Read();
-                            episodeName = r.GetString(0);
-                        }
-                    }
-                }
+            using var c = await _connector.Connect();
 
-                // get mod ids of antibirth and community remix
-                using (var q = new NpgsqlCommand("SELECT id FROM mods WHERE name = 'Community Remix'", c))
-                {
-                    q.Parameters.AddWithValue("@X", NpgsqlDbType.Char, episode.VideoId);
-                    communityRemixId = Convert.ToInt32(await q.ExecuteScalarAsync());
-                }
-                using (var q = new NpgsqlCommand("SELECT id FROM mods WHERE name = 'Antibirth'", c))
-                {
-                    q.Parameters.AddWithValue("@X", NpgsqlDbType.Char, episode.VideoId);
-                    antibirthId = Convert.ToInt32(await q.ExecuteScalarAsync());
-                }
+            // get episode name, to manually filter antibirth and community remix episodes
+            using var getTitleCommand = new NpgsqlCommand("SELECT title FROM videos WHERE id = @X", c);
+            getTitleCommand.Parameters.AddWithValue("@X", NpgsqlDbType.Char, episode.VideoId);
+
+            using var reader = await getTitleCommand.ExecuteReaderAsync();
+            if (reader.HasRows)
+            {
+                reader.Read();
+                episodeName = reader.GetString(0);
             }
+            
+
+            // get mod ids of antibirth and community remix
+            using var getCommunityRemixIdCommand = new NpgsqlCommand("SELECT id FROM mods WHERE name = 'Community Remix'", c);
+            getCommunityRemixIdCommand.Parameters.AddWithValue("@X", NpgsqlDbType.Char, episode.VideoId);
+            communityRemixId = Convert.ToInt32(await getCommunityRemixIdCommand.ExecuteScalarAsync());
+                
+            using var getAntibirthModIdCommand = new NpgsqlCommand("SELECT id FROM mods WHERE name = 'Antibirth'", c);
+            getAntibirthModIdCommand.Parameters.AddWithValue("@X", NpgsqlDbType.Char, episode.VideoId);
+            antibirthId = Convert.ToInt32(await getAntibirthModIdCommand.ExecuteScalarAsync());
+            
 
             // extract all isaac resources
             var playedCharacters = episode.PlayedCharacters.Select(x => x.CharacterId);
@@ -252,23 +220,16 @@ namespace Website.Data
 
             if (parameters.Count() > 0)
             {
-                using (var c = await _connector.Connect())
+                using var getModsCommand = new NpgsqlCommand($"SELECT mod FROM isaac_resources WHERE mod IS NOT NULL AND id IN ({string.Join(", ", parameters.Select(x => x.ParameterName))}); ", c);
+                getModsCommand.Parameters.AddRange(parameters.ToArray());
+                using var getModsReader = await getModsCommand.ExecuteReaderAsync();
+                if (getModsReader.HasRows)
                 {
-                    using (var q = new NpgsqlCommand($"SELECT mod FROM isaac_resources WHERE mod IS NOT NULL AND id IN ({string.Join(", ", parameters.Select(x => x.ParameterName))}); ", c))
+                    while (getModsReader.Read())
                     {
-                        q.Parameters.AddRange(parameters.ToArray());
-                        using (var r = await q.ExecuteReaderAsync())
+                        if (!getModsReader.IsDBNull(0) && !usedMods.Contains(getModsReader.GetInt32(0)))
                         {
-                            if (r.HasRows)
-                            {
-                                while (r.Read())
-                                {
-                                    if (!r.IsDBNull(0) && !usedMods.Contains(r.GetInt32(0)))
-                                    {
-                                        usedMods.Add(r.GetInt32(0));
-                                    }
-                                }
-                            }
+                            usedMods.Add(getModsReader.GetInt32(0));
                         }
                     }
                 }
@@ -289,66 +250,48 @@ namespace Website.Data
 
         public async Task<int> AddModUrl(CreateModLink modUrl)
         {
-            using (var c = await _connector.Connect())
-            {
-                using (var q = new NpgsqlCommand("INSERT INTO mod_url (id, url, name, mod) VALUES (DEFAULT, @U, @N, @M) RETURNING id; ", c))
-                {
-                    q.Parameters.AddWithValue("@U", NpgsqlDbType.Varchar, modUrl.Url);
-                    q.Parameters.AddWithValue("@N", NpgsqlDbType.Varchar, modUrl.LinkText);
-                    q.Parameters.AddWithValue("@M", NpgsqlDbType.Integer, modUrl.ModId);
-                    return Convert.ToInt32(await q.ExecuteScalarAsync());
-                }
-            }
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand("INSERT INTO mod_url (id, url, name, mod) VALUES (DEFAULT, @U, @N, @M) RETURNING id; ", c);
+            q.Parameters.AddWithValue("@U", NpgsqlDbType.Varchar, modUrl.Url);
+            q.Parameters.AddWithValue("@N", NpgsqlDbType.Varchar, modUrl.LinkText);
+            q.Parameters.AddWithValue("@M", NpgsqlDbType.Integer, modUrl.ModId);
+            return Convert.ToInt32(await q.ExecuteScalarAsync());
         }
 
         public async Task<int> RemoveModUrl(int modUrlId)
         {
-            using (var c = await _connector.Connect())
-            {
-                using (var q = new NpgsqlCommand("DELETE FROM mod_url WHERE id = @Id", c))
-                {
-                    q.Parameters.AddWithValue("@Id", NpgsqlDbType.Integer, modUrlId);
-                    return await q.ExecuteNonQueryAsync();
-                }
-            }
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand("DELETE FROM mod_url WHERE id = @Id", c);
+            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Integer, modUrlId);
+            return await q.ExecuteNonQueryAsync();
         }
 
         public async Task<int> RemoveMod(int modId)
         {
-            using (var c = await _connector.Connect())
-            {
-                using (var q = new NpgsqlCommand("DELETE FROM mods WHERE id = @Id", c))
-                {
-                    q.Parameters.AddWithValue("@Id", NpgsqlDbType.Integer, modId);
-                    return await q.ExecuteNonQueryAsync();
-                }
-            }
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand("DELETE FROM mods WHERE id = @Id", c);
+            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Integer, modId);
+            return await q.ExecuteNonQueryAsync();
         }
 
         public async Task<ModUrl?> GetModUrlById(int id)
         {
             ModUrl? url = null;
 
-            using (var c = await _connector.Connect())
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand("SELECT id, url, name FROM mod_url WHERE id = @Id; ", c);
+            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Integer, id);
+
+            using var r = await q.ExecuteReaderAsync();
+            if (r.HasRows)
             {
-                using (var q = new NpgsqlCommand("SELECT id, url, name FROM mod_url WHERE id = @Id; ", c))
+                r.Read();
+                url = new ModUrl()
                 {
-                    q.Parameters.AddWithValue("@Id", NpgsqlDbType.Integer, id);
-                    
-                    using (var r = await q.ExecuteReaderAsync())
-                    {
-                        if (r.HasRows)
-                        {
-                            r.Read();
-                            url = new ModUrl()
-                            {
-                                Id = r.GetInt32(0),
-                                Url = r.GetString(1),
-                                LinkText = r.GetString(2)
-                            };
-                        }
-                    }
-                }
+                    Id = r.GetInt32(0),
+                    Url = r.GetString(1),
+                    LinkText = r.GetString(2)
+                };
             }
 
             return url;

@@ -22,13 +22,9 @@ namespace Website.Data
 
         void Execute(string query)
         {
-            using (var c = _connector.Connect().Result)
-            {
-                using (var q = new NpgsqlCommand(query, c))
-                {
-                    q.ExecuteNonQuery();
-                }
-            }
+            using var c = _connector.Connect().Result;
+            using var q = new NpgsqlCommand(query, c);
+            q.ExecuteNonQuery();
         }
 
         public void DropTablesInDevMode()

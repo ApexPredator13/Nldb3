@@ -120,14 +120,12 @@ namespace Website.Migrations
 
             using (var q = new NpgsqlCommand(getUserLoginsQuery, c_identity_old))
             {
-                using (var r = q.ExecuteReader())
+                using var r = q.ExecuteReader();
+                if (r.HasRows)
                 {
-                    if (r.HasRows)
+                    while (r.Read())
                     {
-                        while (r.Read())
-                        {
-                            insertUserLogins.Append($"('{r.GetString(0)}', '{r.GetString(1)}', null, '{r.GetString(3)}'), ");
-                        }
+                        insertUserLogins.Append($"('{r.GetString(0)}', '{r.GetString(1)}', null, '{r.GetString(3)}'), ");
                     }
                 }
             }
@@ -218,27 +216,23 @@ namespace Website.Migrations
             {
                 await c.OpenAsync();
 
-                using (var q = new NpgsqlCommand("SELECT name, csshorizontaloffset, cssverticaloffset, urlname, width, isdoublebossfight, frommod FROM bosses WHERE urlname != 'MissingBoss'; ", c))
+                using var q = new NpgsqlCommand("SELECT name, csshorizontaloffset, cssverticaloffset, urlname, width, isdoublebossfight, frommod FROM bosses WHERE urlname != 'MissingBoss'; ", c);
+                using var r = await q.ExecuteReaderAsync();
+                if (r.HasRows)
                 {
-                    using (var r = await q.ExecuteReaderAsync())
+                    while (r.Read())
                     {
-                        if (r.HasRows)
+                        newBosses.Add(new CreateIsaacResource()
                         {
-                            while (r.Read())
-                            {
-                                newBosses.Add(new CreateIsaacResource()
-                                {
-                                    Name = r.GetString(0),
-                                    Id = r.GetString(3),
-                                    FromMod = r.IsDBNull(6) ? null : await _modRepository.GetModIdByName(r.GetString(6)),
-                                    ResourceType = ResourceType.Boss
-                                });
+                            Name = r.GetString(0),
+                            Id = r.GetString(3),
+                            FromMod = r.IsDBNull(6) ? null : await _modRepository.GetModIdByName(r.GetString(6)),
+                            ResourceType = ResourceType.Boss
+                        });
 
-                                if (r.GetBoolean(5))
-                                {
-                                    doubleTroubleBosses.Add(r.GetString(3));
-                                }
-                            }
+                        if (r.GetBoolean(5))
+                        {
+                            doubleTroubleBosses.Add(r.GetString(3));
                         }
                     }
                 }
@@ -277,23 +271,19 @@ namespace Website.Migrations
             {
                 await c.OpenAsync();
 
-                using (var q = new NpgsqlCommand("SELECT name, urlname, csshorizontaloffset, cssverticaloffset, frommod FROM characters WHERE urlname != 'MissingCharacter'; ", c))
+                using var q = new NpgsqlCommand("SELECT name, urlname, csshorizontaloffset, cssverticaloffset, frommod FROM characters WHERE urlname != 'MissingCharacter'; ", c);
+                using var r = await q.ExecuteReaderAsync();
+                if (r.HasRows)
                 {
-                    using (var r = await q.ExecuteReaderAsync())
+                    while (r.Read())
                     {
-                        if (r.HasRows)
+                        newCharacters.Add(new CreateIsaacResource()
                         {
-                            while (r.Read())
-                            {
-                                newCharacters.Add(new CreateIsaacResource()
-                                {
-                                    Name = r.GetString(0),
-                                    Id = r.GetString(1),
-                                    FromMod = r.IsDBNull(4) ? null : await _modRepository.GetModIdByName(r.GetString(4)),
-                                    ResourceType = ResourceType.Character
-                                });
-                            }
-                        }
+                            Name = r.GetString(0),
+                            Id = r.GetString(1),
+                            FromMod = r.IsDBNull(4) ? null : await _modRepository.GetModIdByName(r.GetString(4)),
+                            ResourceType = ResourceType.Character
+                        });
                     }
                 }
             }
@@ -319,24 +309,20 @@ namespace Website.Migrations
             {
                 await c.OpenAsync();
 
-                using (var q = new NpgsqlCommand("SELECT name, urlname, frommod FROM curses WHERE urlname != 'MissingCurse'; ", c))
+                using var q = new NpgsqlCommand("SELECT name, urlname, frommod FROM curses WHERE urlname != 'MissingCurse'; ", c);
+                using var r = await q.ExecuteReaderAsync();
+                if (r.HasRows)
                 {
-                    using (var r = await q.ExecuteReaderAsync())
+                    while (r.Read())
                     {
-                        if (r.HasRows)
+                        var x = r.GetString(1);
+                        newCurses.Add(new CreateIsaacResource()
                         {
-                            while (r.Read())
-                            {
-                                var x = r.GetString(1);
-                                newCurses.Add(new CreateIsaacResource()
-                                {
-                                    Id = string.Join(string.Empty, r.GetString(0).Split(" ").Select(a => char.ToUpper(a[0]).ToString() + a.Substring(1))),
-                                    Name = r.GetString(0),
-                                    FromMod = r.IsDBNull(2) ? null : await _modRepository.GetModIdByName(r.GetString(2)),
-                                    ResourceType = ResourceType.Curse
-                                });
-                            }
-                        }
+                            Id = string.Join(string.Empty, r.GetString(0).Split(" ").Select(a => char.ToUpper(a[0]).ToString() + a.Substring(1))),
+                            Name = r.GetString(0),
+                            FromMod = r.IsDBNull(2) ? null : await _modRepository.GetModIdByName(r.GetString(2)),
+                            ResourceType = ResourceType.Curse
+                        });
                     }
                 }
             }
@@ -362,23 +348,19 @@ namespace Website.Migrations
             {
                 await c.OpenAsync();
 
-                using (var q = new NpgsqlCommand("SELECT name, urlname, csshorizontaloffset, cssverticaloffset, frommod FROM deaths WHERE urlname != 'MissingDeath'; ", c))
+                using var q = new NpgsqlCommand("SELECT name, urlname, csshorizontaloffset, cssverticaloffset, frommod FROM deaths WHERE urlname != 'MissingDeath'; ", c);
+                using var r = await q.ExecuteReaderAsync();
+                if (r.HasRows)
                 {
-                    using (var r = await q.ExecuteReaderAsync())
+                    while (r.Read())
                     {
-                        if (r.HasRows)
+                        newThreats.Add(new CreateIsaacResource()
                         {
-                            while (r.Read())
-                            {
-                                newThreats.Add(new CreateIsaacResource()
-                                {
-                                    Name = r.GetString(0),
-                                    Id = r.GetString(1),
-                                    FromMod = r.IsDBNull(4) ? null : await _modRepository.GetModIdByName(r.GetString(4)),
-                                    ResourceType = ResourceType.Enemy
-                                });
-                            }
-                        }
+                            Name = r.GetString(0),
+                            Id = r.GetString(1),
+                            FromMod = r.IsDBNull(4) ? null : await _modRepository.GetModIdByName(r.GetString(4)),
+                            ResourceType = ResourceType.Enemy
+                        });
                     }
                 }
             }
@@ -413,23 +395,19 @@ namespace Website.Migrations
             {
                 await c.OpenAsync();
 
-                using (var q = new NpgsqlCommand("SELECT urlname, name, frommod FROM floors WHERE urlname != 'MissingFloor'; ", c))
+                using var q = new NpgsqlCommand("SELECT urlname, name, frommod FROM floors WHERE urlname != 'MissingFloor'; ", c);
+                using var r = await q.ExecuteReaderAsync();
+                if (r.HasRows)
                 {
-                    using (var r = await q.ExecuteReaderAsync())
+                    while (r.Read())
                     {
-                        if (r.HasRows)
+                        newFloors.Add(new CreateIsaacResource()
                         {
-                            while (r.Read())
-                            {
-                                newFloors.Add(new CreateIsaacResource()
-                                {
-                                    Id = r.GetString(0),
-                                    Name = r.GetString(1),
-                                    FromMod = r.IsDBNull(2) ? null : await _modRepository.GetModIdByName(r.GetString(2)),
-                                    ResourceType = ResourceType.Floor
-                                });
-                            }
-                        }
+                            Id = r.GetString(0),
+                            Name = r.GetString(1),
+                            FromMod = r.IsDBNull(2) ? null : await _modRepository.GetModIdByName(r.GetString(2)),
+                            ResourceType = ResourceType.Floor
+                        });
                     }
                 }
             }
@@ -461,31 +439,27 @@ namespace Website.Migrations
             {
                 await c.OpenAsync();
 
-                using (var q = new NpgsqlCommand("SELECT name, urlname, csshorizontaloffset, cssverticaloffset, frommod, isactiveitem FROM items WHERE urlname != 'MissingItem' AND isreroll = FALSE; ", c))
+                using var q = new NpgsqlCommand("SELECT name, urlname, csshorizontaloffset, cssverticaloffset, frommod, isactiveitem FROM items WHERE urlname != 'MissingItem' AND isreroll = FALSE; ", c);
+                using var r = await q.ExecuteReaderAsync();
+                if (r.HasRows)
                 {
-                    using (var r = await q.ExecuteReaderAsync())
+                    while (r.Read())
                     {
-                        if (r.HasRows)
+                        newItems.Add(new CreateIsaacResource()
                         {
-                            while (r.Read())
-                            {
-                                newItems.Add(new CreateIsaacResource()
-                                {
-                                    Name = r.GetString(0),
-                                    Id = r.GetString(1),
-                                    FromMod = r.IsDBNull(4) ? null : await _modRepository.GetModIdByName(r.GetString(4)),
-                                    ResourceType = ResourceType.Item
-                                });
+                            Name = r.GetString(0),
+                            Id = r.GetString(1),
+                            FromMod = r.IsDBNull(4) ? null : await _modRepository.GetModIdByName(r.GetString(4)),
+                            ResourceType = ResourceType.Item
+                        });
 
-                                if (r.GetBoolean(5))
-                                {
-                                    spacebarItems.Add(r.GetString(1));
-                                }
-                                else
-                                {
-                                    passiveItems.Add(r.GetString(1));
-                                }
-                            }
+                        if (r.GetBoolean(5))
+                        {
+                            spacebarItems.Add(r.GetString(1));
+                        }
+                        else
+                        {
+                            passiveItems.Add(r.GetString(1));
                         }
                     }
                 }
@@ -514,21 +488,17 @@ namespace Website.Migrations
             {
                 await c.OpenAsync();
 
-                using (var q = new NpgsqlCommand("SELECT item, transformation FROM transformations_necessaryitems;", c))
+                using var q = new NpgsqlCommand("SELECT item, transformation FROM transformations_necessaryitems;", c);
+                using var r = await q.ExecuteReaderAsync();
+                if (r.HasRows)
                 {
-                    using (var r = await q.ExecuteReaderAsync())
+                    while (r.Read())
                     {
-                        if (r.HasRows)
+                        try
                         {
-                            while (r.Read())
-                            {
-                                try
-                                {
-                                    oldTransformationData.Add((r.GetString(0), r.GetString(1)));
-                                }
-                                catch { }
-                            }
+                            oldTransformationData.Add((r.GetString(0), r.GetString(1)));
                         }
+                        catch { }
                     }
                 }
             }
@@ -610,23 +580,19 @@ namespace Website.Migrations
             {
                 await c.OpenAsync();
 
-                using (var q = new NpgsqlCommand("SELECT name, urlname, csshorizontaloffset, cssverticaloffset, frommod FROM itemsources WHERE urlname != 'MissingItemSource'; ", c))
+                using var q = new NpgsqlCommand("SELECT name, urlname, csshorizontaloffset, cssverticaloffset, frommod FROM itemsources WHERE urlname != 'MissingItemSource'; ", c);
+                using var r = await q.ExecuteReaderAsync();
+                if (r.HasRows)
                 {
-                    using (var r = await q.ExecuteReaderAsync())
+                    while (r.Read())
                     {
-                        if (r.HasRows)
+                        newItemsources.Add(new CreateIsaacResource()
                         {
-                            while (r.Read())
-                            {
-                                newItemsources.Add(new CreateIsaacResource()
-                                {
-                                    Id = r.GetString(1),
-                                    Name = r.GetString(0),
-                                    FromMod = r.IsDBNull(4) ? null : await _modRepository.GetModIdByName(r.GetString(4)),
-                                    ResourceType = ResourceType.ItemSource
-                                });
-                            }
-                        }
+                            Id = r.GetString(1),
+                            Name = r.GetString(0),
+                            FromMod = r.IsDBNull(4) ? null : await _modRepository.GetModIdByName(r.GetString(4)),
+                            ResourceType = ResourceType.ItemSource
+                        });
                     }
                 }
             }
@@ -680,23 +646,19 @@ namespace Website.Migrations
             {
                 await c.OpenAsync();
 
-                using (var q = new NpgsqlCommand("SELECT name, urlname, csshorizontaloffset, cssverticaloffset, frommod FROM transformations WHERE urlname != 'MissingTransformation'; ", c))
+                using var q = new NpgsqlCommand("SELECT name, urlname, csshorizontaloffset, cssverticaloffset, frommod FROM transformations WHERE urlname != 'MissingTransformation'; ", c);
+                using var r = await q.ExecuteReaderAsync();
+                if (r.HasRows)
                 {
-                    using (var r = await q.ExecuteReaderAsync())
+                    while (r.Read())
                     {
-                        if (r.HasRows)
+                        newTransformations.Add(new CreateIsaacResource()
                         {
-                            while (r.Read())
-                            {
-                                newTransformations.Add(new CreateIsaacResource()
-                                {
-                                    Id = r.GetString(1),
-                                    Name = r.GetString(0),
-                                    FromMod = r.IsDBNull(4) ? null : await _modRepository.GetModIdByName(r.GetString(4)),
-                                    ResourceType = ResourceType.Transformation
-                                });
-                            }
-                        }
+                            Id = r.GetString(1),
+                            Name = r.GetString(0),
+                            FromMod = r.IsDBNull(4) ? null : await _modRepository.GetModIdByName(r.GetString(4)),
+                            ResourceType = ResourceType.Transformation
+                        });
                     }
                 }
             }
@@ -767,23 +729,19 @@ namespace Website.Migrations
             {
                 await c.OpenAsync();
 
-                using (var q = new NpgsqlCommand("SELECT youtubeid, title, releasedate, duration FROM videos; ", c))
+                using var q = new NpgsqlCommand("SELECT youtubeid, title, releasedate, duration FROM videos; ", c);
+                using var r = await q.ExecuteReaderAsync();
+                if (r.HasRows)
                 {
-                    using (var r = await q.ExecuteReaderAsync())
+                    while (r.Read())
                     {
-                        if (r.HasRows)
+                        videos.Add(new SaveVideo()
                         {
-                            while (r.Read())
-                            {
-                                videos.Add(new SaveVideo()
-                                {
-                                    Id = r.GetString(0),
-                                    Title = r.GetString(1),
-                                    Published = r.GetDateTime(2),
-                                    Duration = r.IsDBNull(3) ? 0 : r.GetInt32(3)
-                                });
-                            }
-                        }
+                            Id = r.GetString(0),
+                            Title = r.GetString(1),
+                            Published = r.GetDateTime(2),
+                            Duration = r.IsDBNull(3) ? 0 : r.GetInt32(3)
+                        });
                     }
                 }
             }
@@ -809,17 +767,13 @@ namespace Website.Migrations
             using (var c = new NpgsqlConnection(_oldConnectionString))
             {
                 await c.OpenAsync();
-                using (var q = new NpgsqlCommand("SELECT youtubeid FROM videos; ", c))
+                using var q = new NpgsqlCommand("SELECT youtubeid FROM videos; ", c);
+                using var r = await q.ExecuteReaderAsync();
+                if (r.HasRows)
                 {
-                    using (var r = await q.ExecuteReaderAsync())
+                    while (r.Read())
                     {
-                        if (r.HasRows)
-                        {
-                            while (r.Read())
-                            {
-                                videoIds.Add(r.GetString(0));
-                            }
-                        }
+                        videoIds.Add(r.GetString(0));
                     }
                 }
             }
@@ -841,14 +795,12 @@ namespace Website.Migrations
                     string getSubmittersQuery = $"SELECT sub FROM watchedvideos WHERE video = '{videoId}' ORDER BY id DESC; ";
                     using (var q = new NpgsqlCommand(getSubmittersQuery, c))
                     {
-                        using (var r = q.ExecuteReader())
+                        using var r = q.ExecuteReader();
+                        if (r.HasRows)
                         {
-                            if (r.HasRows)
+                            while (r.Read())
                             {
-                                while (r.Read())
-                                {
-                                    contributors.Add(r.GetString(0));
-                                }
+                                contributors.Add(r.GetString(0));
                             }
                         }
                     }
@@ -864,14 +816,12 @@ namespace Website.Migrations
                     string query = $"SELECT id, urlname, deathby FROM visitedfloors WHERE video = '{videoId}' ORDER BY id ASC; ";
                     using (var q = new NpgsqlCommand(query, c))
                     {
-                        using (var r = q.ExecuteReader())
+                        using var r = q.ExecuteReader();
+                        if (r.HasRows)
                         {
-                            if (r.HasRows)
+                            while (r.Read())
                             {
-                                while (r.Read())
-                                {
-                                    floors.Add(r.GetInt32(0), (r.GetString(1), r.IsDBNull(2) ? string.Empty : r.GetString(2)));
-                                }
+                                floors.Add(r.GetInt32(0), (r.GetString(1), r.IsDBNull(2) ? string.Empty : r.GetString(2)));
                             }
                         }
                     }
@@ -884,13 +834,11 @@ namespace Website.Migrations
                         string newCharacterQuery = $"SELECT playedcharacters.urlname FROM visitedfloors RIGHT JOIN playedcharacters ON playedcharacters.startedonfloorid = visitedfloors.id WHERE visitedfloors.id = {floor.Key} ORDER BY playedcharacters.id ASC; ";
                         using (var q = new NpgsqlCommand(newCharacterQuery, c))
                         {
-                            using (var r = q.ExecuteReader())
+                            using var r = q.ExecuteReader();
+                            if (r.HasRows)
                             {
-                                if (r.HasRows)
-                                {
-                                    r.Read();
-                                    submission.PlayedCharacters.Add(new PlayedCharacter { CharacterId = (r.GetString(0)) });
-                                }
+                                r.Read();
+                                submission.PlayedCharacters.Add(new PlayedCharacter { CharacterId = (r.GetString(0)) });
                             }
                         }
 
@@ -902,17 +850,15 @@ namespace Website.Migrations
                         string curseQuery = $"SELECT activecurse FROM visitedfloors WHERE id = {floor.Key} ORDER BY id ASC; ";
                         using (var q = new NpgsqlCommand(curseQuery, c))
                         {
-                            using (var r = q.ExecuteReader())
+                            using var r = q.ExecuteReader();
+                            if (r.HasRows)
                             {
-                                if (r.HasRows)
+                                while (r.Read())
                                 {
-                                    while (r.Read())
+                                    if (!r.IsDBNull(0))
                                     {
-                                        if (!r.IsDBNull(0))
-                                        {
-                                            var curseId = string.Join(string.Empty, r.GetString(0).Split(" ").Select(a => char.ToUpper(a[0]).ToString() + a.Substring(1)));
-                                            submission.PlayedCharacters.Last().PlayedFloors.Last().gameplayEvents.Add(new GameplayEvent() { RelatedResource1 = curseId, EventType = GameplayEventType.Curse });
-                                        }
+                                        var curseId = string.Join(string.Empty, r.GetString(0).Split(" ").Select(a => char.ToUpper(a[0]).ToString() + a.Substring(1)));
+                                        submission.PlayedCharacters.Last().PlayedFloors.Last().gameplayEvents.Add(new GameplayEvent() { RelatedResource1 = curseId, EventType = GameplayEventType.Curse });
                                     }
                                 }
                             }
@@ -922,20 +868,18 @@ namespace Website.Migrations
                         string itempickupQuery = $"SELECT collecteditems.urlname, collecteditems.itemsourceurlname FROM visitedfloors RIGHT JOIN collecteditems ON collecteditems.visitedfloorid = visitedfloors.id WHERE visitedfloors.id = {floor.Key} ORDER BY collecteditems.id ASC; ";
                         using (var q = new NpgsqlCommand(itempickupQuery, c))
                         {
-                            using (var r = q.ExecuteReader())
+                            using var r = q.ExecuteReader();
+                            if (r.HasRows)
                             {
-                                if (r.HasRows)
+                                while (r.Read())
                                 {
-                                    while (r.Read())
+                                    if (r.GetString(0) == "AbsorbedItem")
                                     {
-                                        if (r.GetString(0) == "AbsorbedItem")
-                                        {
-                                            submission.PlayedCharacters.Last().PlayedFloors.Last().gameplayEvents.Add(new GameplayEvent() { RelatedResource1 = "TheVoid", RelatedResource2 = r.GetString(0), EventType = GameplayEventType.AbsorbedItem });
-                                        }
-                                        else
-                                        {
-                                            submission.PlayedCharacters.Last().PlayedFloors.Last().gameplayEvents.Add(new GameplayEvent() { RelatedResource1 = r.GetString(0), RelatedResource2 = r.GetString(1), EventType = GameplayEventType.ItemCollected });
-                                        }
+                                        submission.PlayedCharacters.Last().PlayedFloors.Last().gameplayEvents.Add(new GameplayEvent() { RelatedResource1 = "TheVoid", RelatedResource2 = r.GetString(0), EventType = GameplayEventType.AbsorbedItem });
+                                    }
+                                    else
+                                    {
+                                        submission.PlayedCharacters.Last().PlayedFloors.Last().gameplayEvents.Add(new GameplayEvent() { RelatedResource1 = r.GetString(0), RelatedResource2 = r.GetString(1), EventType = GameplayEventType.ItemCollected });
                                     }
                                 }
                             }
@@ -946,14 +890,12 @@ namespace Website.Migrations
                         string bossfightQuery = $"SELECT bossfights.urlname FROM visitedfloors RIGHT JOIN bossfights ON bossfights.visitedfloorid = visitedfloors.id WHERE visitedfloors.id = {floor.Key} ORDER BY bossfights.id ASC; ";
                         using (var q = new NpgsqlCommand(bossfightQuery, c))
                         {
-                            using (var r = q.ExecuteReader())
+                            using var r = q.ExecuteReader();
+                            if (r.HasRows)
                             {
-                                if (r.HasRows)
+                                while (r.Read())
                                 {
-                                    while (r.Read())
-                                    {
-                                        submission.PlayedCharacters.Last().PlayedFloors.Last().gameplayEvents.Add(new GameplayEvent() { RelatedResource1 = r.GetString(0), EventType = GameplayEventType.Bossfight });
-                                    }
+                                    submission.PlayedCharacters.Last().PlayedFloors.Last().gameplayEvents.Add(new GameplayEvent() { RelatedResource1 = r.GetString(0), EventType = GameplayEventType.Bossfight });
                                 }
                             }
                         }
@@ -962,17 +904,13 @@ namespace Website.Migrations
                         if (!string.IsNullOrEmpty(floor.Value.death))
                         {
                             string getDeathQuery = $"SELECT urlname FROM deaths WHERE name = @A; ";
-                            using (var q = new NpgsqlCommand(getDeathQuery, c))
+                            using var q = new NpgsqlCommand(getDeathQuery, c);
+                            q.Parameters.AddWithValue("@A", NpgsqlDbType.Varchar, floor.Value.death);
+                            using var r = q.ExecuteReader();
+                            if (r.HasRows)
                             {
-                                q.Parameters.AddWithValue("@A", NpgsqlDbType.Varchar, floor.Value.death);
-                                using (var r = q.ExecuteReader())
-                                {
-                                    if (r.HasRows)
-                                    {
-                                        r.Read();
-                                        submission.PlayedCharacters.Last().PlayedFloors.Last().gameplayEvents.Add(new GameplayEvent() { EventType = GameplayEventType.CharacterDied, RelatedResource1 = r.GetString(0) });
-                                    }
-                                }
+                                r.Read();
+                                submission.PlayedCharacters.Last().PlayedFloors.Last().gameplayEvents.Add(new GameplayEvent() { EventType = GameplayEventType.CharacterDied, RelatedResource1 = r.GetString(0) });
                             }
                         }
                     }
