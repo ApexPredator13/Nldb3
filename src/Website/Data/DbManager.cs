@@ -143,7 +143,8 @@ namespace Website.Data
                     "id SERIAL PRIMARY KEY, " +
                     "video CHAR(11) NOT NULL REFERENCES videos (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
                     $"sub TEXT NOT NULL DEFAULT '{_config["DeletedUserId"]}' REFERENCES \"AspNetUsers\" (\"Id\") ON UPDATE CASCADE ON DELETE SET DEFAULT, " +
-                    $"s_type INTEGER NOT NULL DEFAULT {(int)SubmissionType.New}" +
+                    $"s_type INTEGER NOT NULL DEFAULT {(int)SubmissionType.New}, " +
+                    $"latest BOOLEAN NOT NULL DEFAULT TRUE" +
                 "); ";
 
             Execute(query);

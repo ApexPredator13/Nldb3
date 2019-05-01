@@ -96,7 +96,7 @@ namespace Website.Data
 
         public async Task SaveVideo(SaveVideo newVideo)
         {
-            string query = "INSERT INTO videos (id, title, published, duration) VALUES (@I, @T, @P, @D); ";
+            string query = "INSERT INTO videos (id, title, published, duration, latest) VALUES (@I, @T, @P, @D, @L); ";
 
             using (var c = await _connector.Connect())
             {
@@ -106,6 +106,7 @@ namespace Website.Data
                     q.Parameters.AddWithValue("@T", NpgsqlDbType.Varchar, newVideo.Title);
                     q.Parameters.AddWithValue("@P", NpgsqlDbType.TimestampTz, newVideo.Published);
                     q.Parameters.AddWithValue("@D", NpgsqlDbType.Integer, newVideo.Duration);
+                    q.Parameters.AddWithValue("@L", NpgsqlDbType.Boolean, newVideo.Latest);
 
                     await q.ExecuteNonQueryAsync();
                 }
@@ -114,7 +115,7 @@ namespace Website.Data
 
         public async Task SubmitLostEpisode(string videoId, string userId)
         {
-            string query = $"INSERT INTO video_submissions (video, sub, s_type) VALUES (@V, @U, @ST); ";
+            string query = $"INSERT INTO video_submissions (video, sub, s_type, latest) VALUES (@V, @U, @ST, FALSE); ";
             using (var c = await _connector.Connect())
             {
                 using (var q = new NpgsqlCommand(query, c))
@@ -158,7 +159,11 @@ namespace Website.Data
             var parameters = new List<NpgsqlParameter>();
 
             // save video submission
-            s.Append("START TRANSACTION; INSERT INTO video_submissions (video, sub, s_type) VALUES (@Video, @Sub, @Type); ");
+            s.Append("START TRANSACTION; ");
+            s.Append("UPDATE video_submission SET latest = FALSE WHERE video = @LatestVideoId; ");
+            parameters.Add(new NpgsqlParameter("@LatestVideoId", NpgsqlDbType.Char) { Value = episode.VideoId });
+
+            s.Append("INSERT INTO video_submissions (video, sub, s_type, latest) VALUES (@Video, @Sub, @Type, TRUE); ");
             parameters.Add(new NpgsqlParameter("@Video", NpgsqlDbType.Char) { NpgsqlValue = episode.VideoId });
             parameters.Add(new NpgsqlParameter("@Sub", NpgsqlDbType.Text) { NpgsqlValue = userId });
             parameters.Add(new NpgsqlParameter("@Type", NpgsqlDbType.Integer) { NpgsqlValue = (int)type });

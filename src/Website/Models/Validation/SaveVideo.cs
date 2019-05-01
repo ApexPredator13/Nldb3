@@ -16,5 +16,8 @@ namespace Website.Models.Validation
 
         [Required]
         public int Duration { get; set; } = 0;
+
+        [Required]
+        public bool Latest { get; set; } = true;
     }
 }
