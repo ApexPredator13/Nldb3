@@ -1,31 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using Website.Models.Validation;
 using Website.Models.Validation.SubmitEpisode;
 
-#nullable disable
 namespace Website.Models.Database
 {
     public class Video
     {
-        public string Id { get; set; }
-
-        [Required]
-        public string Title { get; set; }
-
-        [Required]
+        public string Id { get; set; } = string.Empty;
+        public string Title { get; set; } = string.Empty;
         public DateTime Published { get; set; }
-
         public TimeSpan? Duration { get; set; }
-
-        public List<Thumbnail> Thumbnails { get; set; }
+        public List<Thumbnail> Thumbnails { get; set; } = new List<Thumbnail>();
         public bool RequiresUpdate { get; set; } = false;
-        public int? Likes { get; set; }
-        public int? Dislikes { get; set; }
-        public int? ViewCount { get; set; }
-        public int? FavouriteCount { get; set; }
-        public int? CommentCount { get; set; }
-        public List<SubmittedEpisode> Submissions { get; set; }
+        public int? Likes { get; set; } = null;
+        public int? Dislikes { get; set; } = null;
+        public int? ViewCount { get; set; } = null;
+        public int? FavouriteCount { get; set; } = null;
+        public int? CommentCount { get; set; } = null;
+        public List<SubmittedEpisode> Submissions { get; set; } = new List<SubmittedEpisode>();
+        public List<string> Tags { get; set; } = new List<string>();
+        public bool Is3D { get; set; } = false;
+        public bool IsHD { get; set; } = false;
+        public bool HasCaption { get; set; } = false;
     }
 }

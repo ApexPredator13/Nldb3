@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Google.Apis.YouTube.v3.Data;
+using System;
 using System.Threading.Tasks;
 using Website.Models.Database;
 using Website.Models.Database.Enums;
@@ -15,5 +16,6 @@ namespace Website.Services
         Task<int> CountVideos();
         Task<int> CountVideoSubmissions();
         Task<DateTime?> GetVideoReleasedate(string videoId);
+        Task<VideoListResponse> GetYoutubeVideoData(params string[] videoIds);
     }
 }

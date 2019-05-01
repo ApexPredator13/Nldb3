@@ -1,9 +1,7 @@
 ﻿using Npgsql;
 using NpgsqlTypes;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,6 +9,10 @@ using Website.Models.Database.Enums;
 using Website.Models.Validation;
 using Website.Models.Validation.SubmitEpisode;
 using Website.Services;
+using Google.Apis.YouTube.v3;
+using Google.Apis.YouTube.v3.Data;
+using Google.Apis.Services;
+using Microsoft.Extensions.Configuration;
 
 namespace Website.Data
 {
@@ -19,12 +21,14 @@ namespace Website.Data
         private readonly IDbConnector _connector;
         private readonly IModRepository _modRepository;
         private readonly IIsaacRepository _isaacRepository;
+        private readonly IConfiguration _config;
 
-        public VideoRepository(IDbConnector connector, IModRepository modRepository, IIsaacRepository isaacRepository)
+        public VideoRepository(IDbConnector connector, IModRepository modRepository, IIsaacRepository isaacRepository, IConfiguration config)
         {
             _connector = connector;
             _modRepository = modRepository;
             _isaacRepository = isaacRepository;
+            _config = config;
         }
 
         public async Task<int> CountVideos()
@@ -32,6 +36,22 @@ namespace Website.Data
             using var c = await _connector.Connect();
             using var q = new NpgsqlCommand("SELECT COUNT(*) FROM videos; ", c);
             return Convert.ToInt32(await q.ExecuteScalarAsync());
+        }
+
+        public async Task<VideoListResponse> GetYoutubeVideoData(params string[] videoIds)
+        {
+            var youtubeServiceInitializer = new BaseClientService.Initializer()
+            {
+                ApiKey = _config["GoogleApiKey"],
+                ApplicationName = "The Northernlion Database"
+            };
+
+            var youtubeService = new YouTubeService(youtubeServiceInitializer);
+            VideosResource.ListRequest listRequest = youtubeService.Videos.List("snippet,contentDetails,statistics");
+            listRequest.Id = string.Join(',', videoIds);
+
+            var result = await listRequest.ExecuteAsync();
+            return result;
         }
 
         public async Task<DateTime?> GetVideoReleasedate(string videoId)
@@ -81,17 +101,31 @@ namespace Website.Data
 
         public async Task SaveVideo(SaveVideo newVideo)
         {
-            using var c = await _connector.Connect();
-            using var q = new NpgsqlCommand("INSERT INTO videos (id, title, published, duration, latest) VALUES (@I, @T, @P, @D, @L); ", c);
+            string commandText =
+                "INSERT INTO videos (id, title, published, duration, needs_update, likes, dislikes, view_count, favourite_count, comment_count, tags, is_3d, is_hd, cc) " +
+                "VALUES (@Id, @Title, @Pub, @Dur, @Needs, @Likes, @Dislikes, @ViewCount, @Fav, @CC, @Tags, @Is3D, @IsHD, @Cap); ";
 
-            q.Parameters.AddWithValue("@I", NpgsqlDbType.Varchar, newVideo.Id);
-            q.Parameters.AddWithValue("@T", NpgsqlDbType.Varchar, newVideo.Title);
-            q.Parameters.AddWithValue("@P", NpgsqlDbType.TimestampTz, newVideo.Published);
-            q.Parameters.AddWithValue("@D", NpgsqlDbType.Integer, newVideo.Duration);
-            q.Parameters.AddWithValue("@L", NpgsqlDbType.Boolean, newVideo.Latest);
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand(commandText, c);
+
+            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Varchar, newVideo.Id);
+            q.Parameters.AddWithValue("@Title", NpgsqlDbType.Varchar, newVideo.Title);
+            q.Parameters.AddWithValue("@Pub", NpgsqlDbType.TimestampTz, newVideo.Published);
+            q.Parameters.AddWithValue("@Dur", NpgsqlDbType.Integer, newVideo.Duration);
+            q.Parameters.AddWithValue("@Needs", NpgsqlDbType.Boolean, newVideo.NeedsUpdate);
+            q.Parameters.AddWithValue("@Likes", NpgsqlDbType.Integer, newVideo.Likes ?? (object)DBNull.Value);
+            q.Parameters.AddWithValue("@Dislikes", NpgsqlDbType.Integer, newVideo.Dislikes ?? (object)DBNull.Value);
+            q.Parameters.AddWithValue("@ViewCount", NpgsqlDbType.Integer, newVideo.ViewCount ?? (object)DBNull.Value);
+            q.Parameters.AddWithValue("@Fav", NpgsqlDbType.Integer, newVideo.FavouriteCount ?? (object)DBNull.Value);
+            q.Parameters.AddWithValue("@CC", NpgsqlDbType.Integer, newVideo.CommentCount ?? (object)DBNull.Value);
+            q.Parameters.AddWithValue("@Tags", NpgsqlDbType.Array | NpgsqlDbType.Varchar, newVideo.Tags != null && newVideo.Tags.Count > 0 ? newVideo.Tags : (object)DBNull.Value);
+            q.Parameters.AddWithValue("@Is3D", NpgsqlDbType.Boolean, newVideo.Is3D);
+            q.Parameters.AddWithValue("@IsHD", NpgsqlDbType.Boolean, newVideo.IsHD);
+            q.Parameters.AddWithValue("@Cap", NpgsqlDbType.Boolean, newVideo.HasCaption);
 
             await q.ExecuteNonQueryAsync();
         }
+
 
         public async Task SubmitLostEpisode(string videoId, string userId)
         {

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace Website.Models.Validation
@@ -18,6 +19,33 @@ namespace Website.Models.Validation
         public int Duration { get; set; } = 0;
 
         [Required]
-        public bool Latest { get; set; } = true;
+        public bool NeedsUpdate { get; set; } = false;
+
+        [Required]
+        public int? Likes { get; set; } = null;
+
+        [Required]
+        public int? Dislikes { get; set; } = null;
+
+        [Required]
+        public int? FavouriteCount { get; set; } = null;
+
+        [Required]
+        public int? CommentCount { get; set; } = null;
+
+        [Required]
+        public int? ViewCount { get; set; } = null;
+
+        [Required]
+        public List<string> Tags { get; set; } = new List<string>();
+
+        [Required]
+        public bool Is3D { get; set; } = false;
+
+        [Required]
+        public bool IsHD { get; set; } = false;
+
+        [Required]
+        public bool HasCaption { get; set; } = false;
     }
 }

@@ -34,7 +34,7 @@ namespace Website.Data
                 return;
             }
 
-            string query = "DROP TABLE IF EXISTS mods, mod_url, isaac_resources, tags, videos, video_submissions, played_characters, played_floors, gameplay_events, transformative_resources; ";
+            string query = "DROP TABLE IF EXISTS mods, mod_url, isaac_resources, tags, thumbnails, videos, video_submissions, played_characters, played_floors, gameplay_events, transformative_resources; ";
 
             Execute(query);
         }
@@ -126,7 +126,19 @@ namespace Website.Data
                     "dislikes INTEGER, " +
                     "view_count INTEGER, " +
                     "favourite_count INTEGER, " +
-                    "comment_count INTEGER" +
+                    "comment_count INTEGER, " +
+                    "tags VARCHAR(100)[], " +
+                    "is_3d BOOLEAN, " +
+                    "is_hd BOOLEAN, " +
+                    "cc BOOLEAN" +
+                "); " +
+                
+                "CREATE TABLE thumbnails (" +
+                    "id SERIAL PRIMARY KEY, " +
+                    "type VARCHAR(30) NOT NULL, " +
+                    "url VARCHAR(256) NOT NULL, " +
+                    "width INTEGER NOT NULL, " +
+                    "height INTEGER NOT NULL" +
                 "); ";
 
             Execute(query);
