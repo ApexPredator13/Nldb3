@@ -211,7 +211,6 @@ namespace Website.Migrations
             }
 
             List<CreateIsaacResource> newBosses = new List<CreateIsaacResource>();
-            List<string> doubleTroubleBosses = new List<string>();
             using (var c = new NpgsqlConnection(_oldConnectionString))
             {
                 await c.OpenAsync();
@@ -227,13 +226,9 @@ namespace Website.Migrations
                             Name = r.GetString(0),
                             Id = r.GetString(3),
                             FromMod = r.IsDBNull(6) ? null : await _modRepository.GetModIdByName(r.GetString(6)),
-                            ResourceType = ResourceType.Boss
+                            ResourceType = ResourceType.Boss,
+                            Tags = r.GetBoolean(5) ? new List<Effect>() { Effect.DoubleTroubleBossfight } : null
                         });
-
-                        if (r.GetBoolean(5))
-                        {
-                            doubleTroubleBosses.Add(r.GetString(3));
-                        }
                     }
                 }
             }
@@ -251,10 +246,6 @@ namespace Website.Migrations
                 if (b.Id == "LittleHorn") b.Id = "LittleHornBoss";
 
                 await _isaacRepository.SaveResource(b, -1, -1, -1, -1);
-            }
-            foreach (var b in doubleTroubleBosses)
-            {
-                await _isaacRepository.AddTag(new AddTag { Effect = Effect.DoubleTroubleBossfight, ResourceId = b });
             }
         }
 
@@ -432,8 +423,6 @@ namespace Website.Migrations
             }
 
             var newItems = new List<CreateIsaacResource>();
-            var spacebarItems = new List<string>();
-            var passiveItems = new List<string>();
 
             using (var c = new NpgsqlConnection(_oldConnectionString))
             {
@@ -450,17 +439,9 @@ namespace Website.Migrations
                             Name = r.GetString(0),
                             Id = r.GetString(1),
                             FromMod = r.IsDBNull(4) ? null : await _modRepository.GetModIdByName(r.GetString(4)),
-                            ResourceType = ResourceType.Item
+                            ResourceType = ResourceType.Item,
+                            Tags = r.GetBoolean(5) ? new List<Effect>() { Effect.IsSpacebarItem } : new List<Effect>() { Effect.IsPassiveItem }
                         });
-
-                        if (r.GetBoolean(5))
-                        {
-                            spacebarItems.Add(r.GetString(1));
-                        }
-                        else
-                        {
-                            passiveItems.Add(r.GetString(1));
-                        }
                     }
                 }
             }
@@ -470,15 +451,6 @@ namespace Website.Migrations
             foreach (var i in newItems)
             {
                 await _isaacRepository.SaveResource(i, -1, -1, -1, -1);
-            }
-
-            foreach (var i in spacebarItems)
-            {
-                await _isaacRepository.AddTag(new AddTag { Effect = Effect.IsSpacebarItem, ResourceId = i });
-            }
-            foreach (var i in passiveItems)
-            {
-                await _isaacRepository.AddTag(new AddTag { Effect = Effect.IsPassiveItem, ResourceId = i });
             }
 
             // add transformation info to items
@@ -657,7 +629,8 @@ namespace Website.Migrations
                             Id = r.GetString(1),
                             Name = r.GetString(0),
                             FromMod = r.IsDBNull(4) ? null : await _modRepository.GetModIdByName(r.GetString(4)),
-                            ResourceType = ResourceType.Transformation
+                            ResourceType = ResourceType.Transformation,
+                            Tags = new List<Effect> { Effect.ThreeStepsToTransformation }
                         });
                     }
                 }
@@ -675,7 +648,6 @@ namespace Website.Migrations
                 if (t.Id == "Seraphim") t.Id = "SeraphimTransformation";
 
                 var id = await _isaacRepository.SaveResource(t, -1, -1, -1, -1);
-                await _isaacRepository.AddTag(new AddTag() { Effect = Effect.ThreeStepsToTransformation, ResourceId = id });
             }
         }
 
@@ -781,7 +753,7 @@ namespace Website.Migrations
             foreach (var videoId in videoIds)
             {
                 _logger.LogInformation($"processing video '{videoId}'");
-                var submission = new SubmittedEpisode()
+                var submission = new SubmittedCompleteEpisode()
                 {
                     VideoId = videoId
                 };
@@ -838,12 +810,12 @@ namespace Website.Migrations
                             if (r.HasRows)
                             {
                                 r.Read();
-                                submission.PlayedCharacters.Add(new PlayedCharacter { CharacterId = (r.GetString(0)) });
+                                submission.PlayedCharacters.Add(new SubmittedPlayedCharacter { CharacterId = (r.GetString(0)) });
                             }
                         }
 
                         // add floor to character
-                        submission.PlayedCharacters.Last().PlayedFloors.Add(new PlayedFloor() { FloorId = floor.Value.floor, VideoId = videoId });
+                        submission.PlayedCharacters.Last().PlayedFloors.Add(new SubmittedPlayedFloor() { FloorId = floor.Value.floor, VideoId = videoId });
 
 
                         // add curses to floor
@@ -858,7 +830,7 @@ namespace Website.Migrations
                                     if (!r.IsDBNull(0))
                                     {
                                         var curseId = string.Join(string.Empty, r.GetString(0).Split(" ").Select(a => char.ToUpper(a[0]).ToString() + a.Substring(1)));
-                                        submission.PlayedCharacters.Last().PlayedFloors.Last().gameplayEvents.Add(new GameplayEvent() { RelatedResource1 = curseId, EventType = GameplayEventType.Curse });
+                                        submission.PlayedCharacters.Last().PlayedFloors.Last().gameplayEvents.Add(new SubmittedGameplayEvent() { RelatedResource1 = curseId, EventType = GameplayEventType.Curse });
                                     }
                                 }
                             }
@@ -875,11 +847,11 @@ namespace Website.Migrations
                                 {
                                     if (r.GetString(0) == "AbsorbedItem")
                                     {
-                                        submission.PlayedCharacters.Last().PlayedFloors.Last().gameplayEvents.Add(new GameplayEvent() { RelatedResource1 = "TheVoid", RelatedResource2 = r.GetString(0), EventType = GameplayEventType.AbsorbedItem });
+                                        submission.PlayedCharacters.Last().PlayedFloors.Last().gameplayEvents.Add(new SubmittedGameplayEvent() { RelatedResource1 = "TheVoid", RelatedResource2 = r.GetString(0), EventType = GameplayEventType.AbsorbedItem });
                                     }
                                     else
                                     {
-                                        submission.PlayedCharacters.Last().PlayedFloors.Last().gameplayEvents.Add(new GameplayEvent() { RelatedResource1 = r.GetString(0), RelatedResource2 = r.GetString(1), EventType = GameplayEventType.ItemCollected });
+                                        submission.PlayedCharacters.Last().PlayedFloors.Last().gameplayEvents.Add(new SubmittedGameplayEvent() { RelatedResource1 = r.GetString(0), RelatedResource2 = r.GetString(1), EventType = GameplayEventType.ItemCollected });
                                     }
                                 }
                             }
@@ -895,7 +867,7 @@ namespace Website.Migrations
                             {
                                 while (r.Read())
                                 {
-                                    submission.PlayedCharacters.Last().PlayedFloors.Last().gameplayEvents.Add(new GameplayEvent() { RelatedResource1 = r.GetString(0), EventType = GameplayEventType.Bossfight });
+                                    submission.PlayedCharacters.Last().PlayedFloors.Last().gameplayEvents.Add(new SubmittedGameplayEvent() { RelatedResource1 = r.GetString(0), EventType = GameplayEventType.Bossfight });
                                 }
                             }
                         }
@@ -910,7 +882,7 @@ namespace Website.Migrations
                             if (r.HasRows)
                             {
                                 r.Read();
-                                submission.PlayedCharacters.Last().PlayedFloors.Last().gameplayEvents.Add(new GameplayEvent() { EventType = GameplayEventType.CharacterDied, RelatedResource1 = r.GetString(0) });
+                                submission.PlayedCharacters.Last().PlayedFloors.Last().gameplayEvents.Add(new SubmittedGameplayEvent() { EventType = GameplayEventType.CharacterDied, RelatedResource1 = r.GetString(0) });
                             }
                         }
                     }

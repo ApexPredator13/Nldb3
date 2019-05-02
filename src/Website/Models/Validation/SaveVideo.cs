@@ -6,7 +6,7 @@ namespace Website.Models.Validation
 {
     public class SaveVideo
     {
-        [Required]
+        [Required, StringLength(11)]
         public string Id { get; set; } = string.Empty;
 
         [Required]

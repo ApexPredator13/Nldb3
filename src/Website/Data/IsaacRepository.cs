@@ -39,6 +39,268 @@ namespace Website.Data
             return r.HasRows;
         }
 
+        public async Task<List<SubmittedEpisode>> GetSubmittedEpisodesForVideo(string videoId, int? submissionId = null)
+        {
+            var result = new List<SubmittedEpisode>();
+
+            string query = 
+                "SELECT s.id, s.s_type, s.latest, u.\"UserName\" " +
+                "FROM video_submissions s " +
+                "LEFT JOIN \"AspNetUsers\" u ON u.\"Id\" = s.sub " +
+                "WHERE s.video = @VideoId" +
+                $"{(submissionId is null ? string.Empty : " AND id = @SubmissionId")}; ";
+
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand(query, c);
+            q.Parameters.AddWithValue("@VideoId", NpgsqlDbType.Char, videoId);
+            if (submissionId != null) q.Parameters.AddWithValue("@SubmissionId", NpgsqlDbType.Integer, submissionId.Value);
+
+            using var r = await q.ExecuteReaderAsync();
+
+            if (r.HasRows)
+            {
+                while (r.Read())
+                {
+                    int i = 0;
+                    result.Add(new SubmittedEpisode()
+                    {
+                        Id = r.GetInt32(i++),
+                        SubmissionType = (SubmissionType)r.GetInt32(i++),
+                        Latest = r.GetBoolean(i++),
+                        PlayedCharacters = new List<PlayedCharacter>(),
+                        Video = videoId,
+                        UserName = r.GetString(i++)
+                    });
+                }
+            }
+
+            return result;
+        }
+
+        public async Task<List<PlayedCharacter>>GetPlayedCharactersForVideo(string videoId, int? submissionId = null)
+        {
+            var result = new List<PlayedCharacter>();
+
+            string query = 
+                "SELECT " +
+                    "pc.id, pc.action, pc.run_number, pc.submission, " +
+                    "c.id, c.name, c.type, c.exists_in, c.x, c.game_mode, c.color, c.display_order, c.difficulty, c.tags, " +
+                    "d.id, d.name, d.type, d.exists_in, d.x, d.game_mode, d.color, d.display_order, d.difficulty, d.tags " +
+                "FROM played_characters pc " +
+                "LEFT JOIN isaac_resources c ON c.id = pc.game_character " +
+                "LEFT JOIN isaac_resources d ON d.id = pc.died_from " +
+                $"WHERE pc.video = @VideoId{(submissionId is null ? string.Empty : " AND pc.submission = @SubmissionId")} " +
+                "GROUP BY pc.submission, pc.id, c.id, d.id " +
+                "ORDER BY pc.run_number ASC, pc.action ASC; ";
+
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand(query, c);
+            q.Parameters.AddWithValue("@VideoId", NpgsqlDbType.Char, videoId);
+            if (submissionId != null) q.Parameters.AddWithValue("@SubmissionId", NpgsqlDbType.Integer, submissionId.Value);
+
+            using var r = await q.ExecuteReaderAsync();
+
+            if (r.HasRows)
+            {
+                while (r.Read())
+                {
+                    int i = 0;
+                    var playedCharacter = new PlayedCharacter()
+                    {
+                        Id = r.GetInt32(i++),
+                        Action = r.GetInt32(i++),
+                        RunNumber = r.GetInt32(i++),
+                        Submission = r.GetInt32(i++),
+                        GameCharacter = new IsaacResource()
+                        {
+                            Id = r.GetString(i++),
+                            Name = r.GetString(i++),
+                            ResourceType = (ResourceType)r.GetInt32(i++),
+                            ExistsIn = (ExistsIn)r.GetInt32(i++),
+                            CssCoordinates = (NpgsqlBox)r[i++],
+                            GameMode = (GameMode)r.GetInt32(i++),
+                            Color = r.GetString(i++),
+                            DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
+                            Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
+                            Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Effect)x).ToList()
+                        }
+                    };
+
+                    if (!r.IsDBNull(i))
+                    {
+                        playedCharacter.DiedFrom = new IsaacResource()
+                        {
+                            Id = r.GetString(i++),
+                            Name = r.GetString(i++),
+                            ResourceType = (ResourceType)r.GetInt32(i++),
+                            ExistsIn = (ExistsIn)r.GetInt32(i++),
+                            CssCoordinates = (NpgsqlBox)r[i++],
+                            GameMode = (GameMode)r.GetInt32(i++),
+                            Color = r.GetString(i++),
+                            DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
+                            Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
+                            Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Effect)x).ToList()
+                        };
+                    }
+
+                    result.Add(playedCharacter);
+                }
+            }
+
+            return result;
+        }
+
+        public async Task<List<PlayedFloor>> GetFloorsForVideo(string videoId, int? submissionId = null)
+        {
+            var result = new List<PlayedFloor>();
+
+            string query =
+                "SELECT " +
+                    "pf.id, pf.action, pf.run_number, pf.floor_number, pf.submission, " +
+                    "f.id, f.name, f.type, f.exists_in, f.x, f.game_mode, f.color, f.display_order, f.difficulty, f.tags, " +
+                    "d.id, d.name, d.type, d.exists_in, d.x, d.game_mode, d.color, d.display_order, d.difficulty, d.tags " +
+                "FROM played_floors pf " +
+                "LEFT JOIN isaac_resources f ON f.id = pf.floor " +
+                "LEFT JOIN isaac_resources d ON d.id = pf.died_from " +
+                $"WHERE pf.video = @VideoId{(submissionId is null ? string.Empty : " AND pf.submission = @SubmissionId")} " +
+                "GROUP BY pf.id, f.id, d.id " +
+                "ORDER BY pf.run_number ASC, pf.action ASC; ";
+
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand(query, c);
+            q.Parameters.AddWithValue("@VideoId", NpgsqlDbType.Char, videoId);
+            if (submissionId != null) q.Parameters.AddWithValue("@SubmissionId", NpgsqlDbType.Integer, submissionId.Value);
+
+            using var r = await q.ExecuteReaderAsync();
+
+            if (r.HasRows)
+            {
+                while (r.Read())
+                {
+                    int i = 0;
+                    var floor = new PlayedFloor()
+                    {
+                        Id = r.GetInt32(i++),
+                        Action = r.GetInt32(i++),
+                        RunNumber = r.GetInt32(i++),
+                        FloorNumber = r.GetInt32(i++),
+                        Submission = r.GetInt32(i++),
+                        Floor = new IsaacResource()
+                        {
+                            Id = r.GetString(i++),
+                            Name = r.GetString(i++),
+                            ResourceType = (ResourceType)r.GetInt32(i++),
+                            ExistsIn = (ExistsIn)r.GetInt32(i++),
+                            CssCoordinates = (NpgsqlBox)r[i++],
+                            GameMode = (GameMode)r.GetInt32(i++),
+                            Color = r.GetString(i++),
+                            DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
+                            Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
+                            Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Effect)x).ToList()
+                        }
+                    };
+
+                    if (!r.IsDBNull(i))
+                    {
+                        floor.DiedFrom = new IsaacResource()
+                        {
+                            Id = r.GetString(i++),
+                            Name = r.GetString(i++),
+                            ResourceType = (ResourceType)r.GetInt32(i++),
+                            ExistsIn = (ExistsIn)r.GetInt32(i++),
+                            CssCoordinates = (NpgsqlBox)r[i++],
+                            GameMode = (GameMode)r.GetInt32(i++),
+                            Color = r.GetString(i++),
+                            DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
+                            Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
+                            Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Effect)x).ToList()
+                        };
+                    }
+
+                    result.Add(floor);
+                }
+            }
+
+            return result;
+        }
+
+        public async Task<List<GameplayEvent>> GetGameplayEventsForVideo(string videoId, int? submissionId = null)
+        {
+            var result = new List<GameplayEvent>();
+
+            var query =
+                "SELECT " +
+                    "e.id, e.event_type, e.action, e.resource_three, e.run_number, e.player, e.floor_number, e.submission, " +
+                    "r1.id, r1.name, r1.type, r1.exists_in, r1.x, r1.game_mode, r1.color, r1.display_order, r1.difficulty, r1.tags, " +
+                    "r2.id, r2.name, r2.type, r2.exists_in, r2.x, r2.game_mode, r2.color, r2.display_order, r2.difficulty, r2.tags " +
+                "FROM gameplay_events e " +
+                "LEFT JOIN isaac_resources r1 ON r1.id = e.resource_one " +
+                "LEFT JOIN isaac_resources r2 ON r2.id = e.resource_two " +
+                $"WHERE e.video = @VideoId{(submissionId is null ? string.Empty : " AND e.submission = @SubmissionId")} " +
+                "GROUP BY e.submission, e.id, r1.id, r2.id " +
+                "ORDER BY e.run_number ASC, e.action ASC;";
+
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand(query, c);
+            q.Parameters.AddWithValue("@VideoId", NpgsqlDbType.Char, videoId);
+            if (submissionId != null) q.Parameters.AddWithValue("@SubmissionId", NpgsqlDbType.Integer, submissionId.Value);
+
+            using var r = await q.ExecuteReaderAsync();
+
+            if (r.HasRows)
+            {
+                while (r.Read())
+                {
+                    int i = 0;
+                    var gameplayEvent = new GameplayEvent()
+                    {
+                        Id = r.GetInt32(i++),
+                        EventType = (GameplayEventType)r.GetInt32(i++),
+                        Action = r.GetInt32(i++),
+                        Resource3 = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
+                        RunNumber = r.GetInt32(i++),
+                        Player = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
+                        FloorNumber = r.GetInt32(i++),
+                        Submission = r.GetInt32(i++),
+                        Resource1 = new IsaacResource()
+                        {
+                            Id = r.GetString(i++),
+                            Name = r.GetString(i++),
+                            ResourceType = (ResourceType)r.GetInt32(i++),
+                            ExistsIn = (ExistsIn)r.GetInt32(i++),
+                            CssCoordinates = (NpgsqlBox)r[i++],
+                            GameMode = (GameMode)r.GetInt32(i++),
+                            Color = r.GetString(i++),
+                            DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
+                            Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
+                            Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Effect)x).ToList()
+                        }
+                    };
+
+                    if (!r.IsDBNull(i))
+                    {
+                        gameplayEvent.Resource2 = new IsaacResource()
+                        {
+                            Id = r.GetString(i++),
+                            Name = r.GetString(i++),
+                            ResourceType = (ResourceType)r.GetInt32(i++),
+                            ExistsIn = (ExistsIn)r.GetInt32(i++),
+                            CssCoordinates = (NpgsqlBox)r[i++],
+                            GameMode = (GameMode)r.GetInt32(i++),
+                            Color = r.GetString(i++),
+                            DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
+                            Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
+                            Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Effect)x).ToList()
+                        };
+                    }
+
+                    result.Add(gameplayEvent);
+                }
+            }
+
+            return result;
+        }
+
         public async Task<int> UpdateExistsIn(string id, ExistsIn newExistsIn)
         {
             using var c = await _connector.Connect();
@@ -103,8 +365,8 @@ namespace Website.Data
 
         public async Task<string> SaveResource(CreateIsaacResource resource, int x, int y, int w, int h)
         {
-            string query = "INSERT INTO isaac_resources (id, name, type, exists_in, x, game_mode, color, mod, display_order, difficulty) VALUES (" +
-                "@I, @N, @D, @E, @X, @M, @C, @L, @O, @U) RETURNING id;";
+            string query = "INSERT INTO isaac_resources (id, name, type, exists_in, x, game_mode, color, mod, display_order, difficulty, tags) VALUES (" +
+                "@I, @N, @D, @E, @X, @M, @C, @L, @O, @U, @T) RETURNING id;";
 
             using var c = await _connector.Connect();
             using var q = new NpgsqlCommand(query, c);
@@ -118,6 +380,7 @@ namespace Website.Data
             q.Parameters.AddWithValue("@L", NpgsqlDbType.Integer, resource.FromMod ?? (object)DBNull.Value);
             q.Parameters.AddWithValue("@O", NpgsqlDbType.Integer, resource.DisplayOrder ?? (object)DBNull.Value);
             q.Parameters.AddWithValue("@U", NpgsqlDbType.Integer, resource.Difficulty ?? (object)DBNull.Value);
+            q.Parameters.AddWithValue("@T", NpgsqlDbType.Array | NpgsqlDbType.Integer, resource.Tags?.Select(x => (int)x).ToArray() ?? (object)DBNull.Value);
 
             return Convert.ToString(await q.ExecuteScalarAsync());
         }
@@ -129,15 +392,6 @@ namespace Website.Data
             q.Parameters.AddWithValue("@X", NpgsqlDbType.Box, CreateBoxCoordinatesFromScreenCoordinates(x, y, w, h));
             q.Parameters.AddWithValue("@I", NpgsqlDbType.Varchar, resourceId);
             return await q.ExecuteNonQueryAsync();
-        }
-
-        public async Task<int> AddTag(AddTag tag)
-        {
-            using var c = await _connector.Connect();
-            using var q = new NpgsqlCommand("INSERT INTO tags (id, value, isaac_resource) VALUES (DEFAULT, @V, @I) RETURNING id; ", c);
-            q.Parameters.AddWithValue("@V", NpgsqlDbType.Integer, (int)tag.Effect);
-            q.Parameters.AddWithValue("@I", NpgsqlDbType.Varchar, tag.ResourceId);
-            return Convert.ToInt32(await q.ExecuteScalarAsync());
         }
 
         private string GetOrderByClause(ResourceOrderBy orderBy, string prefix, bool asc)
@@ -160,15 +414,11 @@ namespace Website.Data
 
         private void CreateSelectStatementForRequest(StringBuilder s, GetResource request)
         {
-            s.Append($"SELECT i.id, i.name, i.type, i.exists_in, i.x, i.game_mode, i.color, i.display_order, i.difficulty");
+            s.Append($"SELECT i.id, i.name, i.type, i.exists_in, i.x, i.game_mode, i.color, i.display_order, i.difficulty, i.tags");
 
             if (request.IncludeMod)
             {
                 s.Append($", m.id, m.name, u.id, u.url, u.name");
-            }
-            if (request.IncludeTags || request.RequiredTags.Count > 0)
-            {
-                s.Append($", t.id, t.value");
             }
         }
 
@@ -180,10 +430,6 @@ namespace Website.Data
             {
                 s.Append(" LEFT JOIN mods m ON i.mod = m.id");
                 s.Append(" LEFT JOIN mod_url u ON m.id = u.mod");
-            }
-            if (request.IncludeTags || request.RequiredTags.Count > 0)
-            {
-                s.Append(" LEFT JOIN tags t ON t.isaac_resource = i.id");
             }
         }
 
@@ -213,14 +459,8 @@ namespace Website.Data
                     s.Append(" AND");
                 }
 
-                s.Append(" t.value IN (");
-                for (int i = 0; i < request.RequiredTags.Count; i++)
-                {
-                    s.Append($"@R{i}, ");
-                    parameters.Add(new NpgsqlParameter($"@R{i}", NpgsqlDbType.Integer) { NpgsqlValue = (int)request.RequiredTags[i] });
-                }
-                s.Length -= 2;
-                s.Append(")");
+                s.Append(" i.tags @> @R");
+                parameters.Add(new NpgsqlParameter("@R", NpgsqlDbType.Array | NpgsqlDbType.Integer) { NpgsqlValue = request.RequiredTags.Select(x => (int)x).ToArray() });
             }
 
             return parameters;
@@ -233,10 +473,6 @@ namespace Website.Data
             if (request.IncludeMod)
             {
                 s.Append(", m.id, u.id");
-            }
-            if (request.IncludeTags || request.RequiredTags.Count > 0)
-            {
-                s.Append(", t.id");
             }
         }
 
@@ -292,10 +528,11 @@ namespace Website.Data
                             GameMode = (GameMode)r.GetInt32(i++),
                             Color = r.GetString(i++),
                             DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                            Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1)
+                            Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
+                            Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Effect)x).ToList()
                         });
                     }
-                    else i += 9;
+                    else i += 10;
 
                     var currentResource = resources.First(x => x.Id == resourceId);
 
@@ -322,35 +559,22 @@ namespace Website.Data
                         }
                         else i += 3;
                     }
-
-                    if (request.IncludeTags && !r.IsDBNull(i) && !currentResource.Tags.Any(x => x.Id == r.GetInt32(i)))
-                    {
-                        currentResource.Tags.Add(new Tag()
-                        {
-                            Id = r.GetInt32(i++),
-                            Effect = (Effect)r.GetInt32(i)
-                        });
-                    }
                 }
             }
 
             return resources;
         }
 
-        public async Task<IsaacResource?> GetResourceById(string id, bool includeMod, bool includeTags)
+        public async Task<IsaacResource?> GetResourceById(string id, bool includeMod)
         {
             IsaacResource? result = null;
 
             var s = new StringBuilder();
-            s.Append($"SELECT i.id, i.name, i.type, i.exists_in, i.x, i.game_mode, i.color, i.display_order, i.difficulty");
+            s.Append($"SELECT i.id, i.name, i.type, i.exists_in, i.x, i.game_mode, i.color, i.display_order, i.difficulty, i.tags");
 
             if (includeMod)
             {
                 s.Append($", m.id, m.name, u.id, u.url, u.name");
-            }
-            if (includeTags)
-            {
-                s.Append($", t.id, t.value");
             }
 
             s.Append(" FROM isaac_resources i");
@@ -359,10 +583,6 @@ namespace Website.Data
             {
                 s.Append(" LEFT JOIN mods m ON i.mod = m.id");
                 s.Append(" LEFT JOIN mod_url u ON m.id = u.mod");
-            }
-            if (includeTags)
-            {
-                s.Append(" LEFT JOIN tags t ON t.isaac_resource = i.id");
             }
 
             s.Append(" WHERE i.id = @Id; ");
@@ -390,10 +610,11 @@ namespace Website.Data
                             GameMode = (GameMode)r.GetInt32(i++),
                             Color = r.GetString(i++),
                             DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                            Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1)
+                            Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
+                            Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Effect)x).ToList()
                         };
                     }
-                    else i += 9;
+                    else i += 10;
 
                     if (includeMod)
                     {
@@ -418,15 +639,6 @@ namespace Website.Data
                         }
                         else i += 3;
                     }
-
-                    if (includeTags && !r.IsDBNull(i) && !result.Tags.Any(x => x.Id == r.GetInt32(i)))
-                    {
-                        result.Tags.Add(new Tag()
-                        {
-                            Id = r.GetInt32(i++),
-                            Effect = (Effect)r.GetInt32(i)
-                        });
-                    }
                 }
             }
 
@@ -442,61 +654,6 @@ namespace Website.Data
             return await q.ExecuteNonQueryAsync();
         }
 
-        public async Task<List<Tag>> GetTags(string resourceId)
-        {
-            var tags = new List<Tag>();
-
-            using var c = await _connector.Connect();
-            using var q = new NpgsqlCommand("SELECT id, value FROM tags WHERE isaac_resource = @Id; ", c);
-            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Varchar, resourceId);
-
-            using var r = await q.ExecuteReaderAsync();
-
-            if (r.HasRows)
-            {
-                while (r.Read())
-                {
-                    tags.Add(new Tag()
-                    {
-                        Id = r.GetInt32(0),
-                        Effect = (Effect)r.GetInt32(1)
-                    });
-                }
-            }
-
-            return tags;
-        }
-
-        public async Task<Tag?> GetTagById(int tagId)
-        {
-            Tag? tag = null;
-
-            using var c = await _connector.Connect();
-            using var q = new NpgsqlCommand("SELECT id, value FROM tags WHERE id = @Id; ", c);
-            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Integer, tagId);
-
-            using var r = await q.ExecuteReaderAsync();
-
-            if (r.HasRows)
-            {
-                r.Read();
-                tag = new Tag()
-                {
-                    Id = r.GetInt32(0),
-                    Effect = (Effect)r.GetInt32(1)
-                };
-            }
-
-            return tag;
-        }
-
-        public async Task<int> RemoveTag(int tagId)
-        {
-            using var c = await _connector.Connect();
-            using var q = new NpgsqlCommand("DELETE FROM tags WHERE id = @Id; ", c);
-            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Integer, tagId);
-            return await q.ExecuteNonQueryAsync();
-        }
 
         public async Task<int> MakeTransformative(MakeIsaacResourceTransformative model)
         {
@@ -517,22 +674,23 @@ namespace Website.Data
             return Convert.ToInt32(await q.ExecuteScalarAsync());
         }
 
-        public async Task<bool> IsSpacebarItem(string resourceId)
+        public async Task<bool> HasTags(string resourceId, params Effect[] effects)
         {
-            bool isSpacebarItem = false;
+            bool hasEffects = false;
 
             using var c = await _connector.Connect();
-            using var q = new NpgsqlCommand($"SELECT 1 FROM tags WHERE isaac_resource = @Resource AND value = {(int)Effect.IsSpacebarItem}; ", c);
+            using var q = new NpgsqlCommand($"SELECT 1 FROM isaac_resources WHERE id = @Resource AND tags @> @RequiredEffects; ", c);
             q.Parameters.AddWithValue("@Resource", NpgsqlDbType.Varchar, resourceId);
+            q.Parameters.AddWithValue("@RequiredEffects", NpgsqlDbType.Array | NpgsqlDbType.Integer, effects.Select(x => (int)x).ToArray());
 
             using var r = await q.ExecuteReaderAsync();
 
             if (r.HasRows)
             {
-                isSpacebarItem = true;
+                hasEffects = true;
             }
 
-            return isSpacebarItem;
+            return hasEffects;
         }
 
         public async Task<List<(string transformation, bool countsMultipleTimes, int stepsNeeded)>> GetTransformationData(string resourceId, string videoTitle, DateTime videoReleasedate)

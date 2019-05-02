@@ -171,7 +171,7 @@ namespace Website.Data
             return Convert.ToInt32(await q.ExecuteScalarAsync());
         }
 
-        public async Task<List<int>> GetUsedModsForSubmittedEpisode(SubmittedEpisode episode)
+        public async Task<List<int>> GetUsedModsForSubmittedEpisode(SubmittedCompleteEpisode episode)
         {
             var usedMods = new List<int>();
 
@@ -180,70 +180,75 @@ namespace Website.Data
             var communityRemixId = 0;
             var antibirthId = 0;
 
-            using var c = await _connector.Connect();
-
-            // get episode name, to manually filter antibirth and community remix episodes
-            using var getTitleCommand = new NpgsqlCommand("SELECT title FROM videos WHERE id = @X", c);
-            getTitleCommand.Parameters.AddWithValue("@X", NpgsqlDbType.Char, episode.VideoId);
-
-            using var reader = await getTitleCommand.ExecuteReaderAsync();
-            if (reader.HasRows)
+            using (var c = await _connector.Connect())
             {
-                reader.Read();
-                episodeName = reader.GetString(0);
-            }
-            
+                // get episode name, to manually filter antibirth and community remix episodes
+                using var getTitleCommand = new NpgsqlCommand("SELECT title FROM videos WHERE id = @X", c);
+                getTitleCommand.Parameters.AddWithValue("@X", NpgsqlDbType.Char, episode.VideoId);
 
-            // get mod ids of antibirth and community remix
-            using var getCommunityRemixIdCommand = new NpgsqlCommand("SELECT id FROM mods WHERE name = 'Community Remix'", c);
-            getCommunityRemixIdCommand.Parameters.AddWithValue("@X", NpgsqlDbType.Char, episode.VideoId);
-            communityRemixId = Convert.ToInt32(await getCommunityRemixIdCommand.ExecuteScalarAsync());
-                
-            using var getAntibirthModIdCommand = new NpgsqlCommand("SELECT id FROM mods WHERE name = 'Antibirth'", c);
-            getAntibirthModIdCommand.Parameters.AddWithValue("@X", NpgsqlDbType.Char, episode.VideoId);
-            antibirthId = Convert.ToInt32(await getAntibirthModIdCommand.ExecuteScalarAsync());
-            
-
-            // extract all isaac resources
-            var playedCharacters = episode.PlayedCharacters.Select(x => x.CharacterId);
-            var playedFloors = episode.PlayedCharacters.SelectMany(x => x.PlayedFloors.Select(a => a.FloorId));
-            var gameplayEvents = episode.PlayedCharacters.SelectMany(x => x.PlayedFloors.SelectMany(y => y.gameplayEvents));
-
-            var i = 0;
-
-            // create all parameters
-            var parameters = playedCharacters.Select(item => { i++; return new NpgsqlParameter($"@I{i}", NpgsqlDbType.Varchar) { NpgsqlValue = item }; }).ToList();
-            parameters.AddRange(playedFloors.Select(item => new NpgsqlParameter($"@I{i++}", NpgsqlDbType.Varchar) { NpgsqlValue = item }).ToList());
-            parameters.AddRange(gameplayEvents.Select(item => new NpgsqlParameter($"@I{i++}", NpgsqlDbType.Varchar) { NpgsqlValue = item.RelatedResource1 }).ToList());
-
-            // TODO create single query for transformative_resources
-
-            if (parameters.Count() > 0)
-            {
-                using var getModsCommand = new NpgsqlCommand($"SELECT mod FROM isaac_resources WHERE mod IS NOT NULL AND id IN ({string.Join(", ", parameters.Select(x => x.ParameterName))}); ", c);
-                getModsCommand.Parameters.AddRange(parameters.ToArray());
-                using var getModsReader = await getModsCommand.ExecuteReaderAsync();
-                if (getModsReader.HasRows)
+                using var reader = await getTitleCommand.ExecuteReaderAsync();
+                if (reader.HasRows)
                 {
-                    while (getModsReader.Read())
-                    {
-                        if (!getModsReader.IsDBNull(0) && !usedMods.Contains(getModsReader.GetInt32(0)))
-                        {
-                            usedMods.Add(getModsReader.GetInt32(0));
-                        }
-                    }
+                    reader.Read();
+                    episodeName = reader.GetString(0);
                 }
             }
 
-            // remove mods if video title doesn't match up
-            if (usedMods.Contains(communityRemixId) && !episodeName.ToLower().Contains("community remix"))
+            using (var c = await _connector.Connect())
             {
-                usedMods.Remove(communityRemixId);
+                // get mod ids of antibirth and community remix
+                using var getCommunityRemixIdCommand = new NpgsqlCommand("SELECT id FROM mods WHERE name = 'Community Remix'", c);
+                getCommunityRemixIdCommand.Parameters.AddWithValue("@X", NpgsqlDbType.Char, episode.VideoId);
+                communityRemixId = Convert.ToInt32(await getCommunityRemixIdCommand.ExecuteScalarAsync());
+
+                using var getAntibirthModIdCommand = new NpgsqlCommand("SELECT id FROM mods WHERE name = 'Antibirth'", c);
+                getAntibirthModIdCommand.Parameters.AddWithValue("@X", NpgsqlDbType.Char, episode.VideoId);
+                antibirthId = Convert.ToInt32(await getAntibirthModIdCommand.ExecuteScalarAsync());
+
+
+                // extract all isaac resources
+                var playedCharacters = episode.PlayedCharacters.Select(x => x.CharacterId);
+                var playedFloors = episode.PlayedCharacters.SelectMany(x => x.PlayedFloors.Select(a => a.FloorId));
+                var gameplayEvents = episode.PlayedCharacters.SelectMany(x => x.PlayedFloors.SelectMany(y => y.gameplayEvents));
+
+                var i = 0;
+
+                // create all parameters
+                var parameters = playedCharacters.Select(item => { i++; return new NpgsqlParameter($"@I{i}", NpgsqlDbType.Varchar) { NpgsqlValue = item }; }).ToList();
+                parameters.AddRange(playedFloors.Select(item => new NpgsqlParameter($"@I{i++}", NpgsqlDbType.Varchar) { NpgsqlValue = item }).ToList());
+                parameters.AddRange(gameplayEvents.Select(item => new NpgsqlParameter($"@I{i++}", NpgsqlDbType.Varchar) { NpgsqlValue = item.RelatedResource1 }).ToList());
+
+                // TODO create single query for transformative_resources
+
+                if (parameters.Count() > 0)
+                {
+                    using var getModsCommand = new NpgsqlCommand($"SELECT mod FROM isaac_resources WHERE mod IS NOT NULL AND id IN ({string.Join(", ", parameters.Select(x => x.ParameterName))}); ", c);
+                    getModsCommand.Parameters.AddRange(parameters.ToArray());
+                    using var getModsReader = await getModsCommand.ExecuteReaderAsync();
+                    if (getModsReader.HasRows)
+                    {
+                        while (getModsReader.Read())
+                        {
+                            if (!getModsReader.IsDBNull(0) && !usedMods.Contains(getModsReader.GetInt32(0)))
+                            {
+                                usedMods.Add(getModsReader.GetInt32(0));
+                            }
+                        }
+                    }
+                }
+
+                // remove mods if video title doesn't match up
+                if (usedMods.Contains(communityRemixId) && !episodeName.ToLower().Contains("community remix"))
+                {
+                    usedMods.Remove(communityRemixId);
+                }
+                if (usedMods.Contains(antibirthId) && !episodeName.ToLower().Contains("antibirth"))
+                {
+                    usedMods.Remove(antibirthId);
+                }
             }
-            if (usedMods.Contains(antibirthId) && !episodeName.ToLower().Contains("antibirth"))
-            {
-                usedMods.Remove(antibirthId);
-            }
+
+                
 
             return usedMods;
         }

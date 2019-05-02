@@ -17,6 +17,8 @@
         TransformationProgress, // 12
         LastFloor,
         AbsorbedItem,
-        CharacterReroll
+        CharacterReroll,
+        WonTheRun,
+        LostTheRun
     }
 }

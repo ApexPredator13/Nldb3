@@ -60,11 +60,12 @@ namespace WebsiteTests.Tools
             // create dummy AspNetUsers table because the user id is required
             using (var c = new NpgsqlConnection(config.GetConnectionString("TestConnection")))
             {
+                string query =
+                    "CREATE TABLE IF NOT EXISTS \"AspNetUsers\" (\"Id\" TEXT PRIMARY KEY, \"UserName\" TEXT NOT NULL); " +
+                    $"INSERT INTO \"AspNetUsers\" (\"Id\", \"UserName\") VALUES ('{config["DeletedUserId"]}', 'Some User') ON CONFLICT DO NOTHING; ";
                 c.Open();
-                using (var q = new NpgsqlCommand("CREATE TABLE IF NOT EXISTS \"AspNetUsers\" (\"Id\" TEXT PRIMARY KEY);", c))
-                {
-                    q.ExecuteNonQuery();
-                }
+                using var q = new NpgsqlCommand(query, c);
+                q.ExecuteNonQuery();
             }
 
             // provide fake wwwroot and contentroot folders

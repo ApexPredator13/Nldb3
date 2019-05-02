@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Website.Models.Database.Enums;
 
@@ -33,5 +34,7 @@ namespace Website.Areas.Admin.ViewModels
         public int? DisplayOrder { get; set; } = null;
 
         public int? Difficulty { get; set; } = null;
+
+        public List<Effect>? Tags { get; set; } = null;
     }
 }

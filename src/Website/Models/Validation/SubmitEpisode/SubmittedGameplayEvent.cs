@@ -3,7 +3,7 @@ using Website.Models.Database.Enums;
 
 namespace Website.Models.Validation.SubmitEpisode
 {
-    public class GameplayEvent
+    public class SubmittedGameplayEvent
     {
         [Required]
         public GameplayEventType EventType { get; set; } = GameplayEventType.Unspecified;

@@ -32,14 +32,14 @@ namespace Website.Areas.Admin.Controllers
         [HttpGet]
         public async Task<ViewResult> Details([FromRoute] string id)
         {
-            var resource = await _isaacRepository.GetResourceById(id, true, true);
+            var resource = await _isaacRepository.GetResourceById(id, true);
             return View(resource);
         }
 
         [HttpGet]
         public async Task<ActionResult> ChangeName([FromRoute] string id)
         {
-            var resource = await _isaacRepository.GetResourceById(id, false, false);
+            var resource = await _isaacRepository.GetResourceById(id, false);
 
             if (resource is null)
             {
@@ -73,7 +73,7 @@ namespace Website.Areas.Admin.Controllers
         [HttpGet]
         public async Task<ActionResult> ChangeId([FromRoute] string id)
         {
-            var resouce = await _isaacRepository.GetResourceById(id, false, false);
+            var resouce = await _isaacRepository.GetResourceById(id, false);
 
             if (resouce is null)
             {
@@ -141,7 +141,7 @@ namespace Website.Areas.Admin.Controllers
                 return View(model);
             }
 
-            var resource = await _isaacRepository.GetResourceById(model.ResourceId, false, false);
+            var resource = await _isaacRepository.GetResourceById(model.ResourceId, false);
 
             if (resource is null)
             {

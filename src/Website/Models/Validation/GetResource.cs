@@ -9,7 +9,6 @@ namespace Website.Models.Validation
         [Required]
         public ResourceType ResourceType { get; set; } = ResourceType.Unspecified;
         public bool IncludeMod { get; set; } = false;
-        public bool IncludeTags { get; set; } = false;
         public ResourceOrderBy OrderBy1 { get; set; } = ResourceOrderBy.DisplayOrder;
         public ResourceOrderBy OrderBy2 { get; set; } = ResourceOrderBy.Id;
         public bool Asc { get; set; } = true;

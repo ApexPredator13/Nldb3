@@ -156,7 +156,7 @@ namespace Website
             });
 
             app.CreateRequiredUserAccountsIfMissing();
-            // app.ResetDatabaseInDevMode();
+            app.ResetDatabaseInDevMode();
             app.MigrateOldDatabaseIfNoDataExists().Wait();
         }
     }

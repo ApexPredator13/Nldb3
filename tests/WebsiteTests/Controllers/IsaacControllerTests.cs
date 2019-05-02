@@ -24,7 +24,7 @@ namespace WebsiteTests.Controllers
         {
             // arrange
             var repo = new Mock<IIsaacRepository>();
-            repo.Setup(x => x.GetResourceById(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>())).ReturnsAsync((IsaacResource)null);
+            repo.Setup(x => x.GetResourceById(It.IsAny<string>(), It.IsAny<bool>())).ReturnsAsync((IsaacResource)null);
             var iconManager = new Mock<IIsaacIconManager>();
             var modRepository = new Mock<IModRepository>();
 
@@ -44,7 +44,7 @@ namespace WebsiteTests.Controllers
         {
             // arrange
             var repo = new Mock<IIsaacRepository>();
-            repo.Setup(x => x.GetResourceById(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>())).ReturnsAsync(new IsaacResource());
+            repo.Setup(x => x.GetResourceById(It.IsAny<string>(), It.IsAny<bool>())).ReturnsAsync(new IsaacResource());
             var iconManager = new Mock<IIsaacIconManager>();
             var modRepository = new Mock<IModRepository>();
 
@@ -129,7 +129,7 @@ namespace WebsiteTests.Controllers
         {
             // arrange
             var repo = new Mock<IIsaacRepository>();
-            repo.Setup(x => x.GetResourceById(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>())).ReturnsAsync((IsaacResource)null);
+            repo.Setup(x => x.GetResourceById(It.IsAny<string>(), It.IsAny<bool>())).ReturnsAsync((IsaacResource)null);
             var iconManager = new Mock<IIsaacIconManager>();
             var modRepository = new Mock<IModRepository>();
 
@@ -149,7 +149,7 @@ namespace WebsiteTests.Controllers
         {
             // arrange
             var repo = new Mock<IIsaacRepository>();
-            repo.Setup(x => x.GetResourceById(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>())).ReturnsAsync(new IsaacResource());
+            repo.Setup(x => x.GetResourceById(It.IsAny<string>(), It.IsAny<bool>())).ReturnsAsync(new IsaacResource());
             var iconManager = new Mock<IIsaacIconManager>();
             var modRepository = new Mock<IModRepository>();
             var controller = new IsaacController(repo.Object, iconManager.Object, modRepository.Object);
@@ -335,7 +335,7 @@ namespace WebsiteTests.Controllers
         {
             // arrange
             var repo = new Mock<IIsaacRepository>();
-            repo.Setup(x => x.GetResourceById(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>())).ReturnsAsync((IsaacResource)null);
+            repo.Setup(x => x.GetResourceById(It.IsAny<string>(), It.IsAny<bool>())).ReturnsAsync((IsaacResource)null);
             var modRepository = new Mock<IModRepository>();
             var iconManager = new Mock<IIsaacIconManager>();
             
@@ -349,7 +349,7 @@ namespace WebsiteTests.Controllers
             result.ActionName.Should().Be(nameof(IsaacController.Index));
             result.RouteValues.Should().ContainKey("message").WhichValue.Should().NotBeNull();
 
-            repo.Verify(x => x.GetResourceById(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Once);
+            repo.Verify(x => x.GetResourceById(It.IsAny<string>(), It.IsAny<bool>()), Times.Once);
             iconManager.Verify(x => x.GetPostedImageSize(It.IsAny<IFormFile>()), Times.Never);
             iconManager.Verify(x => x.FindEmptySquare(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
             iconManager.Verify(x => x.EmbedIcon(It.IsAny<IFormFile>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
@@ -360,7 +360,7 @@ namespace WebsiteTests.Controllers
         {
             // arrange
             var repo = new Mock<IIsaacRepository>();
-            repo.Setup(x => x.GetResourceById(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>())).ReturnsAsync(new IsaacResource());
+            repo.Setup(x => x.GetResourceById(It.IsAny<string>(), It.IsAny<bool>())).ReturnsAsync(new IsaacResource());
             repo.Setup(x => x.UpdateIconCoordinates(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(1);
             var modRepository = new Mock<IModRepository>();
             var iconManager = new Mock<IIsaacIconManager>();
@@ -377,7 +377,7 @@ namespace WebsiteTests.Controllers
             result.Should().BeOfType<RedirectToActionResult>();
             result.ActionName.Should().Be(nameof(IsaacController.Details));
 
-            repo.Verify(x => x.GetResourceById(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Once);
+            repo.Verify(x => x.GetResourceById(It.IsAny<string>(), It.IsAny<bool>()), Times.Once);
             repo.Verify(x => x.UpdateIconCoordinates(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()), Times.Once);
             iconManager.Verify(x => x.GetPostedImageSize(It.IsAny<IFormFile>()), Times.Once);
             iconManager.Verify(x => x.FindEmptySquare(It.IsAny<int>(), It.IsAny<int>()), Times.Once);

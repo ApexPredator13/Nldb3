@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Website.Models.Validation.SubmitEpisode
 {
-    public class SubmittedEpisode
+    public class SubmittedCompleteEpisode
     {
         public int Id { get; set; } = 0;
 
@@ -11,8 +11,6 @@ namespace Website.Models.Validation.SubmitEpisode
         public string VideoId { get; set; } = string.Empty;
 
         [Required]
-        public List<PlayedCharacter> PlayedCharacters { get; set; } = new List<PlayedCharacter>();
-
-        public int PlayedModId { get; set; }
+        public List<SubmittedPlayedCharacter> PlayedCharacters { get; set; } = new List<SubmittedPlayedCharacter>();
     }
 }

@@ -22,7 +22,7 @@ namespace Website.Areas.Api.Controllers
         [HttpGet("{id}")]
         public async Task<IsaacResource?> Index(string id, bool includeMod = false, bool includeTags = false)
         {
-            return await _isaacRepository.GetResourceById(id, includeMod, includeTags);
+            return await _isaacRepository.GetResourceById(id, includeMod);
         }
 
         [HttpGet]

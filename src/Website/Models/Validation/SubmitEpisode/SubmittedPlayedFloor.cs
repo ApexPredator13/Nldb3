@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Website.Models.Validation.SubmitEpisode
 {
-    public class PlayedFloor
+    public class SubmittedPlayedFloor
     {
         [Required]
         public string VideoId { get; set; } = string.Empty;
@@ -12,6 +12,6 @@ namespace Website.Models.Validation.SubmitEpisode
         public string FloorId { get; set; } = string.Empty;
 
         [Required]
-        public List<GameplayEvent> gameplayEvents = new List<GameplayEvent>();
+        public List<SubmittedGameplayEvent> gameplayEvents = new List<SubmittedGameplayEvent>();
     }
 }

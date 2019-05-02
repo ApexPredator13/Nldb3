@@ -9,7 +9,7 @@ namespace Website.Services
 {
     public interface IModRepository
     {
-        Task<List<int>> GetUsedModsForSubmittedEpisode(SubmittedEpisode episode);
+        Task<List<int>> GetUsedModsForSubmittedEpisode(SubmittedCompleteEpisode episode);
         Task<int> SaveMod(CreateMod mod);
         Task<Mod?> GetModById(int id);
         Task<int?> GetModIdByName(string name);

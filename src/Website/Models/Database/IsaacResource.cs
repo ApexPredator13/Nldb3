@@ -45,7 +45,7 @@ namespace Website.Models.Database
         public Mod? Mod { get; set; } = null;
 
         [JsonProperty("tags")]
-        public List<Tag> Tags { get; set; } = new List<Tag>();
+        public List<Effect>? Tags { get; set; } = null;
 
         [JsonProperty("display_order")]
         public int? DisplayOrder { get; set; } = null;

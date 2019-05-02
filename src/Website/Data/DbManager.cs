@@ -82,17 +82,11 @@ namespace Website.Data
                     "color VARCHAR(25) NOT NULL DEFAULT 'LightGray', " +
                     "mod INTEGER REFERENCES mods (id) ON DELETE SET NULL ON UPDATE CASCADE, " +
                     "display_order INTEGER, " +
-                    "difficulty INTEGER" +
+                    "difficulty INTEGER, " +
+                    "tags INTEGER[] DEFAULT NULL" +
                 "); " +
 
-                // create tags table
-                "CREATE TABLE IF NOT EXISTS tags (" +
-                    "id SERIAL PRIMARY KEY, " +
-                    "value INTEGER NOT NULL, " +
-                    "isaac_resource VARCHAR(30) NOT NULL REFERENCES isaac_resources (id) ON UPDATE CASCADE ON DELETE CASCADE" +
-                "); " +
-
-                // create default entries 4970, 4970, 30, 30
+                // create default entries
                 "INSERT INTO isaac_resources (id, name, type, exists_in, x, game_mode, color, mod, display_order, difficulty) VALUES " +
                 $"('MissingCharacter', 'Missing Character', {(int)ResourceType.Character}, {(int)ExistsIn.Nowhere}, '((-1,-1),(-1,-1))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
                 $"('MissingCurse', 'Missing Curse', {(int)ResourceType.Curse}, {(int)ExistsIn.Nowhere}, '((-1,-1),(-1,-1))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
@@ -138,7 +132,8 @@ namespace Website.Data
                     "type VARCHAR(30) NOT NULL, " +
                     "url VARCHAR(256) NOT NULL, " +
                     "width INTEGER NOT NULL, " +
-                    "height INTEGER NOT NULL" +
+                    "height INTEGER NOT NULL, " +
+                    "video CHAR(11) NOT NULL REFERENCES videos (id) ON UPDATE CASCADE ON DELETE CASCADE" +
                 "); ";
 
             Execute(query);
@@ -152,7 +147,7 @@ namespace Website.Data
                     "video CHAR(11) NOT NULL REFERENCES videos (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
                     $"sub TEXT NOT NULL DEFAULT '{_config["DeletedUserId"]}' REFERENCES \"AspNetUsers\" (\"Id\") ON UPDATE CASCADE ON DELETE SET DEFAULT, " +
                     $"s_type INTEGER NOT NULL DEFAULT {(int)SubmissionType.New}, " +
-                    $"latest BOOLEAN NOT NULL DEFAULT TRUE" +
+                    "latest BOOLEAN NOT NULL DEFAULT TRUE" +
                 "); ";
 
             Execute(query);
@@ -185,7 +180,8 @@ namespace Website.Data
                     "action INTEGER NOT NULL, " +
                     "run_number INTEGER NOT NULL, " +
                     "floor_number INTEGER NOT NULL, " +
-                    "died_from VARCHAR(30) REFERENCES isaac_resources (id) ON UPDATE CASCADE ON DELETE SET NULL" +
+                    "died_from VARCHAR(30) REFERENCES isaac_resources (id) ON UPDATE CASCADE ON DELETE SET NULL, " +
+                    "submission INTEGER NOT NULL REFERENCES video_submissions (id) ON UPDATE CASCADE ON DELETE CASCADE" +
                 "); ";
 
             Execute(query);
@@ -207,7 +203,8 @@ namespace Website.Data
                     "in_consequence_of INTEGER REFERENCES gameplay_events (id) ON UPDATE CASCADE ON DELETE SET NULL, " +
                     "run_number INTEGER NOT NULL, " +
                     "player INTEGER, " +
-                    "floor_number INTEGER NOT NULL" +
+                    "floor_number INTEGER NOT NULL, " +
+                    "submission INTEGER NOT NULL REFERENCES video_submissions (id) ON UPDATE CASCADE ON DELETE CASCADE" +
                 "); ";
 
             Execute(query);
