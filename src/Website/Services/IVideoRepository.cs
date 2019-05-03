@@ -19,5 +19,8 @@ namespace Website.Services
         Task<VideoListResponse> GetYoutubeVideoData(params string[] videoIds);
         Task<Models.Database.Video?> GetVideoById(string videoId);
         Task<Models.Database.Video?> GetCompleteEpisode(string videoId);
+        Task<string?> GetVideoTitle(string videoId);
+        Task<int> SaveThumbnail(Google.Apis.YouTube.v3.Data.Thumbnail thumbnail, string videoId);
+        Task<int> ClearThumbnailsForVideo(string videoId);
     }
 }

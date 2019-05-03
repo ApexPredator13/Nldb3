@@ -1,22 +1,18 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-#nullable disable
 namespace Website.Models.Database
 {
     public class Thumbnail
     {
-        public int Id { get; set; }
+        public int Id { get; set; } = 0;
 
         [Required]
-        public string Url { get; set; }
+        public string Url { get; set; } = string.Empty;
 
         [Required]
-        public string Type { get; set; }
+        public int? Width { get; set; } = null;
 
         [Required]
-        public int Width { get; set; }
-
-        [Required]
-        public int Height { get; set; }
+        public int? Height { get; set; } = null;
     }
 }

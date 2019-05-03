@@ -1,5 +1,6 @@
 ﻿using AutoFixture.Xunit2;
 using FluentAssertions;
+using Google.Apis.YouTube.v3.Data;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -47,7 +48,7 @@ namespace WebsiteTests.Repositories
             result.Items[0].Snippet.Title.Should().Be("Let's Play - The Binding of Isaac - Episode 1 [Genesis]");
         }
 
-        [Theory(DisplayName = "SubmitEpisode/GetVideoById can create/read a video"), AutoDataMoq]
+        [Theory(DisplayName = "SubmitEpisode/GetVideoById can create/read a complete isaac episode"), AutoDataMoq]
         public async Task T2(
             SaveVideo video, 
             CreateIsaacResource character, 
@@ -565,6 +566,96 @@ namespace WebsiteTests.Repositories
             r2f1e2.Resource3.Should().Be(1);
             r2f1e2.RunNumber.Should().Be(2);
             r2f1e2.Submission.Should().Be(submittedEpisode.Id);
+        }
+
+        [Theory(DisplayName = "GetVideoReleasedate can return a video release date, returns null if not found"), AutoData]
+        public async Task T3(SaveVideo video)
+        {
+            // arrange
+            var videoRepo = _fixture.TestServer.Host.Services.GetService(typeof(IVideoRepository)) as IVideoRepository;
+            video.Published = new DateTime(2019, 1, 1, 1, 1, 1);
+            await videoRepo.SaveVideo(video);
+
+            // act
+            var releaseDate = await videoRepo.GetVideoReleasedate(video.Id);
+            var releaseDateNull = await videoRepo.GetVideoReleasedate("wrong id");
+
+            // assert
+            releaseDate.Should().Be(video.Published);
+            releaseDateNull.Should().BeNull();
+        }
+
+        [Theory(DisplayName = "GetVideoTitle can return a video title, returns null if not found"), AutoData]
+        public async Task T4(SaveVideo video)
+        {
+            // arrange
+            var videoRepo = _fixture.TestServer.Host.Services.GetService(typeof(IVideoRepository)) as IVideoRepository;
+            await videoRepo.SaveVideo(video);
+
+            // act
+            var title = await videoRepo.GetVideoTitle(video.Id);
+            var titleNull = await videoRepo.GetVideoTitle("wrong id");
+
+            // assert
+            title.Should().Be(video.Title);
+            titleNull.Should().BeNull();
+        }
+
+        [Theory(DisplayName = "GetVideoById can return video with thumbnails, returns null if not found"), AutoData]
+        public async Task T5(SaveVideo video, Thumbnail thumbnail)
+        {
+            // arrange
+            var videoRepo = _fixture.TestServer.Host.Services.GetService(typeof(IVideoRepository)) as IVideoRepository;
+            video.Published = new DateTime(2019, 1, 1, 1, 1, 1);
+            await videoRepo.SaveVideo(video);
+            int thumbnailId = await videoRepo.SaveThumbnail(thumbnail, video.Id);
+
+            // act
+            var v = await videoRepo.GetVideoById(video.Id);
+            var vNull = await videoRepo.GetVideoById("wrong id");
+
+            // assert
+            vNull.Should().BeNull();
+            v.CommentCount.Should().Be(video.CommentCount);
+            v.Dislikes.Should().Be(video.Dislikes);
+            v.Duration.Should().Be(TimeSpan.FromSeconds(video.Duration));
+            v.FavouriteCount.Should().Be(video.FavouriteCount);
+            v.HasCaption.Should().Be(video.HasCaption);
+            v.Id.Should().Be(video.Id);
+            v.Is3D.Should().Be(video.Is3D);
+            v.IsHD.Should().Be(video.IsHD);
+            v.Likes.Should().Be(video.Likes);
+            v.Published.Should().Be(video.Published);
+            v.RequiresUpdate.Should().Be(video.NeedsUpdate);
+            v.Submissions.Should().BeEmpty();
+            v.Tags.Should().BeEquivalentTo(video.Tags);
+            v.Thumbnails.Should().NotBeNullOrEmpty().And.HaveCount(1);
+            v.Thumbnails[0].Height.Should().Be((int)thumbnail.Height.Value);
+            v.Thumbnails[0].Id.Should().Be(thumbnailId);
+            v.Thumbnails[0].Url.Should().Be(thumbnail.Url);
+            v.Thumbnails[0].Width.Should().Be((int)thumbnail.Width.Value);
+            v.Title.Should().Be(video.Title);
+            v.ViewCount.Should().Be(video.ViewCount);
+        }
+
+        [Theory(DisplayName = "ClearThumbnailsForVideo can clear thumbnails"), AutoData]
+        public async Task T6(SaveVideo video, Thumbnail thumbnail1, Thumbnail thumbnail2)
+        {
+            // arrange
+            var videoRepo = _fixture.TestServer.Host.Services.GetService(typeof(IVideoRepository)) as IVideoRepository;
+            await videoRepo.SaveVideo(video);
+            await videoRepo.SaveThumbnail(thumbnail1, video.Id);
+            await videoRepo.SaveThumbnail(thumbnail2, video.Id);
+
+            // act
+            var videoBefore = await videoRepo.GetVideoById(video.Id);
+            var deleteResult = await videoRepo.ClearThumbnailsForVideo(video.Id);
+            var videoAfter = await videoRepo.GetVideoById(video.Id);
+
+            // assert
+            videoBefore.Thumbnails.Should().NotBeNullOrEmpty().And.HaveCount(2);
+            deleteResult.Should().Be(2);
+            videoAfter.Thumbnails.Should().BeEmpty();
         }
     }
 }

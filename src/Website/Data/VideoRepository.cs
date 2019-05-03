@@ -59,7 +59,7 @@ namespace Website.Data
             DateTime? result = null;
 
             using var c = await _connector.Connect();
-            using var q = new NpgsqlCommand("SELECT published FROM videos WHERE id = @Id; ", c);
+            using var q = new NpgsqlCommand("SELECT published AT TIME ZONE 'UTC' FROM videos WHERE id = @Id; ", c);
             q.Parameters.AddWithValue("@Id", NpgsqlDbType.Char, videoId);
 
             using var r = await q.ExecuteReaderAsync();
@@ -127,45 +127,6 @@ namespace Website.Data
             await q.ExecuteNonQueryAsync();
         }
 
-        public async Task<Video> GetVideoById(string videoId, bool includeVideoSubmissions)
-        {
-            var commandText = includeVideoSubmissions
-                ?   "SELECT id, title, published, duration, needs_update, likes, dislikes, view_count, favourite_count, comment_count, tags, is_3d, is_hd, cc FROM videos WHERE id = @VideoId; "
-                :   "SELECT " +
-                        "v.id, v.title, v.published, v.duration, v.needs_update, v.likes, v.dislikes, " +
-                        "v.view_count, v.favourite_count, v.comment_count, v.tags, v.is_3d, v.is_hd, v.cc, " +
-                        "s.s_type, s.latest, " +
-                        "pc.id, pc.action, pc.run_number, pc.died_from, " +
-                        "pci.id, pci.name, pci.type, pci.exists_in, pci.x, pci.game_mode, pci.color, pci.display_order, pci.difficulty, " +
-                        "pcd.id, pcd.name, pcd.type, pcd.exists_in, pcd.x, pcd.game_mode, pcd.color, pcd.display_order, pcd.difficulty, " +
-                        "pcim.id, pcim.name, " +
-                        "pcimu.id, pcimu.url, pcimu.name, " +
-                        "pcit.id, pcit.value, " +
-                        "pf.id, pf.action, pf.run_number, pf.floor_number, " +
-                        "pff.id, pff.name, pff.type, pff.exists_in, pff.x, pff.game_mode, pff.color, pff.display_order, pff.difficulty, " +
-                        "pfd.id, pfd.name, pfd.type, pfd.exists_in, pfd.x, pfd.game_mode, pfd.color, pfd.display_order, pfd.difficulty, " +
-                        "ge.event_type, ge.resource_three, ge.action, ge.run_number, ge.floor_number, " +
-                        "ge1.id, ge1.name, ge1.type, ge1.exists_in, ge1.x, ge1.game_mode, ge1.color, ge1.display_order, ge1.difficulty, " +
-                        "ge2.id, ge2.name, ge2.type, ge2.exists_in, ge2.x, ge2.game_mode, ge2.color, ge2.display_order, ge2.difficulty " +
-                    "FROM videos v " +
-                    "LEFT JOIN video_submissions s ON s.video = v.id " +
-                    "LEFT JOIN (SELECT * FROM played_characters WHERE video = @VideoId) pc ON pc.submission = s.id " +
-                    "LEFT JOIN isaac_resources pci ON pci.id = pc.game_character " +
-                    "LEFT JOIN isaac_resources pcd ON pci.id = pc.died_from " +
-                    "LEFT JOIN mods pcim ON pcim.id = pci.mod " +
-                    "LEFT JOIN mod_url pcimu ON pcimu.mod = pcim.id " +
-                    "LEFT JOIN tags pcit ON pcit.isaac_resource = pci.id " +
-                    "LEFT JOIN played_floors pf ON pc.id = pf.played_character " +
-                    "LEFT JOIN isaac_resources pff ON pff.id = pf.floor " +
-                    "LEFT JOIN isaac_resources pfd ON pfd.id = pf.died_from " +
-                    "LEFT JOIN gameplay_events ge ON pf.id = pf.played_floor " +
-                    "LEFT JOIN isaac_resources ge1 ON ge1.id = ge.resource_one " +
-                    "LEFT JOIN isaac_resources ge2 ON ge2.id = ge.resource_two " +
-                    "WHERE v.id = @VideoId";
-
-            throw new NotImplementedException();
-        }
-
         public async Task SubmitLostEpisode(string videoId, string userId)
         {
             using var c = await _connector.Connect();
@@ -178,11 +139,11 @@ namespace Website.Data
             await q.ExecuteNonQueryAsync();
         }
 
-        public class TransformationProgress
+        private class TransformationProgress
         {
-            public string Resource { get; set; } = string.Empty;
-            public string Transformation { get; set; } = string.Empty;
-            public int Player { get; set; } = 0;
+            internal string Resource { get; set; } = string.Empty;
+            internal string Transformation { get; set; } = string.Empty;
+            internal int Player { get; set; } = 0;
         }
 
         public async Task SubmitEpisode(SubmittedCompleteEpisode episode, string userId, SubmissionType type = SubmissionType.New)
@@ -386,7 +347,7 @@ namespace Website.Data
             string query = 
                 "SELECT " +
                     "v.id, v.title, v.published AT TIME ZONE 'UTC', v.duration, v.needs_update, v.likes, v.dislikes, v.view_count, v.favourite_count, v.comment_count, v.tags, v.is_3d, v.is_hd, v.cc, " +
-                    "t.id, t.type, t.url, t.width, t.height " +
+                    "t.id, t.url, t.width, t.height " +
                 "FROM videos v " +
                 "LEFT JOIN thumbnails t ON t.video = v.id " +
                 "WHERE v.id = @Id; ";
@@ -425,17 +386,16 @@ namespace Website.Data
                             Thumbnails = new List<Models.Database.Thumbnail>()
                         };
                     }
-                    else i += 16;
+                    else i += 14;
 
                     if (!r.IsDBNull(i) && !result.Thumbnails.Any(x => x.Id == r.GetInt32(i)))
                     {
                         result.Thumbnails.Add(new Models.Database.Thumbnail()
                         {
                             Id = r.GetInt32(i++),
-                            Type = r.GetString(i++),
                             Url = r.GetString(i++),
-                            Width = r.GetInt32(i++),
-                            Height = r.GetInt32(i++)
+                            Width = r.IsDBNull(i++) ? null : (int?) r.GetInt32(i - 1),
+                            Height = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1)
                         });
                     }
                 }
@@ -490,6 +450,26 @@ namespace Website.Data
 
             video!.Submissions = submissions;
             return video;
+        }
+
+        public async Task<int> SaveThumbnail(Thumbnail thumbnail, string videoId)
+        {
+            var query = "INSERT INTO thumbnails (id, url, width, height, video) VALUES (DEFAULT, @U, @W, @H, @V) RETURNING id;";
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand(query, c);
+            q.Parameters.AddWithValue("@U", NpgsqlDbType.Varchar, thumbnail.Url);
+            q.Parameters.AddWithValue("@W", NpgsqlDbType.Integer, thumbnail.Width is null ? (object)DBNull.Value : (int)thumbnail.Width.Value);
+            q.Parameters.AddWithValue("@H", NpgsqlDbType.Integer, thumbnail.Height is null ? (object)DBNull.Value : (int)thumbnail.Height.Value);
+            q.Parameters.AddWithValue("@V", NpgsqlDbType.Char, videoId);
+            return Convert.ToInt32(await q.ExecuteScalarAsync());
+        }
+
+        public async Task<int> ClearThumbnailsForVideo(string videoId)
+        {
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand("DELETE FROM thumbnails WHERE video = @V;", c);
+            q.Parameters.AddWithValue("@V", NpgsqlDbType.Char, videoId);
+            return await q.ExecuteNonQueryAsync();
         }
     }
 }

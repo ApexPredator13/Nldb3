@@ -129,7 +129,6 @@ namespace Website.Data
                 
                 "CREATE TABLE thumbnails (" +
                     "id SERIAL PRIMARY KEY, " +
-                    "type VARCHAR(30) NOT NULL, " +
                     "url VARCHAR(256) NOT NULL, " +
                     "width INTEGER NOT NULL, " +
                     "height INTEGER NOT NULL, " +
