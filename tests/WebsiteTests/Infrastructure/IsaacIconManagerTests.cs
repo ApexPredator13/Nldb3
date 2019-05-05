@@ -11,7 +11,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Website.Infrastructure;
-using Website.Models.Validation;
 using Website.Services;
 using WebsiteTests.Tools;
 using Xunit;
@@ -152,17 +151,15 @@ namespace WebsiteTests.Infrastructure
             var isaacRepo = new Mock<IIsaacRepository>();
             IIsaacIconManager iconManager = new IsaacIconManager(environment, isaacRepo.Object);
 
-            using (var fs = new FileStream(testImage1, FileMode.Open))
-            {
-                var file = new FormFile(fs, 0, fs.Length, "name", "image.png");
+            using var fs = new FileStream(testImage1, FileMode.Open);
+            var file = new FormFile(fs, 0, fs.Length, "name", "image.png");
 
-                // act
-                var (w, h) = await iconManager.GetPostedImageSize(file);
+            // act
+            var (w, h) = await iconManager.GetPostedImageSize(file);
 
-                // assert
-                w.Should().Be(30);
-                h.Should().Be(60);
-            }
+            // assert
+            w.Should().Be(30);
+            h.Should().Be(60);
         }
 
         [Fact(DisplayName = "EmbedIcon can embed an icon in a bigger image")]
@@ -184,25 +181,23 @@ namespace WebsiteTests.Infrastructure
             }
 
             // assert - compare top and lower half of the images
-            using (var img = Image.Load(testImage7))
+            using var img = Image.Load(testImage7);
+            for (var y = 0; y < 30; y++)
             {
-                for (var y = 0; y < 30; y++)
+                for (var x = 0; x < 30; x++)
                 {
-                    for (var x = 0; x < 30; x++)
+                    var topPixel = img[x, y];
+
+                    // exchange (255,255,255,0) with (0,0,0,0), because they are effectively the same
+                    // imagesharp seems to always write (0,0,0,0), but the original image can have pixels with (255,255,255,0)
+                    if (topPixel == new SixLabors.ImageSharp.PixelFormats.Rgba32(255, 255, 255, 0))
                     {
-                        var topPixel = img[x, y];
-
-                        // exchange (255,255,255,0) with (0,0,0,0), because they are effectively the same
-                        // imagesharp seems to always write (0,0,0,0), but the original image can have pixels with (255,255,255,0)
-                        if (topPixel == new SixLabors.ImageSharp.PixelFormats.Rgba32(255,255,255,0))
-                        {
-                            topPixel = new SixLabors.ImageSharp.PixelFormats.Rgba32(0, 0, 0, 0);
-                        }
-
-                        var bottomPixel = img[x, y + 30];
-
-                        topPixel.Equals(bottomPixel).Should().BeTrue();
+                        topPixel = new SixLabors.ImageSharp.PixelFormats.Rgba32(0, 0, 0, 0);
                     }
+
+                    var bottomPixel = img[x, y + 30];
+
+                    topPixel.Equals(bottomPixel).Should().BeTrue();
                 }
             }
         }
@@ -221,14 +216,12 @@ namespace WebsiteTests.Infrastructure
 
             // assert - make sure the entire bottom is now clear
             var emptyPixel = new Rgba32(0, 0, 0, 0);
-            using (var img = Image.Load(testImage8))
+            using var img = Image.Load(testImage8);
+            for (int y = 30; y < 60; y++)
             {
-                for (int y = 30; y < 60; y++)
+                for (int x = 0; x < 30; x++)
                 {
-                    for (int x = 0; x < 30; x++)
-                    {
-                        img[x, y].Equals(emptyPixel).Should().BeTrue();
-                    }
+                    img[x, y].Equals(emptyPixel).Should().BeTrue();
                 }
             }
         }
