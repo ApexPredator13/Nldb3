@@ -4,7 +4,7 @@ elementClosest();
 const emailRegex = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/;
 const inputElementTypeWhitelist: Array<string | null> = ["text", "password", "color", "number"];
 
-const applyErrormessage = (inputElement: HTMLInputElement, message: string | null): void => {
+const applyErrormessage = (inputElement: HTMLInputElement | HTMLTextAreaElement, message: string | null): void => {
     const errorMessageContainer = inputElement.nextElementSibling;
     if (errorMessageContainer) {
         errorMessageContainer.textContent = message;
@@ -20,7 +20,7 @@ const applyFormValidState = (form: HTMLFormElement, isValid: boolean): void => {
     }
 }
 
-const inputElementIsValid = (element: HTMLInputElement, target: HTMLInputElement, markAsTouched: boolean): boolean => {
+const inputElementIsValid = (element: HTMLInputElement | HTMLTextAreaElement, target: HTMLInputElement | HTMLTextAreaElement, markAsTouched: boolean): boolean => {
     let isValid = true;
     let errorMessage: string | null = null;
     const isSameNode = element === target;
@@ -53,7 +53,7 @@ const inputElementIsValid = (element: HTMLInputElement, target: HTMLInputElement
     return isValid;
 }
 
-const evaluateForm = (target: HTMLInputElement, markAsTouched: boolean): void => {
+const evaluateForm = (target: HTMLInputElement | HTMLTextAreaElement, markAsTouched: boolean): void => {
     const form = target.closest("form");
     if (!form) {
         return;
@@ -76,11 +76,18 @@ const evaluateForm = (target: HTMLInputElement, markAsTouched: boolean): void =>
 
 (() => {
     const inputElements = document.getElementsByTagName("input");
+    const textareaElements = document.getElementsByTagName("textarea");
     for (let i = 0; i < inputElements.length; i++) {
         evaluateForm(inputElements[i], false);
         (inputElements[i] as HTMLInputElement).addEventListener("input", e => evaluateForm(e.target as HTMLInputElement, true));
         (inputElements[i] as HTMLInputElement).addEventListener("blur", e => evaluateForm(e.target as HTMLInputElement, true));
         (inputElements[i] as HTMLInputElement).addEventListener("click", e => evaluateForm(e.target as HTMLInputElement, false));
+    }
+    for (let i = 0; i < textareaElements.length; i++) {
+        evaluateForm(textareaElements[i], false);
+        (textareaElements[i] as HTMLTextAreaElement).addEventListener("input", e => evaluateForm(e.target as HTMLInputElement, true));
+        (textareaElements[i] as HTMLTextAreaElement).addEventListener("blur", e => evaluateForm(e.target as HTMLInputElement, true));
+        (textareaElements[i] as HTMLTextAreaElement).addEventListener("click", e => evaluateForm(e.target as HTMLInputElement, false));
     }
 })();
 
