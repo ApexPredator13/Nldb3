@@ -13,7 +13,7 @@ namespace Website.Services
         Task SaveVideo(Video newVideo);
         Task SubmitEpisode(SubmittedCompleteEpisode episode, string userId, SubmissionType type = SubmissionType.New);
         Task SubmitLostEpisode(string videoId, string userId);
-        Task<int> CountVideos();
+        Task<int> CountVideos(GetVideos? request = null);
         Task<int> CountVideoSubmissions();
         Task<DateTime?> GetVideoReleasedate(string videoId);
         Task<VideoListResponse> GetYoutubeVideoData(params string[] videoIds);

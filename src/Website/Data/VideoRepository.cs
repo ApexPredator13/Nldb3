@@ -33,10 +33,66 @@ namespace Website.Data
             _config = config;
         }
 
-        public async Task<int> CountVideos()
+        private bool RequireWhere(GetVideos request)
         {
+            if (request.From != null || request.Search != null || request.Until != null)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        public async Task<int> CountVideos(GetVideos? request = null)
+        {
+            if (request is null)
+            {
+                request = new GetVideos();
+            }
+
+            var s = new StringBuilder();
+            var parameters = new List<NpgsqlParameter>();
+
+            var requireAnd = false;
+            var requireWhere = RequireWhere(request);
+            s.Append("SELECT COUNT(*) FROM videos");
+
+            if (requireWhere)
+            {
+                s.Append(" WHERE");
+            }
+
+            if (!string.IsNullOrEmpty(request.Search))
+            {
+                s.Append(" LOWER(title) LIKE (@Search)");
+                parameters.Add(new NpgsqlParameter("@Search", NpgsqlDbType.Text) { NpgsqlValue = $"%{request.Search}%" });
+                requireAnd = true;
+            }
+
+            if (request.From != null)
+            {
+                if (requireAnd)
+                {
+                    s.Append(" AND");
+                }
+                s.Append(" published >= @From");
+                parameters.Add(new NpgsqlParameter("@From", NpgsqlDbType.TimestampTz) { NpgsqlValue = request.From.Value });
+                requireAnd = true;
+            }
+
+            if (request.Until != null)
+            {
+                if (requireAnd)
+                {
+                    s.Append(" AND");
+                }
+                s.Append(" published <= @Until");
+                parameters.Add(new NpgsqlParameter("@Until", NpgsqlDbType.TimestampTz) { NpgsqlValue = request.Until.Value });
+            }
+
             using var c = await _connector.Connect();
-            using var q = new NpgsqlCommand("SELECT COUNT(*) FROM videos; ", c);
+            using var q = new NpgsqlCommand(s.ToString(), c);
+            q.Parameters.AddRange(parameters.ToArray());
+
             return Convert.ToInt32(await q.ExecuteScalarAsync());
         }
 
@@ -497,7 +553,7 @@ namespace Website.Data
                 AmountPerPage = request.Amount
             };
 
-            var countVideosTask = CountVideos();
+            var countVideosTask = CountVideos(request);
 
             var s = new StringBuilder();
             var p = new List<NpgsqlParameter>();
@@ -519,11 +575,16 @@ namespace Website.Data
             // WHERE
             bool requireAnd = false;
 
+            if (RequireWhere(request))
+            {
+                s.Append(" WHERE");
+            }
+
             if (!string.IsNullOrEmpty(request.Search))
             {
-                s.Append("LOWER(v.title) LIKE @Search ");
+                s.Append(" LOWER(v.title) LIKE LOWER(@Search)");
                 requireAnd = true;
-                p.Add(new NpgsqlParameter("@Search", NpgsqlDbType.Text) { NpgsqlValue = request.Search });
+                p.Add(new NpgsqlParameter("@Search", NpgsqlDbType.Text) { NpgsqlValue = $"%{request.Search}%" });
             }
 
             if (request.From != null)

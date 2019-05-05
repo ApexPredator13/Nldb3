@@ -26,7 +26,7 @@ module.exports = {
         ]
     },
     resolve: {
-        extensions: [ '.ts', '.css' ]
+        extensions: [ '.ts', '.css', '.js' ]
     },
     plugins: [
         new CleanWebpackPlugin()

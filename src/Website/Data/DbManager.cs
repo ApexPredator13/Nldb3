@@ -126,6 +126,8 @@ namespace Website.Data
                     "is_hd BOOLEAN, " +
                     "cc BOOLEAN" +
                 "); " +
+
+                "CREATE INDEX video_title_index ON videos (title); " +
                 
                 "CREATE TABLE thumbnails (" +
                     "id SERIAL PRIMARY KEY, " +

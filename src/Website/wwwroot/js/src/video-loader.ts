@@ -9,11 +9,13 @@ const createDefaultVideoRequest = (): VideoRequest => {
         OrderBy: 2,
         Search: null,
         Page: 1,
-        Amount: 50,
+        Amount: 100,
         From: null,
         Until: null
     }
 }
+
+let searchTimeOut: number | null = null;
 
 let request: VideoRequest = createDefaultVideoRequest();
 
@@ -74,6 +76,37 @@ const applyPageClickEvents = () => {
     }
 };
 
+const initializeItemsPerPageSelectEvent = (): void => {
+    const selectElement = <HTMLSelectElement>document.getElementById('items-per-page');
+    if (!selectElement) {
+        return;
+    }
+
+    selectElement.addEventListener('change', () => {
+        request.Amount = parseInt(selectElement.value, 10);
+        request.Page = 1;
+        loadVideos();
+    });
+};
+
+const initializeSearchEvent = (): void => {
+    const searchBox = <HTMLInputElement>document.getElementById('search');
+    if (!searchBox) {
+        return;
+    }
+
+    searchBox.addEventListener('input', () => {
+        if (searchTimeOut !== null) {
+            clearTimeout(searchTimeOut);
+        }
+
+        searchTimeOut = setTimeout(() => {
+            request.Search = searchBox.value;
+            loadVideos();
+        }, 300);
+    });
+};
+
 const loadVideos = () => {
     const table = document.getElementById('video-table');
     if (!table) {
@@ -86,6 +119,7 @@ const loadVideos = () => {
     }
 
     fetch(CreateGetVideosUri(request)).then(x => x.json()).then((x: VideoResult) => {
+        // videos
         const newTBody = document.createElement('tbody');
         x.videos.map(v => {
             const tr = document.createElement('tr');
@@ -96,6 +130,21 @@ const loadVideos = () => {
         });
         table.removeChild(oldTBody);
         table.appendChild(newTBody);
+
+        // pagination
+        const paginationContainer = document.getElementById('pagination');
+        if (!paginationContainer) {
+            return;
+        }
+        paginationContainer.innerHTML = '';
+        let pageCounter = 1;
+        for (let i = 0; i < x.video_count; i += x.amount_per_page) {
+            const a = document.createElement('a');
+            a.innerText = pageCounter.toString(10);
+            paginationContainer.appendChild(a);
+            pageCounter++;
+        }
+        applyPageClickEvents();
     });
 };
 
@@ -103,4 +152,6 @@ const loadVideos = () => {
 (() => {
     initializeTableHeaderClickEvents();
     applyPageClickEvents();
+    initializeItemsPerPageSelectEvent();
+    initializeSearchEvent();
 })();

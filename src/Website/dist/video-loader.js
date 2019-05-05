@@ -8,11 +8,12 @@ var createDefaultVideoRequest = function () {
         OrderBy: 2,
         Search: null,
         Page: 1,
-        Amount: 50,
+        Amount: 100,
         From: null,
         Until: null
     };
 };
+var searchTimeOut = null;
 var request = createDefaultVideoRequest();
 var initializeTableHeaderClickEvents = function () {
     var tableHeader = document.getElementById('video-table-head');
@@ -68,6 +69,32 @@ var applyPageClickEvents = function () {
         _loop_2(i);
     }
 };
+var initializeItemsPerPageSelectEvent = function () {
+    var selectElement = document.getElementById('items-per-page');
+    if (!selectElement) {
+        return;
+    }
+    selectElement.addEventListener('change', function () {
+        request.Amount = parseInt(selectElement.value, 10);
+        request.Page = 1;
+        loadVideos();
+    });
+};
+var initializeSearchEvent = function () {
+    var searchBox = document.getElementById('search');
+    if (!searchBox) {
+        return;
+    }
+    searchBox.addEventListener('input', function () {
+        if (searchTimeOut !== null) {
+            clearTimeout(searchTimeOut);
+        }
+        searchTimeOut = setTimeout(function () {
+            request.Search = searchBox.value;
+            loadVideos();
+        }, 300);
+    });
+};
 var loadVideos = function () {
     var table = document.getElementById('video-table');
     if (!table) {
@@ -78,6 +105,7 @@ var loadVideos = function () {
         return;
     }
     fetch(uri_creator_1.CreateGetVideosUri(request)).then(function (x) { return x.json(); }).then(function (x) {
+        // videos
         var newTBody = document.createElement('tbody');
         x.videos.map(function (v) {
             var tr = document.createElement('tr');
@@ -88,9 +116,25 @@ var loadVideos = function () {
         });
         table.removeChild(oldTBody);
         table.appendChild(newTBody);
+        // pagination
+        var paginationContainer = document.getElementById('pagination');
+        if (!paginationContainer) {
+            return;
+        }
+        paginationContainer.innerHTML = '';
+        var pageCounter = 1;
+        for (var i = 0; i < x.video_count; i += x.amount_per_page) {
+            var a = document.createElement('a');
+            a.innerText = pageCounter.toString(10);
+            paginationContainer.appendChild(a);
+            pageCounter++;
+        }
+        applyPageClickEvents();
     });
 };
 (function () {
     initializeTableHeaderClickEvents();
     applyPageClickEvents();
+    initializeItemsPerPageSelectEvent();
+    initializeSearchEvent();
 })();
