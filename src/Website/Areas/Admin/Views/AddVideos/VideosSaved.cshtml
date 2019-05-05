@@ -1,0 +1,18 @@
+﻿@{ 
+    ViewData["Title"] = "Vidos Saved!";
+}
+
+@model string
+
+<h1>The video(s) were saved or updated.</h1>
+
+<p>
+    processed video ids:
+    <ul>
+        @foreach (var s in Model.Split(','))
+        {
+            <li>@s</li>
+        }
+    </ul>
+</p>
+

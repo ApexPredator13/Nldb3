@@ -275,7 +275,7 @@ namespace Website.Data
                         // needed to relate multiple next events to the event above. will be subtracted from the serial ID
                         int subtractFromSequence = 1;
 
-                        // STEP 2.1 - insert transformation data
+                        // STEP 2 - insert transformation data
                         if (itemTransformationData.Count > 0)
                         {
                             foreach (var (transformation, countsMultipleTimes, numberOfItemsRequired) in itemTransformationData)
@@ -330,7 +330,7 @@ namespace Website.Data
                     }
                 }
 
-                // STEP 4 - save death to character and floor
+                // STEP 4 - save death to character and floor, if character died
                 if (!string.IsNullOrEmpty(lastDeath))
                 {
                     s.Append($"UPDATE played_characters SET died_from = @CDF{characterDeathCounter} WHERE id = CURRVAL(pg_get_serial_sequence('played_characters', 'id')); ");

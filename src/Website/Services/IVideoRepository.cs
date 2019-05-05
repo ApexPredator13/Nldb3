@@ -1,7 +1,6 @@
 ﻿using Google.Apis.YouTube.v3.Data;
 using System;
 using System.Threading.Tasks;
-using Website.Models.Database;
 using Website.Models.Database.Enums;
 using Website.Models.SubmitEpisode;
 
@@ -9,7 +8,7 @@ namespace Website.Services
 {
     public interface IVideoRepository
     {
-        Task SaveVideo(Google.Apis.YouTube.v3.Data.Video newVideo);
+        Task SaveVideo(Video newVideo);
         Task SubmitEpisode(SubmittedCompleteEpisode episode, string userId, SubmissionType type = SubmissionType.New);
         Task SubmitLostEpisode(string videoId, string userId);
         Task<int> CountVideos();

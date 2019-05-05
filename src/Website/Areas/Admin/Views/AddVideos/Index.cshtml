@@ -1,0 +1,26 @@
+﻿@{ 
+    ViewData["Title"] = "Add Videos";
+}
+
+@model SaveVideo
+
+<h1>Add Videos</h1>
+
+<p>Enter video IDs seperated by a comma ','. New videos will be saved, existing videos will be updated.</p>
+
+@Html.ValidationSummary()
+
+<form method="post">
+    <div>
+        <label asp-for="VideoIds"></label>
+        <textarea asp-for="VideoIds" placeholder="enter video ids, seperated by a comma ','"></textarea>
+    </div>
+    <div>
+        <button type="submit"></button>
+    </div>
+</form>
+
+@section Scripts {
+    <script src="~/js/dist/validation.min.js"></script>
+}
+

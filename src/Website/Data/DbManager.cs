@@ -111,7 +111,7 @@ namespace Website.Data
         {
             string query =
                 "CREATE TABLE IF NOT EXISTS videos (" +
-                    $"id TEXT PRIMARY KEY{(_env.IsDevelopment() ? string.Empty : " CHECK (char_length(id) = 11), ")}, " +     // igore fixed 11 character length in dev mode for easier testing
+                    $"id TEXT PRIMARY KEY{(_env.IsDevelopment() ? string.Empty : " CHECK (char_length(id) = 11)")}, " +     // igore fixed 11 character length in dev mode for easier testing
                     "title TEXT NOT NULL, " +
                     "published TIMESTAMP WITH TIME ZONE, " +
                     "duration INTEGER NOT NULL, " +
