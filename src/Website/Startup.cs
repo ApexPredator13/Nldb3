@@ -47,6 +47,9 @@ namespace Website
             });
 
             services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(Config.GetConnectionString("DefaultConnection")));
+
+            services.AddSingleton<IHttpClientProvider, HttpClientProvider>();
+
             services.AddTransient<IDbConnector, DbConnector>();
             services.AddTransient<IDbManager, DbManager>();
             services.AddScoped<IEmailService, EmailService>();

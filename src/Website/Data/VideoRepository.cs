@@ -6,13 +6,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Website.Models.Database.Enums;
-using Website.Models.Validation;
-using Website.Models.Validation.SubmitEpisode;
+using Website.Models.SubmitEpisode;
 using Website.Services;
 using Google.Apis.YouTube.v3;
 using Google.Apis.YouTube.v3.Data;
 using Google.Apis.Services;
 using Microsoft.Extensions.Configuration;
+using System.Xml;
 
 namespace Website.Data
 {
@@ -38,6 +38,15 @@ namespace Website.Data
             return Convert.ToInt32(await q.ExecuteScalarAsync());
         }
 
+        public async Task<bool> VideoExists(string videoId)
+        {
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand("SELECT 1 FROM videos WHERE id = @Id;", c);
+            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, videoId);
+            using var r = await q.ExecuteReaderAsync();
+            return r.HasRows;
+        }
+
         public async Task<VideoListResponse> GetYoutubeVideoData(params string[] videoIds)
         {
             var youtubeServiceInitializer = new BaseClientService.Initializer()
@@ -60,7 +69,7 @@ namespace Website.Data
 
             using var c = await _connector.Connect();
             using var q = new NpgsqlCommand("SELECT published AT TIME ZONE 'UTC' FROM videos WHERE id = @Id; ", c);
-            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Char, videoId);
+            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, videoId);
 
             using var r = await q.ExecuteReaderAsync();
 
@@ -80,7 +89,7 @@ namespace Website.Data
             using (var c = await _connector.Connect())
             {
                 using var q = new NpgsqlCommand("SELECT title FROM videos WHERE id = @Id; ", c);
-                q.Parameters.AddWithValue("@Id", NpgsqlDbType.Char, videoId);
+                q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, videoId);
 
                 using var r = await q.ExecuteReaderAsync();
 
@@ -100,31 +109,58 @@ namespace Website.Data
             return Convert.ToInt32(await q.ExecuteScalarAsync());
         }
 
-        public async Task SaveVideo(SaveVideo newVideo)
+        public async Task SaveVideo(Video newVideo)
         {
             string commandText =
                 "INSERT INTO videos (id, title, published, duration, needs_update, likes, dislikes, view_count, favourite_count, comment_count, tags, is_3d, is_hd, cc) " +
-                "VALUES (@Id, @Title, @Pub, @Dur, @Needs, @Likes, @Dislikes, @ViewCount, @Fav, @CC, @Tags, @Is3D, @IsHD, @Cap); ";
+                "VALUES (@Id, @Title, @Pub, @Dur, FALSE, @Likes, @Dislikes, @ViewCount, @Fav, @CC, @Tags, @Is3D, @IsHD, @Cap); ";
 
             using var c = await _connector.Connect();
             using var q = new NpgsqlCommand(commandText, c);
 
-            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Varchar, newVideo.Id);
-            q.Parameters.AddWithValue("@Title", NpgsqlDbType.Varchar, newVideo.Title);
-            q.Parameters.AddWithValue("@Pub", NpgsqlDbType.TimestampTz, newVideo.Published);
-            q.Parameters.AddWithValue("@Dur", NpgsqlDbType.Integer, newVideo.Duration);
-            q.Parameters.AddWithValue("@Needs", NpgsqlDbType.Boolean, newVideo.NeedsUpdate);
-            q.Parameters.AddWithValue("@Likes", NpgsqlDbType.Integer, newVideo.Likes ?? (object)DBNull.Value);
-            q.Parameters.AddWithValue("@Dislikes", NpgsqlDbType.Integer, newVideo.Dislikes ?? (object)DBNull.Value);
-            q.Parameters.AddWithValue("@ViewCount", NpgsqlDbType.Integer, newVideo.ViewCount ?? (object)DBNull.Value);
-            q.Parameters.AddWithValue("@Fav", NpgsqlDbType.Integer, newVideo.FavouriteCount ?? (object)DBNull.Value);
-            q.Parameters.AddWithValue("@CC", NpgsqlDbType.Integer, newVideo.CommentCount ?? (object)DBNull.Value);
-            q.Parameters.AddWithValue("@Tags", NpgsqlDbType.Array | NpgsqlDbType.Varchar, newVideo.Tags != null && newVideo.Tags.Count > 0 ? newVideo.Tags : (object)DBNull.Value);
-            q.Parameters.AddWithValue("@Is3D", NpgsqlDbType.Boolean, newVideo.Is3D);
-            q.Parameters.AddWithValue("@IsHD", NpgsqlDbType.Boolean, newVideo.IsHD);
-            q.Parameters.AddWithValue("@Cap", NpgsqlDbType.Boolean, newVideo.HasCaption);
+            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, newVideo.Id);
+            q.Parameters.AddWithValue("@Title", NpgsqlDbType.Text, newVideo.Snippet.Title);
+            q.Parameters.AddWithValue("@Pub", NpgsqlDbType.TimestampTz, newVideo.Snippet.PublishedAt ?? (object)DBNull.Value);
+            q.Parameters.AddWithValue("@Dur", NpgsqlDbType.Integer, (int)(XmlConvert.ToTimeSpan(newVideo.ContentDetails.Duration).TotalSeconds));
+            q.Parameters.AddWithValue("@Likes", NpgsqlDbType.Integer, newVideo.Statistics.LikeCount.HasValue ? (int)newVideo.Statistics.LikeCount.Value : (object)DBNull.Value);
+            q.Parameters.AddWithValue("@Dislikes", NpgsqlDbType.Integer, newVideo.Statistics.DislikeCount.HasValue ? (int)newVideo.Statistics.DislikeCount.Value : (object)DBNull.Value);
+            q.Parameters.AddWithValue("@ViewCount", NpgsqlDbType.Integer, newVideo.Statistics.ViewCount.HasValue ? (int)newVideo.Statistics.ViewCount.Value : (object)DBNull.Value);
+            q.Parameters.AddWithValue("@Fav", NpgsqlDbType.Integer, newVideo.Statistics.FavoriteCount.HasValue ? (int)newVideo.Statistics.FavoriteCount.Value : (object)DBNull.Value);
+            q.Parameters.AddWithValue("@CC", NpgsqlDbType.Integer, newVideo.Statistics.CommentCount.HasValue ? (int)newVideo.Statistics.CommentCount.Value : (object)DBNull.Value);
+            q.Parameters.AddWithValue("@Tags", NpgsqlDbType.Array | NpgsqlDbType.Text, newVideo.Snippet.Tags != null && newVideo.Snippet.Tags.Count > 0 ? newVideo.Snippet.Tags : (object)DBNull.Value);
+            q.Parameters.AddWithValue("@Is3D", NpgsqlDbType.Boolean, newVideo.ContentDetails.Dimension.ToLower() == "3d");
+            q.Parameters.AddWithValue("@IsHD", NpgsqlDbType.Boolean, newVideo.ContentDetails.Definition.ToLower() == "hd");
+            q.Parameters.AddWithValue("@Cap", NpgsqlDbType.Boolean, newVideo.ContentDetails.Caption.ToLower() == "true");
 
             await q.ExecuteNonQueryAsync();
+        }
+
+        public async Task<int> UpdateVideo(Video updatedVideo)
+        {
+            string commandText =
+                "UPDATE videos SET title = @Title, published = @Pub, Duration = @Dur, " +
+                    "likes = @Likes, dislikes = @Dislikes, view_count = @ViewCount, favourite_count = @Fav, " +
+                    "comment_count = @CC, tags = @Tags, is_3d = @Is3D, is_hd = @IsHD, cc = @Cap " +
+                "WHERE id = @Id;";
+
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand(commandText, c);
+
+            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, updatedVideo.Id);
+            q.Parameters.AddWithValue("@Title", NpgsqlDbType.Text, updatedVideo.Snippet.Title);
+            q.Parameters.AddWithValue("@Pub", NpgsqlDbType.TimestampTz, updatedVideo.Snippet.PublishedAt ?? (object)DBNull.Value);
+            q.Parameters.AddWithValue("@Dur", NpgsqlDbType.Integer, (int)(XmlConvert.ToTimeSpan(updatedVideo.ContentDetails.Duration).TotalSeconds));
+            q.Parameters.AddWithValue("@Likes", NpgsqlDbType.Integer, updatedVideo.Statistics.LikeCount.HasValue ? (int)updatedVideo.Statistics.LikeCount.Value : (object)DBNull.Value);
+            q.Parameters.AddWithValue("@Dislikes", NpgsqlDbType.Integer, updatedVideo.Statistics.DislikeCount.HasValue ? (int)updatedVideo.Statistics.DislikeCount : (object)DBNull.Value);
+            q.Parameters.AddWithValue("@ViewCount", NpgsqlDbType.Integer, updatedVideo.Statistics.ViewCount.HasValue ? (int)updatedVideo.Statistics.ViewCount.Value : (object)DBNull.Value);
+            q.Parameters.AddWithValue("@Fav", NpgsqlDbType.Integer, updatedVideo.Statistics.FavoriteCount.HasValue ? (int)updatedVideo.Statistics.FavoriteCount.Value : (object)DBNull.Value);
+            q.Parameters.AddWithValue("@CC", NpgsqlDbType.Integer, updatedVideo.Statistics.CommentCount.HasValue ? (int)updatedVideo.Statistics.CommentCount.Value : (object)DBNull.Value);
+            q.Parameters.AddWithValue("@Tags", NpgsqlDbType.Array | NpgsqlDbType.Text, updatedVideo.Snippet.Tags != null && updatedVideo.Snippet.Tags.Count > 0 ? updatedVideo.Snippet.Tags : (object)DBNull.Value);
+            q.Parameters.AddWithValue("@Is3D", NpgsqlDbType.Boolean, updatedVideo.ContentDetails.Dimension.ToLower() == "3d");
+            q.Parameters.AddWithValue("@IsHD", NpgsqlDbType.Boolean, updatedVideo.ContentDetails.Definition.ToLower() == "hd");
+            q.Parameters.AddWithValue("@Cap", NpgsqlDbType.Boolean, updatedVideo.ContentDetails.Caption.ToLower() == "true");
+
+            return await q.ExecuteNonQueryAsync();
         }
 
         public async Task SubmitLostEpisode(string videoId, string userId)
@@ -132,8 +168,8 @@ namespace Website.Data
             using var c = await _connector.Connect();
             using var q = new NpgsqlCommand($"INSERT INTO video_submissions (video, sub, s_type, latest) VALUES (@V, @U, @ST, FALSE); ", c);
 
-            q.Parameters.AddWithValue("@V", NpgsqlDbType.Char, videoId);
-            q.Parameters.AddWithValue("@U", NpgsqlDbType.Varchar, userId);
+            q.Parameters.AddWithValue("@V", NpgsqlDbType.Text, videoId);
+            q.Parameters.AddWithValue("@U", NpgsqlDbType.Text, userId);
             q.Parameters.AddWithValue("@ST", NpgsqlDbType.Integer, (int)SubmissionType.Lost);
 
             await q.ExecuteNonQueryAsync();
@@ -173,10 +209,10 @@ namespace Website.Data
             // save video submission
             s.Append("START TRANSACTION; ");
             s.Append("UPDATE video_submissions SET latest = FALSE WHERE video = @LatestVideoId; ");
-            parameters.Add(new NpgsqlParameter("@LatestVideoId", NpgsqlDbType.Char) { Value = episode.VideoId });
+            parameters.Add(new NpgsqlParameter("@LatestVideoId", NpgsqlDbType.Text) { Value = episode.VideoId });
 
             s.Append("INSERT INTO video_submissions (video, sub, s_type, latest) VALUES (@Video, @Sub, @Type, TRUE); ");
-            parameters.Add(new NpgsqlParameter("@Video", NpgsqlDbType.Char) { NpgsqlValue = episode.VideoId });
+            parameters.Add(new NpgsqlParameter("@Video", NpgsqlDbType.Text) { NpgsqlValue = episode.VideoId });
             parameters.Add(new NpgsqlParameter("@Sub", NpgsqlDbType.Text) { NpgsqlValue = userId });
             parameters.Add(new NpgsqlParameter("@Type", NpgsqlDbType.Integer) { NpgsqlValue = (int)type });
 
@@ -191,9 +227,9 @@ namespace Website.Data
 
                 // save character
                 s.Append($"INSERT INTO played_characters (game_character, submission, action, video, run_number, died_from) VALUES (@CCharacter{characterCounter}, CURRVAL(pg_get_serial_sequence('video_submissions', 'id')), @CAction{characterCounter}, @CVideo{characterCounter}, @CRunNumber{characterCounter}, NULL); ");
-                parameters.Add(new NpgsqlParameter($"@CCharacter{characterCounter}", NpgsqlDbType.Varchar) { NpgsqlValue = character.CharacterId });
+                parameters.Add(new NpgsqlParameter($"@CCharacter{characterCounter}", NpgsqlDbType.Text) { NpgsqlValue = character.CharacterId });
                 parameters.Add(new NpgsqlParameter($"@CAction{characterCounter}", NpgsqlDbType.Integer) { NpgsqlValue = gameplayAction++ });
-                parameters.Add(new NpgsqlParameter($"@CVideo{characterCounter}", NpgsqlDbType.Char) { NpgsqlValue = episode.VideoId });
+                parameters.Add(new NpgsqlParameter($"@CVideo{characterCounter}", NpgsqlDbType.Text) { NpgsqlValue = episode.VideoId });
                 parameters.Add(new NpgsqlParameter($"@CRunNumber{characterCounter++}", NpgsqlDbType.Integer) { NpgsqlValue = runNumber });
 
                 for (int i = 0; i < character.PlayedFloors.Count; i++)
@@ -206,8 +242,8 @@ namespace Website.Data
 
                     // save floor into character
                     s.Append($"INSERT INTO played_floors (floor, played_character, video, action, run_number, floor_number, died_from, submission) VALUES (@FFloor{floorCounter}, CURRVAL(pg_get_serial_sequence('played_characters', 'id')), @FVideo{floorCounter}, @FAction{floorCounter}, @FRunNum{floorCounter}, @FCurrF{floorCounter}, NULL, CURRVAL(pg_get_serial_sequence('video_submissions', 'id'))); ");
-                    parameters.Add(new NpgsqlParameter($"@FFloor{floorCounter}", NpgsqlDbType.Varchar) { NpgsqlValue = floor.FloorId });
-                    parameters.Add(new NpgsqlParameter($"@FVideo{floorCounter}", NpgsqlDbType.Char) { NpgsqlValue = episode.VideoId });
+                    parameters.Add(new NpgsqlParameter($"@FFloor{floorCounter}", NpgsqlDbType.Text) { NpgsqlValue = floor.FloorId });
+                    parameters.Add(new NpgsqlParameter($"@FVideo{floorCounter}", NpgsqlDbType.Text) { NpgsqlValue = episode.VideoId });
                     parameters.Add(new NpgsqlParameter($"@FAction{floorCounter}", NpgsqlDbType.Integer) { NpgsqlValue = gameplayAction++ });
                     parameters.Add(new NpgsqlParameter($"@FRunNum{floorCounter}", NpgsqlDbType.Integer) { NpgsqlValue = runNumber });
                     parameters.Add(new NpgsqlParameter($"@FCurrF{floorCounter++}", NpgsqlDbType.Integer) { NpgsqlValue = currentFloorNumber });
@@ -224,10 +260,10 @@ namespace Website.Data
                         s.Append($"INSERT INTO gameplay_events (event_type, resource_one, resource_two, resource_three, played_floor, played_character, video, action, in_consequence_of, run_number, player, floor_number, submission) " +
                                  $"VALUES (@Type{eventCounter}, @One{eventCounter}, @Two{eventCounter}, @Three{eventCounter}, CURRVAL(pg_get_serial_sequence('played_floors', 'id')), CURRVAL(pg_get_serial_sequence('played_characters', 'id')), @Video{eventCounter}, @Action{eventCounter}, NULL, @RunNumber{eventCounter}, @Player{eventCounter}, @FNum{eventCounter}, CURRVAL(pg_get_serial_sequence('video_submissions', 'id'))); ");
                         parameters.Add(new NpgsqlParameter($"@Type{eventCounter}", NpgsqlDbType.Integer) { NpgsqlValue = (int)e.EventType });
-                        parameters.Add(new NpgsqlParameter($"@One{eventCounter}", NpgsqlDbType.Varchar) { NpgsqlValue = e.RelatedResource1 });
-                        parameters.Add(new NpgsqlParameter($"@Two{eventCounter}", NpgsqlDbType.Varchar) { NpgsqlValue = e.RelatedResource2 ?? (object)DBNull.Value });
+                        parameters.Add(new NpgsqlParameter($"@One{eventCounter}", NpgsqlDbType.Text) { NpgsqlValue = e.RelatedResource1 });
+                        parameters.Add(new NpgsqlParameter($"@Two{eventCounter}", NpgsqlDbType.Text) { NpgsqlValue = e.RelatedResource2 ?? (object)DBNull.Value });
                         parameters.Add(new NpgsqlParameter($"@Three{eventCounter}", NpgsqlDbType.Integer) { NpgsqlValue = e.RelatedResource3 ?? (object)DBNull.Value });
-                        parameters.Add(new NpgsqlParameter($"@Video{eventCounter}", NpgsqlDbType.Char) { NpgsqlValue = episode.VideoId });
+                        parameters.Add(new NpgsqlParameter($"@Video{eventCounter}", NpgsqlDbType.Text) { NpgsqlValue = episode.VideoId });
                         parameters.Add(new NpgsqlParameter($"@Action{eventCounter}", NpgsqlDbType.Integer) { NpgsqlValue = gameplayAction++ });
                         parameters.Add(new NpgsqlParameter($"@RunNumber{eventCounter}", NpgsqlDbType.Integer) { NpgsqlValue = runNumber });
                         parameters.Add(new NpgsqlParameter($"@Player{eventCounter}", NpgsqlDbType.Integer) { NpgsqlValue = e.Player ?? (object)DBNull.Value });
@@ -252,10 +288,10 @@ namespace Website.Data
                                     s.Append("INSERT INTO gameplay_events (event_type, resource_one, resource_two, resource_three, played_floor, played_character, video, action, in_consequence_of, run_number, player, floor_number, submission) VALUES ");
                                     s.Append($"(@Type{eventCounter}, @One{eventCounter}, @Two{eventCounter}, @Three{eventCounter}, CURRVAL(pg_get_serial_sequence('played_floors', 'id')), CURRVAL(pg_get_serial_sequence('played_characters', 'id')), @Video{eventCounter}, @Action{eventCounter}, CURRVAL(pg_get_serial_sequence('gameplay_events', 'id')) - {subtractFromSequence++}, @RunNumber{eventCounter}, @Player{eventCounter}, @FNum{eventCounter}, CURRVAL(pg_get_serial_sequence('video_submissions', 'id'))); ");
                                     parameters.Add(new NpgsqlParameter($"@Type{eventCounter}", NpgsqlDbType.Integer) { NpgsqlValue = (int)GameplayEventType.TransformationProgress });
-                                    parameters.Add(new NpgsqlParameter($"@One{eventCounter}", NpgsqlDbType.Varchar) { NpgsqlValue = e.RelatedResource1 });
-                                    parameters.Add(new NpgsqlParameter($"@Two{eventCounter}", NpgsqlDbType.Varchar) { NpgsqlValue = transformation });
+                                    parameters.Add(new NpgsqlParameter($"@One{eventCounter}", NpgsqlDbType.Text) { NpgsqlValue = e.RelatedResource1 });
+                                    parameters.Add(new NpgsqlParameter($"@Two{eventCounter}", NpgsqlDbType.Text) { NpgsqlValue = transformation });
                                     parameters.Add(new NpgsqlParameter($"@Three{eventCounter}", NpgsqlDbType.Integer) { NpgsqlValue = transformationProgress.Count(x => x.Transformation == transformation) });
-                                    parameters.Add(new NpgsqlParameter($"@Video{eventCounter}", NpgsqlDbType.Char) { NpgsqlValue = episode.VideoId });
+                                    parameters.Add(new NpgsqlParameter($"@Video{eventCounter}", NpgsqlDbType.Text) { NpgsqlValue = episode.VideoId });
                                     parameters.Add(new NpgsqlParameter($"@Action{eventCounter}", NpgsqlDbType.Integer) { NpgsqlValue = gameplayAction++ });
                                     parameters.Add(new NpgsqlParameter($"@RunNumber{eventCounter}", NpgsqlDbType.Integer) { NpgsqlValue = runNumber });
                                     parameters.Add(new NpgsqlParameter($"@Player{eventCounter}", NpgsqlDbType.Integer) { NpgsqlValue = e.Player!.Value });
@@ -267,9 +303,9 @@ namespace Website.Data
                                         s.Append("INSERT INTO gameplay_events (event_type, resource_one, resource_two, resource_three, played_floor, played_character, video, action, in_consequence_of, run_number, player, floor_number, submission) VALUES ");
                                         s.Append($"(@Type{eventCounter}, @One{eventCounter}, @Two{eventCounter}, NULL, CURRVAL(pg_get_serial_sequence('played_floors', 'id')), CURRVAL(pg_get_serial_sequence('played_characters', 'id')), @Video{eventCounter}, @Action{eventCounter}, CURRVAL(pg_get_serial_sequence('gameplay_events', 'id')) - {subtractFromSequence++}, @RunNumber{eventCounter}, @Player{eventCounter}, @FNum{eventCounter}, CURRVAL(pg_get_serial_sequence('video_submissions', 'id'))); ");
                                         parameters.Add(new NpgsqlParameter($"@Type{eventCounter}", NpgsqlDbType.Integer) { NpgsqlValue = (int)GameplayEventType.TransformationComplete });
-                                        parameters.Add(new NpgsqlParameter($"@One{eventCounter}", NpgsqlDbType.Varchar) { NpgsqlValue = e.RelatedResource1 });
-                                        parameters.Add(new NpgsqlParameter($"@Two{eventCounter}", NpgsqlDbType.Varchar) { NpgsqlValue = transformation });
-                                        parameters.Add(new NpgsqlParameter($"@Video{eventCounter}", NpgsqlDbType.Char) { NpgsqlValue = episode.VideoId });
+                                        parameters.Add(new NpgsqlParameter($"@One{eventCounter}", NpgsqlDbType.Text) { NpgsqlValue = e.RelatedResource1 });
+                                        parameters.Add(new NpgsqlParameter($"@Two{eventCounter}", NpgsqlDbType.Text) { NpgsqlValue = transformation });
+                                        parameters.Add(new NpgsqlParameter($"@Video{eventCounter}", NpgsqlDbType.Text) { NpgsqlValue = episode.VideoId });
                                         parameters.Add(new NpgsqlParameter($"@Action{eventCounter}", NpgsqlDbType.Integer) { NpgsqlValue = gameplayAction++ });
                                         parameters.Add(new NpgsqlParameter($"@RunNumber{eventCounter}", NpgsqlDbType.Integer) { NpgsqlValue = runNumber });
                                         parameters.Add(new NpgsqlParameter($"@Player{eventCounter}", NpgsqlDbType.Integer) { NpgsqlValue = e.Player!.Value });
@@ -286,8 +322,8 @@ namespace Website.Data
                         s.Append($"INSERT INTO gameplay_events (event_type, resource_one, resource_two, resource_three, played_floor, played_character, video, action, in_consequence_of, run_number, player, floor_number, submission) " +
                              $"VALUES (@Type{eventCounter}, @One{eventCounter}, NULL, NULL, CURRVAL(pg_get_serial_sequence('played_floors', 'id')), CURRVAL(pg_get_serial_sequence('played_characters', 'id')), @Video{eventCounter}, @Action{eventCounter}, NULL, @RunNumber{eventCounter}, NULL, @FNum{eventCounter}, CURRVAL(pg_get_serial_sequence('video_submissions', 'id'))); ");
                         parameters.Add(new NpgsqlParameter($"@Type{eventCounter}", NpgsqlDbType.Integer) { NpgsqlValue = (int)GameplayEventType.DownToTheNextFloor });
-                        parameters.Add(new NpgsqlParameter($"@One{eventCounter}", NpgsqlDbType.Varchar) { NpgsqlValue = floor.FloorId });
-                        parameters.Add(new NpgsqlParameter($"@Video{eventCounter}", NpgsqlDbType.Char) { NpgsqlValue = episode.VideoId });
+                        parameters.Add(new NpgsqlParameter($"@One{eventCounter}", NpgsqlDbType.Text) { NpgsqlValue = floor.FloorId });
+                        parameters.Add(new NpgsqlParameter($"@Video{eventCounter}", NpgsqlDbType.Text) { NpgsqlValue = episode.VideoId });
                         parameters.Add(new NpgsqlParameter($"@Action{eventCounter}", NpgsqlDbType.Integer) { NpgsqlValue = gameplayAction++ });
                         parameters.Add(new NpgsqlParameter($"@RunNumber{eventCounter}", NpgsqlDbType.Integer) { NpgsqlValue = runNumber });
                         parameters.Add(new NpgsqlParameter($"@FNum{eventCounter++}", NpgsqlDbType.Integer) { NpgsqlValue = currentFloorNumber });
@@ -298,10 +334,10 @@ namespace Website.Data
                 if (!string.IsNullOrEmpty(lastDeath))
                 {
                     s.Append($"UPDATE played_characters SET died_from = @CDF{characterDeathCounter} WHERE id = CURRVAL(pg_get_serial_sequence('played_characters', 'id')); ");
-                    parameters.Add(new NpgsqlParameter($"@CDF{characterDeathCounter++}", NpgsqlDbType.Varchar) { NpgsqlValue = lastDeath });
+                    parameters.Add(new NpgsqlParameter($"@CDF{characterDeathCounter++}", NpgsqlDbType.Text) { NpgsqlValue = lastDeath });
 
                     s.Append($"UPDATE played_floors SET died_from = @FDF{floorDeathCounter} WHERE id = CURRVAL(pg_get_serial_sequence('played_floors', 'id')); ");
-                    parameters.Add(new NpgsqlParameter($"@FDF{floorDeathCounter++}", NpgsqlDbType.Varchar) { NpgsqlValue = lastDeath });
+                    parameters.Add(new NpgsqlParameter($"@FDF{floorDeathCounter++}", NpgsqlDbType.Text) { NpgsqlValue = lastDeath });
                 }
 
                 // STEP 5 - won or lost the run
@@ -310,10 +346,10 @@ namespace Website.Data
                     s.Append($"INSERT INTO gameplay_events (event_type, resource_one, resource_two, resource_three, played_floor, played_character, video, action, in_consequence_of, run_number, player, floor_number, submission) " +
                              $"VALUES (@Type{eventCounter}, @One{eventCounter}, @Two{eventCounter}, @Three{eventCounter}, CURRVAL(pg_get_serial_sequence('played_floors', 'id')), CURRVAL(pg_get_serial_sequence('played_characters', 'id')), @Video{eventCounter}, @Action{eventCounter}, NULL, @RunNumber{eventCounter}, NULL, @FNum{eventCounter}, CURRVAL(pg_get_serial_sequence('video_submissions', 'id'))); ");
                     parameters.Add(new NpgsqlParameter($"@Type{eventCounter}", NpgsqlDbType.Integer) { NpgsqlValue = (int)GameplayEventType.LostTheRun });
-                    parameters.Add(new NpgsqlParameter($"@One{eventCounter}", NpgsqlDbType.Varchar) { NpgsqlValue = character.CharacterId });
-                    parameters.Add(new NpgsqlParameter($"@Two{eventCounter}", NpgsqlDbType.Varchar) { NpgsqlValue = lastFloor });
+                    parameters.Add(new NpgsqlParameter($"@One{eventCounter}", NpgsqlDbType.Text) { NpgsqlValue = character.CharacterId });
+                    parameters.Add(new NpgsqlParameter($"@Two{eventCounter}", NpgsqlDbType.Text) { NpgsqlValue = lastFloor });
                     parameters.Add(new NpgsqlParameter($"@Three{eventCounter}", NpgsqlDbType.Integer) { NpgsqlValue = character.PlayedFloors.Count });
-                    parameters.Add(new NpgsqlParameter($"@Video{eventCounter}", NpgsqlDbType.Char) { NpgsqlValue = episode.VideoId });
+                    parameters.Add(new NpgsqlParameter($"@Video{eventCounter}", NpgsqlDbType.Text) { NpgsqlValue = episode.VideoId });
                     parameters.Add(new NpgsqlParameter($"@Action{eventCounter}", NpgsqlDbType.Integer) { NpgsqlValue = gameplayAction++ });
                     parameters.Add(new NpgsqlParameter($"@RunNumber{eventCounter}", NpgsqlDbType.Integer) { NpgsqlValue = runNumber });
                     parameters.Add(new NpgsqlParameter($"@FNum{eventCounter++}", NpgsqlDbType.Integer) { NpgsqlValue = currentFloorNumber });
@@ -323,10 +359,10 @@ namespace Website.Data
                     s.Append($"INSERT INTO gameplay_events (event_type, resource_one, resource_two, resource_three, played_floor, played_character, video, action, in_consequence_of, run_number, player, floor_number, submission) " +
                              $"VALUES (@Type{eventCounter}, @One{eventCounter}, @Two{eventCounter}, @Three{eventCounter}, CURRVAL(pg_get_serial_sequence('played_floors', 'id')), CURRVAL(pg_get_serial_sequence('played_characters', 'id')), @Video{eventCounter}, @Action{eventCounter}, NULL, @RunNumber{eventCounter}, NULL, @FNum{eventCounter}, CURRVAL(pg_get_serial_sequence('video_submissions', 'id'))); ");
                     parameters.Add(new NpgsqlParameter($"@Type{eventCounter}", NpgsqlDbType.Integer) { NpgsqlValue = (int)GameplayEventType.WonTheRun });
-                    parameters.Add(new NpgsqlParameter($"@One{eventCounter}", NpgsqlDbType.Varchar) { NpgsqlValue = character.CharacterId });
-                    parameters.Add(new NpgsqlParameter($"@Two{eventCounter}", NpgsqlDbType.Varchar) { NpgsqlValue = lastFloor });
+                    parameters.Add(new NpgsqlParameter($"@One{eventCounter}", NpgsqlDbType.Text) { NpgsqlValue = character.CharacterId });
+                    parameters.Add(new NpgsqlParameter($"@Two{eventCounter}", NpgsqlDbType.Text) { NpgsqlValue = lastFloor });
                     parameters.Add(new NpgsqlParameter($"@Three{eventCounter}", NpgsqlDbType.Integer) { NpgsqlValue = character.PlayedFloors.Count });
-                    parameters.Add(new NpgsqlParameter($"@Video{eventCounter}", NpgsqlDbType.Char) { NpgsqlValue = episode.VideoId });
+                    parameters.Add(new NpgsqlParameter($"@Video{eventCounter}", NpgsqlDbType.Text) { NpgsqlValue = episode.VideoId });
                     parameters.Add(new NpgsqlParameter($"@Action{eventCounter}", NpgsqlDbType.Integer) { NpgsqlValue = gameplayAction++ });
                     parameters.Add(new NpgsqlParameter($"@RunNumber{eventCounter}", NpgsqlDbType.Integer) { NpgsqlValue = runNumber });
                     parameters.Add(new NpgsqlParameter($"@FNum{eventCounter++}", NpgsqlDbType.Integer) { NpgsqlValue = currentFloorNumber });
@@ -354,7 +390,7 @@ namespace Website.Data
 
             using var c = await _connector.Connect();
             using var q = new NpgsqlCommand(query, c);
-            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Char, videoId);
+            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, videoId);
 
             using var r = await q.ExecuteReaderAsync();
 
@@ -452,23 +488,48 @@ namespace Website.Data
             return video;
         }
 
-        public async Task<int> SaveThumbnail(Thumbnail thumbnail, string videoId)
+        public async Task<int> SetThumbnails(ThumbnailDetails thumbnailDetails, string videoId)
         {
-            var query = "INSERT INTO thumbnails (id, url, width, height, video) VALUES (DEFAULT, @U, @W, @H, @V) RETURNING id;";
-            using var c = await _connector.Connect();
-            using var q = new NpgsqlCommand(query, c);
-            q.Parameters.AddWithValue("@U", NpgsqlDbType.Varchar, thumbnail.Url);
-            q.Parameters.AddWithValue("@W", NpgsqlDbType.Integer, thumbnail.Width is null ? (object)DBNull.Value : (int)thumbnail.Width.Value);
-            q.Parameters.AddWithValue("@H", NpgsqlDbType.Integer, thumbnail.Height is null ? (object)DBNull.Value : (int)thumbnail.Height.Value);
-            q.Parameters.AddWithValue("@V", NpgsqlDbType.Char, videoId);
-            return Convert.ToInt32(await q.ExecuteScalarAsync());
-        }
+            var thumbnails = new List<Thumbnail>();
 
-        public async Task<int> ClearThumbnailsForVideo(string videoId)
-        {
+            if (thumbnailDetails.High != null) thumbnails.Add(thumbnailDetails.High);
+            if (thumbnailDetails.Maxres != null) thumbnails.Add(thumbnailDetails.Maxres);
+            if (thumbnailDetails.Default__ != null) thumbnails.Add(thumbnailDetails.Default__);
+            if (thumbnailDetails.Medium != null) thumbnails.Add(thumbnailDetails.Medium);
+            if (thumbnailDetails.Standard != null) thumbnails.Add(thumbnailDetails.Standard);
+
+            if (thumbnails.Count is 0)
+            {
+                return 0;
+            }
+
+            var parameters = new List<NpgsqlParameter>()
+            {
+                new NpgsqlParameter("@VideoId", NpgsqlDbType.Text) { NpgsqlValue = videoId }
+            };
+
+            var s = new StringBuilder();
+            s.Append("START TRANSACTION; ");
+            s.Append("DELETE FROM thumbnails WHERE video = @VideoId; ");
+            s.Append("INSERT INTO thumbnails (id, url, width, height, video) VALUES ");
+
+            int i = 0;
+            thumbnails.ForEach(thumb =>
+            {
+                s.Append($"(DEFAULT, @U{i}, @W{i}, @H{i}, @VideoId), ");
+                parameters.Add(new NpgsqlParameter($"@U{i}", NpgsqlDbType.Text) { NpgsqlValue = thumb.Url });
+                parameters.Add(new NpgsqlParameter($"@W{i}", NpgsqlDbType.Integer) { NpgsqlValue = thumb.Width ?? (object)DBNull.Value });
+                parameters.Add(new NpgsqlParameter($"@H{i++}", NpgsqlDbType.Integer) { NpgsqlValue = thumb.Height ?? (object)DBNull.Value });
+            });
+
+            s.Length -= 2;
+            s.Append("; ");
+            s.Append("COMMIT; ");
+
             using var c = await _connector.Connect();
-            using var q = new NpgsqlCommand("DELETE FROM thumbnails WHERE video = @V;", c);
-            q.Parameters.AddWithValue("@V", NpgsqlDbType.Char, videoId);
+            using var q = new NpgsqlCommand(s.ToString(), c);
+            q.Parameters.AddRange(parameters.ToArray());
+
             return await q.ExecuteNonQueryAsync();
         }
     }

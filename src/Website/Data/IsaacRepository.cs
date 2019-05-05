@@ -6,9 +6,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Website.Areas.Admin.ViewModels;
+using Website.Areas.Api.Models;
 using Website.Models.Database;
 using Website.Models.Database.Enums;
-using Website.Models.Validation;
 using Website.Services;
 
 namespace Website.Data
@@ -52,7 +52,7 @@ namespace Website.Data
 
             using var c = await _connector.Connect();
             using var q = new NpgsqlCommand(query, c);
-            q.Parameters.AddWithValue("@VideoId", NpgsqlDbType.Char, videoId);
+            q.Parameters.AddWithValue("@VideoId", NpgsqlDbType.Text, videoId);
             if (submissionId != null) q.Parameters.AddWithValue("@SubmissionId", NpgsqlDbType.Integer, submissionId.Value);
 
             using var r = await q.ExecuteReaderAsync();
@@ -95,7 +95,7 @@ namespace Website.Data
 
             using var c = await _connector.Connect();
             using var q = new NpgsqlCommand(query, c);
-            q.Parameters.AddWithValue("@VideoId", NpgsqlDbType.Char, videoId);
+            q.Parameters.AddWithValue("@VideoId", NpgsqlDbType.Text, videoId);
             if (submissionId != null) q.Parameters.AddWithValue("@SubmissionId", NpgsqlDbType.Integer, submissionId.Value);
 
             using var r = await q.ExecuteReaderAsync();
@@ -168,7 +168,7 @@ namespace Website.Data
 
             using var c = await _connector.Connect();
             using var q = new NpgsqlCommand(query, c);
-            q.Parameters.AddWithValue("@VideoId", NpgsqlDbType.Char, videoId);
+            q.Parameters.AddWithValue("@VideoId", NpgsqlDbType.Text, videoId);
             if (submissionId != null) q.Parameters.AddWithValue("@SubmissionId", NpgsqlDbType.Integer, submissionId.Value);
 
             using var r = await q.ExecuteReaderAsync();
@@ -242,7 +242,7 @@ namespace Website.Data
 
             using var c = await _connector.Connect();
             using var q = new NpgsqlCommand(query, c);
-            q.Parameters.AddWithValue("@VideoId", NpgsqlDbType.Char, videoId);
+            q.Parameters.AddWithValue("@VideoId", NpgsqlDbType.Text, videoId);
             if (submissionId != null) q.Parameters.AddWithValue("@SubmissionId", NpgsqlDbType.Integer, submissionId.Value);
 
             using var r = await q.ExecuteReaderAsync();
@@ -306,7 +306,7 @@ namespace Website.Data
             using var c = await _connector.Connect();
             using var q = new NpgsqlCommand("UPDATE isaac_resources SET exists_in = @E WHERE id = @I;", c);
             q.Parameters.AddWithValue("@E", NpgsqlDbType.Integer, (int)newExistsIn);
-            q.Parameters.AddWithValue("@I", NpgsqlDbType.Varchar, id);
+            q.Parameters.AddWithValue("@I", NpgsqlDbType.Text, id);
             return await q.ExecuteNonQueryAsync();
         }
 
@@ -315,7 +315,7 @@ namespace Website.Data
             using var c = await _connector.Connect();
             using var q = new NpgsqlCommand("UPDATE isaac_resources SET game_mode = @G WHERE id = @I;", c);
             q.Parameters.AddWithValue("@G", NpgsqlDbType.Integer, (int)newGameMode);
-            q.Parameters.AddWithValue("@I", NpgsqlDbType.Varchar, id);
+            q.Parameters.AddWithValue("@I", NpgsqlDbType.Text, id);
             return await q.ExecuteNonQueryAsync();
         }
 
@@ -323,8 +323,8 @@ namespace Website.Data
         {
             using var c = await _connector.Connect();
             using var q = new NpgsqlCommand("UPDATE isaac_resources SET name = @N WHERE id = @I;", c);
-            q.Parameters.AddWithValue("@N", NpgsqlDbType.Varchar, newName);
-            q.Parameters.AddWithValue("@I", NpgsqlDbType.Varchar, id);
+            q.Parameters.AddWithValue("@N", NpgsqlDbType.Text, newName);
+            q.Parameters.AddWithValue("@I", NpgsqlDbType.Text, id);
             return await q.ExecuteNonQueryAsync();
         }
 
@@ -332,8 +332,8 @@ namespace Website.Data
         {
             using var c = await _connector.Connect();
             using var q = new NpgsqlCommand("UPDATE isaac_resources SET id = @NewId WHERE id = @OldId;", c);
-            q.Parameters.AddWithValue("@NewId", NpgsqlDbType.Varchar, newId);
-            q.Parameters.AddWithValue("@OldId", NpgsqlDbType.Varchar, oldId);
+            q.Parameters.AddWithValue("@NewId", NpgsqlDbType.Text, newId);
+            q.Parameters.AddWithValue("@OldId", NpgsqlDbType.Text, oldId);
             return await q.ExecuteNonQueryAsync();
         }
 
@@ -359,7 +359,7 @@ namespace Website.Data
         {
             using var c = await _connector.Connect();
             using var q = new NpgsqlCommand("SELECT id FROM isaac_resources WHERE name = @Name", c);
-            q.Parameters.AddWithValue("@Name", NpgsqlDbType.Varchar, name);
+            q.Parameters.AddWithValue("@Name", NpgsqlDbType.Text, name);
             return Convert.ToString(await q.ExecuteScalarAsync());
         }
 
@@ -370,13 +370,13 @@ namespace Website.Data
 
             using var c = await _connector.Connect();
             using var q = new NpgsqlCommand(query, c);
-            q.Parameters.AddWithValue("@I", NpgsqlDbType.Varchar, resource.Id);
-            q.Parameters.AddWithValue("@N", NpgsqlDbType.Varchar, resource.Name);
+            q.Parameters.AddWithValue("@I", NpgsqlDbType.Text, resource.Id);
+            q.Parameters.AddWithValue("@N", NpgsqlDbType.Text, resource.Name);
             q.Parameters.AddWithValue("@D", NpgsqlDbType.Integer, (int)resource.ResourceType);
             q.Parameters.AddWithValue("@E", NpgsqlDbType.Integer, (int)resource.ExistsIn);
             q.Parameters.AddWithValue("@X", NpgsqlDbType.Box, CreateBoxCoordinatesFromScreenCoordinates(x, y, w, h));
             q.Parameters.AddWithValue("@M", NpgsqlDbType.Integer, (int)resource.GameMode);
-            q.Parameters.AddWithValue("@C", NpgsqlDbType.Varchar, resource.Color);
+            q.Parameters.AddWithValue("@C", NpgsqlDbType.Text, resource.Color);
             q.Parameters.AddWithValue("@L", NpgsqlDbType.Integer, resource.FromMod ?? (object)DBNull.Value);
             q.Parameters.AddWithValue("@O", NpgsqlDbType.Integer, resource.DisplayOrder ?? (object)DBNull.Value);
             q.Parameters.AddWithValue("@U", NpgsqlDbType.Integer, resource.Difficulty ?? (object)DBNull.Value);
@@ -390,7 +390,7 @@ namespace Website.Data
             using var c = await _connector.Connect();
             using var q = new NpgsqlCommand("UPDATE isaac_resources SET x = @X WHERE id = @I;", c);
             q.Parameters.AddWithValue("@X", NpgsqlDbType.Box, CreateBoxCoordinatesFromScreenCoordinates(x, y, w, h));
-            q.Parameters.AddWithValue("@I", NpgsqlDbType.Varchar, resourceId);
+            q.Parameters.AddWithValue("@I", NpgsqlDbType.Text, resourceId);
             return await q.ExecuteNonQueryAsync();
         }
 
@@ -589,7 +589,7 @@ namespace Website.Data
 
             using var c = await _connector.Connect();
             using var q = new NpgsqlCommand(s.ToString(), c);
-            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Varchar, id);
+            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, id);
 
             using var r = await q.ExecuteReaderAsync();
 
@@ -650,7 +650,7 @@ namespace Website.Data
         {
             using var c = await _connector.Connect();
             using var q = new NpgsqlCommand("DELETE FROM isaac_resources WHERE id = @Id; ", c);
-            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Varchar, resourceId);
+            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, resourceId);
             return await q.ExecuteNonQueryAsync();
         }
 
@@ -663,10 +663,10 @@ namespace Website.Data
 
             using var c = await _connector.Connect();
             using var q = new NpgsqlCommand(query, c);
-            q.Parameters.AddWithValue("@IR", NpgsqlDbType.Varchar, model.ResourceId);
-            q.Parameters.AddWithValue("@TR", NpgsqlDbType.Varchar, model.TransformationId);
+            q.Parameters.AddWithValue("@IR", NpgsqlDbType.Text, model.ResourceId);
+            q.Parameters.AddWithValue("@TR", NpgsqlDbType.Text, model.TransformationId);
             q.Parameters.AddWithValue("@CM", NpgsqlDbType.Boolean, model.CanCountMultipleTimes);
-            q.Parameters.AddWithValue("@RT", NpgsqlDbType.Varchar, model.RequiresTitleContent ?? (object)DBNull.Value);
+            q.Parameters.AddWithValue("@RT", NpgsqlDbType.Text, model.RequiresTitleContent ?? (object)DBNull.Value);
             q.Parameters.AddWithValue("@SN", NpgsqlDbType.Integer, model.StepsNeeded);
             if (model.ValidFrom.HasValue) q.Parameters.AddWithValue("@VF", NpgsqlDbType.TimestampTz, model.ValidFrom ?? (object)DBNull.Value);
             if (model.ValidUntil.HasValue) q.Parameters.AddWithValue("@VU", NpgsqlDbType.TimestampTz, model.ValidUntil ?? (object)DBNull.Value);
@@ -680,7 +680,7 @@ namespace Website.Data
 
             using var c = await _connector.Connect();
             using var q = new NpgsqlCommand($"SELECT 1 FROM isaac_resources WHERE id = @Resource AND tags @> @RequiredEffects; ", c);
-            q.Parameters.AddWithValue("@Resource", NpgsqlDbType.Varchar, resourceId);
+            q.Parameters.AddWithValue("@Resource", NpgsqlDbType.Text, resourceId);
             q.Parameters.AddWithValue("@RequiredEffects", NpgsqlDbType.Array | NpgsqlDbType.Integer, effects.Select(x => (int)x).ToArray());
 
             using var r = await q.ExecuteReaderAsync();
@@ -704,7 +704,7 @@ namespace Website.Data
                 "WHERE isaac_resource = @I " +
                 "AND valid_from <= @R " +
                 "AND valid_until >= @R; ", c);
-            q.Parameters.AddWithValue("@I", NpgsqlDbType.Varchar, resourceId);
+            q.Parameters.AddWithValue("@I", NpgsqlDbType.Text, resourceId);
             q.Parameters.AddWithValue("@R", NpgsqlDbType.TimestampTz, videoReleasedate);
 
             using var r = await q.ExecuteReaderAsync();

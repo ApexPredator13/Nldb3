@@ -8,8 +8,7 @@ using System.Threading.Tasks;
 using Website.Areas.Admin.ViewModels;
 using Website.Models.Database;
 using Website.Models.Database.Enums;
-using Website.Models.Validation;
-using Website.Models.Validation.SubmitEpisode;
+using Website.Models.SubmitEpisode;
 using Website.Services;
 
 namespace Website.Data
@@ -27,7 +26,7 @@ namespace Website.Data
         {
             using var c = await _connector.Connect();
             using var q = new NpgsqlCommand("INSERT INTO mods (id, name) VALUES (DEFAULT, @N) RETURNING id; ", c);
-            q.Parameters.AddWithValue("@N", NpgsqlDbType.Varchar, mod.ModName);
+            q.Parameters.AddWithValue("@N", NpgsqlDbType.Text, mod.ModName);
             return Convert.ToInt32(await q.ExecuteScalarAsync());
         }
 
@@ -112,7 +111,7 @@ namespace Website.Data
             using var c = await _connector.Connect();
             
             using var q = new NpgsqlCommand("SELECT m.id, m.name, u.id, u.url, u.name FROM mods m LEFT JOIN mod_url u ON m.id = u.mod WHERE m.name = @N; ", c);
-            q.Parameters.AddWithValue("@N", NpgsqlDbType.Varchar, name);
+            q.Parameters.AddWithValue("@N", NpgsqlDbType.Text, name);
 
             using var r = await q.ExecuteReaderAsync();
             if (r.HasRows)
@@ -151,7 +150,7 @@ namespace Website.Data
 
             using var c = await _connector.Connect();
             using var q = new NpgsqlCommand("SELECT id FROM mods WHERE name = @N; ", c);
-            q.Parameters.AddWithValue("@N", NpgsqlDbType.Varchar, name);
+            q.Parameters.AddWithValue("@N", NpgsqlDbType.Text, name);
 
             using var r = await q.ExecuteReaderAsync();
             if (r.HasRows)
@@ -184,7 +183,7 @@ namespace Website.Data
             {
                 // get episode name, to manually filter antibirth and community remix episodes
                 using var getTitleCommand = new NpgsqlCommand("SELECT title FROM videos WHERE id = @X", c);
-                getTitleCommand.Parameters.AddWithValue("@X", NpgsqlDbType.Char, episode.VideoId);
+                getTitleCommand.Parameters.AddWithValue("@X", NpgsqlDbType.Text, episode.VideoId);
 
                 using var reader = await getTitleCommand.ExecuteReaderAsync();
                 if (reader.HasRows)
@@ -198,11 +197,11 @@ namespace Website.Data
             {
                 // get mod ids of antibirth and community remix
                 using var getCommunityRemixIdCommand = new NpgsqlCommand("SELECT id FROM mods WHERE name = 'Community Remix'", c);
-                getCommunityRemixIdCommand.Parameters.AddWithValue("@X", NpgsqlDbType.Char, episode.VideoId);
+                getCommunityRemixIdCommand.Parameters.AddWithValue("@X", NpgsqlDbType.Text, episode.VideoId);
                 communityRemixId = Convert.ToInt32(await getCommunityRemixIdCommand.ExecuteScalarAsync());
 
                 using var getAntibirthModIdCommand = new NpgsqlCommand("SELECT id FROM mods WHERE name = 'Antibirth'", c);
-                getAntibirthModIdCommand.Parameters.AddWithValue("@X", NpgsqlDbType.Char, episode.VideoId);
+                getAntibirthModIdCommand.Parameters.AddWithValue("@X", NpgsqlDbType.Text, episode.VideoId);
                 antibirthId = Convert.ToInt32(await getAntibirthModIdCommand.ExecuteScalarAsync());
 
 
@@ -214,9 +213,9 @@ namespace Website.Data
                 var i = 0;
 
                 // create all parameters
-                var parameters = playedCharacters.Select(item => { i++; return new NpgsqlParameter($"@I{i}", NpgsqlDbType.Varchar) { NpgsqlValue = item }; }).ToList();
-                parameters.AddRange(playedFloors.Select(item => new NpgsqlParameter($"@I{i++}", NpgsqlDbType.Varchar) { NpgsqlValue = item }).ToList());
-                parameters.AddRange(gameplayEvents.Select(item => new NpgsqlParameter($"@I{i++}", NpgsqlDbType.Varchar) { NpgsqlValue = item.RelatedResource1 }).ToList());
+                var parameters = playedCharacters.Select(item => { i++; return new NpgsqlParameter($"@I{i}", NpgsqlDbType.Text) { NpgsqlValue = item }; }).ToList();
+                parameters.AddRange(playedFloors.Select(item => new NpgsqlParameter($"@I{i++}", NpgsqlDbType.Text) { NpgsqlValue = item }).ToList());
+                parameters.AddRange(gameplayEvents.Select(item => new NpgsqlParameter($"@I{i++}", NpgsqlDbType.Text) { NpgsqlValue = item.RelatedResource1 }).ToList());
 
                 // TODO create single query for transformative_resources
 
@@ -257,8 +256,8 @@ namespace Website.Data
         {
             using var c = await _connector.Connect();
             using var q = new NpgsqlCommand("INSERT INTO mod_url (id, url, name, mod) VALUES (DEFAULT, @U, @N, @M) RETURNING id; ", c);
-            q.Parameters.AddWithValue("@U", NpgsqlDbType.Varchar, modUrl.Url);
-            q.Parameters.AddWithValue("@N", NpgsqlDbType.Varchar, modUrl.LinkText);
+            q.Parameters.AddWithValue("@U", NpgsqlDbType.Text, modUrl.Url);
+            q.Parameters.AddWithValue("@N", NpgsqlDbType.Text, modUrl.LinkText);
             q.Parameters.AddWithValue("@M", NpgsqlDbType.Integer, modUrl.ModId);
             return Convert.ToInt32(await q.ExecuteScalarAsync());
         }

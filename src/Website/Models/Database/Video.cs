@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Website.Models.Validation.SubmitEpisode;
+using Website.Models.SubmitEpisode;
 
 namespace Website.Models.Database
 {

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace Website.Models.Validation.SubmitEpisode
+namespace Website.Models.SubmitEpisode
 {
     public class SubmittedPlayedCharacter
     {

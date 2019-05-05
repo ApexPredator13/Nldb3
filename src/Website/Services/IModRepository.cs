@@ -2,8 +2,7 @@
 using System.Threading.Tasks;
 using Website.Areas.Admin.ViewModels;
 using Website.Models.Database;
-using Website.Models.Validation;
-using Website.Models.Validation.SubmitEpisode;
+using Website.Models.SubmitEpisode;
 
 namespace Website.Services
 {

@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Website.Models.Database.Enums;
 
-namespace Website.Models.Validation.SubmitEpisode
+namespace Website.Models.SubmitEpisode
 {
     public class SubmittedGameplayEvent
     {

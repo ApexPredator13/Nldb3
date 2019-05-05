@@ -4,7 +4,8 @@ using System.Threading.Tasks;
 using Website.Areas.Admin.ViewModels;
 using Website.Models.Database;
 using Website.Models.Database.Enums;
-using Website.Models.Validation;
+using Website.Models;
+using Website.Areas.Api.Models;
 
 namespace Website.Services
 {

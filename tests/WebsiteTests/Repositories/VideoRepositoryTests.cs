@@ -6,11 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Xml;
 using Website.Areas.Admin.ViewModels;
 using Website.Data;
 using Website.Models.Database.Enums;
-using Website.Models.Validation;
-using Website.Models.Validation.SubmitEpisode;
+using Website.Models.SubmitEpisode;
 using Website.Services;
 using WebsiteTests.Tools;
 using Xunit;
@@ -50,7 +50,7 @@ namespace WebsiteTests.Repositories
 
         [Theory(DisplayName = "SubmitEpisode/GetVideoById can create/read a complete isaac episode"), AutoDataMoq]
         public async Task T2(
-            SaveVideo video, 
+            Video video, 
             CreateIsaacResource character, 
             CreateIsaacResource floor1, 
             CreateIsaacResource floor2, 
@@ -66,7 +66,8 @@ namespace WebsiteTests.Repositories
             var isaacRepo = _fixture.TestServer.Host.Services.GetService(typeof(IIsaacRepository)) as IIsaacRepository;
             var config = _fixture.TestServer.Host.Services.GetService(typeof(IConfiguration)) as IConfiguration;
 
-            video.Published = new DateTime(2019, 1, 1, 1, 1, 1, DateTimeKind.Utc);
+            video.Snippet.PublishedAt = new DateTime(2019, 1, 1, 1, 1, 1);
+            video.ContentDetails.Duration = "PT1H34M";
             await videoRepo.SaveVideo(video);
 
             enemy.ResourceType = ResourceType.Enemy;
@@ -181,21 +182,21 @@ namespace WebsiteTests.Repositories
             // ASSERT - make sure episode got saved and retrieved correctly - CHECK EVERY SINGLE PROPERTY
             // video data
             episode.Should().NotBeNull();
-            episode.CommentCount.Should().Be(video.CommentCount);
-            episode.Dislikes.Should().Be(video.Dislikes);
-            episode.Duration.Should().Be(TimeSpan.FromSeconds(video.Duration));
-            episode.FavouriteCount.Should().Be(video.FavouriteCount);
-            episode.HasCaption.Should().Be(video.HasCaption);
+            episode.CommentCount.Should().Be((int?)video.Statistics.CommentCount);
+            episode.Dislikes.Should().Be((int?)video.Statistics.DislikeCount);
+            episode.Duration.Should().Be(XmlConvert.ToTimeSpan(video.ContentDetails.Duration));
+            episode.FavouriteCount.Should().Be((int?)video.Statistics.FavoriteCount);
+            episode.HasCaption.Should().BeFalse();
             episode.Id.Should().Be(video.Id);
-            episode.Is3D.Should().Be(video.Is3D);
-            episode.IsHD.Should().Be(video.IsHD);
-            episode.Published.Should().Be(video.Published);
-            episode.RequiresUpdate.Should().Be(video.NeedsUpdate);
+            episode.Is3D.Should().BeFalse();
+            episode.IsHD.Should().BeFalse();
+            episode.Published.Should().Be(video.Snippet.PublishedAt.Value - TimeSpan.FromHours(1) /* given date is treated as local date, but returned date is utc */);
+            episode.RequiresUpdate.Should().BeFalse();
             episode.Submissions.Should().NotBeNullOrEmpty().And.HaveCount(1);
-            episode.Tags.Should().BeEquivalentTo(video.Tags);
+            episode.Tags.Should().BeEquivalentTo(video.Snippet.Tags);
             episode.Thumbnails.Should().BeEmpty();
-            episode.Title.Should().Be(video.Title);
-            episode.ViewCount.Should().Be(video.ViewCount);
+            episode.Title.Should().Be(video.Snippet.Title);
+            episode.ViewCount.Should().Be((int?)video.Statistics.ViewCount);
 
             // submitted episode
             var submittedEpisode = episode.Submissions[0];
@@ -359,7 +360,7 @@ namespace WebsiteTests.Repositories
             r1f2e1.RunNumber.Should().Be(1);
             r1f2e1.Submission.Should().Be(submittedEpisode.Id);
 
-            // first character, second floor, second event (transformation progress)
+            // first character, second floor, second event (transformation progress thanks to item)
             var r1f2e2 = secondFloor.GameplayEvents[1];
             r1f2e2.Action.Should().Be(8);
             r1f2e2.EventType.Should().Be(GameplayEventType.TransformationProgress);
@@ -391,7 +392,7 @@ namespace WebsiteTests.Repositories
             r1f2e2.RunNumber.Should().Be(1);
             r1f2e2.Submission.Should().Be(submittedEpisode.Id);
 
-            // first character, second floor, third event (transformation complete)
+            // first character, second floor, third event (transformation complete thanks to item)
             var r1f2e3 = secondFloor.GameplayEvents[2];
             r1f2e3.Action.Should().Be(9);
             r1f2e3.EventType.Should().Be(GameplayEventType.TransformationComplete);
@@ -569,11 +570,12 @@ namespace WebsiteTests.Repositories
         }
 
         [Theory(DisplayName = "GetVideoReleasedate can return a video release date, returns null if not found"), AutoData]
-        public async Task T3(SaveVideo video)
+        public async Task T3(Video video)
         {
             // arrange
             var videoRepo = _fixture.TestServer.Host.Services.GetService(typeof(IVideoRepository)) as IVideoRepository;
-            video.Published = new DateTime(2019, 1, 1, 1, 1, 1);
+            video.Snippet.PublishedAt = new DateTime(2019, 1, 1, 1, 1, 1);
+            video.ContentDetails.Duration = "PT1H34M";
             await videoRepo.SaveVideo(video);
 
             // act
@@ -581,15 +583,16 @@ namespace WebsiteTests.Repositories
             var releaseDateNull = await videoRepo.GetVideoReleasedate("wrong id");
 
             // assert
-            releaseDate.Should().Be(video.Published);
+            releaseDate.Should().Be(video.Snippet.PublishedAt - TimeSpan.FromHours(1) /* given date is treated as local date, but returned date is utc */);
             releaseDateNull.Should().BeNull();
         }
 
         [Theory(DisplayName = "GetVideoTitle can return a video title, returns null if not found"), AutoData]
-        public async Task T4(SaveVideo video)
+        public async Task T4(Video video)
         {
             // arrange
             var videoRepo = _fixture.TestServer.Host.Services.GetService(typeof(IVideoRepository)) as IVideoRepository;
+            video.ContentDetails.Duration = "PT1H34M";
             await videoRepo.SaveVideo(video);
 
             // act
@@ -597,65 +600,80 @@ namespace WebsiteTests.Repositories
             var titleNull = await videoRepo.GetVideoTitle("wrong id");
 
             // assert
-            title.Should().Be(video.Title);
+            title.Should().Be(video.Snippet.Title);
             titleNull.Should().BeNull();
         }
 
         [Theory(DisplayName = "GetVideoById can return video with thumbnails, returns null if not found"), AutoData]
-        public async Task T5(SaveVideo video, Thumbnail thumbnail)
+        public async Task T5(Video video)
         {
             // arrange
             var videoRepo = _fixture.TestServer.Host.Services.GetService(typeof(IVideoRepository)) as IVideoRepository;
-            video.Published = new DateTime(2019, 1, 1, 1, 1, 1);
+            video.Snippet.PublishedAt = new DateTime(2019, 1, 1, 1, 1, 1);
+            video.ContentDetails.Duration = "PT1H34M";
             await videoRepo.SaveVideo(video);
-            int thumbnailId = await videoRepo.SaveThumbnail(thumbnail, video.Id);
+            int thumbnailChanges = await videoRepo.SetThumbnails(video.Snippet.Thumbnails, video.Id);
 
             // act
             var v = await videoRepo.GetVideoById(video.Id);
             var vNull = await videoRepo.GetVideoById("wrong id");
 
             // assert
+            thumbnailChanges.Should().BeGreaterOrEqualTo(1);
             vNull.Should().BeNull();
-            v.CommentCount.Should().Be(video.CommentCount);
-            v.Dislikes.Should().Be(video.Dislikes);
-            v.Duration.Should().Be(TimeSpan.FromSeconds(video.Duration));
-            v.FavouriteCount.Should().Be(video.FavouriteCount);
-            v.HasCaption.Should().Be(video.HasCaption);
+
+            v.CommentCount.Should().Be((int?)video.Statistics.CommentCount);
+            v.Dislikes.Should().Be((int?)video.Statistics.DislikeCount);
+            v.Duration.Should().NotBeNull();
+            v.FavouriteCount.Should().Be((int?)video.Statistics.FavoriteCount);
+            v.HasCaption.Should().BeFalse();
             v.Id.Should().Be(video.Id);
-            v.Is3D.Should().Be(video.Is3D);
-            v.IsHD.Should().Be(video.IsHD);
-            v.Likes.Should().Be(video.Likes);
-            v.Published.Should().Be(video.Published);
-            v.RequiresUpdate.Should().Be(video.NeedsUpdate);
+            v.Is3D.Should().BeFalse();
+            v.IsHD.Should().BeFalse();
+            v.Likes.Should().Be((int?)video.Statistics.LikeCount);
+            v.Published.Should().Be(video.Snippet.PublishedAt.Value - TimeSpan.FromHours(1) /* given date is treated as local date, but returned date is utc */);
+            v.RequiresUpdate.Should().BeFalse();
             v.Submissions.Should().BeEmpty();
-            v.Tags.Should().BeEquivalentTo(video.Tags);
-            v.Thumbnails.Should().NotBeNullOrEmpty().And.HaveCount(1);
-            v.Thumbnails[0].Height.Should().Be((int)thumbnail.Height.Value);
-            v.Thumbnails[0].Id.Should().Be(thumbnailId);
-            v.Thumbnails[0].Url.Should().Be(thumbnail.Url);
-            v.Thumbnails[0].Width.Should().Be((int)thumbnail.Width.Value);
-            v.Title.Should().Be(video.Title);
-            v.ViewCount.Should().Be(video.ViewCount);
+            v.Tags.Should().BeEquivalentTo(video.Snippet.Tags);
+            v.Thumbnails.Should().NotBeNullOrEmpty().And.HaveCount(5);
+            v.Title.Should().Be(video.Snippet.Title);
+            v.ViewCount.Should().Be((int?)video.Statistics.ViewCount);
         }
 
-        [Theory(DisplayName = "ClearThumbnailsForVideo can clear thumbnails"), AutoData]
-        public async Task T6(SaveVideo video, Thumbnail thumbnail1, Thumbnail thumbnail2)
+        [Theory(DisplayName = "UpdateVideo can update all static information of a video"), AutoData]
+        public async Task T7(Video video, Video update)
         {
             // arrange
             var videoRepo = _fixture.TestServer.Host.Services.GetService(typeof(IVideoRepository)) as IVideoRepository;
+            video.ContentDetails.Duration = "PT1H34M";
             await videoRepo.SaveVideo(video);
-            await videoRepo.SaveThumbnail(thumbnail1, video.Id);
-            await videoRepo.SaveThumbnail(thumbnail2, video.Id);
+            update.Id = video.Id;
+            update.Snippet.PublishedAt = new DateTime(2019, 1, 1, 1, 1, 1);
+            update.ContentDetails.Duration = "PT1H34M";
 
             // act
-            var videoBefore = await videoRepo.GetVideoById(video.Id);
-            var deleteResult = await videoRepo.ClearThumbnailsForVideo(video.Id);
-            var videoAfter = await videoRepo.GetVideoById(video.Id);
+            int updateChanges = await videoRepo.UpdateVideo(update);
+            var updatedVideo = await videoRepo.GetVideoById(video.Id);
 
             // assert
-            videoBefore.Thumbnails.Should().NotBeNullOrEmpty().And.HaveCount(2);
-            deleteResult.Should().Be(2);
-            videoAfter.Thumbnails.Should().BeEmpty();
+            updateChanges.Should().Be(1);
+
+            updatedVideo.CommentCount.Should().Be((int?)update.Statistics.CommentCount);
+            updatedVideo.Dislikes.Should().Be((int?)update.Statistics.DislikeCount);
+            updatedVideo.Duration.Should().NotBeNull();
+            updatedVideo.FavouriteCount.Should().Be((int?)update.Statistics.FavoriteCount);
+            updatedVideo.HasCaption.Should().BeFalse();
+            updatedVideo.Id.Should().Be(update.Id);
+            updatedVideo.Is3D.Should().BeFalse();
+            updatedVideo.IsHD.Should().BeFalse();
+            updatedVideo.Likes.Should().Be((int?)update.Statistics.LikeCount);
+            updatedVideo.Published.Should().Be(update.Snippet.PublishedAt.Value - TimeSpan.FromHours(1) /* given date is treated as local date, but returned date is utc */);
+            updatedVideo.RequiresUpdate.Should().BeFalse();
+            updatedVideo.Submissions.Should().BeEmpty();
+            updatedVideo.Tags.Should().BeEquivalentTo(update.Snippet.Tags);
+            updatedVideo.Thumbnails.Should().BeEmpty();
+            updatedVideo.Title.Should().Be(update.Snippet.Title);
+            updatedVideo.ViewCount.Should().Be((int?)update.Statistics.ViewCount);
         }
     }
 }

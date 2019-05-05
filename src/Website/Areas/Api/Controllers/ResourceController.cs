@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Website.Areas.Api.Models;
 using Website.Models.Database;
-using Website.Models.Validation;
 using Website.Services;
 
 namespace Website.Areas.Api.Controllers
@@ -20,7 +20,7 @@ namespace Website.Areas.Api.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<IsaacResource?> Index(string id, bool includeMod = false, bool includeTags = false)
+        public async Task<IsaacResource?> Index(string id, bool includeMod = false)
         {
             return await _isaacRepository.GetResourceById(id, includeMod);
         }

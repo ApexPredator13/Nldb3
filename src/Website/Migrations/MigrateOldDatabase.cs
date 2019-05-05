@@ -8,11 +8,12 @@ using System.Text;
 using Website.Models.Database.Enums;
 using Website.Services;
 using System.Threading.Tasks;
-using Website.Models.Validation;
 using NpgsqlTypes;
 using System;
-using Website.Models.Validation.SubmitEpisode;
+using Website.Models.SubmitEpisode;
 using Website.Areas.Admin.ViewModels;
+using Google.Apis.YouTube.v3.Data;
+using System.Xml;
 
 namespace Website.Migrations
 {
@@ -696,7 +697,7 @@ namespace Website.Migrations
                 return;
             }
 
-            var videos = new List<SaveVideo>();
+            var videos = new List<Video>();
             using (var c = new NpgsqlConnection(_oldConnectionString))
             {
                 await c.OpenAsync();
@@ -707,12 +708,18 @@ namespace Website.Migrations
                 {
                     while (r.Read())
                     {
-                        videos.Add(new SaveVideo()
+                        videos.Add(new Video()
                         {
                             Id = r.GetString(0),
-                            Title = r.GetString(1),
-                            Published = r.GetDateTime(2),
-                            Duration = r.IsDBNull(3) ? 0 : r.GetInt32(3)
+                            Snippet = new VideoSnippet()
+                            {
+                                Title = r.GetString(1),
+                                PublishedAt = (DateTime?)r.GetDateTime(2)
+                            },
+                            ContentDetails = new VideoContentDetails()
+                            {
+                                Duration = XmlConvert.ToString(TimeSpan.FromSeconds(r.IsDBNull(3) ? 0 : r.GetInt32(3)))
+                            }
                         });
                     }
                 }
@@ -877,7 +884,7 @@ namespace Website.Migrations
                         {
                             string getDeathQuery = $"SELECT urlname FROM deaths WHERE name = @A; ";
                             using var q = new NpgsqlCommand(getDeathQuery, c);
-                            q.Parameters.AddWithValue("@A", NpgsqlDbType.Varchar, floor.Value.death);
+                            q.Parameters.AddWithValue("@A", NpgsqlDbType.Text, floor.Value.death);
                             using var r = q.ExecuteReader();
                             if (r.HasRows)
                             {

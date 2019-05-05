@@ -56,12 +56,12 @@ namespace Website.Data
             string query =
                 "CREATE TABLE IF NOT EXISTS mods (" +
                     "id SERIAL PRIMARY KEY, " +
-                    "name VARCHAR(256) NOT NULL" +
+                    "name TEXT NOT NULL" +
                 "); " +
                 "CREATE TABLE IF NOT EXISTS mod_url(" +
                     "id SERIAL PRIMARY KEY, " +
-                    "url VARCHAR(256) NOT NULL, " +
-                    "name VARCHAR(100) NOT NULL, " +
+                    "url TEXT NOT NULL, " +
+                    "name TEXT NOT NULL, " +
                     "mod INTEGER REFERENCES mods (id) ON DELETE CASCADE ON UPDATE CASCADE" +
                 ")";
 
@@ -73,13 +73,13 @@ namespace Website.Data
             // create table
             string query =
                 "CREATE TABLE IF NOT EXISTS isaac_resources (" +
-                    "id VARCHAR(30) PRIMARY KEY, " +
-                    "name VARCHAR(100) NOT NULL, " +
+                    "id TEXT CHECK (char_length(id) <= 30) PRIMARY KEY, " +
+                    "name TEXT NOT NULL, " +
                     "type INTEGER NOT NULL, " +
                     "exists_in INTEGER NOT NULL, " +
                     "x BOX NOT NULL DEFAULT '((0,0),(0,0))', " +
                     "game_mode INTEGER NOT NULL, " +
-                    "color VARCHAR(25) NOT NULL DEFAULT 'LightGray', " +
+                    "color TEXT NOT NULL DEFAULT 'LightGray', " +
                     "mod INTEGER REFERENCES mods (id) ON DELETE SET NULL ON UPDATE CASCADE, " +
                     "display_order INTEGER, " +
                     "difficulty INTEGER, " +
@@ -111,9 +111,9 @@ namespace Website.Data
         {
             string query =
                 "CREATE TABLE IF NOT EXISTS videos (" +
-                    "id CHAR(11) PRIMARY KEY, " +
-                    "title VARCHAR(256) NOT NULL, " +
-                    "published TIMESTAMP WITH TIME ZONE NOT NULL, " +
+                    $"id TEXT PRIMARY KEY{(_env.IsDevelopment() ? string.Empty : " CHECK (char_length(id) = 11), ")}, " +     // igore fixed 11 character length in dev mode for easier testing
+                    "title TEXT NOT NULL, " +
+                    "published TIMESTAMP WITH TIME ZONE, " +
                     "duration INTEGER NOT NULL, " +
                     "needs_update BOOLEAN NOT NULL DEFAULT FALSE, " +
                     "likes INTEGER, " +
@@ -121,7 +121,7 @@ namespace Website.Data
                     "view_count INTEGER, " +
                     "favourite_count INTEGER, " +
                     "comment_count INTEGER, " +
-                    "tags VARCHAR(100)[], " +
+                    "tags TEXT[], " +
                     "is_3d BOOLEAN, " +
                     "is_hd BOOLEAN, " +
                     "cc BOOLEAN" +
@@ -129,10 +129,10 @@ namespace Website.Data
                 
                 "CREATE TABLE thumbnails (" +
                     "id SERIAL PRIMARY KEY, " +
-                    "url VARCHAR(256) NOT NULL, " +
-                    "width INTEGER NOT NULL, " +
-                    "height INTEGER NOT NULL, " +
-                    "video CHAR(11) NOT NULL REFERENCES videos (id) ON UPDATE CASCADE ON DELETE CASCADE" +
+                    "url TEXT NOT NULL, " +
+                    "width INTEGER, " +
+                    "height INTEGER, " +
+                    "video TEXT NOT NULL REFERENCES videos (id) ON UPDATE CASCADE ON DELETE CASCADE" +
                 "); ";
 
             Execute(query);
@@ -143,7 +143,7 @@ namespace Website.Data
             string query =
                 "CREATE TABLE IF NOT EXISTS video_submissions (" +
                     "id SERIAL PRIMARY KEY, " +
-                    "video CHAR(11) NOT NULL REFERENCES videos (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
+                    "video TEXT NOT NULL REFERENCES videos (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
                     $"sub TEXT NOT NULL DEFAULT '{_config["DeletedUserId"]}' REFERENCES \"AspNetUsers\" (\"Id\") ON UPDATE CASCADE ON DELETE SET DEFAULT, " +
                     $"s_type INTEGER NOT NULL DEFAULT {(int)SubmissionType.New}, " +
                     "latest BOOLEAN NOT NULL DEFAULT TRUE" +
@@ -157,12 +157,12 @@ namespace Website.Data
             string query =
                 "CREATE TABLE IF NOT EXISTS played_characters (" +
                     "id SERIAL PRIMARY KEY, " +
-                    "game_character VARCHAR(30) NOT NULL DEFAULT 'DeletedResource' REFERENCES isaac_resources (id) ON UPDATE CASCADE ON DELETE SET DEFAULT, " +
+                    "game_character TEXT NOT NULL DEFAULT 'DeletedResource' REFERENCES isaac_resources (id) ON UPDATE CASCADE ON DELETE SET DEFAULT, " +
                     "submission INTEGER NOT NULL REFERENCES video_submissions (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
                     "action INTEGER NOT NULL, " +
-                    "video CHAR(11) NOT NULL REFERENCES videos (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
+                    "video TEXT NOT NULL REFERENCES videos (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
                     "run_number INTEGER NOT NULL DEFAULT 1, " +
-                    "died_from VARCHAR(30) REFERENCES isaac_resources (id) ON UPDATE CASCADE ON DELETE SET NULL" +
+                    "died_from TEXT REFERENCES isaac_resources (id) ON UPDATE CASCADE ON DELETE SET NULL" +
                 "); ";
 
             Execute(query);
@@ -173,13 +173,13 @@ namespace Website.Data
             string query =
                 "CREATE TABLE IF NOT EXISTS played_floors (" +
                     "id SERIAL PRIMARY KEY, " +
-                    "floor VARCHAR(30) NOT NULL REFERENCES isaac_resources (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
+                    "floor TEXT NOT NULL REFERENCES isaac_resources (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
                     "played_character INTEGER NOT NULL REFERENCES played_characters (id) ON UPDATE CASCADE ON DELETE CASCADE," +
-                    "video CHAR(11) NOT NULL REFERENCES videos (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
+                    "video TEXT NOT NULL REFERENCES videos (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
                     "action INTEGER NOT NULL, " +
                     "run_number INTEGER NOT NULL, " +
                     "floor_number INTEGER NOT NULL, " +
-                    "died_from VARCHAR(30) REFERENCES isaac_resources (id) ON UPDATE CASCADE ON DELETE SET NULL, " +
+                    "died_from TEXT REFERENCES isaac_resources (id) ON UPDATE CASCADE ON DELETE SET NULL, " +
                     "submission INTEGER NOT NULL REFERENCES video_submissions (id) ON UPDATE CASCADE ON DELETE CASCADE" +
                 "); ";
 
@@ -192,11 +192,11 @@ namespace Website.Data
                 "CREATE TABLE IF NOT EXISTS gameplay_events (" +
                     "id SERIAL PRIMARY KEY, " +
                     "event_type INTEGER NOT NULL, " +
-                    "resource_one VARCHAR(30) NOT NULL DEFAULT 'DeletedResource' REFERENCES isaac_resources (id) ON UPDATE CASCADE ON DELETE SET DEFAULT, " +
-                    "resource_two VARCHAR(30) REFERENCES isaac_resources (id) ON UPDATE CASCADE ON DELETE SET NULL, " +
+                    "resource_one TEXT NOT NULL DEFAULT 'DeletedResource' REFERENCES isaac_resources (id) ON UPDATE CASCADE ON DELETE SET DEFAULT, " +
+                    "resource_two TEXT REFERENCES isaac_resources (id) ON UPDATE CASCADE ON DELETE SET NULL, " +
                     "resource_three INTEGER, " +
                     "played_floor INTEGER NOT NULL REFERENCES played_floors (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
-                    "video CHAR(11) NOT NULL REFERENCES videos (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
+                    "video TEXT NOT NULL REFERENCES videos (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
                     "action INTEGER NOT NULL, " +
                     "played_character INTEGER NOT NULL REFERENCES played_characters (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
                     "in_consequence_of INTEGER REFERENCES gameplay_events (id) ON UPDATE CASCADE ON DELETE SET NULL, " +
@@ -214,10 +214,10 @@ namespace Website.Data
             string query =
                 "CREATE TABLE IF NOT EXISTS transformative_resources (" +
                     "id SERIAL PRIMARY KEY, " +
-                    "isaac_resource VARCHAR(30) NOT NULL REFERENCES isaac_resources (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
-                    "transformation VARCHAR(30) NOT NULL REFERENCES isaac_resources (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
+                    "isaac_resource TEXT NOT NULL REFERENCES isaac_resources (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
+                    "transformation TEXT NOT NULL REFERENCES isaac_resources (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
                     "counts_multiple_times BOOLEAN NOT NULL, " +
-                    "requires_title_content VARCHAR(100), " +
+                    "requires_title_content TEXT, " +
                     "valid_from TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT '2011-09-01 00:00:00+01', " +
                     "valid_until TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT '2100-01-01 00:00:00+01', " +
                     "steps_needed INTEGER NOT NULL DEFAULT 3" +

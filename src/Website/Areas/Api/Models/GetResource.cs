@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using Website.Models.Database.Enums;
 
-namespace Website.Models.Validation
+namespace Website.Areas.Api.Models
 {
     public class GetResource
     {
