@@ -42,6 +42,10 @@ const inputElementIsValid = (element: HTMLInputElement | HTMLTextAreaElement, ta
         isValid = false;
         errorMessage = errorMessage ? errorMessage : (element.getAttribute("data-val-length") ? element.getAttribute("data-val-length") as string : null);
     }
+    if (element.hasAttribute("data-val-minlength-min") && element.value.length < parseInt(element.getAttribute("data-val-minlength-min") as string, 10)) {
+        isValid = false;
+        errorMessage = errorMessage ? errorMessage : (element.getAttribute("data-val-minlength") ? element.getAttribute("data-val-minlength") as string : null)
+    }
 
     if (markAsTouched && isSameNode) {
         element.setAttribute("touched", "true");
@@ -60,11 +64,20 @@ const evaluateForm = (target: HTMLInputElement | HTMLTextAreaElement, markAsTouc
     }
 
     let formIsValid = true;
-    const inputElements = form.getElementsByTagName("input");
+    const inputElements: HTMLCollectionOf<HTMLInputElement> = form.getElementsByTagName("input");
+    const textAreaElements: HTMLCollectionOf<HTMLTextAreaElement> = form.getElementsByTagName("textarea");
     for (let i = 0; i < inputElements.length; i++) {
         const element = inputElements[i];
         const type = element.getAttribute("type");
         if (element.getAttribute("data-val") === "true" && inputElementTypeWhitelist.indexOf(type) !== -1) {
+            if (!inputElementIsValid(element, target, markAsTouched)) {
+                formIsValid = false;
+            }
+        }
+    }
+    for (let i = 0; i < textAreaElements.length; i++) {
+        const element = textAreaElements[i];
+        if (element.getAttribute("data-val") === "true") {
             if (!inputElementIsValid(element, target, markAsTouched)) {
                 formIsValid = false;
             }

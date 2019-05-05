@@ -125,7 +125,7 @@ namespace Website
                 var csp = new StringValues(
                     "default-src 'self'; " +
                     "child-src 'self' www.youtube.com; " +
-                    "style-src 'self' fonts.googleapis.com; " +
+                    "style-src 'self' 'unsafe-inline' fonts.googleapis.com; " +
                     "font-src 'self' fonts.gstatic.com; " +
                     "block-all-mixed-content;");
 

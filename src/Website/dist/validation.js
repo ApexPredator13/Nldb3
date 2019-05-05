@@ -39,6 +39,10 @@ var inputElementIsValid = function (element, target, markAsTouched) {
         isValid = false;
         errorMessage = errorMessage ? errorMessage : (element.getAttribute("data-val-length") ? element.getAttribute("data-val-length") : null);
     }
+    if (element.hasAttribute("data-val-minlength-min") && element.value.length < parseInt(element.getAttribute("data-val-minlength-min"), 10)) {
+        isValid = false;
+        errorMessage = errorMessage ? errorMessage : (element.getAttribute("data-val-minlength") ? element.getAttribute("data-val-minlength") : null);
+    }
     if (markAsTouched && isSameNode) {
         element.setAttribute("touched", "true");
     }
@@ -54,6 +58,7 @@ var evaluateForm = function (target, markAsTouched) {
     }
     var formIsValid = true;
     var inputElements = form.getElementsByTagName("input");
+    var textAreaElements = form.getElementsByTagName("textarea");
     for (var i = 0; i < inputElements.length; i++) {
         var element = inputElements[i];
         var type = element.getAttribute("type");
@@ -63,14 +68,29 @@ var evaluateForm = function (target, markAsTouched) {
             }
         }
     }
+    for (var i = 0; i < textAreaElements.length; i++) {
+        var element = textAreaElements[i];
+        if (element.getAttribute("data-val") === "true") {
+            if (!inputElementIsValid(element, target, markAsTouched)) {
+                formIsValid = false;
+            }
+        }
+    }
     applyFormValidState(form, formIsValid);
 };
 (function () {
     var inputElements = document.getElementsByTagName("input");
+    var textareaElements = document.getElementsByTagName("textarea");
     for (var i = 0; i < inputElements.length; i++) {
         evaluateForm(inputElements[i], false);
         inputElements[i].addEventListener("input", function (e) { return evaluateForm(e.target, true); });
         inputElements[i].addEventListener("blur", function (e) { return evaluateForm(e.target, true); });
         inputElements[i].addEventListener("click", function (e) { return evaluateForm(e.target, false); });
+    }
+    for (var i = 0; i < textareaElements.length; i++) {
+        evaluateForm(textareaElements[i], false);
+        textareaElements[i].addEventListener("input", function (e) { return evaluateForm(e.target, true); });
+        textareaElements[i].addEventListener("blur", function (e) { return evaluateForm(e.target, true); });
+        textareaElements[i].addEventListener("click", function (e) { return evaluateForm(e.target, false); });
     }
 })();
