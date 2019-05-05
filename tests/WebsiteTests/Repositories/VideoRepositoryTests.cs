@@ -185,7 +185,7 @@ namespace WebsiteTests.Repositories
             episode.CommentCount.Should().Be((int?)video.Statistics.CommentCount);
             episode.Dislikes.Should().Be((int?)video.Statistics.DislikeCount);
             episode.Duration.Should().Be(XmlConvert.ToTimeSpan(video.ContentDetails.Duration));
-            episode.FavouriteCount.Should().Be((int?)video.Statistics.FavoriteCount);
+            episode.FavoriteCount.Should().Be((int?)video.Statistics.FavoriteCount);
             episode.HasCaption.Should().BeFalse();
             episode.Id.Should().Be(video.Id);
             episode.Is3D.Should().BeFalse();
@@ -625,7 +625,7 @@ namespace WebsiteTests.Repositories
             v.CommentCount.Should().Be((int?)video.Statistics.CommentCount);
             v.Dislikes.Should().Be((int?)video.Statistics.DislikeCount);
             v.Duration.Should().NotBeNull();
-            v.FavouriteCount.Should().Be((int?)video.Statistics.FavoriteCount);
+            v.FavoriteCount.Should().Be((int?)video.Statistics.FavoriteCount);
             v.HasCaption.Should().BeFalse();
             v.Id.Should().Be(video.Id);
             v.Is3D.Should().BeFalse();
@@ -661,7 +661,7 @@ namespace WebsiteTests.Repositories
             updatedVideo.CommentCount.Should().Be((int?)update.Statistics.CommentCount);
             updatedVideo.Dislikes.Should().Be((int?)update.Statistics.DislikeCount);
             updatedVideo.Duration.Should().NotBeNull();
-            updatedVideo.FavouriteCount.Should().Be((int?)update.Statistics.FavoriteCount);
+            updatedVideo.FavoriteCount.Should().Be((int?)update.Statistics.FavoriteCount);
             updatedVideo.HasCaption.Should().BeFalse();
             updatedVideo.Id.Should().Be(update.Id);
             updatedVideo.Is3D.Should().BeFalse();

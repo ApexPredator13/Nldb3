@@ -1,18 +1,19 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Newtonsoft.Json;
 
 namespace Website.Models.Database
 {
-    public class Thumbnail
+    public class NldbThumbnail
     {
+        [JsonProperty("id")]
         public int Id { get; set; } = 0;
 
-        [Required]
+        [JsonProperty("url")]
         public string Url { get; set; } = string.Empty;
 
-        [Required]
+        [JsonProperty("width")]
         public int? Width { get; set; } = null;
 
-        [Required]
+        [JsonProperty("height")]
         public int? Height { get; set; } = null;
     }
 }

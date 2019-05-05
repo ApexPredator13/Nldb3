@@ -26,7 +26,7 @@ const fillTableCells = (tr: HTMLTableRowElement, ...contents: Array<string | num
             }
             tr.appendChild(td);
         } else {
-            console.log('content was undefined!');
+            console.log('content was undefined! tr so far: ', tr);
         }
     });
 }

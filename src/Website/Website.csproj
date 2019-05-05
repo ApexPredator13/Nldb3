@@ -16,9 +16,15 @@
     <Content Remove="wwwroot\js\src\interfaces\mod-url.ts" />
     <Content Remove="wwwroot\js\src\interfaces\mod.ts" />
     <Content Remove="wwwroot\js\src\interfaces\Tag.ts" />
+    <Content Remove="wwwroot\js\src\interfaces\thumbnail.ts" />
+    <Content Remove="wwwroot\js\src\interfaces\video-request.ts" />
+    <Content Remove="wwwroot\js\src\interfaces\video-result.ts" />
+    <Content Remove="wwwroot\js\src\interfaces\Video.ts" />
+    <Content Remove="wwwroot\js\src\lib\uri-creator.ts" />
     <Content Remove="wwwroot\js\src\polyfills.ts" />
     <Content Remove="wwwroot\js\src\resource-selector.ts" />
     <Content Remove="wwwroot\js\src\validation.ts" />
+    <Content Remove="wwwroot\js\src\video-loader.ts" />
   </ItemGroup>
 
 
@@ -55,6 +61,18 @@
 
 
   <ItemGroup>
+    <TypeScriptCompile Include="wwwroot\js\src\interfaces\thumbnail.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="wwwroot\js\src\interfaces\video-request.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="wwwroot\js\src\interfaces\video-result.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="wwwroot\js\src\interfaces\video.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="wwwroot\js\src\lib\dom-operations.ts" />
     <TypeScriptCompile Include="wwwroot\js\src\lib\enum-converters.ts" />
     <TypeScriptCompile Include="wwwroot\js\src\interfaces\isaac-resource.ts" />
@@ -62,8 +80,14 @@
     <TypeScriptCompile Include="wwwroot\js\src\interfaces\mod-url.ts" />
     <TypeScriptCompile Include="wwwroot\js\src\interfaces\tag.ts" />
     <TypeScriptCompile Include="wwwroot\js\src\lib\polyfills.ts" />
+    <TypeScriptCompile Include="wwwroot\js\src\lib\uri-creator.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="wwwroot\js\src\resource-selector.ts" />
     <TypeScriptCompile Include="wwwroot\js\src\validation.ts" />
+    <TypeScriptCompile Include="wwwroot\js\src\video-loader.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
   </ItemGroup>
 
 </Project>

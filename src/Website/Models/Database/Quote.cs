@@ -21,6 +21,6 @@ namespace Website.Models.Database
         public DateTime? SubmissionTime { get; set; }
 
         [Required]
-        public Video Video { get; set; }
+        public NldbVideo Video { get; set; }
     }
 }

@@ -1,0 +1,58 @@
+﻿@{ 
+    ViewData["Title"] = "Videos";
+    int pageCounter = 1;
+}
+
+@model NldbVideoResult
+
+<h1>Videos</h1>
+
+<p id="pagination">
+    @for (int i = 0; i <= Model.VideoCount; i += Model.AmountPerPage)
+    {
+        <a>@pageCounter</a>
+        pageCounter++;
+    }
+</p>
+
+<table id="video-table">
+    <thead>
+        <tr id="video-table-head">
+            <th data-sort-by="@((int)VideoOrderBy.Title)">Title</th>
+            <th data-sort-by="@((int)VideoOrderBy.Duration)">Duration</th>
+            <th data-sort-by="@((int)VideoOrderBy.Published)">Releasedate</th>
+            <th>Submit</th>
+            <th data-sort-by="@((int)VideoOrderBy.Likes)">Likes</th>
+            <th data-sort-by="@((int)VideoOrderBy.Dislikes)">Dislikes</th>
+            <th data-sort-by="@((int)VideoOrderBy.LikeDislikeRatio)">Ratio</th>
+            <th data-sort-by="@((int)VideoOrderBy.ViewCount)">Views</th>
+            <th data-sort-by="@((int)VideoOrderBy.FavoriteCount)">Favourites</th>
+            <th data-sort-by="@((int)VideoOrderBy.CommentCount)">Comments</th>
+            <th>HD</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var v in Model.Videos)
+        {
+            <tr>
+                <td>@v.Title</td>
+                <td>@v.Duration</td>
+                <td>@v.Published.ToLongDateString()</td>
+                <td><button>Submit</button></td>
+                <td>@v.Likes</td>
+                <td>@v.Dislikes</td>
+                <td>@v.LikeDislikeRatio</td>
+                <td>@v.ViewCount</td>
+                <td>@v.FavoriteCount</td>
+                <td>@v.CommentCount</td>
+                <td>@v.IsHD</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+
+@section Scripts {
+    <script src="~/js/dist/video_loader.min.js" asp-append-version="true"></script>
+}

@@ -119,7 +119,7 @@ namespace Website.Data
                     "likes INTEGER, " +
                     "dislikes INTEGER, " +
                     "view_count INTEGER, " +
-                    "favourite_count INTEGER, " +
+                    "favorite_count INTEGER, " +
                     "comment_count INTEGER, " +
                     "tags TEXT[], " +
                     "is_3d BOOLEAN, " +
