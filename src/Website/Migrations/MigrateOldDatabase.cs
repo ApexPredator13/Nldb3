@@ -719,7 +719,8 @@ namespace Website.Migrations
                             ContentDetails = new VideoContentDetails()
                             {
                                 Duration = XmlConvert.ToString(TimeSpan.FromSeconds(r.IsDBNull(3) ? 0 : r.GetInt32(3)))
-                            }
+                            },
+                            Statistics = new VideoStatistics()
                         });
                     }
                 }
@@ -757,9 +758,14 @@ namespace Website.Migrations
                 }
             }
 
+            int videoCounter = 0;
+            int videoTotal = videoIds.Count;
+
             foreach (var videoId in videoIds)
             {
-                _logger.LogInformation($"processing video '{videoId}'");
+                videoCounter++;
+
+                _logger.LogInformation($"processing video '{videoId}' ({videoCounter}/{videoTotal})");
                 var submission = new SubmittedCompleteEpisode()
                 {
                     VideoId = videoId
@@ -844,7 +850,7 @@ namespace Website.Migrations
                         }
 
                         // add itempickups to floor
-                        string itempickupQuery = $"SELECT collecteditems.urlname, collecteditems.itemsourceurlname FROM visitedfloors RIGHT JOIN collecteditems ON collecteditems.visitedfloorid = visitedfloors.id WHERE visitedfloors.id = {floor.Key} ORDER BY collecteditems.id ASC; ";
+                        string itempickupQuery = $"SELECT collecteditems.urlname, collecteditems.itemsourceurlname, collecteditems.player FROM visitedfloors RIGHT JOIN collecteditems ON collecteditems.visitedfloorid = visitedfloors.id WHERE visitedfloors.id = {floor.Key} ORDER BY collecteditems.id ASC; ";
                         using (var q = new NpgsqlCommand(itempickupQuery, c))
                         {
                             using var r = q.ExecuteReader();
@@ -858,7 +864,7 @@ namespace Website.Migrations
                                     }
                                     else
                                     {
-                                        submission.PlayedCharacters.Last().PlayedFloors.Last().gameplayEvents.Add(new SubmittedGameplayEvent() { RelatedResource1 = r.GetString(0), RelatedResource2 = r.GetString(1), EventType = GameplayEventType.ItemCollected });
+                                        submission.PlayedCharacters.Last().PlayedFloors.Last().gameplayEvents.Add(new SubmittedGameplayEvent() { RelatedResource1 = r.GetString(0), RelatedResource2 = r.GetString(1), EventType = GameplayEventType.ItemCollected, Player = r.GetInt32(2) });
                                     }
                                 }
                             }

@@ -128,9 +128,9 @@ namespace Website.Data
             q.Parameters.AddWithValue("@Fav", NpgsqlDbType.Integer, newVideo.Statistics.FavoriteCount.HasValue ? (int)newVideo.Statistics.FavoriteCount.Value : (object)DBNull.Value);
             q.Parameters.AddWithValue("@CC", NpgsqlDbType.Integer, newVideo.Statistics.CommentCount.HasValue ? (int)newVideo.Statistics.CommentCount.Value : (object)DBNull.Value);
             q.Parameters.AddWithValue("@Tags", NpgsqlDbType.Array | NpgsqlDbType.Text, newVideo.Snippet.Tags != null && newVideo.Snippet.Tags.Count > 0 ? newVideo.Snippet.Tags : (object)DBNull.Value);
-            q.Parameters.AddWithValue("@Is3D", NpgsqlDbType.Boolean, newVideo.ContentDetails.Dimension.ToLower() == "3d");
-            q.Parameters.AddWithValue("@IsHD", NpgsqlDbType.Boolean, newVideo.ContentDetails.Definition.ToLower() == "hd");
-            q.Parameters.AddWithValue("@Cap", NpgsqlDbType.Boolean, newVideo.ContentDetails.Caption.ToLower() == "true");
+            q.Parameters.AddWithValue("@Is3D", NpgsqlDbType.Boolean, string.IsNullOrEmpty(newVideo.ContentDetails.Dimension) ? (object)DBNull.Value : newVideo.ContentDetails.Dimension.ToLower() == "3d");
+            q.Parameters.AddWithValue("@IsHD", NpgsqlDbType.Boolean, string.IsNullOrEmpty(newVideo.ContentDetails.Definition) ? (object)DBNull.Value : newVideo.ContentDetails.Definition.ToLower() == "hd");
+            q.Parameters.AddWithValue("@Cap", NpgsqlDbType.Boolean, string.IsNullOrEmpty(newVideo.ContentDetails.Caption) ? (object)DBNull.Value : newVideo.ContentDetails.Caption.ToLower() == "true");
 
             await q.ExecuteNonQueryAsync();
         }
