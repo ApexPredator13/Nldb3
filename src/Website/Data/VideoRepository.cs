@@ -342,6 +342,11 @@ namespace Website.Data
                                 if (countsMultipleTimes || !transformationProgress.Any(x => x.Transformation == transformation && x.Resource == e.RelatedResource1))
                                 {
                                     // add transformation progress
+                                    if (e.Player is null)
+                                    {
+                                        e.Player = 1;
+                                    }
+
                                     transformationProgress.Add(new TransformationProgress() { Resource = e.RelatedResource1, Transformation = transformation, Player = e.Player!.Value });
                                     s.Append("INSERT INTO gameplay_events (event_type, resource_one, resource_two, resource_three, played_floor, played_character, video, action, in_consequence_of, run_number, player, floor_number, submission) VALUES ");
                                     s.Append($"(@Type{eventCounter}, @One{eventCounter}, @Two{eventCounter}, @Three{eventCounter}, CURRVAL(pg_get_serial_sequence('played_floors', 'id')), CURRVAL(pg_get_serial_sequence('played_characters', 'id')), @Video{eventCounter}, @Action{eventCounter}, CURRVAL(pg_get_serial_sequence('gameplay_events', 'id')) - {subtractFromSequence++}, @RunNumber{eventCounter}, @Player{eventCounter}, @FNum{eventCounter}, CURRVAL(pg_get_serial_sequence('video_submissions', 'id'))); ");
@@ -460,7 +465,7 @@ namespace Website.Data
 
                     if (result is null)
                     {
-                        result = new Models.Database.NldbVideo()
+                        result = new NldbVideo()
                         {
                             Id = r.GetString(i++),
                             Title = r.GetString(i++),
@@ -473,9 +478,9 @@ namespace Website.Data
                             FavoriteCount = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
                             CommentCount = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
                             Tags = r.IsDBNull(i++) ? new List<string>() : ((string[])r[i - 1]).ToList(),
-                            Is3D = r.GetBoolean(i++),
-                            IsHD = r.GetBoolean(i++),
-                            HasCaption = r.GetBoolean(i++),
+                            Is3D = r.IsDBNull(i++) ? false : r.GetBoolean(i - 1),
+                            IsHD = r.IsDBNull(i++) ? false : r.GetBoolean(i - 1),
+                            HasCaption = r.IsDBNull(i++) ? false : r.GetBoolean(i - 1),
                             Submissions = new List<Models.Database.SubmittedEpisode>(),
                             Thumbnails = new List<Models.Database.NldbThumbnail>()
                         };
@@ -505,8 +510,6 @@ namespace Website.Data
             var getFloorsTask = _isaacRepository.GetFloorsForVideo(videoId);
             var getPlayedCharactersTask = _isaacRepository.GetPlayedCharactersForVideo(videoId);
             var getSubmittedEpisodesTask = _isaacRepository.GetSubmittedEpisodesForVideo(videoId);
-
-            await Task.WhenAll(getVideoData, getGameplayEventsTask, getFloorsTask, getPlayedCharactersTask, getSubmittedEpisodesTask);
 
             var video = await getVideoData;
             var submissions = await getSubmittedEpisodesTask;

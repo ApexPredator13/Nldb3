@@ -101,6 +101,7 @@ namespace Website.Data
                 $"('MissingTransformation', 'Missing Transformation', {(int)ResourceType.Transformation}, {(int)ExistsIn.Nowhere}, '((-1,-1),(-1,-1))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
                 $"('MissingTrinket', 'Missing Trinket', {(int)ResourceType.Trinket}, {(int)ExistsIn.Nowhere}, '((-1,-1),(-1,-1))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
                 $"('MissingBoss', 'Missing Boss', {(int)ResourceType.Boss}, {(int)ExistsIn.Nowhere}, '((-1,-1),(-1,-1))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
+                $"('MissingReroll', 'Missing Reroll', {(int)ResourceType.CharacterReroll}, {(int)ExistsIn.Nowhere}, '((-1,-1),(-1,-1))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
                 $"('DeletedResource', 'Deleted Resource', {(int)ResourceType.Unspecified}, {(int)ExistsIn.Nowhere}, '((-1,-1),(-1,-1))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL); ";
 
             Execute(query);

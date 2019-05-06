@@ -1,0 +1,53 @@
+﻿@{ 
+    ViewData["Title"] = Model.Title;
+    var playedCharacters = Model.Submissions.FirstOrDefault(x => x.Latest is true).PlayedCharacters;
+}
+
+@model NldbVideo
+
+<h1>@Model.Title</h1>
+
+<div>
+    <h3>Episode Overview</h3>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Floor</th>
+                <th>Items</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int c = 0; c < playedCharacters.Count; c++)
+            {
+                <tr>
+                    <td colspan="2">Run @playedCharacters[c].RunNumber</td>
+                </tr>
+                @for (int f = 0; f < playedCharacters[c].PlayedFloors.Count; f++)
+                {
+                    <tr>
+                        <td>Floor @playedCharacters[c].PlayedFloors[f].FloorNumber</td>
+                        <td>
+                            @foreach (var gameplayEvent in playedCharacters[c].PlayedFloors[f].GameplayEvents)
+                            {
+                                int itemCounter = 1;
+
+                                if (gameplayEvent.EventType == GameplayEventType.ItemCollected)
+                                {
+                                    var item = gameplayEvent.Resource1;
+                                    var source = gameplayEvent.Resource2;
+
+                                    <div style="background: url('/img/isaac.png') -@(item.X)px -@(item.Y)px transparent; width: @(item.W)px; height: @(item.H)px"></div>
+                                }
+
+                                itemCounter++;
+                            }
+                        </td>foreach
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+

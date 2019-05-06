@@ -365,10 +365,10 @@ namespace Website.Migrations
                 {
                     await _isaacRepository.SaveResource(t, -1, -1, -1, -1);
                 }
-                // just add 'Threat' if name collision occurs
+                // just add 'Enemy' if name collision occurs
                 catch
                 {
-                    t.Id += "Threat";
+                    t.Id += "Enemy";
                     await _isaacRepository.SaveResource(t, -1, -1, -1, -1);
                 }
             }
@@ -424,25 +424,44 @@ namespace Website.Migrations
             }
 
             var newItems = new List<CreateIsaacResource>();
+            var rerolls = new List<CreateIsaacResource>();
 
             using (var c = new NpgsqlConnection(_oldConnectionString))
             {
                 await c.OpenAsync();
 
-                using var q = new NpgsqlCommand("SELECT name, urlname, csshorizontaloffset, cssverticaloffset, frommod, isactiveitem FROM items WHERE urlname != 'MissingItem' AND isreroll = FALSE; ", c);
+                using var q = new NpgsqlCommand("SELECT name, urlname, csshorizontaloffset, cssverticaloffset, frommod, isactiveitem FROM items WHERE urlname != 'MissingItem'; ", c);
                 using var r = await q.ExecuteReaderAsync();
                 if (r.HasRows)
                 {
                     while (r.Read())
                     {
-                        newItems.Add(new CreateIsaacResource()
+                        var name = r.GetString(0);
+                        if (name == "1-Room Reroll" || name == "6-Room Reroll" || name == "Adult Transformation" || name == "D100 Reroll" || name == "D4 Reroll" || name == "D Infinity Reroll" || name == "Missing No. Reroll" || name == "Missing Reroll")
                         {
-                            Name = r.GetString(0),
-                            Id = r.GetString(1),
-                            FromMod = r.IsDBNull(4) ? null : await _modRepository.GetModIdByName(r.GetString(4)),
-                            ResourceType = ResourceType.Item,
-                            Tags = r.GetBoolean(5) ? new List<Effect>() { Effect.IsSpacebarItem } : new List<Effect>() { Effect.IsPassiveItem }
-                        });
+                            if (name == "Adult Transformation" || name == "Missing Reroll")
+                            {
+                                continue;
+                            }
+
+                            rerolls.Add(new CreateIsaacResource()
+                            {
+                                Id = r.GetString(1),
+                                Name = r.GetString(0),
+                                ResourceType = ResourceType.CharacterReroll
+                            });
+                        }
+                        else
+                        {
+                            newItems.Add(new CreateIsaacResource()
+                            {
+                                Name = r.GetString(0),
+                                Id = r.GetString(1),
+                                FromMod = r.IsDBNull(4) ? null : await _modRepository.GetModIdByName(r.GetString(4)),
+                                ResourceType = ResourceType.Item,
+                                Tags = r.GetBoolean(5) ? new List<Effect>() { Effect.IsSpacebarItem } : new List<Effect>() { Effect.IsPassiveItem }
+                            });
+                        }
                     }
                 }
             }
@@ -452,6 +471,10 @@ namespace Website.Migrations
             foreach (var i in newItems)
             {
                 await _isaacRepository.SaveResource(i, -1, -1, -1, -1);
+            }
+            foreach (var r in rerolls)
+            {
+                await _isaacRepository.SaveResource(r, -1, -1, -1, -1);
             }
 
             // add transformation info to items
@@ -549,6 +572,7 @@ namespace Website.Migrations
             }
 
             var newItemsources = new List<CreateIsaacResource>();
+
             using (var c = new NpgsqlConnection(_oldConnectionString))
             {
                 await c.OpenAsync();
@@ -559,13 +583,21 @@ namespace Website.Migrations
                 {
                     while (r.Read())
                     {
-                        newItemsources.Add(new CreateIsaacResource()
+                        var name = r.GetString(0);
+                        if (name == "Character Reroll / Special Transformation")
                         {
-                            Id = r.GetString(1),
-                            Name = r.GetString(0),
-                            FromMod = r.IsDBNull(4) ? null : await _modRepository.GetModIdByName(r.GetString(4)),
-                            ResourceType = ResourceType.ItemSource
-                        });
+                            continue;
+                        }
+                        else
+                        {
+                            newItemsources.Add(new CreateIsaacResource()
+                            {
+                                Id = r.GetString(1),
+                                Name = r.GetString(0),
+                                FromMod = r.IsDBNull(4) ? null : await _modRepository.GetModIdByName(r.GetString(4)),
+                                ResourceType = ResourceType.ItemSource
+                            });
+                        }
                     }
                 }
             }
@@ -728,6 +760,10 @@ namespace Website.Migrations
 
             _logger.LogInformation($"saving videos...");
 
+            var buggyVideo = videos.First(x => x.Id == "_kS7RV3-KI0");
+            videos.Remove(buggyVideo);
+            videos = videos.Prepend(buggyVideo).ToList();
+
             foreach (var video in videos)
             {
                 await _videoRepository.SaveVideo(video);
@@ -828,6 +864,15 @@ namespace Website.Migrations
                         }
 
                         // add floor to character
+                        var playedFloor = new SubmittedPlayedFloor()
+                        {
+                            FloorId = floor.Value.floor,
+                            VideoId = videoId
+                        };
+
+                        // adjust for new id
+                        if (playedFloor.FloorId == "BlueBaby") playedFloor.FloorId = "BlueWomb";
+
                         submission.PlayedCharacters.Last().PlayedFloors.Add(new SubmittedPlayedFloor() { FloorId = floor.Value.floor, VideoId = videoId });
 
 
@@ -858,13 +903,61 @@ namespace Website.Migrations
                             {
                                 while (r.Read())
                                 {
+                                    // absorbed item with VOID
                                     if (r.GetString(0) == "AbsorbedItem")
                                     {
-                                        submission.PlayedCharacters.Last().PlayedFloors.Last().gameplayEvents.Add(new SubmittedGameplayEvent() { RelatedResource1 = "TheVoid", RelatedResource2 = r.GetString(0), EventType = GameplayEventType.AbsorbedItem });
+                                        var e = new SubmittedGameplayEvent()
+                                        {
+                                            RelatedResource1 = "TheVoid",
+                                            RelatedResource2 = r.GetString(0),
+                                            EventType = GameplayEventType.AbsorbedItem,
+                                            Player = r.GetInt32(2)
+                                        };
+                                        submission.PlayedCharacters.Last().PlayedFloors.Last().gameplayEvents.Add(e);
                                     }
+                                    // character rerolls
+                                    else if (r.GetString(1) == "CharacterReroll")
+                                    {
+                                        if (r.GetString(0) == "Adult")
+                                        {
+                                            continue;
+                                        }
+
+                                        var e = new SubmittedGameplayEvent()
+                                        {
+                                            EventType = GameplayEventType.CharacterReroll,
+                                            RelatedResource1 = r.GetString(0),
+                                            Player = r.GetInt32(2)
+                                        };
+                                    }
+                                    // normal item pickup
                                     else
                                     {
-                                        submission.PlayedCharacters.Last().PlayedFloors.Last().gameplayEvents.Add(new SubmittedGameplayEvent() { RelatedResource1 = r.GetString(0), RelatedResource2 = r.GetString(1), EventType = GameplayEventType.ItemCollected, Player = r.GetInt32(2) });
+                                        var e = new SubmittedGameplayEvent()
+                                        {
+                                            RelatedResource1 = r.GetString(0),
+                                            RelatedResource2 = r.GetString(1),
+                                            EventType = GameplayEventType.ItemCollected,
+                                            Player = r.GetInt32(2)
+                                        };
+
+                                        if (e.RelatedResource2 == "PandorasBox") e.RelatedResource2 = "PandorasBoxItemSource";
+                                        if (e.RelatedResource2 == "GBBug") e.RelatedResource2 = "GBBugItemSource";
+                                        if (e.RelatedResource2 == "DWhatever") e.RelatedResource2 = "DWhateverItemSource";
+                                        if (e.RelatedResource2 == "MysteryGift") e.RelatedResource2 = "MysteryGiftItemSource";
+                                        if (e.RelatedResource2 == "SirenSong") e.RelatedResource2 = "SirenSongItemSource";
+                                        if (e.RelatedResource2 == "LazarusRags") e.RelatedResource2 = "LazarusRagsItemSource";
+                                        if (e.RelatedResource2 == "CrookedPenny") e.RelatedResource2 = "CrookedPennyItemSource";
+                                        if (e.RelatedResource2 == "EdensBlessing") e.RelatedResource2 = "EdensBlessingItemSource";
+                                        if (e.RelatedResource2 == "EdensSoul") e.RelatedResource2 = "EdensSoulItemSource";
+                                        if (e.RelatedResource2 == "Birthright") e.RelatedResource2 = "BirthrightItemSource";
+                                        if (e.RelatedResource2 == "MagicSkin") e.RelatedResource2 = "MagicSkinItemSource";
+                                        if (e.RelatedResource2 == "Krampus") e.RelatedResource2 = "KrampusItemSource";
+                                        if (e.RelatedResource2 == "Diplopia") e.RelatedResource2 = "DiplopiaItemSource";
+                                        if (e.RelatedResource2 == "Hornfel") e.RelatedResource2 = "HornfelItemSource";
+                                        if (e.RelatedResource2 == "LostSoul") e.RelatedResource2 = "LostSoulItemSource";
+
+                                        submission.PlayedCharacters.Last().PlayedFloors.Last().gameplayEvents.Add(e);
                                     }
                                 }
                             }
@@ -880,7 +973,16 @@ namespace Website.Migrations
                             {
                                 while (r.Read())
                                 {
-                                    submission.PlayedCharacters.Last().PlayedFloors.Last().gameplayEvents.Add(new SubmittedGameplayEvent() { RelatedResource1 = r.GetString(0), EventType = GameplayEventType.Bossfight });
+                                    var e = new SubmittedGameplayEvent() { RelatedResource1 = r.GetString(0), EventType = GameplayEventType.Bossfight };
+
+                                    if (e.RelatedResource1 == "Isaac") e.RelatedResource1 = "IsaacBoss";
+                                    if (e.RelatedResource1 == "BlueBaby") e.RelatedResource1 = "BlueBabyBoss";
+                                    if (e.RelatedResource1 == "TheSiren") e.RelatedResource1 = "TheSirenBoss";
+                                    if (e.RelatedResource1 == "Gemini") e.RelatedResource1 = "GeminiBoss";
+                                    if (e.RelatedResource1 == "Steven") e.RelatedResource1 = "StevenBoss";
+                                    if (e.RelatedResource1 == "LittleHorn") e.RelatedResource1 = "LittleHornBoss";
+
+                                    submission.PlayedCharacters.Last().PlayedFloors.Last().gameplayEvents.Add(e);
                                 }
                             }
                         }
@@ -888,6 +990,11 @@ namespace Website.Migrations
                         // add death last
                         if (!string.IsNullOrEmpty(floor.Value.death))
                         {
+                            var e = new SubmittedGameplayEvent()
+                            {
+                                EventType = GameplayEventType.CharacterDied
+                            };
+
                             string getDeathQuery = $"SELECT urlname FROM deaths WHERE name = @A; ";
                             using var q = new NpgsqlCommand(getDeathQuery, c);
                             q.Parameters.AddWithValue("@A", NpgsqlDbType.Text, floor.Value.death);
@@ -895,8 +1002,22 @@ namespace Website.Migrations
                             if (r.HasRows)
                             {
                                 r.Read();
-                                submission.PlayedCharacters.Last().PlayedFloors.Last().gameplayEvents.Add(new SubmittedGameplayEvent() { EventType = GameplayEventType.CharacterDied, RelatedResource1 = r.GetString(0) });
+                                e.RelatedResource1 = r.GetString(0);
                             }
+
+                            if (e.RelatedResource1 == "MissingDeath" || e.RelatedResource1 == "Missing Death")
+                            {
+                                e.RelatedResource1 = "MissingEnemy";
+                            }
+
+                            // check if enemy id has changed
+                            var newDeath = await _isaacRepository.GetResourceById($"{e.RelatedResource1}Enemy", false);
+                            if (newDeath != null)
+                            {
+                                e.RelatedResource1 = newDeath.Id;
+                            }
+
+                            submission.PlayedCharacters.Last().PlayedFloors.Last().gameplayEvents.Add(e);
                         }
                     }
                 }
