@@ -13,5 +13,7 @@ namespace Website.Models.SubmitEpisode
 
         [Required]
         public List<SubmittedGameplayEvent> gameplayEvents = new List<SubmittedGameplayEvent>();
+
+        public int? Duration { get; set; } = null;
     }
 }

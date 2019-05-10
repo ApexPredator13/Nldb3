@@ -114,6 +114,7 @@ namespace Website
                 });
 
             services.AddMvc()
+                .AddRazorRuntimeCompilation()
                 .AddNewtonsoftJson();
         }
 
@@ -154,6 +155,7 @@ namespace Website
             app.UseRouting();
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapControllerRoute("video", "/Video/{id}", new { Controller = Controllers.VideoController.Controllername, Action = nameof(Controllers.VideoController.Index) });
                 endpoints.MapControllerRoute("area", "{area:exists}/{controller=Home}/{action=Index}/{id?}");
                 endpoints.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
             });

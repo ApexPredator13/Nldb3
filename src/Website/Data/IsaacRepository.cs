@@ -156,7 +156,7 @@ namespace Website.Data
 
             string query =
                 "SELECT " +
-                    "pf.id, pf.action, pf.run_number, pf.floor_number, pf.submission, " +
+                    "pf.id, pf.action, pf.run_number, pf.floor_number, pf.submission, pf.duration, " +
                     "f.id, f.name, f.type, f.exists_in, f.x, f.game_mode, f.color, f.display_order, f.difficulty, f.tags, " +
                     "d.id, d.name, d.type, d.exists_in, d.x, d.game_mode, d.color, d.display_order, d.difficulty, d.tags " +
                 "FROM played_floors pf " +
@@ -185,6 +185,7 @@ namespace Website.Data
                         RunNumber = r.GetInt32(i++),
                         FloorNumber = r.GetInt32(i++),
                         Submission = r.GetInt32(i++),
+                        Duration = r.GetInt32(i++),
                         Floor = new IsaacResource()
                         {
                             Id = r.GetString(i++),

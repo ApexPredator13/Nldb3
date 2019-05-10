@@ -12,5 +12,6 @@ namespace Website.Models.Database
         public IsaacResource? DiedFrom { get; set; } = null;
         public List<GameplayEvent> GameplayEvents { get; set; } = new List<GameplayEvent>();
         public int Submission { get; set; }
+        public int Duration { get; set; }
     }
 }

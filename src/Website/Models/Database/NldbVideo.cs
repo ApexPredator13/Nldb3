@@ -16,7 +16,7 @@ namespace Website.Models.Database
         public DateTime Published { get; set; }
 
         [JsonProperty("duration")]
-        public TimeSpan? Duration { get; set; }
+        public TimeSpan Duration { get; set; }
 
         [JsonProperty("thumbnails")]
         public List<NldbThumbnail> Thumbnails { get; set; } = new List<NldbThumbnail>();

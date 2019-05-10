@@ -1,6 +1,9 @@
-﻿@{ 
+﻿@{
     ViewData["Title"] = Model.Title;
-    var playedCharacters = Model.Submissions.FirstOrDefault(x => x.Latest is true).PlayedCharacters;
+    var submission = Model.Submissions.FirstOrDefault(x => x.Latest is true);
+    var playedCharacters = submission.PlayedCharacters;
+    var floors = submission.PlayedCharacters.SelectMany(x => x.PlayedFloors).ToList();
+    var culture = new System.Globalization.CultureInfo("en-US");
 }
 
 @model NldbVideo
@@ -15,6 +18,7 @@
             <tr>
                 <th>Floor</th>
                 <th>Items</th>
+                <th colspan="2">Transformation</th>
             </tr>
         </thead>
         <tbody>
@@ -30,24 +34,77 @@
                         <td>
                             @foreach (var gameplayEvent in playedCharacters[c].PlayedFloors[f].GameplayEvents)
                             {
-                                int itemCounter = 1;
-
                                 if (gameplayEvent.EventType == GameplayEventType.ItemCollected)
                                 {
                                     var item = gameplayEvent.Resource1;
                                     var source = gameplayEvent.Resource2;
 
-                                    <div style="background: url('/img/isaac.png') -@(item.X)px -@(item.Y)px transparent; width: @(item.W)px; height: @(item.H)px"></div>
+                                    <div style="background: url('/img/isaac.png') -@(item.X <= 0 ? 0 : item.X)px -@(item.Y <= 0 ? 0 : item.Y)px transparent; width: @(item.W <= 5 ? 31.ToString() : item.W.ToString())px; height: @(item.H <= 5 ? 31.ToString() : item.H.ToString())px; display: inline-block; vertical-align: top">@item.Name</div>
                                 }
-
-                                itemCounter++;
                             }
-                        </td>foreach
+                        </td>
+                        <td>
+                            @foreach (var gameplayEvent in playedCharacters[c].PlayedFloors[f].GameplayEvents)
+                            {
+                                if (gameplayEvent.EventType == GameplayEventType.TransformationProgress)
+                                {
+                                    <div>@(gameplayEvent.Resource2!.Name)</div>
+                                }
+                            }
+                        </td>
+                        <td>
+                            @foreach (var gameplayEvent in playedCharacters[c].PlayedFloors[f].GameplayEvents)
+                            {
+                                if (gameplayEvent.EventType == GameplayEventType.TransformationComplete)
+                                {
+                                    <div>@(gameplayEvent.Resource2!.Name) Completed</div>
+                                }
+                            }
+                        </td>
                     </tr>
                 }
             }
         </tbody>
     </table>
+
+    <hr />
+
+    <div style="display: flex;">
+        @foreach (var floor in floors)
+        {
+            var videoLength = (double)Model.Duration.Ticks;
+            var floorLength = (double)TimeSpan.FromSeconds(floor.Duration).Ticks - 0.01;
+            var percentage = (100 * floorLength) / videoLength;
+
+            <div style="height: 30px; background-color: @floor.Floor.Color; width: @(percentage.ToString(culture))%;">
+                @floor.Floor.Name
+            </div>
+        }
+    </div>
+
+    <hr />
+
+    <div>
+        @foreach (var c in playedCharacters)
+        {
+        <div>
+            <p>
+                @c.GameCharacter.Name
+            </p>
+            
+                @if (c.DiedFrom is null)
+                {
+                    <p>
+                        @c.GameCharacter.Name survived the Run!
+                    </p>
+                }
+                else
+                {
+                    <p>
+                        Was killed by @c.DiedFrom.Name
+                    </p>
+                }
+        </div>
+        }
+    </div>
 </div>
-
-

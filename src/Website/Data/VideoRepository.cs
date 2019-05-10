@@ -233,6 +233,23 @@ namespace Website.Data
             await q.ExecuteNonQueryAsync();
         }
 
+        public async Task<int?> GetVideoLength(string videoId)
+        {
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand("SELECT duration FROM videos WHERE id = @Id", c);
+            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, videoId);
+            using var r = await q.ExecuteReaderAsync();
+            if (r.HasRows)
+            {
+                r.Read();
+                return r.GetInt32(0);
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         private class TransformationProgress
         {
             internal string Resource { get; set; } = string.Empty;
@@ -246,6 +263,7 @@ namespace Website.Data
             var usedMods = await _modRepository.GetUsedModsForSubmittedEpisode(episode);
             var videoReleasedate = await GetVideoReleasedate(episode.VideoId) ?? DateTime.Now;
             var videoTitle = await GetVideoTitle(episode.VideoId) ?? string.Empty;
+            var videoLength = await GetVideoLength(episode.VideoId);
             var transformationProgress = new List<TransformationProgress>();
 
             // create submission
@@ -261,6 +279,7 @@ namespace Website.Data
             int gameplayAction = 0;
             var lastFloor = string.Empty;
             string? lastDeath = null;
+            int cumulativeVideoLength = 0;
 
             var parameters = new List<NpgsqlParameter>();
 
@@ -282,6 +301,7 @@ namespace Website.Data
                 gameplayAction = 1;
                 transformationProgress.Clear();
                 lastDeath = null;
+                cumulativeVideoLength = 0;
 
                 // save character
                 s.Append($"INSERT INTO played_characters (game_character, submission, action, video, run_number, died_from) VALUES (@CCharacter{characterCounter}, CURRVAL(pg_get_serial_sequence('video_submissions', 'id')), @CAction{characterCounter}, @CVideo{characterCounter}, @CRunNumber{characterCounter}, NULL); ");
@@ -293,18 +313,32 @@ namespace Website.Data
                 for (int i = 0; i < character.PlayedFloors.Count; i++)
                 {
                     var floor = character.PlayedFloors[i];
+
+                    // get floor duration
+                    if (floor.Duration is null)
+                    {
+                        // last one is null, subtract lengt so far from video length
+                        floor.Duration = (await GetVideoLength(episode.VideoId) ?? 0) - cumulativeVideoLength;
+                    }
+                    else
+                    {
+                        cumulativeVideoLength += floor.Duration.Value;
+                    }
+
+                    cumulativeVideoLength += floor.Duration ?? 0;
                     var isLastFloorOfTheRun = i == character.PlayedFloors.Count - 1;
-                
+
                     currentFloorNumber++;
                     lastFloor = floor.FloorId;
 
                     // save floor into character
-                    s.Append($"INSERT INTO played_floors (floor, played_character, video, action, run_number, floor_number, died_from, submission) VALUES (@FFloor{floorCounter}, CURRVAL(pg_get_serial_sequence('played_characters', 'id')), @FVideo{floorCounter}, @FAction{floorCounter}, @FRunNum{floorCounter}, @FCurrF{floorCounter}, NULL, CURRVAL(pg_get_serial_sequence('video_submissions', 'id'))); ");
+                    s.Append($"INSERT INTO played_floors (floor, played_character, video, action, run_number, floor_number, died_from, submission, duration) VALUES (@FFloor{floorCounter}, CURRVAL(pg_get_serial_sequence('played_characters', 'id')), @FVideo{floorCounter}, @FAction{floorCounter}, @FRunNum{floorCounter}, @FCurrF{floorCounter}, NULL, CURRVAL(pg_get_serial_sequence('video_submissions', 'id')), @FCurrDur{floorCounter}); ");
                     parameters.Add(new NpgsqlParameter($"@FFloor{floorCounter}", NpgsqlDbType.Text) { NpgsqlValue = floor.FloorId });
                     parameters.Add(new NpgsqlParameter($"@FVideo{floorCounter}", NpgsqlDbType.Text) { NpgsqlValue = episode.VideoId });
                     parameters.Add(new NpgsqlParameter($"@FAction{floorCounter}", NpgsqlDbType.Integer) { NpgsqlValue = gameplayAction++ });
                     parameters.Add(new NpgsqlParameter($"@FRunNum{floorCounter}", NpgsqlDbType.Integer) { NpgsqlValue = runNumber });
-                    parameters.Add(new NpgsqlParameter($"@FCurrF{floorCounter++}", NpgsqlDbType.Integer) { NpgsqlValue = currentFloorNumber });
+                    parameters.Add(new NpgsqlParameter($"@FCurrF{floorCounter}", NpgsqlDbType.Integer) { NpgsqlValue = currentFloorNumber });
+                    parameters.Add(new NpgsqlParameter($"@FCurrDur{floorCounter++}", NpgsqlDbType.Integer) { NpgsqlValue = floor.Duration!.Value });
 
                     // save all gameplay events into the floor
                     foreach (var e in floor.gameplayEvents)
@@ -661,7 +695,7 @@ namespace Website.Data
                         Id = r.GetString(i++),
                         Title = r.GetString(i++),
                         Published = r.GetDateTime(i++),
-                        Duration = r.IsDBNull(i++) ? (TimeSpan?)null : TimeSpan.FromSeconds(r.GetInt32(i - 1)),
+                        Duration = TimeSpan.FromSeconds(r.GetInt32(i++)),
                         RequiresUpdate = r.GetBoolean(i++),
                         Likes = r.IsDBNull(i++) ? (int?)null : r.GetInt32(i - 1),
                         Dislikes = r.IsDBNull(i++) ? (int?)null : r.GetInt32(i - 1),

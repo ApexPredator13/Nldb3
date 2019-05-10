@@ -183,7 +183,8 @@ namespace Website.Data
                     "run_number INTEGER NOT NULL, " +
                     "floor_number INTEGER NOT NULL, " +
                     "died_from TEXT REFERENCES isaac_resources (id) ON UPDATE CASCADE ON DELETE SET NULL, " +
-                    "submission INTEGER NOT NULL REFERENCES video_submissions (id) ON UPDATE CASCADE ON DELETE CASCADE" +
+                    "submission INTEGER NOT NULL REFERENCES video_submissions (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
+                    "duration INTEGER" +
                 "); ";
 
             Execute(query);

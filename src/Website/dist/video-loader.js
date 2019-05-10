@@ -110,8 +110,17 @@ var loadVideos = function () {
         x.videos.map(function (v) {
             var tr = document.createElement('tr');
             var button = document.createElement('button');
+            var linkOrTitle = '';
+            if (v.submission_count > 0) {
+                linkOrTitle = document.createElement('a');
+                linkOrTitle.innerText = v.title;
+                linkOrTitle.href = "/Video/" + v.id;
+            }
+            else {
+                linkOrTitle = v.title;
+            }
             button.innerText = 'Submit';
-            dom_operations_1.fillTableCells(tr, v.title, v.duration, v.published, button, v.likes, v.dislikes, v.ratio, v.view_count, v.favorite_count, v.comment_count, v.is_hd ? 'true' : 'false');
+            dom_operations_1.fillTableCells(tr, linkOrTitle, v.duration, v.published, button, v.likes, v.dislikes, v.ratio, v.view_count, v.favorite_count, v.comment_count, v.is_hd ? 'true' : 'false');
             newTBody.appendChild(tr);
         });
         table.removeChild(oldTBody);

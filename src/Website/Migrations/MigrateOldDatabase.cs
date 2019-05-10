@@ -832,9 +832,9 @@ namespace Website.Migrations
                     }
 
                     // FLOOR IDS
-                    var floors = new Dictionary<int, (string floor, string death)>();
+                    var floors = new Dictionary<int, (string floor, string death, int? length)>();
 
-                    string query = $"SELECT id, urlname, deathby FROM visitedfloors WHERE video = '{videoId}' ORDER BY id ASC; ";
+                    string query = $"SELECT id, urlname, deathby, lengthinseconds FROM visitedfloors WHERE video = '{videoId}' ORDER BY id ASC; ";
                     using (var q = new NpgsqlCommand(query, c))
                     {
                         using var r = q.ExecuteReader();
@@ -842,7 +842,7 @@ namespace Website.Migrations
                         {
                             while (r.Read())
                             {
-                                floors.Add(r.GetInt32(0), (r.GetString(1), r.IsDBNull(2) ? string.Empty : r.GetString(2)));
+                                floors.Add(r.GetInt32(0), (r.GetString(1), r.IsDBNull(2) ? string.Empty : r.GetString(2), r.IsDBNull(3) ? null : (int?)r.GetInt32(3)));
                             }
                         }
                     }
@@ -867,13 +867,14 @@ namespace Website.Migrations
                         var playedFloor = new SubmittedPlayedFloor()
                         {
                             FloorId = floor.Value.floor,
-                            VideoId = videoId
+                            VideoId = videoId,
+                            Duration = floor.Value.length
                         };
 
                         // adjust for new id
                         if (playedFloor.FloorId == "BlueBaby") playedFloor.FloorId = "BlueWomb";
 
-                        submission.PlayedCharacters.Last().PlayedFloors.Add(new SubmittedPlayedFloor() { FloorId = floor.Value.floor, VideoId = videoId });
+                        submission.PlayedCharacters.Last().PlayedFloors.Add(playedFloor);
 
 
                         // add curses to floor

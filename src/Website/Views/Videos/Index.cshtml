@@ -48,7 +48,16 @@
         @foreach (var v in Model.Videos)
         {
             <tr>
-                <td><a asp-controller="@VideoController.Controllername" asp-action="@nameof(VideoController.Index)" asp-route-id="@v.Id">@v.Title</a></td>
+                <td>
+                    @if (v.SubmissionCount > 0)
+                    {
+                        <a asp-controller="@VideoController.Controllername" asp-route-id="@v.Id">@v.Title</a>
+                    }
+                    else
+                    {
+                        @v.Title
+                    }
+                </td>
                 <td>@v.Duration</td>
                 <td>@v.Published.ToLongDateString()</td>
                 <td><button>Submit</button></td>
