@@ -1,0 +1,41 @@
+﻿html {
+    background-color: #000;
+    background-image: url('/img/background.jpg'), url('/img/background2.jpg');
+    background-position: top left, top right;
+    background-repeat: repeat-y, repeat-y;
+    overflow-x: hidden;
+    min-height: 100vh;
+    font-family: 'Poppins', sans-serif;
+    text-align: center;
+}
+body {
+    color: white;
+}
+a, a:visited, a:active {
+    color: white;
+}
+a:hover {
+    color: lightgray;
+}
+
+.l {
+    text-align: left;
+}
+.r {
+    text-align: right;
+}
+.c {
+    text-align: center;
+}
+.display-normal {
+    display: normal;
+}
+.display-none {
+    display: none;
+}
+.display-table-cell {
+    display: table-cell;
+}
+.gray {
+    color: gray;
+}

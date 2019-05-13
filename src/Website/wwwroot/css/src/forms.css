@@ -1,0 +1,10 @@
+﻿/* forms & validation */
+.input-error {
+    box-shadow: 0 0 10px orange;
+}
+.error-message {
+    color: darkorange;
+}
+form {
+    display: block;
+}

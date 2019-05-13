@@ -24,6 +24,7 @@ namespace Website.Data
         private readonly IModRepository _modRepository;
         private readonly IIsaacRepository _isaacRepository;
         private readonly IConfiguration _config;
+        private readonly IFormatProvider _formatProvider;
 
         public VideoRepository(IDbConnector connector, IModRepository modRepository, IIsaacRepository isaacRepository, IConfiguration config)
         {
@@ -31,6 +32,7 @@ namespace Website.Data
             _modRepository = modRepository;
             _isaacRepository = isaacRepository;
             _config = config;
+            _formatProvider = new System.Globalization.CultureInfo("en-US");
         }
 
         private bool RequireWhere(GetVideos request)
@@ -474,9 +476,9 @@ namespace Website.Data
             int dbChanges = await q.ExecuteNonQueryAsync();
         }
 
-        public async Task<Models.Database.NldbVideo?> GetVideoById(string videoId)
+        public async Task<NldbVideo?> GetVideoById(string videoId)
         {
-            Models.Database.NldbVideo? result = null;
+            NldbVideo? result = null;
             string query = 
                 "SELECT " +
                     "v.id, v.title, v.published AT TIME ZONE 'UTC', v.duration, v.needs_update, v.likes, v.dislikes, v.view_count, v.favorite_count, v.comment_count, v.tags, v.is_3d, v.is_hd, v.cc, " +
@@ -503,7 +505,7 @@ namespace Website.Data
                         {
                             Id = r.GetString(i++),
                             Title = r.GetString(i++),
-                            Published = r.GetDateTime(i++),
+                            Published = r.GetDateTime(i++).ToString("F", _formatProvider),
                             Duration = TimeSpan.FromSeconds(r.GetInt32(i++)),
                             RequiresUpdate = r.GetBoolean(i++),
                             Likes = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
@@ -694,7 +696,7 @@ namespace Website.Data
                     {
                         Id = r.GetString(i++),
                         Title = r.GetString(i++),
-                        Published = r.GetDateTime(i++),
+                        Published = r.GetDateTime(i++).ToString("F", _formatProvider),
                         Duration = TimeSpan.FromSeconds(r.GetInt32(i++)),
                         RequiresUpdate = r.GetBoolean(i++),
                         Likes = r.IsDBNull(i++) ? (int?)null : r.GetInt32(i - 1),

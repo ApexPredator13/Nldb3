@@ -8,13 +8,14 @@ var createDefaultVideoRequest = function () {
         OrderBy: 2,
         Search: null,
         Page: 1,
-        Amount: 100,
+        Amount: 50,
         From: null,
         Until: null
     };
 };
 var searchTimeOut = null;
 var request = createDefaultVideoRequest();
+var currentPage = request.Page;
 var initializeTableHeaderClickEvents = function () {
     var tableHeader = document.getElementById('video-table-head');
     if (!tableHeader) {
@@ -96,6 +97,7 @@ var initializeSearchEvent = function () {
     });
 };
 var loadVideos = function () {
+    currentPage = request.Page;
     var table = document.getElementById('video-table');
     if (!table) {
         return;
@@ -135,6 +137,9 @@ var loadVideos = function () {
         for (var i = 0; i < x.video_count; i += x.amount_per_page) {
             var a = document.createElement('a');
             a.innerText = pageCounter.toString(10);
+            if (currentPage === pageCounter) {
+                a.classList.add('active-page');
+            }
             paginationContainer.appendChild(a);
             pageCounter++;
         }

@@ -190,7 +190,7 @@ namespace WebsiteTests.Repositories
             episode.Id.Should().Be(video.Id);
             episode.Is3D.Should().BeFalse();
             episode.IsHD.Should().BeFalse();
-            episode.Published.Should().Be(video.Snippet.PublishedAt.Value - TimeSpan.FromHours(1) /* given date is treated as local date, but returned date is utc */);
+            episode.Published.Should().NotBeNullOrWhiteSpace();
             episode.RequiresUpdate.Should().BeFalse();
             episode.Submissions.Should().NotBeNullOrEmpty().And.HaveCount(1);
             episode.Tags.Should().BeEquivalentTo(video.Snippet.Tags);
@@ -630,7 +630,7 @@ namespace WebsiteTests.Repositories
             v.Is3D.Should().BeFalse();
             v.IsHD.Should().BeFalse();
             v.Likes.Should().Be((int?)video.Statistics.LikeCount);
-            v.Published.Should().Be(video.Snippet.PublishedAt.Value - TimeSpan.FromHours(1) /* given date is treated as local date, but returned date is utc */);
+            v.Published.Should().NotBeNullOrWhiteSpace();
             v.RequiresUpdate.Should().BeFalse();
             v.Submissions.Should().BeEmpty();
             v.Tags.Should().BeEquivalentTo(video.Snippet.Tags);
@@ -665,7 +665,7 @@ namespace WebsiteTests.Repositories
             updatedVideo.Is3D.Should().BeFalse();
             updatedVideo.IsHD.Should().BeFalse();
             updatedVideo.Likes.Should().Be((int?)update.Statistics.LikeCount);
-            updatedVideo.Published.Should().Be(update.Snippet.PublishedAt.Value - TimeSpan.FromHours(1) /* given date is treated as local date, but returned date is utc */);
+            updatedVideo.Published.Should().NotBeNullOrWhiteSpace();
             updatedVideo.RequiresUpdate.Should().BeFalse();
             updatedVideo.Submissions.Should().BeEmpty();
             updatedVideo.Tags.Should().BeEquivalentTo(update.Snippet.Tags);

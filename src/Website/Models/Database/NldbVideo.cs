@@ -13,7 +13,7 @@ namespace Website.Models.Database
         public string Title { get; set; } = string.Empty;
 
         [JsonProperty("published")]
-        public DateTime Published { get; set; }
+        public string Published { get; set; } = string.Empty;
 
         [JsonProperty("duration")]
         public TimeSpan Duration { get; set; }

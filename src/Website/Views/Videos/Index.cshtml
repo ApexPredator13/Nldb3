@@ -11,8 +11,8 @@
     <p>
         Items per Page:
         <select id="items-per-page">
-            <option value="50">50</option>
-            <option value="100" selected>100</option>
+            <option value="50" selected>50</option>
+            <option value="100">100</option>
             <option value="150">150</option>
             <option value="200">200</option>
         </select>
@@ -20,20 +20,27 @@
     </p>
 </div>
 
-<p id="pagination">
+<div id="pagination">
     @for (int i = 0; i <= Model.VideoCount; i += Model.AmountPerPage)
     {
-        <a>@pageCounter</a>
+        if (i is 0)
+        {
+            <a class="active-page">@pageCounter</a>
+        }
+        else
+        {
+            <a>@pageCounter</a>
+        }
         pageCounter++;
     }
-</p>
+</div>
 
 <table id="video-table">
     <thead>
         <tr id="video-table-head">
             <th data-sort-by="@((int)VideoOrderBy.Title)">Title</th>
             <th data-sort-by="@((int)VideoOrderBy.Duration)">Duration</th>
-            <th data-sort-by="@((int)VideoOrderBy.Published)">Releasedate</th>
+            <th data-sort-by="@((int)VideoOrderBy.Published)">Releasedate (m/d/y)</th>
             <th>Submit</th>
             <th data-sort-by="@((int)VideoOrderBy.Likes)">Likes</th>
             <th data-sort-by="@((int)VideoOrderBy.Dislikes)">Dislikes</th>
@@ -55,11 +62,11 @@
                     }
                     else
                     {
-                        @v.Title
+                        <span class="gray">@v.Title</span>
                     }
                 </td>
                 <td>@v.Duration</td>
-                <td>@v.Published.ToLongDateString()</td>
+                <td>@v.Published</td>
                 <td><button>Submit</button></td>
                 <td>@v.Likes</td>
                 <td>@v.Dislikes</td>

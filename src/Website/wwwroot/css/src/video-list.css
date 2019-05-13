@@ -1,0 +1,18 @@
+﻿#pagination {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 5px auto;
+    padding: 0;
+}
+#pagination a {
+    padding: 0 0.2rem;
+    cursor: pointer;
+}
+#pagination a:hover {
+    color: orange;
+}
+.active-page {
+    color: orange;
+    box-shadow: 0 0 1px orange;
+}

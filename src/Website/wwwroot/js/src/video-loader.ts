@@ -9,7 +9,7 @@ const createDefaultVideoRequest = (): VideoRequest => {
         OrderBy: 2,
         Search: null,
         Page: 1,
-        Amount: 100,
+        Amount: 50,
         From: null,
         Until: null
     }
@@ -18,6 +18,7 @@ const createDefaultVideoRequest = (): VideoRequest => {
 let searchTimeOut: number | null = null;
 
 let request: VideoRequest = createDefaultVideoRequest();
+let currentPage = request.Page;
 
 const initializeTableHeaderClickEvents = () => {
     const tableHeader = document.getElementById('video-table-head');
@@ -108,6 +109,7 @@ const initializeSearchEvent = (): void => {
 };
 
 const loadVideos = () => {
+    currentPage = request.Page;
     const table = document.getElementById('video-table');
     if (!table) {
         return;
@@ -124,14 +126,16 @@ const loadVideos = () => {
         x.videos.map(v => {
             const tr = document.createElement('tr');
             const button = document.createElement('button');
-            let linkOrTitle: string | HTMLAnchorElement = '';
+            let linkOrTitle: HTMLSpanElement | HTMLAnchorElement;
 
             if (v.submission_count > 0) {
                 linkOrTitle = document.createElement('a');
                 linkOrTitle.innerText = v.title;
-                linkOrTitle.href = `/Video/${v.id}`;
+                (linkOrTitle as HTMLAnchorElement).href = `/Video/${v.id}`;
             } else {
-                linkOrTitle = v.title;
+                linkOrTitle = document.createElement('span');
+                linkOrTitle.innerText = v.title;
+                linkOrTitle.classList.add('gray');
             }
 
             button.innerText = 'Submit';
@@ -151,6 +155,9 @@ const loadVideos = () => {
         for (let i = 0; i < x.video_count; i += x.amount_per_page) {
             const a = document.createElement('a');
             a.innerText = pageCounter.toString(10);
+            if (currentPage === pageCounter) {
+                a.classList.add('active-page');
+            }
             paginationContainer.appendChild(a);
             pageCounter++;
         }

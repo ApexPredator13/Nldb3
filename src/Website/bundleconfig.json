@@ -1,0 +1,9 @@
+[
+  {
+    "outputFileName": "wwwroot/css/dist/bundle.css",
+    "inputFiles": [
+      "wwwroot/css/src/global.css",
+      "wwwroot/css/src/forms-validation.css"
+    ]
+  }
+]

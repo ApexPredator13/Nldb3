@@ -106,7 +106,7 @@ namespace WebsiteTests.Repositories
             result[1].VideoId.Should().Be(video.Id);
         }
 
-        [Theory(DisplayName = "Vote can save a vote / change a vote for a user"), AutoData]
+        [Theory(DisplayName = "Vote can save / change a vote for a user"), AutoData]
         public async Task T4(SubmittedQuote quote, Video video, SubmittedQuoteVote vote1, SubmittedQuoteVote vote2)
         {
             // arrange
