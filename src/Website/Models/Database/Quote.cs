@@ -1,26 +1,14 @@
-﻿using Microsoft.AspNetCore.Identity;
-using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System;
 
-#nullable disable
 namespace Website.Models.Database
 {
     public class Quote
     {
         public int Id { get; set; }
-
-        [Required]
-        public int SecondsIn { get; set; }
-
-        [Required]
-        public string QuoteText { get; set; }
-
-        [Required]
-        public IdentityUser Contributor { get; set; }
-
-        public DateTime? SubmissionTime { get; set; }
-
-        [Required]
-        public NldbVideo Video { get; set; }
+        public int At { get; set; }
+        public string QuoteText { get; set; } = string.Empty;
+        public string Contributor { get; set; } = string.Empty;
+        public DateTime SubmissionTime { get; set; }
+        public string VideoId { get; set; } = string.Empty;
     }
 }

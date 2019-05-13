@@ -34,7 +34,7 @@ namespace Website.Data
                 return;
             }
 
-            string query = "DROP TABLE IF EXISTS mods, mod_url, isaac_resources, tags, thumbnails, videos, video_submissions, played_characters, played_floors, gameplay_events, transformative_resources; ";
+            string query = "DROP TABLE IF EXISTS quote_votes, quotes, mods, mod_url, isaac_resources, tags, thumbnails, videos, video_submissions, played_characters, played_floors, gameplay_events, transformative_resources; ";
 
             Execute(query);
         }
@@ -49,6 +49,32 @@ namespace Website.Data
             CreatePlayedCharacterTable();
             CreatePlayedFloorTable();
             CreateGameplayEventsTable();
+            CreateQuotesTable();
+        }
+
+        private void CreateQuotesTable()
+        {
+            string query =
+                "CREATE TABLE IF NOT EXISTS quotes (" +
+                    "id SERIAL PRIMARY KEY, " +
+                    "video TEXT NOT NULL REFERENCES videos (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
+                    "content TEXT NOT NULL, " +
+                    "at INTEGER NOT NULL, " +
+                    "submitted_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(), " +
+                    $"user_id TEXT NOT NULL DEFAULT '{_config["DeletedUserId"]}' REFERENCES \"AspNetUsers\" (\"Id\") ON UPDATE CASCADE ON DELETE SET DEFAULT" +
+                "); " +
+                
+                "CREATE TABLE IF NOT EXISTS quote_votes (" +
+                    "id SERIAL, " +
+                    "vote INTEGER NOT NULL, " +
+                    "user_id TEXT NOT NULL REFERENCES \"AspNetUsers\" (\"Id\") ON UPDATE CASCADE ON DELETE CASCADE, " +
+                    "quote INTEGER NOT NULL REFERENCES quotes (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
+                    "voted_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()" +
+                "); " +
+
+                "ALTER TABLE quote_votes ADD CONSTRAINT quote_votes_pk PRIMARY KEY (quote, user_id);";
+
+            Execute(query);
         }
 
         private void CreateModTables()

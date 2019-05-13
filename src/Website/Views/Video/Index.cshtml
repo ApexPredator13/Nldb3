@@ -4,6 +4,7 @@
     var playedCharacters = submission.PlayedCharacters;
     var floors = submission.PlayedCharacters.SelectMany(x => x.PlayedFloors).ToList();
     var culture = new System.Globalization.CultureInfo("en-US");
+    var submitters = Model.Submissions.Select(x => x.UserName).ToList();
 }
 
 @model NldbVideo
@@ -69,6 +70,33 @@
 
     <hr />
 
+    <table>
+        <thead>
+            <tr>
+                <td>Contributed By</td>
+                <td>
+                    @for (int i = 0; i < submitters.Count; i++)
+                    {
+                        @if (i < submitters.Count - 1)
+                        {
+                            <span>
+                                @submitters[i], 
+                            </span>
+                        }
+                        else
+                        {
+                            <span>
+                                @submitters[i]
+                            </span>
+                        }
+                    }
+                </td>
+            </tr>
+        </thead>
+    </table>
+
+    <hr/>
+
     <div style="display: flex;">
         @foreach (var floor in floors)
         {
@@ -76,7 +104,7 @@
             var floorLength = (double)TimeSpan.FromSeconds(floor.Duration).Ticks - 0.01;
             var percentage = (100 * floorLength) / videoLength;
 
-            <div style="height: 30px; background-color: @floor.Floor.Color; width: @(percentage.ToString(culture))%;">
+            <div style="height: 40px; background-color: @floor.Floor.Color; width: @(percentage.ToString(culture))%;">
                 @floor.Floor.Name
             </div>
         }

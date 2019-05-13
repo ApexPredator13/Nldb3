@@ -33,6 +33,7 @@ namespace WebsiteTests.Tools
             services.AddTransient<IIsaacRepository, IsaacRepository>();
             services.AddTransient<IModRepository, ModRepository>();
             services.AddTransient<IVideoRepository, VideoRepository>();
+            services.AddTransient<IQuoteRepository, QuoteRepository>();
 
             services.AddTransient<IIsaacIconManager, IsaacIconManager>();
         }
@@ -62,7 +63,7 @@ namespace WebsiteTests.Tools
             {
                 string query =
                     "CREATE TABLE IF NOT EXISTS \"AspNetUsers\" (\"Id\" TEXT PRIMARY KEY, \"UserName\" TEXT NOT NULL); " +
-                    $"INSERT INTO \"AspNetUsers\" (\"Id\", \"UserName\") VALUES ('{config["DeletedUserId"]}', 'Some User') ON CONFLICT DO NOTHING; ";
+                    $"INSERT INTO \"AspNetUsers\" (\"Id\", \"UserName\") VALUES ('{config["DeletedUserId"]}', '{config["DeletedUserName"]}') ON CONFLICT DO NOTHING; ";
                 c.Open();
                 using var q = new NpgsqlCommand(query, c);
                 q.ExecuteNonQuery();

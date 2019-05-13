@@ -14,7 +14,7 @@ namespace Website.Services
         Task MigrateItems();
         Task MigrateItemSources();
         Task MigrateTransformations();
-        // Task MigrateQuotes();
+        Task MigrateQuotes();
         Task MigrateVideos();
         Task MigrateRuns();
     }

@@ -28,6 +28,7 @@ namespace Website.Migrations
         private readonly IIsaacRepository _isaacRepository;
         private readonly IVideoRepository _videoRepository;
         private readonly IModRepository _modRepository;
+        private readonly IQuoteRepository _quoteRepository;
 
         public MigrateOldDatabase(
             IConfiguration config, 
@@ -35,7 +36,8 @@ namespace Website.Migrations
             UserManager<IdentityUser> userManager,
             IIsaacRepository bossRepository,
             IVideoRepository videoRepository,
-            IModRepository modRepository
+            IModRepository modRepository,
+            IQuoteRepository quoteRepository
         )
         {
             _oldConnectionString = config.GetConnectionString("OldDatabaseConnection");
@@ -47,6 +49,7 @@ namespace Website.Migrations
             _isaacRepository = bossRepository;
             _videoRepository = videoRepository;
             _modRepository = modRepository;
+            _quoteRepository = quoteRepository;
         }
 
         public void MigrateUsers()
@@ -684,42 +687,33 @@ namespace Website.Migrations
             }
         }
 
-        //public void MigrateQuotes()
-        //{
-        //    using (var c = new NpgsqlConnection(_oldConnectionString))
-        //    {
-        //        c.Open();
+        public async Task MigrateQuotes()
+        {
+            _logger.LogInformation($"saving quotes...");
 
-        //        using (var q = new NpgsqlCommand("SELECT video, content, whenithappened, sub, id FROM quotes", c))
-        //        {
-        //            using (var r = q.ExecuteReader())
-        //            {
-        //                if (r.HasRows)
-        //                {
-        //                    while (r.Read())
-        //                    {
-        //                        var video = _context.Videos.FirstOrDefault(x => x.Id == r.GetString(0));
-        //                        var user = _userManager.FindByIdAsync(r.GetString(3)).Result;
+            using var c = new NpgsqlConnection(_oldConnectionString);
+            await c.OpenAsync();
+            using var q = new NpgsqlCommand("SELECT video, content, whenithappened, sub FROM quotes;", c);
 
-        //                        _context.Quotes.Add(new Quote
-        //                        {
-        //                            Contributor = user,
-        //                            QuoteText = r.GetString(1),
-        //                            SecondsIn = r.GetInt32(2),
-        //                            SubmissionTime = null,
-        //                            Video = video
-        //                        });
+            using var r = await q.ExecuteReaderAsync();
+            if (r.HasRows)
+            {
+                while (r.Read())
+                {
+                    if (r.IsDBNull(3))
+                    {
+                        continue;
+                    }
 
-        //                        _logger.LogInformation($"migrating quote #{r.GetInt32(4)} from user #{user.Id}");
-        //                    }
-        //                }
-        //            }
-        //        }
-        //    }
-
-        //    _logger.LogInformation("saving quotes...");
-        //    _context.SaveChanges();
-        //}
+                    await _quoteRepository.SaveQuote(new SubmittedQuote()
+                    {
+                        At = r.GetInt32(2),
+                        Content = r.GetString(1),
+                        VideoId = r.GetString(0)
+                    }, r.GetString(3));
+                }
+            }
+        }
 
         public async Task MigrateVideos()
         {
@@ -1029,7 +1023,7 @@ namespace Website.Migrations
                 // episodes that have been overwritten
                 if (contributors.Count > 1)
                 {
-                    for (int i = 1; i < contributors.Count; i++)
+                    for (int i = 1; i < contributors.Count - 1; i++)
                     {
                         await _videoRepository.SubmitLostEpisode(videoId, contributors[i]);
                     }

@@ -59,6 +59,7 @@ namespace Website
             services.AddScoped<IIsaacRepository, IsaacRepository>();
             services.AddScoped<IModRepository, ModRepository>();
             services.AddScoped<IVideoRepository, VideoRepository>();
+            services.AddScoped<IQuoteRepository, QuoteRepository>();
 
             services.AddIdentity<IdentityUser, IdentityRole>(options =>
             {
@@ -161,7 +162,7 @@ namespace Website
             });
 
             app.CreateRequiredUserAccountsIfMissing();
-            // app.ResetDatabaseInDevMode();
+            app.ResetDatabaseInDevMode();
             app.MigrateOldDatabaseIfNoDataExists().Wait();
         }
     }

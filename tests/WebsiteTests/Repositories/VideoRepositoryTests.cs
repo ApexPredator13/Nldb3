@@ -204,7 +204,7 @@ namespace WebsiteTests.Repositories
             submittedEpisode.Id.Should().BeGreaterOrEqualTo(1);
             submittedEpisode.PlayedCharacters.Should().NotBeNullOrEmpty().And.HaveCount(2);
             submittedEpisode.SubmissionType.Should().Be(SubmissionType.New);
-            submittedEpisode.UserName.Should().Be("Some User");
+            submittedEpisode.UserName.Should().Be("[Removed Account]");
             submittedEpisode.Video.Should().Be(video.Id);
 
             // first character
@@ -624,7 +624,6 @@ namespace WebsiteTests.Repositories
 
             v.CommentCount.Should().Be((int?)video.Statistics.CommentCount);
             v.Dislikes.Should().Be((int?)video.Statistics.DislikeCount);
-            v.Duration.Should().NotBeNull();
             v.FavoriteCount.Should().Be((int?)video.Statistics.FavoriteCount);
             v.HasCaption.Should().BeFalse();
             v.Id.Should().Be(video.Id);
@@ -660,7 +659,6 @@ namespace WebsiteTests.Repositories
 
             updatedVideo.CommentCount.Should().Be((int?)update.Statistics.CommentCount);
             updatedVideo.Dislikes.Should().Be((int?)update.Statistics.DislikeCount);
-            updatedVideo.Duration.Should().NotBeNull();
             updatedVideo.FavoriteCount.Should().Be((int?)update.Statistics.FavoriteCount);
             updatedVideo.HasCaption.Should().BeFalse();
             updatedVideo.Id.Should().Be(update.Id);
