@@ -1,0 +1,42 @@
+﻿.dd-container {
+    width: 300px;
+    height: 30px;
+    position: relative;
+}
+.dd-selection, .dd-search {
+    width: 100%;
+    background-color: black;
+    height: 30px;
+}
+.dd-search, .dd-dropdown {
+    display: none;
+}
+.dd-searchbox {
+    width: 100%;
+}
+.dd-dropdown {
+    position: absolute;
+    height: 300px;
+    width: 300px;
+    background-color: black;
+    overflow-y: scroll;
+    top: 30px;
+    left: 0;
+}
+.dd-line {
+    text-align: left;
+}
+.dd-line:hover {
+    background-color: rgba(50, 50, 50, 0);
+}
+.dd-image, .dd-text {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.dd-container:hover .dd-dropdown, .dd-container:hover .dd-search {
+    display: block;
+}
+.dd-container:hover .dd-selection {
+    display: none;
+}

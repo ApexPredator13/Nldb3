@@ -6,6 +6,6 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "module": "CommonJS",
-    "target": "es5"
+    "target": "esnext"
   }
 }

@@ -1,4 +1,8 @@
-﻿html {
+﻿div, body, html, main, nav, footer {
+    margin: 0;
+    padding: 0;
+}
+html {
     background-color: #000;
     background-image: url('/img/background.jpg'), url('/img/background2.jpg');
     background-position: top left, top right;

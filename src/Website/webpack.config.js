@@ -6,7 +6,8 @@ module.exports = {
         validation: './wwwroot/js/src/validation.ts',
         simple_confirmation_button: './wwwroot/js/src/simple-confirmation-button.ts',
         resource_selector: './wwwroot/js/src/resource-selector.ts',
-        video_loader: './wwwroot/js/src/video-loader.ts'
+        video_loader: './wwwroot/js/src/video-loader.ts',
+        dropdown_menu: './wwwroot/js/src/dropdown-menu.ts'
     },
     output: {
         path: path.resolve(__dirname, 'wwwroot', 'js', 'dist'),

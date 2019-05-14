@@ -111,18 +111,21 @@ var loadVideos = function () {
         var newTBody = document.createElement('tbody');
         x.videos.map(function (v) {
             var tr = document.createElement('tr');
-            var button = document.createElement('button');
-            var linkOrTitle = '';
+            var submitLink = document.createElement('a');
+            var linkOrTitle;
             if (v.submission_count > 0) {
                 linkOrTitle = document.createElement('a');
                 linkOrTitle.innerText = v.title;
                 linkOrTitle.href = "/Video/" + v.id;
             }
             else {
-                linkOrTitle = v.title;
+                linkOrTitle = document.createElement('span');
+                linkOrTitle.innerText = v.title;
+                linkOrTitle.classList.add('gray');
             }
-            button.innerText = 'Submit';
-            dom_operations_1.fillTableCells(tr, linkOrTitle, v.duration, v.published, button, v.likes, v.dislikes, v.ratio, v.view_count, v.favorite_count, v.comment_count, v.is_hd ? 'true' : 'false');
+            submitLink.innerText = 'Submit';
+            submitLink.href = "/SubmitEpisode/" + v.id;
+            dom_operations_1.fillTableCells(tr, linkOrTitle, v.duration, v.published, submitLink, v.likes, v.dislikes, v.ratio, v.view_count, v.favorite_count, v.comment_count, v.is_hd ? 'true' : 'false');
             newTBody.appendChild(tr);
         });
         table.removeChild(oldTBody);

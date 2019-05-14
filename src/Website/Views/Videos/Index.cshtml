@@ -67,7 +67,7 @@
                 </td>
                 <td>@v.Duration</td>
                 <td>@v.Published</td>
-                <td><button>Submit</button></td>
+                <td><a asp-controller="@SubmitEpisodeController.Controllername" asp-action="@nameof(SubmitEpisodeController.Index)" asp-route-id="@v.Id">Submit</a></td>
                 <td>@v.Likes</td>
                 <td>@v.Dislikes</td>
                 <td>@v.LikeDislikeRatio</td>

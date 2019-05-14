@@ -3,7 +3,7 @@
     border-collapse: collapse;
 }
 td, th {
-    padding-right: 0 0.3rem;
+    padding-right: 0.5rem;
 }
 td {
     text-align: left;

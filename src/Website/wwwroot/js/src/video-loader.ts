@@ -125,7 +125,7 @@ const loadVideos = () => {
         const newTBody = document.createElement('tbody');
         x.videos.map(v => {
             const tr = document.createElement('tr');
-            const button = document.createElement('button');
+            const submitLink = document.createElement('a');
             let linkOrTitle: HTMLSpanElement | HTMLAnchorElement;
 
             if (v.submission_count > 0) {
@@ -138,8 +138,9 @@ const loadVideos = () => {
                 linkOrTitle.classList.add('gray');
             }
 
-            button.innerText = 'Submit';
-            fillTableCells(tr, linkOrTitle, v.duration, v.published, button, v.likes, v.dislikes, v.ratio, v.view_count, v.favorite_count, v.comment_count, v.is_hd ? 'true' : 'false');
+            submitLink.innerText = 'Submit';
+            submitLink.href = `/SubmitEpisode/${v.id}`;
+            fillTableCells(tr, linkOrTitle, v.duration, v.published, submitLink, v.likes, v.dislikes, v.ratio, v.view_count, v.favorite_count, v.comment_count, v.is_hd ? 'true' : 'false');
             newTBody.appendChild(tr);
         });
         table.removeChild(oldTBody);
