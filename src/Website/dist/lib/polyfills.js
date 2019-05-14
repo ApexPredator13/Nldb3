@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var elementClosest = function () {
+const elementClosest = () => {
     console.log('applying patch');
     if (!Element.prototype.matches) {
         Element.prototype.matches = Element.prototype.msMatchesSelector ||

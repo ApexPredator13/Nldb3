@@ -6,13 +6,10 @@ namespace Website.Models.SubmitEpisode
     public class SubmittedPlayedFloor
     {
         [Required]
-        public string VideoId { get; set; } = string.Empty;
-
-        [Required]
         public string FloorId { get; set; } = string.Empty;
 
         [Required]
-        public List<SubmittedGameplayEvent> gameplayEvents = new List<SubmittedGameplayEvent>();
+        public List<SubmittedGameplayEvent> GameplayEvents = new List<SubmittedGameplayEvent>();
 
         public int? Duration { get; set; } = null;
     }

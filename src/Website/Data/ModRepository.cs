@@ -208,7 +208,7 @@ namespace Website.Data
                 // extract all isaac resources
                 var playedCharacters = episode.PlayedCharacters.Select(x => x.CharacterId);
                 var playedFloors = episode.PlayedCharacters.SelectMany(x => x.PlayedFloors.Select(a => a.FloorId));
-                var gameplayEvents = episode.PlayedCharacters.SelectMany(x => x.PlayedFloors.SelectMany(y => y.gameplayEvents));
+                var gameplayEvents = episode.PlayedCharacters.SelectMany(x => x.PlayedFloors.SelectMany(y => y.GameplayEvents));
 
                 var i = 0;
 

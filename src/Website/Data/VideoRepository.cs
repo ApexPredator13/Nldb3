@@ -343,7 +343,7 @@ namespace Website.Data
                     parameters.Add(new NpgsqlParameter($"@FCurrDur{floorCounter++}", NpgsqlDbType.Integer) { NpgsqlValue = floor.Duration!.Value });
 
                     // save all gameplay events into the floor
-                    foreach (var e in floor.gameplayEvents)
+                    foreach (var e in floor.GameplayEvents)
                     {
                         if (e.EventType == GameplayEventType.CharacterDied)
                         {

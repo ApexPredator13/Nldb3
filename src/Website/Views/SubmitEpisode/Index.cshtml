@@ -4,10 +4,26 @@
 
 @model List<IsaacResource>
 
-<div>
-    <partial name="_DropdownPartial" />
+<div style="display: flex;" id="menu-wrapper">
+    <div style="width: 70%;">
+        Youtube Video Placeholder
+    </div>
+    <div style="width: 30%;">
+        <div id="select-character" class="display-normal">
+            <partial name="_SubmitEpisodeSelectCharacterPartial" model="Model.Where(x => x.ResourceType == ResourceType.Character).ToList()" />
+        </div>
+        <div id="select-mode" class="display-none">
+            <partial name="_SubmitEpisodeSelectModePartial" model="Model.Where(x => x.ResourceType == ResourceType.Character).ToList()" />
+        </div>
+        <div id="select-floor" class="display-none">
+            <partial name="_SubmitEpisodeSelectFloorPartial" model="Model.Where(x => x.ResourceType == ResourceType.Floor).ToList()" />
+        </div>
+        <div id="select-curse" class="display-none">
+            <partial name="_SubmitEpisodeSelectCursePartial" model="Model.Where(x => x.ResourceType == ResourceType.Curse).ToList()" />
+        </div>
+    </div>
 </div>
 
 @section Scripts {
-    <script src="~/js/dist/dropdown_menu.min.js"></script>
+    <script src="~/js/dist/submit_episode.min.js"></script>
 }

@@ -6,7 +6,7 @@
     <LangVersion>8.0</LangVersion>
     <NullableContextOptions>enable</NullableContextOptions>
     <SignAssembly>false</SignAssembly>
-    <TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>
+    <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,11 +16,16 @@
     <Content Remove="wwwroot\js\src\interfaces\isaac-resource.ts" />
     <Content Remove="wwwroot\js\src\interfaces\mod-url.ts" />
     <Content Remove="wwwroot\js\src\interfaces\mod.ts" />
+    <Content Remove="wwwroot\js\src\interfaces\submitted-complete-episode.ts" />
+    <Content Remove="wwwroot\js\src\interfaces\submitted-gameplay-event.ts" />
+    <Content Remove="wwwroot\js\src\interfaces\submitted-played-character.ts" />
+    <Content Remove="wwwroot\js\src\interfaces\submitted-played-floor.ts" />
     <Content Remove="wwwroot\js\src\interfaces\Tag.ts" />
     <Content Remove="wwwroot\js\src\interfaces\thumbnail.ts" />
     <Content Remove="wwwroot\js\src\interfaces\video-request.ts" />
     <Content Remove="wwwroot\js\src\interfaces\video-result.ts" />
     <Content Remove="wwwroot\js\src\interfaces\Video.ts" />
+    <Content Remove="wwwroot\js\src\lib\submit-episode.ts" />
     <Content Remove="wwwroot\js\src\lib\uri-creator.ts" />
     <Content Remove="wwwroot\js\src\polyfills.ts" />
     <Content Remove="wwwroot\js\src\resource-selector.ts" />
@@ -32,9 +37,9 @@
   <ItemGroup>
     <PackageReference Include="AspNet.Security.OpenId.Steam" Version="2.0.0" />
     <PackageReference Include="BundlerMinifier.Core" Version="2.9.406" />
-    <PackageReference Include="Google.Apis.YouTube.v3" Version="1.39.0.1572" />
+    <PackageReference Include="Google.Apis.YouTube.v3" Version="1.40.0.1572" />
     <PackageReference Include="kg73.AspNet.Security.OAuth.Twitch" Version="3.0.0-preview-009" />
-    <PackageReference Include="MailKit" Version="2.1.4" />
+    <PackageReference Include="MailKit" Version="2.1.5.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Facebook" Version="3.0.0-preview5-19227-01" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="3.0.0-preview5-19227-01" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Twitter" Version="3.0.0-preview5-19227-01" />
@@ -48,6 +53,10 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="3.0.0-preview5.19227.9" />
+    <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="3.4.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Npgsql" Version="4.0.6" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="3.0.0-preview5" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0006" />
@@ -57,42 +66,12 @@
 
   <ItemGroup>
     <Folder Include="wwwroot\js\dist\" />
+    <Folder Include="wwwroot\css\dist\" />
   </ItemGroup>
 
 
   <ItemGroup>
     <None Include="bundleconfig.json" />
-  </ItemGroup>
-
-
-  <ItemGroup>
-    <TypeScriptCompile Include="wwwroot\js\src\interfaces\thumbnail.ts">
-      <SubType>Code</SubType>
-    </TypeScriptCompile>
-    <TypeScriptCompile Include="wwwroot\js\src\interfaces\video-request.ts">
-      <SubType>Code</SubType>
-    </TypeScriptCompile>
-    <TypeScriptCompile Include="wwwroot\js\src\interfaces\video-result.ts">
-      <SubType>Code</SubType>
-    </TypeScriptCompile>
-    <TypeScriptCompile Include="wwwroot\js\src\interfaces\video.ts">
-      <SubType>Code</SubType>
-    </TypeScriptCompile>
-    <TypeScriptCompile Include="wwwroot\js\src\lib\dom-operations.ts" />
-    <TypeScriptCompile Include="wwwroot\js\src\lib\enum-converters.ts" />
-    <TypeScriptCompile Include="wwwroot\js\src\interfaces\isaac-resource.ts" />
-    <TypeScriptCompile Include="wwwroot\js\src\interfaces\mod.ts" />
-    <TypeScriptCompile Include="wwwroot\js\src\interfaces\mod-url.ts" />
-    <TypeScriptCompile Include="wwwroot\js\src\interfaces\tag.ts" />
-    <TypeScriptCompile Include="wwwroot\js\src\lib\polyfills.ts" />
-    <TypeScriptCompile Include="wwwroot\js\src\lib\uri-creator.ts">
-      <SubType>Code</SubType>
-    </TypeScriptCompile>
-    <TypeScriptCompile Include="wwwroot\js\src\resource-selector.ts" />
-    <TypeScriptCompile Include="wwwroot\js\src\validation.ts" />
-    <TypeScriptCompile Include="wwwroot\js\src\video-loader.ts">
-      <SubType>Code</SubType>
-    </TypeScriptCompile>
   </ItemGroup>
 
 </Project>

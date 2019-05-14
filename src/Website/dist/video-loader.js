@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var uri_creator_1 = require("./lib/uri-creator");
-var dom_operations_1 = require("./lib/dom-operations");
-var createDefaultVideoRequest = function () {
+const uri_creator_1 = require("./lib/uri-creator");
+const dom_operations_1 = require("./lib/dom-operations");
+const createDefaultVideoRequest = () => {
     return {
         Asc: false,
         OrderBy: 2,
@@ -13,26 +13,26 @@ var createDefaultVideoRequest = function () {
         Until: null
     };
 };
-var searchTimeOut = null;
-var request = createDefaultVideoRequest();
-var currentPage = request.Page;
-var initializeTableHeaderClickEvents = function () {
-    var tableHeader = document.getElementById('video-table-head');
+let searchTimeOut = null;
+let request = createDefaultVideoRequest();
+let currentPage = request.Page;
+const initializeTableHeaderClickEvents = () => {
+    const tableHeader = document.getElementById('video-table-head');
     if (!tableHeader) {
         return;
     }
-    var tableHeaderFields = tableHeader.getElementsByTagName('th');
+    const tableHeaderFields = tableHeader.getElementsByTagName('th');
     if (!tableHeaderFields || tableHeaderFields.length === 0) {
         return;
     }
-    var _loop_1 = function (i) {
+    for (let i = 0; i < tableHeaderFields.length; i++) {
         if (tableHeaderFields[i].hasAttribute("data-sort-by")) {
-            tableHeaderFields[i].addEventListener('click', function () {
-                var sortAttributeValue = tableHeaderFields[i].getAttribute("data-sort-by");
+            tableHeaderFields[i].addEventListener('click', () => {
+                const sortAttributeValue = tableHeaderFields[i].getAttribute("data-sort-by");
                 if (!sortAttributeValue) {
                     return;
                 }
-                var sortAttributeEnumValue = parseInt(sortAttributeValue, 10);
+                const sortAttributeEnumValue = parseInt(sortAttributeValue, 10);
                 if (request.OrderBy === sortAttributeEnumValue) {
                     request.Asc = !request.Asc;
                 }
@@ -44,79 +44,73 @@ var initializeTableHeaderClickEvents = function () {
                 loadVideos();
             });
         }
-    };
-    for (var i = 0; i < tableHeaderFields.length; i++) {
-        _loop_1(i);
     }
 };
-var applyPageClickEvents = function () {
-    var paginationContainer = document.getElementById('pagination');
+const applyPageClickEvents = () => {
+    const paginationContainer = document.getElementById('pagination');
     if (!paginationContainer) {
         return;
     }
-    var links = paginationContainer.getElementsByTagName('a');
+    const links = paginationContainer.getElementsByTagName('a');
     if (!links || links.length === 0) {
         return;
     }
-    var _loop_2 = function (i) {
-        links[i].addEventListener('click', function (e) {
+    for (let i = 0; i < links.length; i++) {
+        links[i].addEventListener('click', e => {
             e.preventDefault();
-            var pageText = links[i].innerText;
+            const pageText = links[i].innerText;
             request.Page = parseInt(pageText, 10);
             loadVideos();
         });
-    };
-    for (var i = 0; i < links.length; i++) {
-        _loop_2(i);
     }
 };
-var initializeItemsPerPageSelectEvent = function () {
-    var selectElement = document.getElementById('items-per-page');
+const initializeItemsPerPageSelectEvent = () => {
+    const selectElement = document.getElementById('items-per-page');
     if (!selectElement) {
         return;
     }
-    selectElement.addEventListener('change', function () {
+    selectElement.addEventListener('change', () => {
         request.Amount = parseInt(selectElement.value, 10);
         request.Page = 1;
         loadVideos();
     });
 };
-var initializeSearchEvent = function () {
-    var searchBox = document.getElementById('search');
+const initializeSearchEvent = () => {
+    const searchBox = document.getElementById('search');
     if (!searchBox) {
         return;
     }
-    searchBox.addEventListener('input', function () {
+    searchBox.addEventListener('input', () => {
         if (searchTimeOut !== null) {
             clearTimeout(searchTimeOut);
         }
-        searchTimeOut = setTimeout(function () {
+        searchTimeOut = setTimeout(() => {
             request.Search = searchBox.value;
             loadVideos();
         }, 300);
     });
 };
-var loadVideos = function () {
+const loadVideos = () => {
     currentPage = request.Page;
-    var table = document.getElementById('video-table');
+    const table = document.getElementById('video-table');
     if (!table) {
         return;
     }
-    var oldTBody = table.lastElementChild;
+    const oldTBody = table.lastElementChild;
     if (!oldTBody || oldTBody.tagName !== 'TBODY') {
         return;
     }
-    fetch(uri_creator_1.CreateGetVideosUri(request)).then(function (x) { return x.json(); }).then(function (x) {
+    fetch(uri_creator_1.CreateGetVideosUri(request)).then(x => x.json()).then((x) => {
         // videos
-        var newTBody = document.createElement('tbody');
-        x.videos.map(function (v) {
-            var tr = document.createElement('tr');
-            var submitLink = document.createElement('a');
-            var linkOrTitle;
+        const newTBody = document.createElement('tbody');
+        x.videos.map(v => {
+            const tr = document.createElement('tr');
+            const submitLink = document.createElement('a');
+            let linkOrTitle;
             if (v.submission_count > 0) {
                 linkOrTitle = document.createElement('a');
                 linkOrTitle.innerText = v.title;
-                linkOrTitle.href = "/Video/" + v.id;
+                linkOrTitle.href = `/Video/${v.id}`;
             }
             else {
                 linkOrTitle = document.createElement('span');
@@ -124,21 +118,21 @@ var loadVideos = function () {
                 linkOrTitle.classList.add('gray');
             }
             submitLink.innerText = 'Submit';
-            submitLink.href = "/SubmitEpisode/" + v.id;
+            submitLink.href = `/SubmitEpisode/${v.id}`;
             dom_operations_1.fillTableCells(tr, linkOrTitle, v.duration, v.published, submitLink, v.likes, v.dislikes, v.ratio, v.view_count, v.favorite_count, v.comment_count, v.is_hd ? 'true' : 'false');
             newTBody.appendChild(tr);
         });
         table.removeChild(oldTBody);
         table.appendChild(newTBody);
         // pagination
-        var paginationContainer = document.getElementById('pagination');
+        const paginationContainer = document.getElementById('pagination');
         if (!paginationContainer) {
             return;
         }
         paginationContainer.innerHTML = '';
-        var pageCounter = 1;
-        for (var i = 0; i < x.video_count; i += x.amount_per_page) {
-            var a = document.createElement('a');
+        let pageCounter = 1;
+        for (let i = 0; i < x.video_count; i += x.amount_per_page) {
+            const a = document.createElement('a');
             a.innerText = pageCounter.toString(10);
             if (currentPage === pageCounter) {
                 a.classList.add('active-page');
@@ -149,7 +143,7 @@ var loadVideos = function () {
         applyPageClickEvents();
     });
 };
-(function () {
+(() => {
     initializeTableHeaderClickEvents();
     applyPageClickEvents();
     initializeItemsPerPageSelectEvent();

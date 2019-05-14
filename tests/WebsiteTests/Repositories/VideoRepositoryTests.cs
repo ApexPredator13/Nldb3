@@ -120,7 +120,7 @@ namespace WebsiteTests.Repositories
                             new SubmittedPlayedFloor()
                             {
                                 FloorId = floor1Id,
-                                gameplayEvents = new List<SubmittedGameplayEvent>()
+                                GameplayEvents = new List<SubmittedGameplayEvent>()
                                 {
                                     new SubmittedGameplayEvent()
                                     {
@@ -139,7 +139,7 @@ namespace WebsiteTests.Repositories
                             new SubmittedPlayedFloor()
                             {
                                 FloorId = floor2Id,
-                                gameplayEvents = new List<SubmittedGameplayEvent>()
+                                GameplayEvents = new List<SubmittedGameplayEvent>()
                                 {
                                     new SubmittedGameplayEvent()
                                     {
@@ -161,7 +161,7 @@ namespace WebsiteTests.Repositories
                             new SubmittedPlayedFloor()
                             {
                                 FloorId = floor2Id,
-                                gameplayEvents = new List<SubmittedGameplayEvent>()
+                                GameplayEvents = new List<SubmittedGameplayEvent>()
                                 {
                                     new SubmittedGameplayEvent()
                                     {

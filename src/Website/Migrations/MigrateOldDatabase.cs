@@ -861,7 +861,6 @@ namespace Website.Migrations
                         var playedFloor = new SubmittedPlayedFloor()
                         {
                             FloorId = floor.Value.floor,
-                            VideoId = videoId,
                             Duration = floor.Value.length
                         };
 
@@ -883,7 +882,7 @@ namespace Website.Migrations
                                     if (!r.IsDBNull(0))
                                     {
                                         var curseId = string.Join(string.Empty, r.GetString(0).Split(" ").Select(a => char.ToUpper(a[0]).ToString() + a.Substring(1)));
-                                        submission.PlayedCharacters.Last().PlayedFloors.Last().gameplayEvents.Add(new SubmittedGameplayEvent() { RelatedResource1 = curseId, EventType = GameplayEventType.Curse });
+                                        submission.PlayedCharacters.Last().PlayedFloors.Last().GameplayEvents.Add(new SubmittedGameplayEvent() { RelatedResource1 = curseId, EventType = GameplayEventType.Curse });
                                     }
                                 }
                             }
@@ -908,7 +907,7 @@ namespace Website.Migrations
                                             EventType = GameplayEventType.AbsorbedItem,
                                             Player = r.GetInt32(2)
                                         };
-                                        submission.PlayedCharacters.Last().PlayedFloors.Last().gameplayEvents.Add(e);
+                                        submission.PlayedCharacters.Last().PlayedFloors.Last().GameplayEvents.Add(e);
                                     }
                                     // character rerolls
                                     else if (r.GetString(1) == "CharacterReroll")
@@ -952,7 +951,7 @@ namespace Website.Migrations
                                         if (e.RelatedResource2 == "Hornfel") e.RelatedResource2 = "HornfelItemSource";
                                         if (e.RelatedResource2 == "LostSoul") e.RelatedResource2 = "LostSoulItemSource";
 
-                                        submission.PlayedCharacters.Last().PlayedFloors.Last().gameplayEvents.Add(e);
+                                        submission.PlayedCharacters.Last().PlayedFloors.Last().GameplayEvents.Add(e);
                                     }
                                 }
                             }
@@ -977,7 +976,7 @@ namespace Website.Migrations
                                     if (e.RelatedResource1 == "Steven") e.RelatedResource1 = "StevenBoss";
                                     if (e.RelatedResource1 == "LittleHorn") e.RelatedResource1 = "LittleHornBoss";
 
-                                    submission.PlayedCharacters.Last().PlayedFloors.Last().gameplayEvents.Add(e);
+                                    submission.PlayedCharacters.Last().PlayedFloors.Last().GameplayEvents.Add(e);
                                 }
                             }
                         }
@@ -1012,7 +1011,7 @@ namespace Website.Migrations
                                 e.RelatedResource1 = newDeath.Id;
                             }
 
-                            submission.PlayedCharacters.Last().PlayedFloors.Last().gameplayEvents.Add(e);
+                            submission.PlayedCharacters.Last().PlayedFloors.Last().GameplayEvents.Add(e);
                         }
                     }
                 }

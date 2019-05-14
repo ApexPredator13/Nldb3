@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var swapClass = function (e, from, to) {
+const swapClass = (e, from, to) => {
     if (e.classList.contains(from)) {
         e.classList.remove(from);
     }
@@ -9,17 +9,13 @@ var swapClass = function (e, from, to) {
     }
 };
 exports.swapClass = swapClass;
-var fillTableCells = function (tr) {
-    var contents = [];
-    for (var _i = 1; _i < arguments.length; _i++) {
-        contents[_i - 1] = arguments[_i];
-    }
+const fillTableCells = (tr, ...contents) => {
     if (contents.length === 0) {
         return;
     }
-    contents.map(function (content) {
+    contents.map(content => {
         if (content !== undefined) {
-            var td = document.createElement('td');
+            let td = document.createElement('td');
             if (content) {
                 if (content instanceof HTMLElement) {
                     td.appendChild(content);
@@ -39,3 +35,45 @@ var fillTableCells = function (tr) {
     });
 };
 exports.fillTableCells = fillTableCells;
+const loadDivElementByClass = (className, div) => {
+    const result = div ? div.getElementsByClassName(className) : document.getElementsByClassName(className);
+    if (result.length > 0) {
+        return result[0];
+    }
+    else {
+        throw `no element with class '${className}' was found`;
+    }
+};
+exports.loadDivElementByClass = loadDivElementByClass;
+const loadDivElementsByClass = (className, div) => {
+    return div
+        ? div.getElementsByClassName(className)
+        : document.getElementsByClassName(className);
+};
+exports.loadDivElementsByClass = loadDivElementsByClass;
+const loadDivElementById = (idName, div) => {
+    const result = div ? div.querySelector(`#${idName}`) : document.getElementById(idName);
+    if (result) {
+        return result;
+    }
+    else {
+        throw `no element with class '${idName}' was found`;
+    }
+};
+exports.loadDivElementById = loadDivElementById;
+const loadElementsByTagName = (tagName, div) => {
+    return div ? div.getElementsByTagName(tagName) : document.getElementsByTagName(tagName);
+};
+exports.loadElementsByTagName = loadElementsByTagName;
+const removeClassIfExists = (e, className) => {
+    if (e.classList.contains(className)) {
+        e.classList.remove(className);
+    }
+};
+exports.removeClassIfExists = removeClassIfExists;
+const addClassIfNotExists = (e, className) => {
+    if (!e.classList.contains(className)) {
+        e.classList.add(className);
+    }
+};
+exports.addClassIfNotExists = addClassIfNotExists;

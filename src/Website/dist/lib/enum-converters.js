@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var convertGameModeToString = function (mode) {
+const convertGameModeToString = (mode) => {
     switch (mode) {
         case 0: return 'All Modes';
         case 1: return 'Normal';
@@ -14,7 +14,7 @@ var convertGameModeToString = function (mode) {
     }
 };
 exports.convertGameModeToString = convertGameModeToString;
-var convertExistsInToString = function (n) {
+const convertExistsInToString = (n) => {
     switch (n) {
         case 0: return 'Nowhere';
         case 1: return 'Every Version';
@@ -50,7 +50,7 @@ var convertExistsInToString = function (n) {
     }
 };
 exports.convertExistsInToString = convertExistsInToString;
-var convertResourceTypeToString = function (r) {
+const convertResourceTypeToString = (r) => {
     switch (r) {
         case 0: return 'Unspecified';
         case 1: return 'Boss';

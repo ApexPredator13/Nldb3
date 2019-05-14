@@ -2,8 +2,13 @@
   {
     "outputFileName": "wwwroot/css/dist/bundle.css",
     "inputFiles": [
+      "wwwroot/css/src/character-box.css",
+      "wwwroot/css/src/dropdown-menu.css",
+      "wwwroot/css/src/forms.css",
       "wwwroot/css/src/global.css",
-      "wwwroot/css/src/forms-validation.css"
+      "wwwroot/css/src/select-floor.css",
+      "wwwroot/css/src/table.css",
+      "wwwroot/css/src/video-list.css"
     ]
   }
 ]

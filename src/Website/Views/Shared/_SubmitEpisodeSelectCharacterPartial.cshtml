@@ -1,0 +1,11 @@
+﻿@model List<IsaacResource>
+
+<h3>Which Character did NL choose?</h3>
+
+@foreach (var c in Model)
+{
+    <div class="character-box" data-id="@c.Id">
+        <div style="background: url('/img/isaac.png') -@(c.X <= 0 ? 0 : c.X)px -@(c.Y <= 0 ? 0 : c.Y)px transparent; width: @(c.W <= 5 ? 31.ToString() : c.W.ToString())px; height: @(c.H <= 5 ? 31.ToString() : c.H.ToString())px; display: inline-block; vertical-align: top"></div>
+        <p>@c.Name</p>
+    </div>
+}

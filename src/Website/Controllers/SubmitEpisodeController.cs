@@ -23,7 +23,7 @@ namespace Website.Controllers
         public async Task<ViewResult> Index(string id)
         {
             ViewData["Id"] = id;
-            var request = new GetResource() { ResourceType = ResourceType.Item };
+            var request = new GetResource() { ResourceType = ResourceType.Unspecified };
             var items = await _isaacRepository.GetResources(request);
             return View(items);
         }

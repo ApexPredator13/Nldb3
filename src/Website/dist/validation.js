@@ -1,27 +1,27 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var polyfills_1 = require("./lib/polyfills");
+const polyfills_1 = require("./lib/polyfills");
 polyfills_1.elementClosest();
-var emailRegex = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/;
-var inputElementTypeWhitelist = ["text", "password", "color", "number"];
-var applyErrormessage = function (inputElement, message) {
-    var errorMessageContainer = inputElement.nextElementSibling;
+const emailRegex = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/;
+const inputElementTypeWhitelist = ["text", "password", "color", "number"];
+const applyErrormessage = (inputElement, message) => {
+    const errorMessageContainer = inputElement.nextElementSibling;
     if (errorMessageContainer) {
         errorMessageContainer.textContent = message;
     }
 };
-var applyFormValidState = function (form, isValid) {
-    var submitButton = form.getElementsByTagName("button");
-    for (var i = 0; i < submitButton.length; i++) {
+const applyFormValidState = (form, isValid) => {
+    const submitButton = form.getElementsByTagName("button");
+    for (let i = 0; i < submitButton.length; i++) {
         if (submitButton[i].getAttribute("type") === "submit") {
             submitButton[i].disabled = !isValid;
         }
     }
 };
-var inputElementIsValid = function (element, target, markAsTouched) {
-    var isValid = true;
-    var errorMessage = null;
-    var isSameNode = element === target;
+const inputElementIsValid = (element, target, markAsTouched) => {
+    let isValid = true;
+    let errorMessage = null;
+    const isSameNode = element === target;
     // validation rules
     if (element.hasAttribute("data-val-required") && !element.value) {
         isValid = false;
@@ -51,25 +51,25 @@ var inputElementIsValid = function (element, target, markAsTouched) {
     }
     return isValid;
 };
-var evaluateForm = function (target, markAsTouched) {
-    var form = target.closest("form");
+const evaluateForm = (target, markAsTouched) => {
+    const form = target.closest("form");
     if (!form) {
         return;
     }
-    var formIsValid = true;
-    var inputElements = form.getElementsByTagName("input");
-    var textAreaElements = form.getElementsByTagName("textarea");
-    for (var i = 0; i < inputElements.length; i++) {
-        var element = inputElements[i];
-        var type = element.getAttribute("type");
+    let formIsValid = true;
+    const inputElements = form.getElementsByTagName("input");
+    const textAreaElements = form.getElementsByTagName("textarea");
+    for (let i = 0; i < inputElements.length; i++) {
+        const element = inputElements[i];
+        const type = element.getAttribute("type");
         if (element.getAttribute("data-val") === "true" && inputElementTypeWhitelist.indexOf(type) !== -1) {
             if (!inputElementIsValid(element, target, markAsTouched)) {
                 formIsValid = false;
             }
         }
     }
-    for (var i = 0; i < textAreaElements.length; i++) {
-        var element = textAreaElements[i];
+    for (let i = 0; i < textAreaElements.length; i++) {
+        const element = textAreaElements[i];
         if (element.getAttribute("data-val") === "true") {
             if (!inputElementIsValid(element, target, markAsTouched)) {
                 formIsValid = false;
@@ -78,19 +78,19 @@ var evaluateForm = function (target, markAsTouched) {
     }
     applyFormValidState(form, formIsValid);
 };
-(function () {
-    var inputElements = document.getElementsByTagName("input");
-    var textareaElements = document.getElementsByTagName("textarea");
-    for (var i = 0; i < inputElements.length; i++) {
+(() => {
+    const inputElements = document.getElementsByTagName("input");
+    const textareaElements = document.getElementsByTagName("textarea");
+    for (let i = 0; i < inputElements.length; i++) {
         evaluateForm(inputElements[i], false);
-        inputElements[i].addEventListener("input", function (e) { return evaluateForm(e.target, true); });
-        inputElements[i].addEventListener("blur", function (e) { return evaluateForm(e.target, true); });
-        inputElements[i].addEventListener("click", function (e) { return evaluateForm(e.target, false); });
+        inputElements[i].addEventListener("input", e => evaluateForm(e.target, true));
+        inputElements[i].addEventListener("blur", e => evaluateForm(e.target, true));
+        inputElements[i].addEventListener("click", e => evaluateForm(e.target, false));
     }
-    for (var i = 0; i < textareaElements.length; i++) {
+    for (let i = 0; i < textareaElements.length; i++) {
         evaluateForm(textareaElements[i], false);
-        textareaElements[i].addEventListener("input", function (e) { return evaluateForm(e.target, true); });
-        textareaElements[i].addEventListener("blur", function (e) { return evaluateForm(e.target, true); });
-        textareaElements[i].addEventListener("click", function (e) { return evaluateForm(e.target, false); });
+        textareaElements[i].addEventListener("input", e => evaluateForm(e.target, true));
+        textareaElements[i].addEventListener("blur", e => evaluateForm(e.target, true));
+        textareaElements[i].addEventListener("click", e => evaluateForm(e.target, false));
     }
 })();
