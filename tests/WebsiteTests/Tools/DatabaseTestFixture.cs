@@ -62,8 +62,9 @@ namespace WebsiteTests.Tools
             using (var c = new NpgsqlConnection(config.GetConnectionString("TestConnection")))
             {
                 string query =
-                    "CREATE TABLE IF NOT EXISTS \"AspNetUsers\" (\"Id\" TEXT PRIMARY KEY, \"UserName\" TEXT NOT NULL); " +
-                    $"INSERT INTO \"AspNetUsers\" (\"Id\", \"UserName\") VALUES ('{config["DeletedUserId"]}', '{config["DeletedUserName"]}') ON CONFLICT DO NOTHING; ";
+                    "CREATE SCHEMA IF NOT EXISTS identity; " +
+                    "CREATE TABLE IF NOT EXISTS identity.\"AspNetUsers\" (\"Id\" TEXT PRIMARY KEY, \"UserName\" TEXT NOT NULL); " +
+                    $"INSERT INTO identity.\"AspNetUsers\" (\"Id\", \"UserName\") VALUES ('{config["DeletedUserId"]}', '{config["DeletedUserName"]}') ON CONFLICT DO NOTHING; ";
                 c.Open();
                 using var q = new NpgsqlCommand(query, c);
                 q.ExecuteNonQuery();

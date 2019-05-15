@@ -45,8 +45,9 @@ namespace Website.Data
 
             string query = 
                 "SELECT s.id, s.s_type, s.latest, u.\"UserName\" " +
-                "FROM video_submissions s " +
-                "LEFT JOIN \"AspNetUsers\" u ON u.\"Id\" = s.sub " +
+                "FROM public.video_submissions s " +
+                "LEFT JOIN public.video_submissions_userdata d ON d.submission = s.id " +
+                "LEFT JOIN identity.\"AspNetUsers\" u ON u.\"Id\" = d.user_id " +
                 "WHERE s.video = @VideoId" +
                 $"{(submissionId is null ? string.Empty : " AND id = @SubmissionId")}; ";
 

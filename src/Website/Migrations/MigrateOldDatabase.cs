@@ -86,7 +86,7 @@ namespace Website.Migrations
 
             using (var q = new NpgsqlCommand(getUsersQuery, c_identity_old))
             {
-                insertQuery.Append("INSERT INTO \"AspNetUsers\" (" +
+                insertQuery.Append("INSERT INTO identity.\"AspNetUsers\" (" +
                     "\"Id\", \"AccessFailedCount\", \"ConcurrencyStamp\", \"Email\", \"EmailConfirmed\", \"LockoutEnabled\", \"LockoutEnd\", " +
                     "\"NormalizedEmail\", \"NormalizedUserName\", \"PasswordHash\", \"PhoneNumber\", \"PhoneNumberConfirmed\", \"SecurityStamp\", " +
                     "\"TwoFactorEnabled\", \"UserName\") VALUES ");
@@ -120,7 +120,7 @@ namespace Website.Migrations
             // AspNetUserLogins
             string getUserLoginsQuery = "SELECT \"LoginProvider\", \"ProviderKey\", \"ProviderDisplayName\", \"UserId\" FROM \"AspNetUserLogins\"; ";
             var insertUserLogins = new StringBuilder();
-            insertUserLogins.Append("INSERT INTO \"AspNetUserLogins\" (\"LoginProvider\", \"ProviderKey\", \"ProviderDisplayName\", \"UserId\") VALUES ");
+            insertUserLogins.Append("INSERT INTO identity.\"AspNetUserLogins\" (\"LoginProvider\", \"ProviderKey\", \"ProviderDisplayName\", \"UserId\") VALUES ");
 
             using (var q = new NpgsqlCommand(getUserLoginsQuery, c_identity_old))
             {
@@ -691,28 +691,30 @@ namespace Website.Migrations
         {
             _logger.LogInformation($"saving quotes...");
 
-            using var c = new NpgsqlConnection(_oldConnectionString);
-            await c.OpenAsync();
-            using var q = new NpgsqlCommand("SELECT video, content, whenithappened, sub FROM quotes;", c);
 
-            using var r = await q.ExecuteReaderAsync();
-            if (r.HasRows)
-            {
-                while (r.Read())
-                {
-                    if (r.IsDBNull(3))
-                    {
-                        continue;
-                    }
 
-                    await _quoteRepository.SaveQuote(new SubmittedQuote()
-                    {
-                        At = r.GetInt32(2),
-                        Content = r.GetString(1),
-                        VideoId = r.GetString(0)
-                    }, r.GetString(3));
-                }
-            }
+            //using var c = new NpgsqlConnection(_oldConnectionString);
+            //await c.OpenAsync();
+            //using var q = new NpgsqlCommand("SELECT video, content, whenithappened, sub FROM quotes;", c);
+
+            //using var r = await q.ExecuteReaderAsync();
+            //if (r.HasRows)
+            //{
+            //    while (r.Read())
+            //    {
+            //        if (r.IsDBNull(3))
+            //        {
+            //            continue;
+            //        }
+
+            //        await _quoteRepository.SaveQuote(new SubmittedQuote()
+            //        {
+            //            At = r.GetInt32(2),
+            //            Content = r.GetString(1),
+            //            VideoId = r.GetString(0)
+            //        }, r.GetString(3));
+            //    }
+            //}
         }
 
         public async Task MigrateVideos()

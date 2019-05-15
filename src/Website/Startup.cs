@@ -21,6 +21,16 @@ using Website.Services;
 using Microsoft.Extensions.Hosting;
 using Website.Migrations;
 using Microsoft.Extensions.Primitives;
+using Hangfire;
+using Hangfire.AspNetCore;
+using Hangfire.PostgreSql;
+using Hangfire.Processing;
+using Hangfire.Storage;
+using Hangfire.Server;
+using Hangfire.States;
+using Hangfire.Logging;
+using Hangfire.Dashboard;
+using Hangfire.Common;
 
 namespace Website
 {
@@ -46,8 +56,11 @@ namespace Website
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
+            // entity framework
             services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(Config.GetConnectionString("DefaultConnection")));
 
+            // nldb stuff
+            services.AddTransient<ISqlDumper, SqlDumper>();
             services.AddSingleton<IHttpClientProvider, HttpClientProvider>();
 
             services.AddTransient<IDbConnector, DbConnector>();
@@ -61,6 +74,19 @@ namespace Website
             services.AddScoped<IVideoRepository, VideoRepository>();
             services.AddScoped<IQuoteRepository, QuoteRepository>();
 
+            // hangfire
+            services.AddHangfire(config => config
+                .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+                .UseSimpleAssemblyNameTypeSerializer()
+                .UseRecommendedSerializerSettings()
+                .UsePostgreSqlStorage(Config.GetConnectionString("DefaultConnection"), new PostgreSqlStorageOptions()
+                {
+                    QueuePollInterval = TimeSpan.FromMinutes(1)
+                })
+            );
+            services.AddHangfireServer();
+
+            // identity
             services.AddIdentity<IdentityUser, IdentityRole>(options =>
             {
                 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(1);
@@ -115,12 +141,12 @@ namespace Website
                 });
 
             services.AddMvc()
-                .AddRazorRuntimeCompilation()
+                .AddRazorRuntimeCompilation()   // necessary during .net core 3 preview only? maybe safe to remove this line later
                 .AddNewtonsoftJson();
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider serviceProvider)
         {
             app.Use((context, next) =>
             {
@@ -153,6 +179,17 @@ namespace Website
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
+
+            app.UseHangfireDashboard("/hangfire", new DashboardOptions()
+            {
+                Authorization = new List<IDashboardAuthorizationFilter>()
+                {
+                    new HangfireAuthorizationFilter()
+                }
+            });
+
+            RecurringJob.AddOrUpdate<ISqlDumper>(dumper => dumper.Dump(), Cron.Hourly());
+
             app.UseRouting();
             app.UseEndpoints(endpoints =>
             {
@@ -164,6 +201,7 @@ namespace Website
             app.CreateRequiredUserAccountsIfMissing();
             // app.ResetDatabaseInDevMode();
             app.MigrateOldDatabaseIfNoDataExists().Wait();
+            // SqlDumper.Dump(Config, _env);
         }
     }
 }

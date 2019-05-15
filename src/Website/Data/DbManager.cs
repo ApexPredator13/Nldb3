@@ -34,7 +34,7 @@ namespace Website.Data
                 return;
             }
 
-            string query = "DROP TABLE IF EXISTS quote_votes, quotes, mods, mod_url, isaac_resources, tags, thumbnails, videos, video_submissions, played_characters, played_floors, gameplay_events, transformative_resources; ";
+            string query = "DROP TABLE IF EXISTS quotes_userdata, video_submissions_userdata, quote_votes, quotes, mods, mod_url, isaac_resources, tags, thumbnails, videos, video_submissions, played_characters, played_floors, gameplay_events, transformative_resources; ";
 
             Execute(query);
         }
@@ -60,14 +60,19 @@ namespace Website.Data
                     "video TEXT NOT NULL REFERENCES videos (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
                     "content TEXT NOT NULL, " +
                     "at INTEGER NOT NULL, " +
-                    "submitted_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(), " +
-                    $"user_id TEXT NOT NULL DEFAULT '{_config["DeletedUserId"]}' REFERENCES \"AspNetUsers\" (\"Id\") ON UPDATE CASCADE ON DELETE SET DEFAULT" +
+                    "submitted_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()" +
+                "); " +
+
+                "CREATE TABLE IF NOT EXISTS quotes_userdata (" +
+                    "id SERIAL PRIMARY KEY, " +
+                    "quote INTEGER NOT NULL REFERENCES quotes (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
+                    "user_id TEXT" +
                 "); " +
                 
                 "CREATE TABLE IF NOT EXISTS quote_votes (" +
                     "id SERIAL, " +
                     "vote INTEGER NOT NULL, " +
-                    "user_id TEXT NOT NULL REFERENCES \"AspNetUsers\" (\"Id\") ON UPDATE CASCADE ON DELETE CASCADE, " +
+                    "user_id TEXT, " +
                     "quote INTEGER NOT NULL REFERENCES quotes (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
                     "voted_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()" +
                 "); " +
@@ -173,10 +178,15 @@ namespace Website.Data
                 "CREATE TABLE IF NOT EXISTS video_submissions (" +
                     "id SERIAL PRIMARY KEY, " +
                     "video TEXT NOT NULL REFERENCES videos (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
-                    $"sub TEXT NOT NULL DEFAULT '{_config["DeletedUserId"]}' REFERENCES \"AspNetUsers\" (\"Id\") ON UPDATE CASCADE ON DELETE SET DEFAULT, " +
                     $"s_type INTEGER NOT NULL DEFAULT {(int)SubmissionType.New}, " +
                     "latest BOOLEAN NOT NULL DEFAULT TRUE" +
-                "); ";
+                "); " +
+                
+                "CREATE TABLE video_submissions_userdata (" +
+                    "id SERIAL PRIMARY KEY, " +
+                    "submission INTEGER NOT NULL REFERENCES video_submissions (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
+                    "user_id TEXT" +
+                ");";
 
             Execute(query);
         }

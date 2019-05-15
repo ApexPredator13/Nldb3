@@ -22,19 +22,34 @@ namespace Website.Data
 
         public async Task<int> SaveQuote(SubmittedQuote quote, string userId)
         {
-            using var c = await _connector.Connect();
-            using var q = new NpgsqlCommand("INSERT INTO quotes (id, video, content, at, user_id, submitted_at) VALUES (DEFAULT, @V, @C, @A, @U, DEFAULT) RETURNING id;", c);
-            q.Parameters.AddWithValue("@V", NpgsqlDbType.Text, quote.VideoId);
-            q.Parameters.AddWithValue("@C", NpgsqlDbType.Text, quote.Content);
-            q.Parameters.AddWithValue("@A", NpgsqlDbType.Integer, quote.At);
-            q.Parameters.AddWithValue("@U", NpgsqlDbType.Text, userId);
-            return Convert.ToInt32(await q.ExecuteScalarAsync());
+            using (var c = await _connector.Connect())
+            {
+                using var q = new NpgsqlCommand("INSERT INTO quotes (id, video, content, at, submitted_at) VALUES (DEFAULT, @V, @C, @A, DEFAULT) RETURNING id;", c);
+                q.Parameters.AddWithValue("@V", NpgsqlDbType.Text, quote.VideoId);
+                q.Parameters.AddWithValue("@C", NpgsqlDbType.Text, quote.Content);
+                q.Parameters.AddWithValue("@A", NpgsqlDbType.Integer, quote.At);
+                int result = Convert.ToInt32(await q.ExecuteScalarAsync());
+
+                using var p = new NpgsqlCommand("INSERT INTO quotes_userdata (quote, user_id) VALUES (@Q, @U);", c);
+                p.Parameters.AddWithValue("@Q", NpgsqlDbType.Integer, result);
+                p.Parameters.AddWithValue("@U", NpgsqlDbType.Text, userId);
+                await p.ExecuteNonQueryAsync();
+
+                return result;
+            }
         }
 
         public async Task<int> DeleteQuote(int quoteId, string userId)
         {
+            string query =
+                "DELETE FROM quotes " +
+                "USING quotes_userdata " +
+                "WHERE quotes_userdata.quote = quotes.id " +
+                "AND quotes_userdata.quote = @I " +
+                "AND quotes_userdata.user_id = @U;";
+
             using var c = await _connector.Connect();
-            using var q = new NpgsqlCommand("DELETE FROM quotes WHERE id = @I AND user_id = @U;", c);
+            using var q = new NpgsqlCommand(query, c);
             q.Parameters.AddWithValue("@I", NpgsqlDbType.Integer, quoteId);
             q.Parameters.AddWithValue("@U", NpgsqlDbType.Text, userId);
             return await q.ExecuteNonQueryAsync();
@@ -48,8 +63,9 @@ namespace Website.Data
                 "SELECT " +
                     "q.id, q.video, q.content, q.at, q.submitted_at, " +
                     "u.\"UserName\" " +
-                "FROM quotes q " +
-                "LEFT JOIN \"AspNetUsers\" u ON u.\"Id\" = q.user_id " +
+                "FROM public.quotes q " +
+                "LEFT JOIN quotes_userdata d ON d.quote = q.id " +
+                "LEFT JOIN identity.\"AspNetUsers\" u ON u.\"Id\" = d.user_id " +
                 "WHERE video = @V " +
                 "ORDER BY submitted_at ASC; ";
 
@@ -71,7 +87,7 @@ namespace Website.Data
                         QuoteText = r.GetString(i++),
                         At = r.GetInt32(i++),
                         SubmissionTime = r.GetDateTime(i++),
-                        Contributor = r.GetString(i++)
+                        Contributor = r.IsDBNull(i++) ? "[Deleted User]" : r.GetString(i - 1)
                     });
                 }
             }
@@ -87,9 +103,10 @@ namespace Website.Data
                 "SELECT " +
                     "q.id, q.video, q.content, q.at, q.submitted_at, " +
                     "u.\"UserName\" " +
-                "FROM quotes q " +
-                "LEFT JOIN \"AspNetUsers\" u ON u.\"Id\" = q.user_id " +
-                "WHERE id = @I ";
+                "FROM public.quotes q " +
+                "LEFT JOIN public.quotes_userdata d ON d.quote = q.id " +
+                "LEFT JOIN identity.\"AspNetUsers\" u ON u.\"Id\" = d.user_id " +
+                "WHERE q.id = @I ";
 
             using var c = await _connector.Connect();
             using var q = new NpgsqlCommand(query, c);
@@ -108,7 +125,7 @@ namespace Website.Data
                     QuoteText = r.GetString(i++),
                     At = r.GetInt32(i++),
                     SubmissionTime = r.GetDateTime(i++),
-                    Contributor = r.GetString(i++)
+                    Contributor = r.IsDBNull(i++) ? "[Deleted User]" : r.GetString(i - 1)
                 };
             }
 
@@ -140,8 +157,8 @@ namespace Website.Data
             
             string query =
                 "SELECT v.id, v.vote, v.quote, v.voted_at, u.\"UserName\" " +
-                "FROM quote_votes v " +
-                "LEFT JOIN \"AspNetUsers\" u ON u.\"Id\" = v.user_id " +
+                "FROM public.quote_votes v " +
+                "LEFT JOIN identity.\"AspNetUsers\" u ON u.\"Id\" = v.user_id " +
                 "WHERE v.user_id = @U;";
 
             using var c = await _connector.Connect();
@@ -160,7 +177,7 @@ namespace Website.Data
                         Vote = (Vote)r.GetInt32(i++),
                         Quote = r.GetInt32(i++),
                         VoteTime = r.GetDateTime(i++),
-                        UserName = r.GetString(i++)
+                        UserName = r.IsDBNull(i++) ? "[Deleted User]" : r.GetString(i - 1)
                     });
                 }
             }

@@ -225,8 +225,14 @@ namespace Website.Data
 
         public async Task SubmitLostEpisode(string videoId, string userId)
         {
+            var query =
+                "START TRANSACTION; " +
+                "INSERT INTO video_submissions (video, s_type, latest) VALUES (@V, @ST, FALSE); " +
+                "INSERT INTO video_submissions_userdata (submission, user_id) VALUES (CURRVAL(pg_get_serial_sequence('video_submissions', 'id')), @U); " +
+                "COMMIT;";
+
             using var c = await _connector.Connect();
-            using var q = new NpgsqlCommand($"INSERT INTO video_submissions (video, sub, s_type, latest) VALUES (@V, @U, @ST, FALSE); ", c);
+            using var q = new NpgsqlCommand(query, c);
 
             q.Parameters.AddWithValue("@V", NpgsqlDbType.Text, videoId);
             q.Parameters.AddWithValue("@U", NpgsqlDbType.Text, userId);
@@ -290,7 +296,8 @@ namespace Website.Data
             s.Append("UPDATE video_submissions SET latest = FALSE WHERE video = @LatestVideoId; ");
             parameters.Add(new NpgsqlParameter("@LatestVideoId", NpgsqlDbType.Text) { Value = episode.VideoId });
 
-            s.Append("INSERT INTO video_submissions (video, sub, s_type, latest) VALUES (@Video, @Sub, @Type, TRUE); ");
+            s.Append("INSERT INTO video_submissions (video, s_type, latest) VALUES (@Video, @Type, TRUE); ");
+            s.Append("INSERT INTO video_submissions_userdata (submission, user_id) VALUES (CURRVAL(pg_get_serial_sequence('video_submissions', 'id')), @Sub); ");
             parameters.Add(new NpgsqlParameter("@Video", NpgsqlDbType.Text) { NpgsqlValue = episode.VideoId });
             parameters.Add(new NpgsqlParameter("@Sub", NpgsqlDbType.Text) { NpgsqlValue = userId });
             parameters.Add(new NpgsqlParameter("@Type", NpgsqlDbType.Integer) { NpgsqlValue = (int)type });
@@ -539,7 +546,7 @@ namespace Website.Data
             return result;
         }
 
-        public async Task<Models.Database.NldbVideo?> GetCompleteEpisode(string videoId)
+        public async Task<NldbVideo?> GetCompleteEpisode(string videoId)
         {
             var getVideoData = GetVideoById(videoId);
             var getGameplayEventsTask = _isaacRepository.GetGameplayEventsForVideo(videoId);
