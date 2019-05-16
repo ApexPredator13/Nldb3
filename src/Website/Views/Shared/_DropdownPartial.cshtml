@@ -1,10 +1,10 @@
-﻿@model List<IsaacResource>
+﻿@model ResourceSelection
 
-<div class="dd-container">
+<div class="dd-container" data-dropdown-id="@Model.SelectionId">
     <div class="dd-selection">Select...</div>
     <div class="dd-search"><input type="text" class="dd-searchbox" /></div>
     <div class="dd-dropdown">
-        @foreach (var item in Model)
+        @foreach (var item in Model.IsaacResources)
         {
             <div class="dd-line" data-id="@item.Id" title="@item.Name">
                 <div class="dd-image" style="background: url('/img/isaac.png') -@(item.X <= 0 ? 0 : item.X) -@(item.Y <= 0 ? 0 : item.Y) transparent; width: @(item.W <= 5 ? 31.ToString() : item.W.ToString())px; height: @(item.H <= 5 ? 31.ToString() : item.H.ToString())px"></div>

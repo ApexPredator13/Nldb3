@@ -1,5 +1,21 @@
 ﻿@{ 
     ViewData["Title"] = "Submit Episode";
+
+    var characters = Model.Where(x => x.ResourceType == ResourceType.Character).ToList();
+    var selectCharacterModel = new ResourceSelection("select-character-boxes", characters);
+
+    var gameModes = new ResourceSelectionTextonly("select-mode-boxes", new List<(string name, int value)>()
+    {
+        ("Regular Game", (int)GameMode.Normal),
+        ("Greed Mode", (int)GameMode.Greed),
+        ("Special Challenge", (int)GameMode.SpecialChallenge),
+        ("Something Else", (int)GameMode.Unspecified)
+    });
+
+    var floors = Model.Where(x => x.ResourceType == ResourceType.Floor).ToList();
+    var firstFloors = floors.Where(x => x.Name == "Basement 1" || x.Name == "Cellar 1" || x.Name == "Burning Basement 1" || x.Name == "Greed Mode - Basement").ToList();
+    var floorsModel = new ResourceSelection("select-floor-dd", floors);
+    var firstFloorsModel = new ResourceSelection("select-floor-boxes", firstFloors);
 }
 
 @model List<IsaacResource>
@@ -10,16 +26,21 @@
     </div>
     <div style="width: 30%;">
         <div id="select-character" class="display-normal">
-            <partial name="_SubmitEpisodeSelectCharacterPartial" model="Model.Where(x => x.ResourceType == ResourceType.Character).ToList()" />
+            <h3>Which Character did NL choose?</h3>
+            <partial name="_IsaacResourceBoxesPartial" model="selectCharacterModel" />
         </div>
+
         <div id="select-mode" class="display-none">
-            <partial name="_SubmitEpisodeSelectModePartial" model="Model.Where(x => x.ResourceType == ResourceType.Character).ToList()" />
+            <h3>Which Game Mode is NL playing?</h3>
+            <partial name="_IsaacResourceBoxesTextOnlyPartial" model="gameModes" />
         </div>
+
         <div id="select-floor" class="display-none">
-            <partial name="_SubmitEpisodeSelectFloorPartial" model="Model.Where(x => x.ResourceType == ResourceType.Floor).ToList()" />
+            <partial name="_IsaacResourceBoxesPartial" model="firstFloorsModel" />
+            <partial name="_DropdownPartial" model="floorsModel" />
         </div>
         <div id="select-curse" class="display-none">
-            <partial name="_SubmitEpisodeSelectCursePartial" model="Model.Where(x => x.ResourceType == ResourceType.Curse).ToList()" />
+            <h3>Curses</h3>
         </div>
     </div>
 </div>
@@ -27,3 +48,4 @@
 @section Scripts {
     <script src="~/js/dist/submit_episode.min.js"></script>
 }
+

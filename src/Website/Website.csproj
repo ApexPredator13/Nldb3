@@ -25,6 +25,7 @@
     <Content Remove="wwwroot\js\src\interfaces\video-request.ts" />
     <Content Remove="wwwroot\js\src\interfaces\video-result.ts" />
     <Content Remove="wwwroot\js\src\interfaces\Video.ts" />
+    <Content Remove="wwwroot\js\src\lib\resource-boxes.ts" />
     <Content Remove="wwwroot\js\src\lib\submit-episode.ts" />
     <Content Remove="wwwroot\js\src\lib\uri-creator.ts" />
     <Content Remove="wwwroot\js\src\polyfills.ts" />
@@ -68,6 +69,7 @@
 
 
   <ItemGroup>
+    <Folder Include="wwwroot\dump\" />
     <Folder Include="wwwroot\js\dist\" />
     <Folder Include="wwwroot\css\dist\" />
   </ItemGroup>
@@ -75,6 +77,13 @@
 
   <ItemGroup>
     <None Include="bundleconfig.json" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <TypeScriptCompile Update="wwwroot\js\src\lib\resource-boxes.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
   </ItemGroup>
 
 </Project>
