@@ -242,13 +242,19 @@ namespace Website.Migrations
                 {
                     while (r.Read())
                     {
+                        var tags = new List<Effect>();
+                        if (r.GetBoolean(5))
+                        {
+                            tags.Add(Effect.DoubleTroubleBossfight);
+                        }
+
                         newBosses.Add(new CreateIsaacResource()
                         {
                             Name = r.GetString(0),
                             Id = r.GetString(3),
                             FromMod = r.IsDBNull(6) ? null : await _modRepository.GetModIdByName(r.GetString(6)),
                             ResourceType = ResourceType.Boss,
-                            Tags = r.GetBoolean(5) ? new List<Effect>() { Effect.DoubleTroubleBossfight } : null
+                            Tags = tags
                         });
                     }
                 }
@@ -267,6 +273,104 @@ namespace Website.Migrations
                 if (b.Id == "LittleHorn") b.Id = "LittleHornBoss";
 
                 await _isaacRepository.SaveResource(b, -1, -1, -1, -1);
+            }
+
+            // add floor tags to each boss
+            using var c2 = new NpgsqlConnection(_oldConnectionString);
+            await c2.OpenAsync();
+            using var q2 = new NpgsqlCommand("SELECT floor, boss FROM bosses_floors;", c2);
+            using var r2 = await q2.ExecuteReaderAsync();
+
+            if (r2.HasRows)
+            {
+                while (r2.Read())
+                {
+                    var boss = r2.GetString(1);
+                    if (boss == "Isaac") boss = "IsaacBoss";
+                    if (boss == "BlueBaby") boss = "BlueBabyBoss";
+                    if (boss == "TheSiren") boss = "TheSirenBoss";
+                    if (boss == "Gemini") boss = "GeminiBoss";
+                    if (boss == "Steven") boss = "StevenBoss";
+                    if (boss == "LittleHorn") boss = "LittleHornBoss";
+
+                    var floor = r2.GetString(0);
+                    var floorOccurrences = new List<Effect>();
+
+                    switch (floor)
+                    {
+                        case "CavesTwo": floorOccurrences.Add(Effect.AppearsOnCavesTwo); break;
+                        case "CatacombsTwo": floorOccurrences.Add(Effect.AppearsOnCatacombsTwo); break;
+                        case "CatacombsOne": floorOccurrences.Add(Effect.AppearsOnCatacombsOne); break;
+                        case "GreedModeCaves": floorOccurrences.Add(Effect.AppearsOnGreedModeCaves); break;
+                        case "TheVoid": floorOccurrences.Add(Effect.AppearsOnTheVoid); break;
+                        case "UteroTwo": floorOccurrences.Add(Effect.AppearsOnUteroTwo); break;
+                        case "GreedModeWomb": floorOccurrences.Add(Effect.AppearsOnGreedModeWomb); break;
+                        case "GreedModeUltraGreed": floorOccurrences.Add(Effect.AppearsOnGreedModeUltraGreed); break;
+                        case "DepthsTwo": floorOccurrences.Add(Effect.AppearsOnDepthsTwo); break;
+                        case "MinesTwo": floorOccurrences.Add(Effect.AppearsOnMinesTwo); break;
+                        case "FloodedCavesOne": floorOccurrences.Add(Effect.AppearsOnFloodedCavesOne); break;
+                        case "MissingFloor": break;
+                        case "DankDepthsTwo": floorOccurrences.Add(Effect.AppearsOnDankDepthsTwo); break;
+                        case "CellarOne": floorOccurrences.Add(Effect.AppearsOnCellarOne); break;
+                        case "DepthsXL": floorOccurrences.Add(Effect.AppearsOnDepthsXl); break;
+                        case "UteroXL": floorOccurrences.Add(Effect.AppearsOnUteroXl); break;
+                        case "CorpseXL": floorOccurrences.Add(Effect.AppearsOnCorpseXl); break;
+                        case "ScarredWombOne": floorOccurrences.Add(Effect.AppearsOnScarredWombOne); break;
+                        case "DownpourXL": floorOccurrences.Add(Effect.AppearsOnDownpourXl); break;
+                        case "ScarredWombTwo": floorOccurrences.Add(Effect.AppearsOnScarredWombTwo); break;
+                        case "ScarredWombXL": floorOccurrences.Add(Effect.AppearsOnScarredWombXl); break;
+                        case "BurningBasementTwo": floorOccurrences.Add(Effect.AppearsOnBurningBasementTwo); break;
+                        case "DankDepthsXL": floorOccurrences.Add(Effect.AppearsOnDankDepthsXl); break;
+                        case "BurningBasementOne": floorOccurrences.Add(Effect.AppearsOnBurningBasementOne); break;
+                        case "UteroOne": floorOccurrences.Add(Effect.AppearsOnUteroOne); break;
+                        case "GreedModeSheol": floorOccurrences.Add(Effect.AppearsOnGreedModeSheol); break;
+                        case "MausoleumOne": floorOccurrences.Add(Effect.AppearsOnMausoleumOne); break;
+                        case "Chest": floorOccurrences.Add(Effect.AppearsOnChest); break;
+                        case "CellarTwo": floorOccurrences.Add(Effect.AppearsOnCellarTwo); break;
+                        case "MinesOne": floorOccurrences.Add(Effect.AppearsOnMinesOne); break;
+                        case "NecropolisXL": floorOccurrences.Add(Effect.AppearsOnNecropolisOne); break;
+                        case "MinesXL": floorOccurrences.Add(Effect.AppearsOnMinesXl); break;
+                        case "MausoleumTwo": floorOccurrences.Add(Effect.AppearsOnMausoleumTwo); break;
+                        case "DankDepthsOne": floorOccurrences.Add(Effect.AppearsOnDankDepthsOne); break;
+                        case "DepthsOne": floorOccurrences.Add(Effect.AppearsOnDepthsOne); break;
+                        case "DownpourOne": floorOccurrences.Add(Effect.AppearsOnDownpourOne); break;
+                        case "NecropolisTwo": floorOccurrences.Add(Effect.AppearsOnNecropolisTwo); break;
+                        case "GreedModeTheShop": floorOccurrences.Add(Effect.AppearsOnGreedModeTheShop); break;
+                        case "Downpour 1": floorOccurrences.Add(Effect.AppearsOnDownpourOne); break;
+                        case "CavesOne": floorOccurrences.Add(Effect.AppearsOnCavesOne); break;
+                        case "GreedModeDepths": floorOccurrences.Add(Effect.AppearsOnGreedModeDepths); break;
+                        case "BurningBasementXL": floorOccurrences.Add(Effect.AppearsOnBurningBasementXl); break;
+                        case "WombXL": floorOccurrences.Add(Effect.AppearsOnWombXl); break;
+                        case "Cathedral": floorOccurrences.Add(Effect.AppearsOnCathedral); break;
+                        case "BlueBaby": floorOccurrences.Add(Effect.AppearsOnBlueWomb); break;
+                        case "FloodedCavesTwo": floorOccurrences.Add(Effect.AppearsOnFloodedCavesTwo); break;
+                        case "NecropolisOne": floorOccurrences.Add(Effect.AppearsOnNecropolisOne); break;
+                        case "MausoleumXL": floorOccurrences.Add(Effect.AppearsOnMausoleumXl); break;
+                        case "Sheol": floorOccurrences.Add(Effect.AppearsOnSheol); break;
+                        case "CorpseTwo": floorOccurrences.Add(Effect.AppearsOnCorpseTwo); break;
+                        case "DownpourTwo": floorOccurrences.Add(Effect.AppearsOnDownpourTwo); break;
+                        case "WombOne": floorOccurrences.Add(Effect.AppearsOnWombOne); break;
+                        case "BasementOne": floorOccurrences.Add(Effect.AppearsOnBasementOne); break;
+                        case "GreedModeBasement": floorOccurrences.Add(Effect.AppearsOnGreedModeBasement); break;
+                        case "CavesXL": floorOccurrences.Add(Effect.AppearsOnCavesXl); break;
+                        case "CatacombsXL": floorOccurrences.Add(Effect.AppearsOnCatacombsXl); break;
+                        case "CorpseOne": floorOccurrences.Add(Effect.AppearsOnCorpseOne); break;
+                        case "DarkRoom": floorOccurrences.Add(Effect.AppearsOnDarkRoom); break;
+                        case "WombTwo": floorOccurrences.Add(Effect.AppearsOnWombTwo); break;
+                        case "CellarXL": floorOccurrences.Add(Effect.AppearsOnCellarXl); break;
+                        case "BasementTwo": floorOccurrences.Add(Effect.AppearsOnBasementTwo); break;
+                        case "FloodedCavesXL": floorOccurrences.Add(Effect.AppearsOnFloodedCavesXl); break;
+                        case "BasementXL": floorOccurrences.Add(Effect.AppearsOnBasementXl); break;
+                    }
+
+                    if (floorOccurrences.Count > 0)
+                    {
+                        foreach (var tag in floorOccurrences)
+                        {
+                            await _isaacRepository.AddTag(boss, tag);
+                        }
+                    }
+                }
             }
         }
 
@@ -622,18 +726,35 @@ namespace Website.Migrations
                     while (r.Read())
                     {
                         var name = r.GetString(0);
-                        if (name == "Character Reroll / Special Transformation")
+                        if (name == "Character Reroll / Special Transformation" || name == "Absorbed Item")
                         {
                             continue;
                         }
                         else
                         {
+                            int? order = null;
+                            switch (r.GetString(0))
+                            {
+                                case "Item Room": order = 1; break;
+                                case "Shop": order = 2; break;
+                                case "Boss Fight":
+                                case "Bossfight": order = 3; break;
+                                case "Deal with the Devil": order = 4; break;
+                                case "Library": order = 5; break;
+                                case "Deal with the Angel": order = 6; break;
+                                case "Curse Room": order = 7; break;
+                                case "Mob Trap Room": order = 8; break;
+                                case "Golden Chest": order = 9; break;
+                                case "\"Chest\" Item": order = 10; break;
+                            }
+
                             newItemsources.Add(new CreateIsaacResource()
                             {
                                 Id = r.GetString(1),
                                 Name = r.GetString(0),
                                 FromMod = r.IsDBNull(4) ? null : await _modRepository.GetModIdByName(r.GetString(4)),
-                                ResourceType = ResourceType.ItemSource
+                                ResourceType = ResourceType.ItemSource,
+                                DisplayOrder = order
                             });
                         }
                     }
@@ -717,7 +838,6 @@ namespace Website.Migrations
                 if (t.Id == "Mom") t.Id = "MomTransformation";
                 if (t.Id == "SpiderBaby") t.Id = "SpiderBabyTransformation";
                 if (t.Id == "Seraphim") t.Id = "SeraphimTransformation";
-
                 var id = await _isaacRepository.SaveResource(t, -1, -1, -1, -1);
             }
         }

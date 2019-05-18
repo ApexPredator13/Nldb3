@@ -367,6 +367,7 @@ namespace Website.Data
 
         public async Task<string> SaveResource(CreateIsaacResource resource, int x, int y, int w, int h)
         {
+            Console.WriteLine("Saving Resource " + resource.Id);
             string query = "INSERT INTO isaac_resources (id, name, type, exists_in, x, game_mode, color, mod, display_order, difficulty, tags) VALUES (" +
                 "@I, @N, @D, @E, @X, @M, @C, @L, @O, @U, @T) RETURNING id;";
 
@@ -727,6 +728,15 @@ namespace Website.Data
             }
 
             return result;
+        }
+
+        public async Task<int> AddTag(string id, Effect tag)
+        {
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand("UPDATE isaac_resources SET tags = tags || ARRAY[@T] WHERE id = @Id;", c);
+            q.Parameters.AddWithValue("@T", NpgsqlDbType.Integer, (int)tag);
+            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, id);
+            return await q.ExecuteNonQueryAsync();
         }
     }
 }

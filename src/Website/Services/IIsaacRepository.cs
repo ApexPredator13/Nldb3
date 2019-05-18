@@ -30,5 +30,6 @@ namespace Website.Services
         Task<List<PlayedFloor>> GetFloorsForVideo(string videoId, int? submissionId = null);
         Task<List<PlayedCharacter>> GetPlayedCharactersForVideo(string videoId, int? submissionId = null);
         Task<List<SubmittedEpisode>> GetSubmittedEpisodesForVideo(string videoId, int? submissionId = null);
+        Task<int> AddTag(string id, Effect tag);
     }
 }

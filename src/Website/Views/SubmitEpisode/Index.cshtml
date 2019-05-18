@@ -24,11 +24,14 @@
     var itemsModel = new ResourceSelection("select-item-dd", items);
 
     var itemSources = Model.Where(x => x.ResourceType == ResourceType.ItemSource).ToList();
-    var itemSourceModel = new ResourceSelection("select-item-source-boxes", itemSources);
+    var itemSourceModel = new ResourceSelection("select-item-source-dd", itemSources);
+    var itemSourceTopTenModel = new ResourceSelection("select-item-source-boxes", itemSources.Take(10).ToList());
 
     var absorbers = Model.Where(x => x.Tags != null && x.Tags.Contains(Effect.AbsorbsOtherItems)).ToList();
     var absorbersModel = new ResourceSelection("select-absorber-boxes", absorbers);
     var absorbedItemModel = new ResourceSelection("select-absorbed-item-dd", items);
+
+    var bosses = Model.Where(x => x.ResourceType == ResourceType.Boss).ToList();
 }
 
 @model List<IsaacResource>
@@ -66,7 +69,10 @@
         </div>
         <div id="select-item-source" class="display-none">
             <h3>Where did the item come from?</h3>
-            <partial name="_IsaacResourceBoxesPartial" model="itemSourceModel" />
+            <p>Common Stuff</p>
+            <partial name="_IsaacResourceBoxesPartial" model="itemSourceTopTenModel" />
+            <p>Everything</p>
+            <partial name="_DropdownPartial" model="itemSourceModel" />
         </div>
         <div id="select-item" class="display-none">
             <h3>Which Item did NL take?</h3>
@@ -92,7 +98,7 @@
                     <div style="background: url('/img/gameplay_events.png') -350px 0px; width:35px; height: 35px; display: inline-block; vertical-align: bottom"></div>
                 </div>
                 <div class="box">
-                    <div>Death</div>
+                    <div>Northernlion Died</div>
                     <div style="background: url('/img/gameplay_events.png') -35px 0px; width:35px; height: 35px; display: inline-block; vertical-align: bottom"></div>
                 </div>
             </div>

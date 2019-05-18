@@ -195,6 +195,7 @@ const initializeResourceSelectors = (wrapper: HTMLDivElement) => {
     registerDropdownMenuCallbackFunction(createRegistration('select-curse-dd', GameplayEventType.Curse, 1, 'select-gameplay-events'), addGameplayEvent);
     registerBoxCallbackFunction(createRegistration('select-absorber-boxes', GameplayEventType.AbsorbedItem, 1, 'select-absorbed-item'), addGameplayEvent);
     registerDropdownMenuCallbackFunction(createRegistration('select-absorbed-item-dd', GameplayEventType.AbsorbedItem, 2, 'select-gameplay-events'), addGameplayEvent);
+    registerDropdownMenuCallbackFunction(createRegistration('select-item-source-dd', GameplayEventType.ItemCollected, 2, 'select-item'), addGameplayEvent);
     registerBoxCallbackFunction(createRegistration('select-item-source-boxes', GameplayEventType.ItemCollected, 2, 'select-item'), addGameplayEvent);
     registerDropdownMenuCallbackFunction(createRegistration('select-item-dd', GameplayEventType.ItemCollected, 1, 'select-gameplay-events'), addGameplayEvent);
 })();

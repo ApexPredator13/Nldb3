@@ -199,8 +199,8 @@ namespace Website
 
             app.CreateRequiredUserAccountsIfMissing();
 
-            //app.ResetDatabaseInDevMode();
-            //BackgroundJob.Enqueue<IMigrateOldDatabase>(migrator => migrator.MigrateEverything());
+            app.ResetDatabaseInDevMode();
+            BackgroundJob.Enqueue<IMigrateOldDatabase>(migrator => migrator.MigrateEverything());
 
             // RecurringJob.AddOrUpdate<ISqlDumper>(dumper => dumper.Dump(), Cron.Hourly());
         }
