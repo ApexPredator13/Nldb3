@@ -14,5 +14,6 @@ namespace Website.Services
         Task<int> Vote(SubmittedQuoteVote vote, string userId);
         Task<List<QuoteVote>> GetVotesForUser(string userId);
         Task<int> DeleteVote(int voteId, string userId);
+        Task<int> CountQuotes();
     }
 }

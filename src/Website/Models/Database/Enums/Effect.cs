@@ -151,5 +151,6 @@
         BadPill,
         ThreeStepsToTransformation,
         TwoStepsToTransform,
+        AbsorbsOtherItems
     }
 }

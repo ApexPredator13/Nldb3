@@ -1,10 +1,10 @@
 ﻿import { loadDivElementsByClass } from './dom-operations';
+import { callbackFunction, callbackFunctionRegistration, dropdownIdIsRegistered, getCallbackFunction } from './selection-callback-function';
 
-type elementSelectedCallback = (id: string) => any;
-const registeredCallbackFunctions = new Map<string, elementSelectedCallback>();
+const registeredCallbackFunctions = new Map<callbackFunctionRegistration, callbackFunction>();
 
-const registerBoxCallbackFunction = (containerId: string, callbackFunction: elementSelectedCallback) => {
-    registeredCallbackFunctions.set(containerId, callbackFunction);
+const registerBoxCallbackFunction = (callbackFunctionRegistration: callbackFunctionRegistration, callbackFunction: callbackFunction) => {
+    registeredCallbackFunctions.set(callbackFunctionRegistration, callbackFunction);
 }
 
 const initializeBoxes = () => {
@@ -16,8 +16,7 @@ const initializeBoxes = () => {
     for (const boxContainer of boxContainers) {
         const boxContainerId = boxContainer.getAttribute('data-id');
         if (!boxContainerId) {
-            console.error(boxContainer);
-            throw 'the box container has no ID!'
+            continue;
         }
 
         const boxes = loadDivElementsByClass('box', boxContainer);
@@ -27,16 +26,18 @@ const initializeBoxes = () => {
 
         for (const box of boxes) {
             box.addEventListener('click', () => {
-                const resourceId = box.getAttribute('data-id');
-                if (!resourceId) {
-                    console.error(box);
-                    throw 'the resources has no ID!'
+                const id = box.getAttribute('data-id');
+                if (!id) {
+                    return;
                 }
 
-                if (registeredCallbackFunctions.has(boxContainerId)) {
-                    const callbackFunction = registeredCallbackFunctions.get(boxContainerId);
+                if (dropdownIdIsRegistered(boxContainerId, registeredCallbackFunctions) && id) {
+                    const callbackFunction = getCallbackFunction(boxContainerId, registeredCallbackFunctions);
                     if (callbackFunction) {
-                        callbackFunction(resourceId);
+                        const eventType = callbackFunction.registration.eventType;
+                        const resourceNumber = callbackFunction.registration.resourceNumber;
+                        const show = callbackFunction.registration.hideAllExcept;
+                        callbackFunction.function(id, eventType, resourceNumber, show);
                     }
                 }
             });

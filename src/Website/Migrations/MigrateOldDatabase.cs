@@ -52,6 +52,23 @@ namespace Website.Migrations
             _quoteRepository = quoteRepository;
         }
 
+        public async Task MigrateEverything()
+        {
+            MigrateUsers();
+            await MigrateMods();
+            await MigrateTransformations();
+            await MigrateBosses();
+            await MigrateCharacters();
+            await MigrateCurses();
+            await MigrateFloors();
+            await MigrateItems();
+            await MigrateItemSources();
+            await MigrateThreats();
+            await MigrateVideos();
+            await MigrateQuotes();
+            await MigrateRuns();
+        }
+
         public void MigrateUsers()
         {
             if (_userManager.Users.Count() > 2)
@@ -456,13 +473,31 @@ namespace Website.Migrations
                         }
                         else
                         {
+                            var itemName = r.GetString(1);
+                            var isSpacebarItem = r.GetBoolean(5);
+
+                            var tags = new List<Effect>();
+                            if (isSpacebarItem)
+                            {
+                                tags.Add(Effect.IsSpacebarItem);
+                            }
+                            else
+                            {
+                                tags.Add(Effect.IsPassiveItem);
+                            }
+
+                            if (itemName == "Void")
+                            {
+                                tags.Add(Effect.AbsorbsOtherItems);
+                            }
+
                             newItems.Add(new CreateIsaacResource()
                             {
                                 Name = r.GetString(0),
                                 Id = r.GetString(1),
                                 FromMod = r.IsDBNull(4) ? null : await _modRepository.GetModIdByName(r.GetString(4)),
                                 ResourceType = ResourceType.Item,
-                                Tags = r.GetBoolean(5) ? new List<Effect>() { Effect.IsSpacebarItem } : new List<Effect>() { Effect.IsPassiveItem }
+                                Tags = tags
                             });
                         }
                     }
@@ -689,32 +724,36 @@ namespace Website.Migrations
 
         public async Task MigrateQuotes()
         {
+            if (await _quoteRepository.CountQuotes() > 0)
+            {
+                _logger.LogWarning("quotes already exist in database, skipping migration...");
+                return;
+            }
+
             _logger.LogInformation($"saving quotes...");
 
+            using var c = new NpgsqlConnection(_oldConnectionString);
+            await c.OpenAsync();
+            using var q = new NpgsqlCommand("SELECT video, content, whenithappened, sub FROM quotes;", c);
 
+            using var r = await q.ExecuteReaderAsync();
+            if (r.HasRows)
+            {
+                while (r.Read())
+                {
+                    if (r.IsDBNull(3))
+                    {
+                        continue;
+                    }
 
-            //using var c = new NpgsqlConnection(_oldConnectionString);
-            //await c.OpenAsync();
-            //using var q = new NpgsqlCommand("SELECT video, content, whenithappened, sub FROM quotes;", c);
-
-            //using var r = await q.ExecuteReaderAsync();
-            //if (r.HasRows)
-            //{
-            //    while (r.Read())
-            //    {
-            //        if (r.IsDBNull(3))
-            //        {
-            //            continue;
-            //        }
-
-            //        await _quoteRepository.SaveQuote(new SubmittedQuote()
-            //        {
-            //            At = r.GetInt32(2),
-            //            Content = r.GetString(1),
-            //            VideoId = r.GetString(0)
-            //        }, r.GetString(3));
-            //    }
-            //}
+                    await _quoteRepository.SaveQuote(new SubmittedQuote()
+                    {
+                        At = r.GetInt32(2),
+                        Content = r.GetString(1),
+                        VideoId = r.GetString(0)
+                    }, r.GetString(3));
+                }
+            }
         }
 
         public async Task MigrateVideos()

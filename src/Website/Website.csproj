@@ -25,7 +25,10 @@
     <Content Remove="wwwroot\js\src\interfaces\video-request.ts" />
     <Content Remove="wwwroot\js\src\interfaces\video-result.ts" />
     <Content Remove="wwwroot\js\src\interfaces\Video.ts" />
+    <Content Remove="wwwroot\js\src\lib\gameplay-event-type.ts" />
     <Content Remove="wwwroot\js\src\lib\resource-boxes.ts" />
+    <Content Remove="wwwroot\js\src\lib\resource-type.ts" />
+    <Content Remove="wwwroot\js\src\lib\selection-callback-function.ts" />
     <Content Remove="wwwroot\js\src\lib\submit-episode.ts" />
     <Content Remove="wwwroot\js\src\lib\uri-creator.ts" />
     <Content Remove="wwwroot\js\src\polyfills.ts" />
@@ -81,7 +84,16 @@
 
 
   <ItemGroup>
+    <TypeScriptCompile Update="wwwroot\js\src\lib\gameplay-event-type.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
     <TypeScriptCompile Update="wwwroot\js\src\lib\resource-boxes.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Update="wwwroot\js\src\lib\resource-type.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Update="wwwroot\js\src\lib\selection-callback-function.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
   </ItemGroup>

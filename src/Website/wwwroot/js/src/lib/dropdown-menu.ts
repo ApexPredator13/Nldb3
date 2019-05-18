@@ -1,7 +1,7 @@
 ﻿import { loadDivElementByClass, loadDivElementsByClass } from "./dom-operations";
+import { callbackFunction, callbackFunctionRegistration, dropdownIdIsRegistered, getCallbackFunction } from './selection-callback-function';
 
-type elementSelectedCallback = (id: string) => any;
-const registeredCallbackFunctions = new Map<string, elementSelectedCallback>();
+const registeredCallbackFunctions = new Map<callbackFunctionRegistration, callbackFunction>();
 
 const getDropDownElements = (div: HTMLDivElement): Map<string, HTMLDivElement> => {
     const result = div.getElementsByClassName('dd-line');
@@ -85,21 +85,22 @@ const initializeDropdownContainers = () => {
 
         dropDown.addEventListener('click', e => {
             e.stopPropagation();
-            if (registeredCallbackFunctions.has(dropdownId)) {
-                const id = getClickedElementValue(e.target);
-                if (id) {
-                    const callbackFunction = registeredCallbackFunctions.get(dropdownId);
-                    if (callbackFunction) {
-                        callbackFunction(id);
-                    }
+            const id = getClickedElementValue(e.target);
+            if (dropdownIdIsRegistered(dropdownId, registeredCallbackFunctions) && id) {
+                const callbackFunction = getCallbackFunction(dropdownId, registeredCallbackFunctions);
+                if (callbackFunction) {
+                    const eventType = callbackFunction.registration.eventType;
+                    const resourceNumber = callbackFunction.registration.resourceNumber;
+                    const show = callbackFunction.registration.hideAllExcept;
+                    callbackFunction.function(id, eventType, resourceNumber, show);
                 }
             }
         });
     }
 }
 
-const registerDropdownMenuCallbackFunction = (containerId: string, callback: elementSelectedCallback) => {
-    registeredCallbackFunctions.set(containerId, callback);
+const registerDropdownMenuCallbackFunction = (registrationData: callbackFunctionRegistration, callbackFunction: callbackFunction) => {
+    registeredCallbackFunctions.set(registrationData, callbackFunction);
 }
 
 export {

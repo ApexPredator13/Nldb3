@@ -1,14 +1,25 @@
-﻿.box {
-    display: inline-block;
-    margin: 0.2rem;
+﻿.box-container {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 auto;
+    justify-content: center;
+}
+.box {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    margin: 0.3rem;
+    padding: 0.1rem;
     background-color: rgba(255,255,255,0.2);
-    padding: 0.2rem;
     border-radius: 0.5rem;
-    width: 80px;
-    height: 80px;
+    width: 85px;
+    height: 75px;
     vertical-align: top;
     font-size: 0.8rem;
     cursor: pointer;
+}
+.box div {
+    margin: 0 auto;
 }
 .box:hover {
     background-color: rgba(255,255,255,0.3);

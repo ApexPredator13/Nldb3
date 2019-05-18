@@ -4,6 +4,7 @@ namespace Website.Services
 {
     public interface IMigrateOldDatabase
     {
+        Task MigrateEverything();
         void MigrateUsers();
         Task MigrateMods();
         Task MigrateBosses();

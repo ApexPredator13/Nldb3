@@ -20,23 +20,28 @@ namespace Website.Data
             _connector = connector;
         }
 
+        public async Task<int> CountQuotes()
+        {
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand("SELECT COUNT(*) FROM quotes;", c);
+            return Convert.ToInt32(await q.ExecuteScalarAsync());
+        }
+
         public async Task<int> SaveQuote(SubmittedQuote quote, string userId)
         {
-            using (var c = await _connector.Connect())
-            {
-                using var q = new NpgsqlCommand("INSERT INTO quotes (id, video, content, at, submitted_at) VALUES (DEFAULT, @V, @C, @A, DEFAULT) RETURNING id;", c);
-                q.Parameters.AddWithValue("@V", NpgsqlDbType.Text, quote.VideoId);
-                q.Parameters.AddWithValue("@C", NpgsqlDbType.Text, quote.Content);
-                q.Parameters.AddWithValue("@A", NpgsqlDbType.Integer, quote.At);
-                int result = Convert.ToInt32(await q.ExecuteScalarAsync());
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand("INSERT INTO quotes (id, video, content, at, submitted_at) VALUES (DEFAULT, @V, @C, @A, DEFAULT) RETURNING id;", c);
+            q.Parameters.AddWithValue("@V", NpgsqlDbType.Text, quote.VideoId);
+            q.Parameters.AddWithValue("@C", NpgsqlDbType.Text, quote.Content);
+            q.Parameters.AddWithValue("@A", NpgsqlDbType.Integer, quote.At);
+            int result = Convert.ToInt32(await q.ExecuteScalarAsync());
 
-                using var p = new NpgsqlCommand("INSERT INTO quotes_userdata (quote, user_id) VALUES (@Q, @U);", c);
-                p.Parameters.AddWithValue("@Q", NpgsqlDbType.Integer, result);
-                p.Parameters.AddWithValue("@U", NpgsqlDbType.Text, userId);
-                await p.ExecuteNonQueryAsync();
+            using var p = new NpgsqlCommand("INSERT INTO quotes_userdata (quote, user_id) VALUES (@Q, @U);", c);
+            p.Parameters.AddWithValue("@Q", NpgsqlDbType.Integer, result);
+            p.Parameters.AddWithValue("@U", NpgsqlDbType.Text, userId);
+            await p.ExecuteNonQueryAsync();
 
-                return result;
-            }
+            return result;
         }
 
         public async Task<int> DeleteQuote(int quoteId, string userId)

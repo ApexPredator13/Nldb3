@@ -188,7 +188,6 @@ namespace Website
                 }
             });
 
-            RecurringJob.AddOrUpdate<ISqlDumper>(dumper => dumper.Dump(), Cron.Hourly());
 
             app.UseRouting();
             app.UseEndpoints(endpoints =>
@@ -199,9 +198,11 @@ namespace Website
             });
 
             app.CreateRequiredUserAccountsIfMissing();
-            // app.ResetDatabaseInDevMode();
-            app.MigrateOldDatabaseIfNoDataExists().Wait();
-            // SqlDumper.Dump(Config, _env);
+
+            //app.ResetDatabaseInDevMode();
+            //BackgroundJob.Enqueue<IMigrateOldDatabase>(migrator => migrator.MigrateEverything());
+
+            // RecurringJob.AddOrUpdate<ISqlDumper>(dumper => dumper.Dump(), Cron.Hourly());
         }
     }
 }

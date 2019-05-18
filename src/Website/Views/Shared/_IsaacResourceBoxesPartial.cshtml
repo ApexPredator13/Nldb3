@@ -4,8 +4,8 @@
     @foreach (var resource in Model.IsaacResources)
     {
         <div class="box" data-id="@resource.Id">
-            <div style="background: url('/img/isaac.png') -@(resource.X <= 0 ? 0 : resource.X)px -@(resource.Y <= 0 ? 0 : resource.Y)px transparent; width: @(resource.W <= 5 ? 31.ToString() : resource.W.ToString())px; height: @(resource.H <= 5 ? 31.ToString() : resource.H.ToString())px; display: inline-block; vertical-align: top"></div>
             <div>@resource.Name</div>
+            <div style="background: url('/img/isaac.png') -@(resource.X <= 0 ? 0 : resource.X)px -@(resource.Y <= 0 ? 0 : resource.Y)px transparent; width: @(resource.W <= 5 ? 31.ToString() : resource.W.ToString())px; height: @(resource.H <= 5 ? 31.ToString() : resource.H.ToString())px;"></div>
         </div>
     }
 </div>
