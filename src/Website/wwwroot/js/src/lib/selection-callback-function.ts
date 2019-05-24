@@ -1,6 +1,6 @@
 ﻿import { GameplayEventType } from "./gameplay-event-type";
 
-type callbackFunction = (id: string, eventType: GameplayEventType, resourceNumber: 1 | 2 | 3, show: string) => any;
+type callbackFunction = (id: { id: string, image: HTMLDivElement | null }, eventType: GameplayEventType, resourceNumber: 1 | 2 | 3, show: string) => any;
 type callbackFunctionRegistration = { dropdownId: string, eventType: GameplayEventType, resourceNumber: 1 | 2 | 3, hideAllExcept: string };
 
 const dropdownIdIsRegistered = (id: string, data: Map<callbackFunctionRegistration, callbackFunction>): boolean => {

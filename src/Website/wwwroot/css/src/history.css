@@ -1,0 +1,9 @@
+﻿#history {
+    float: left;
+}
+#history tr td:first-of-type, #history tr td:nth-of-type(2) {
+    white-space: nowrap;
+}
+#history .dd-image {
+    cursor: pointer;
+}

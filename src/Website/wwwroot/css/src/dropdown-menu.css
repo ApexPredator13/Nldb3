@@ -2,41 +2,63 @@
     width: 300px;
     height: 30px;
     position: relative;
-}
-.dd-selection, .dd-search {
-    width: 100%;
+    margin: 0 auto;
+    border-left: 1px solid gray;
+    border-right: 1px solid gray;
+    border-top: 1px solid gray;
     background-color: black;
-    height: 30px;
 }
-.dd-search, .dd-dropdown {
-    display: none;
+.dd-search {
+    width: 95%;
+    height: 30px;
+    margin: 0 auto;
 }
 .dd-searchbox {
     width: 100%;
 }
 .dd-dropdown {
     position: absolute;
-    height: 300px;
+    max-height: 300px;
     width: 300px;
     background-color: black;
     overflow-y: scroll;
     top: 30px;
     left: 0;
+    border-left: 1px solid gray;
+    border-right: 1px solid gray;
+    border-bottom: 1px solid gray;
+    margin-left: -1px;
+}
+
+/* always highlights the first item in the selection as long as there is no hover */
+.dd-dropdown:not(:hover) > .dd-line:not(.display-none) {
+    background-color: rgba(255,255,255,0.1);
+}
+.dd-dropdown:not(:hover) > .dd-line:not(.display-none) ~ .dd-line:not(.display-none) {
+    background-color: transparent;
+}
+
+
+.dd-dropdown::-webkit-scrollbar {
+    width: 6px;
+}
+.dd-dropdown::-webkit-scrollbar-track {
+    background-color: gray;
+}
+.dd-dropdown::-webkit-scrollbar-thumb {
+    background-color: white;
 }
 .dd-line {
     text-align: left;
+    cursor: pointer;
 }
 .dd-line:hover {
-    background-color: rgba(50, 50, 50, 0);
+    background-color: rgba(255,255,255,0.1);
 }
 .dd-image, .dd-text {
     display: inline-block;
     vertical-align: middle;
 }
-
-.dd-container:hover .dd-dropdown, .dd-container:hover .dd-search {
-    display: block;
-}
-.dd-container:hover .dd-selection {
-    display: none;
+.selected {
+    background-color: rgba(255,255,255,0.1);
 }

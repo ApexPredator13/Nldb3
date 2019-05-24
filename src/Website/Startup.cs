@@ -155,7 +155,8 @@ namespace Website
                     "child-src 'self' www.youtube.com; " +
                     "style-src 'self' 'unsafe-inline' fonts.googleapis.com; " +
                     "font-src 'self' fonts.gstatic.com; " +
-                    "block-all-mixed-content;");
+                    "block-all-mixed-content; " +
+                    (env.IsDevelopment() ? "script-src 'self' 'unsafe-eval' www.youtube.com" : string.Empty));
 
                 context.Response.Headers.Add("Content-Security-Policy", csp);
                 return next();
@@ -199,8 +200,8 @@ namespace Website
 
             app.CreateRequiredUserAccountsIfMissing();
 
-            app.ResetDatabaseInDevMode();
-            BackgroundJob.Enqueue<IMigrateOldDatabase>(migrator => migrator.MigrateEverything());
+            //app.ResetDatabaseInDevMode();
+            //BackgroundJob.Enqueue<IMigrateOldDatabase>(migrator => migrator.MigrateEverything());
 
             // RecurringJob.AddOrUpdate<ISqlDumper>(dumper => dumper.Dump(), Cron.Hourly());
         }

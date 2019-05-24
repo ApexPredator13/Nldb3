@@ -32,13 +32,29 @@
     var absorbedItemModel = new ResourceSelection("select-absorbed-item-dd", items);
 
     var bosses = Model.Where(x => x.ResourceType == ResourceType.Boss).ToList();
+    var bossModel = new ResourceSelection("select-boss-dd", bosses);
+    var bossModelTop10 = new ResourceSelection("select-boss-boxes", bosses.Where(x => x.Name.IndexOf("Double") == -1).Take(10).ToList());
+
+    var rerolls = Model.Where(x => x.ResourceType == ResourceType.CharacterReroll).ToList();
+    var rerollModel = new ResourceSelection("select-reroll-boxes", rerolls);
+
+    var enemies = Model.Where(x => x.ResourceType == ResourceType.Enemy).ToList();
+    var enemiesModel = new ResourceSelection("select-enemies-dd", enemies);
 }
 
 @model List<IsaacResource>
 
 <div style="display: flex;" id="menu-wrapper">
-    <div style="width: 70%;">
-        Youtube Video Placeholder
+    <div style="width: 70%; display: flex; flex-direction: column;">
+        <div style="height: 80vh">
+            Youtube Video Placeholder
+        </div>
+        <div style="display: flex;">
+            <div style="width: 50%;" id="quotes"></div>
+            <div style="width: 50%; text-align: left;">
+                <table id="history"></table>
+            </div>
+        </div>
     </div>
     <div style="width: 30%;">
         <div id="select-character" class="display-normal">
@@ -78,6 +94,27 @@
             <h3>Which Item did NL take?</h3>
             <partial name="_DropdownPartial" model="itemsModel" />
         </div>
+        <div id="select-boss" class="display-none">
+            <h3>Which boss did NL fight?</h3>
+            <p>Common on this floor</p>
+            <partial name="_IsaacResourceBoxesPartial" model="bossModelTop10" />
+            <p>All bosses</p>
+            <partial name="_DropdownPartial" model="bossModel" />
+        </div>
+        <div id="select-reroll" class="display-none">
+            <h3>How did NL reroll his character?</h3>
+            <partial name="_IsaacResourceBoxesPartial" model="rerollModel" />
+        </div>
+        <div id="select-enemy" class="display-none">
+            <h3>What killed Northernlion?</h3>
+            <partial name="_DropdownPartial" model="enemiesModel" />
+        </div>
+        <div id="next-run" class="display-none">
+            <h3>Did Northernlion do another run?</h3>
+            <p><button id="another-run-btn">NL did another run</button></p>
+            <p><button id="victory-lap-btn">NL did a victory lap!</button></p>
+            <p><button id="end-of-video-btn">No, this is the end of the video</button></p>
+        </div>
         <div id="select-gameplay-events" class="display-none">
             <h3>What happened on the floor?</h3>
             <div class="box-container">
@@ -85,11 +122,11 @@
                     <div>Item Collected</div>
                     <div style="background: url('/img/gameplay_events.png') -70px 0px; width:35px; height: 35px; display: inline-block; vertical-align: bottom"></div>
                 </div>
-                <div class="box">
+                <div class="box" id="bossfight-box">
                     <div>Bossfight</div>
                     <div style="background: url('/img/gameplay_events.png') -140px 0px; width:35px; height: 35px; display: inline-block; vertical-align: bottom"></div>
                 </div>
-                <div class="box">
+                <div class="box" id="character-reroll-box">
                     <div>Character Reroll</div>
                     <div style="background: url('/img/gameplay_events.png') -385px 0px; width:35px; height: 35px; display: inline-block; vertical-align: bottom"></div>
                 </div>
@@ -97,7 +134,7 @@
                     <div>Sucked Up Item</div>
                     <div style="background: url('/img/gameplay_events.png') -350px 0px; width:35px; height: 35px; display: inline-block; vertical-align: bottom"></div>
                 </div>
-                <div class="box">
+                <div class="box" id="select-enemy-box">
                     <div>Northernlion Died</div>
                     <div style="background: url('/img/gameplay_events.png') -35px 0px; width:35px; height: 35px; display: inline-block; vertical-align: bottom"></div>
                 </div>

@@ -13,6 +13,7 @@
     <Content Remove="bundleconfig.json" />
     <Content Remove="wwwroot\js\src\dom-operations.ts" />
     <Content Remove="wwwroot\js\src\enum-converters.ts" />
+    <Content Remove="wwwroot\js\src\interfaces\get-resource-request.ts" />
     <Content Remove="wwwroot\js\src\interfaces\isaac-resource.ts" />
     <Content Remove="wwwroot\js\src\interfaces\mod-url.ts" />
     <Content Remove="wwwroot\js\src\interfaces\mod.ts" />
@@ -25,6 +26,7 @@
     <Content Remove="wwwroot\js\src\interfaces\video-request.ts" />
     <Content Remove="wwwroot\js\src\interfaces\video-result.ts" />
     <Content Remove="wwwroot\js\src\interfaces\Video.ts" />
+    <Content Remove="wwwroot\js\src\lib\api-calls.ts" />
     <Content Remove="wwwroot\js\src\lib\gameplay-event-type.ts" />
     <Content Remove="wwwroot\js\src\lib\resource-boxes.ts" />
     <Content Remove="wwwroot\js\src\lib\resource-type.ts" />
@@ -84,6 +86,12 @@
 
 
   <ItemGroup>
+    <TypeScriptCompile Update="wwwroot\js\src\interfaces\get-resource-request.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Update="wwwroot\js\src\lib\api-calls.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
     <TypeScriptCompile Update="wwwroot\js\src\lib\gameplay-event-type.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>

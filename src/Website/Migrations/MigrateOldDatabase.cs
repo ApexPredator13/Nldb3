@@ -1063,8 +1063,8 @@ namespace Website.Migrations
                                     {
                                         var e = new SubmittedGameplayEvent()
                                         {
-                                            RelatedResource1 = "TheVoid",
-                                            RelatedResource2 = r.GetString(0),
+                                            RelatedResource1 = r.GetString(0),
+                                            RelatedResource2 = "TheVoid",
                                             EventType = GameplayEventType.AbsorbedItem,
                                             Player = r.GetInt32(2)
                                         };

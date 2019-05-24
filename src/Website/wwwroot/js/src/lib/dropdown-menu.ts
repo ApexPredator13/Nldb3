@@ -4,13 +4,13 @@ import { callbackFunction, callbackFunctionRegistration, dropdownIdIsRegistered,
 const registeredCallbackFunctions = new Map<callbackFunctionRegistration, callbackFunction>();
 
 const getDropDownElements = (div: HTMLDivElement): Map<string, HTMLDivElement> => {
-    const result = div.getElementsByClassName('dd-line');
-    if (result.length > 0) {
-        const data = new Map<string, HTMLDivElement>()
-        for (const item of result) {
-            data.set((<string>item.getAttribute('title')).toLowerCase(), <HTMLDivElement>item)
+    const lines = div.getElementsByClassName('dd-line');
+    if (lines.length > 0) {
+        const savedLines = new Map<string, HTMLDivElement>()
+        for (const line of lines) {
+            savedLines.set((<string>line.getAttribute('title')).toLowerCase(), <HTMLDivElement>line)
         }
-        return data;
+        return savedLines;
     } else {
         throw `no dropdown elements were found!`;
     }
@@ -34,18 +34,34 @@ const filterDropdownElements = (lines: Map<string, HTMLDivElement>, filter: stri
     }
 }
 
-const getClickedElementValue = (e: EventTarget | null): string | null => {
+const getClickedElementValue = (e: EventTarget | null): { id: string, image: HTMLDivElement } | null => {
     if (!e) {
         return null;
     }
 
     const target = e as HTMLDivElement;
 
-    if (target.classList.contains('dd-text') || target.classList.contains('dd-image')) {
-        return (<HTMLDivElement>target.parentElement).getAttribute('data-id');
+    if (target.classList.contains('dd-text')) {
+        if (target.parentElement && target.parentElement.hasAttribute('data-id')) {
+            return {
+                id: <string>target.parentElement.getAttribute('data-id'),
+                image: (<HTMLDivElement>target.previousElementSibling).cloneNode(true) as HTMLDivElement
+            };
+        }
+    } else if (target.classList.contains('dd-image')) {
+        if (target.parentElement && target.parentElement.hasAttribute('data-id')) {
+            return {
+                id: <string>target.parentElement.getAttribute('data-id'),
+                image: target.cloneNode(true) as HTMLDivElement
+            };
+        }
     } else if (target.classList.contains('dd-line')) {
-        return target.getAttribute('data-id');
+        return {
+            id: <string>target.getAttribute('data-id'),
+            image: (<HTMLDivElement>target.firstElementChild).cloneNode(true) as HTMLDivElement
+        }
     }
+
     return null;
 }
 
@@ -60,7 +76,6 @@ const initializeDropdownContainers = () => {
             throw "the dropdown element has no ID!";
         }
 
-        const selection = loadDivElementByClass('dd-selection', dropdownContainer);
         const search = loadDivElementByClass('dd-search', dropdownContainer);
         const input = loadDivElementByClass('dd-searchbox', search) as HTMLInputElement;
         const dropDown = loadDivElementByClass('dd-dropdown', dropdownContainer);
@@ -68,14 +83,7 @@ const initializeDropdownContainers = () => {
 
         dropdownContainer.addEventListener('mouseover', e => {
             e.stopPropagation();
-            if (!e.target) {
-                return;
-            }
-            if (e.target === selection) {
-                input.value = '';
-                input.focus();
-                filterDropdownElements(dropDownElements, null);
-            }
+            input.focus();
         });
 
         input.addEventListener('input', () => {
@@ -83,16 +91,41 @@ const initializeDropdownContainers = () => {
             filterDropdownElements(dropDownElements, value);
         });
 
+        input.addEventListener('keydown', e => {
+            if (e.keyCode === 13) {
+                input.value = '';
+                for (const e of dropDownElements) {
+                    if (!e[1].classList.contains('display-none'))  {
+                        const id = e[1].getAttribute('data-id');
+                        if (id) {
+                            const callbackFunction = getCallbackFunction(dropdownId, registeredCallbackFunctions);
+                            if (callbackFunction) {
+                                const eventType = callbackFunction.registration.eventType;
+                                const resourceNumber = callbackFunction.registration.resourceNumber;
+                                const show = callbackFunction.registration.hideAllExcept;
+                                const image = e[1].firstChild ? <HTMLDivElement>(e[1].firstChild as HTMLDivElement).cloneNode(true) : null;
+                                if (image && !image.classList.contains('dd-image')) {
+                                    image.classList.add('dd-image');
+                                }
+                                callbackFunction.function({ id: id, image: image }, eventType, resourceNumber, show);
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
         dropDown.addEventListener('click', e => {
             e.stopPropagation();
-            const id = getClickedElementValue(e.target);
-            if (dropdownIdIsRegistered(dropdownId, registeredCallbackFunctions) && id) {
+            const idAndImage = getClickedElementValue(e.target);
+            if (dropdownIdIsRegistered(dropdownId, registeredCallbackFunctions) && idAndImage) {
                 const callbackFunction = getCallbackFunction(dropdownId, registeredCallbackFunctions);
                 if (callbackFunction) {
                     const eventType = callbackFunction.registration.eventType;
                     const resourceNumber = callbackFunction.registration.resourceNumber;
                     const show = callbackFunction.registration.hideAllExcept;
-                    callbackFunction.function(id, eventType, resourceNumber, show);
+                    callbackFunction.function(idAndImage, eventType, resourceNumber, show);
                 }
             }
         });
