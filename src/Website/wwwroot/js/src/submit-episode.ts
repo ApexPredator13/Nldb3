@@ -9,6 +9,7 @@ import { GameplayEventType } from './lib/gameplay-event-type';
 import { callbackFunctionRegistration } from './lib/selection-callback-function';
 import { GetResourceRequest } from './interfaces/get-resource-request';
 import { getEffectNumber } from './lib/api-calls';
+import { History, HistoryImage } from './interfaces/history';
 
 const uiElements: Map<string, HTMLDivElement> = new Map<string, HTMLDivElement>();
 
@@ -18,7 +19,7 @@ let editGameplayEvent: number | null = null;
 
 let currentCharacter: number = 0;
 let currentFloor: number = 0;
-const history = document.getElementById("history") as HTMLTableElement;
+const historyContainer = document.getElementById("history") as HTMLTableElement;
 
 const resetCurrentEvent = (): SubmittedGameplayEvent => {
     return {
@@ -30,165 +31,106 @@ const resetCurrentEvent = (): SubmittedGameplayEvent => {
     };
 }
 
-let addHistoryElement = (img: HTMLDivElement | null, type: string) => {
-    if (img) {
-        if (type === 'character') {
-            const newRow = document.createElement('tr');
-            const characterCell = document.createElement('td');
-            const floorCell = document.createElement('td');
-            const eventsCell = document.createElement('td');
-            characterCell.appendChild(img);
-            characterCell.appendChild(document.createTextNode('⤇'));
-            newRow.appendChild(characterCell);
-            newRow.appendChild(floorCell);
-            newRow.appendChild(eventsCell);
-            img.setAttribute('character', currentCharacter.toString(10))
-            history.appendChild(newRow);
-        } else if (type === 'floor') {
-            const rows = history.getElementsByTagName('tr');
-            const lastRow = rows[rows.length - 1];
-            const lastRowCells = lastRow.getElementsByTagName('td');
-            img.setAttribute('character', currentCharacter.toString(10));
-            img.setAttribute('floor', currentFloor.toString(10));
-            if (lastRowCells[1].innerHTML) {
-                const newRow = document.createElement('tr');
-                const characterCell = document.createElement('td');
-                const floorCell = document.createElement('td');
-                const eventsCell = document.createElement('td');
-                newRow.appendChild(characterCell);
-                newRow.appendChild(floorCell);
-                newRow.appendChild(eventsCell);
-                floorCell.appendChild(img);
-                const cells = lastRow.getElementsByTagName('td');
-                if (cells && cells.length > 0) {
-                    const floorCell = cells[1];
-                    floorCell.appendChild(img);
-                }
-            } else {
-                lastRowCells[1].appendChild(img);
-            }
-        } else if (type === 'event' || type === 'death') {
-            const rows = history.getElementsByTagName('tr');
-            if (rows) {
-                const lastRow = rows[rows.length - 1];
-                const cells = lastRow.getElementsByTagName('td');
-                if (cells) {
-                    const eventCell = cells[2];
-                    if (!eventCell.hasAttribute('character')) {
-                        eventCell.setAttribute('character', currentCharacter.toString(10));
-                    }
-                    if (!eventCell.hasAttribute('floor')) {
-                        eventCell.setAttribute('floor', currentFloor.toString(10));
-                    }
-                    img.setAttribute('character', currentCharacter.toString(10));
-                    img.setAttribute('floor', currentFloor.toString(10));
-                    try {
-                        img.setAttribute('event', (episode.PlayedCharacters[currentCharacter].PlayedFloors[currentFloor].GameplayEvents.length - 1).toString(10));
-                    } catch {
-                        img.setAttribute('event', '0');
-                    }
-                    eventCell.appendChild(img);
-                }
-            }
-        } else if (type === 'curse') {
-            const rows = history.getElementsByTagName('tr');
-            if (rows) {
-                const lastRow = rows[rows.length - 1];
-                const cells = lastRow.getElementsByTagName('td');
-                if (cells) {
-                    const floorCell = cells[1];
-                    floorCell.appendChild(img);
-                    floorCell.appendChild(document.createTextNode('→'));
-                }
-            }
-        }
-
-        if (type !== 'curse') {
-            img.addEventListener('click', e => {
-                removeHistoryElement(e.target, type);
-            });
-        }
-    }
-}
-
-let removeHistoryElement = (e: EventTarget | null, type: string) => {
-    if (!e) {
+let removeHistoryElement = (event: MouseEvent): void => {
+    if (!event.target) {
         return;
     }
-    console.log('deleting type: ', type);
-    const target = e as HTMLDivElement;
-    const characterIndex = target.hasAttribute('character') ? parseInt(target.getAttribute('character') as string, 10) : null;
-    const floorIndex = target.hasAttribute('floor') ? parseInt(target.getAttribute('floor') as string, 10) : null;
-    const eventIndex = target.hasAttribute('event') ? parseInt(target.getAttribute('event') as string, 10) : null;
+    const target = event.target as HTMLDivElement;
+    const e = target.getAttribute('e');
+    const f = target.getAttribute('f');
+    const c = target.getAttribute('c');
 
-    console.log('indexes: ', characterIndex, floorIndex, eventIndex);
-
-    switch (type) {
-        case 'character':
-            if (characterIndex !== null) {
-                const ok1 = confirm('Deleting the character will also delete all floors and gameplay events for this character! Continue?');
-                if (ok1) {
-                    episode.PlayedCharacters.splice(characterIndex, 1);
-                    const characterIcon = history.querySelector(`[character="${characterIndex.toString(10)}"]`);
-                    if (characterIcon) {
-                        const characterCell = characterIcon.parentElement;
-                        if (characterCell) {
-                            const characterRow = characterCell.parentElement;
-                            if (characterRow && characterRow.parentElement) {
-                                characterRow.parentElement.removeChild(characterRow);
-                            }
-                        }
-                    }
-                    hideAllExcept('select-character');
-                    currentCharacter = episode.PlayedCharacters.length - 1;
-                }
-            }
-            break;
-        case 'floor':
-            const ok2 = confirm('Deleting the floor will also delete all gameplay events for this floor! Continue?');
-            if (ok2 && floorIndex !== null && characterIndex !== null) {
-                episode.PlayedCharacters[characterIndex].PlayedFloors.splice(floorIndex, 1);
-                const floorImg = history.querySelector(`[floor="${characterIndex.toString(10)}"]`);
-                if (floorImg) {
-                    const floorCell = floorImg.parentElement;
-                    if (floorCell) {
-                        const floorRow = floorCell.parentElement;
-                        if (floorRow) {
-                            const characterCell = floorRow.children[0];
-                            console.log('character cell is ', characterCell);
-                            if (characterCell.innerHTML) {
-                                floorCell.innerHTML = '';
-                                if (floorCell.nextElementSibling) {
-                                    floorCell.nextElementSibling.innerHTML = '';
-                                }
-                            } else {
-                                const table = floorRow.parentElement;
-                                if (table) {
-                                    table.removeChild(floorRow);
-                                }
-                            }
-                        }
-                    }
-                }
-                hideAllExcept('select-floor');
-                currentFloor = episode.PlayedCharacters[currentCharacter].PlayedFloors.length - 1;
-            }
-            break;
-        case 'event':
-        case 'death':
-            if (characterIndex !== null && floorIndex !== null && eventIndex !== null) {
-                episode.PlayedCharacters[characterIndex].PlayedFloors[floorIndex].GameplayEvents.splice(eventIndex, 1);
-                if (target.parentElement) {
-                    target.parentElement.removeChild(target);
-                }
-            }
-            break;
+    if (e && f && c) {
+        const cNumber = parseInt(c, 10);
+        const fNumber = parseInt(f, 10);
+        const eNumber = parseInt(e, 10);
+        episode.PlayedCharacters[cNumber].PlayedFloors[fNumber].GameplayEvents.splice(eNumber, 1);
+    } else if (f && c) {
+        const cNumber = parseInt(c, 10);
+        const fNumber = parseInt(f, 10);
+        episode.PlayedCharacters[cNumber].PlayedFloors.splice(fNumber, 1);
+        hideAllExcept('select-floor');
+    } else if (c) {
+        const cNumber = parseInt(c, 10);
+        episode.PlayedCharacters.splice(cNumber, 1);
+        hideAllExcept('select-character');
     }
-    console.log('after deleting element: ', episode);
+    reloadHistory();
+}
+
+let createHistoryCell = (i: HistoryImage, characterId?: number | undefined, floorId?: number | undefined, eventId?: number | undefined): HTMLTableCellElement => {
+    const cell = document.createElement('td');
+    cell.appendChild(createHistoryImage(i, characterId, floorId, eventId));
+    return cell;
+}
+
+let createHistoryImage = (i: HistoryImage, characterId?: number | undefined, floorId?: number | undefined, eventId?: number | undefined): HTMLDivElement => {
+    const element = document.createElement('div');
+    element.style.background = `url('/img/isaac.png') -${i.x <= 0 ? 0 : i.x}px -${i.y <= 0 ? 0 : i.y}px transparent`;
+    element.style.width = `${i.w <= 5 ? 31 : i.w}px`;
+    element.style.height = `${i.h <= 5 ? 31 : i.h}px`;
+    element.style.display = 'inline-block';
+
+    if (characterId !== undefined) {
+        element.setAttribute('c', characterId.toString(10));
+    }
+    if (floorId !== undefined) {
+        element.setAttribute('f', floorId.toString(10));
+    }
+    if (eventId !== undefined) {
+        element.setAttribute('e', eventId.toString(10));
+    }
+    element.addEventListener('click', removeHistoryElement);
+    return element;
+}
+
+let reloadHistory = (): void => {
+    const requestData: RequestInit = {
+        method: 'POST',
+        body: JSON.stringify(episode),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    }
+    fetch(`/api/resources/history`, requestData).then(response => response.json()).then((history: History) => {
+        console.log('response: ', history);
+        const table = document.createElement('table');
+        let currentRow: HTMLTableRowElement | null = null;
+        for (let c = 0; c < history.characterHistory.length; c++) {
+            const row = document.createElement('tr');
+            table.appendChild(row);
+            row.appendChild(createHistoryCell(history.characterHistory[c].characterImage, c));
+
+            for (let f = 0; f < history.characterHistory[c].floors.length; f++) {
+                if (f === 0) {
+                    currentRow = row;
+                    row.appendChild(createHistoryCell(history.characterHistory[c].floors[f].floorImage, c, f));
+                    row.appendChild(document.createElement('td'));
+                } else {
+                    const newFloorRow = document.createElement('tr');
+                    currentRow = newFloorRow;
+
+                    newFloorRow.appendChild(document.createElement('td'));
+                    newFloorRow.appendChild(createHistoryCell(history.characterHistory[c].floors[f].floorImage, c, f));
+                    newFloorRow.appendChild(document.createElement('td'));
+
+                    table.appendChild(newFloorRow);
+                }
+
+                for (let e = 0; e < history.characterHistory[c].floors[f].events.length; e++) {
+                    if (!currentRow) {
+                        continue;
+                    }
+                    currentRow.children[2].appendChild(createHistoryImage(history.characterHistory[c].floors[f].events[e].image, c, f, e));
+                }
+            }
+        }
+        historyContainer.innerHTML = '';
+        historyContainer.appendChild(table);
+    });
 }
 
 let currentEvent: SubmittedGameplayEvent = resetCurrentEvent();
-let currentImage: HTMLDivElement | null = null;
 let currentPlayer: number = 1;
 
 const episode: SubmittedCompleteEpisode = {
@@ -221,7 +163,7 @@ const selectCharacter = (data: { id: string, image: HTMLDivElement | null }) => 
         });
         currentCharacter = episode.PlayedCharacters.length - 1;
         hideAllExcept('select-mode');
-        addHistoryElement(data.image, 'character');
+        reloadHistory();
     }
 }
 
@@ -249,8 +191,9 @@ const selectFloor = (data: { id: string, image: HTMLDivElement | null }): void =
         currentFloor = episode.PlayedCharacters[currentCharacter].PlayedFloors.length - 1;
         hideAllExcept('select-curse');
         console.log(currentFloor);
-        addHistoryElement(data.image, 'floor');
     }
+
+    reloadHistory();
 
     getEffectNumber(data.id).then(effectNumber => {
         if (effectNumber.length > 0) {
@@ -279,12 +222,10 @@ const addGameplayEvent = (data: { id: string, image: HTMLDivElement | null }, ga
     if (currentEvent.EventType !== gameplayEvent) {
         currentEvent = resetCurrentEvent();
         currentEvent.EventType = gameplayEvent;
-        currentImage = null;
     }
 
     if (resourceNumber === 1) {
         currentEvent.RelatedResource1 = data.id;
-        currentImage = data.image;
     } else if (resourceNumber === 2) {
         currentEvent.RelatedResource2 = data.id;
     }
@@ -295,12 +236,14 @@ const addGameplayEvent = (data: { id: string, image: HTMLDivElement | null }, ga
         // needs resource 1, resource 2 and player
         case GameplayEventType.ItemCollected:
         case GameplayEventType.AbsorbedItem:
+        case GameplayEventType.ItemTouched:
             currentEvent.Player = currentPlayer;
             if (currentEvent.RelatedResource1 && currentEvent.RelatedResource2 && currentEvent.Player) {
                 editGameplayEvent === null
                     ? episode.PlayedCharacters[currentCharacter].PlayedFloors[currentFloor].GameplayEvents.push(Object.assign({}, currentEvent))
                     : episode.PlayedCharacters[currentCharacter].PlayedFloors[currentFloor].GameplayEvents[editGameplayEvent] = currentEvent;
                 currentEvent = resetCurrentEvent();
+                reloadHistory();
             }
             break;
 
@@ -317,6 +260,7 @@ const addGameplayEvent = (data: { id: string, image: HTMLDivElement | null }, ga
                     ? episode.PlayedCharacters[currentCharacter].PlayedFloors[currentFloor].GameplayEvents.push(Object.assign({}, currentEvent))
                     : episode.PlayedCharacters[currentCharacter].PlayedFloors[currentFloor].GameplayEvents[editGameplayEvent] = currentEvent;
                 currentEvent = resetCurrentEvent();
+                reloadHistory();
             }
             break;
 
@@ -328,6 +272,7 @@ const addGameplayEvent = (data: { id: string, image: HTMLDivElement | null }, ga
                     ? episode.PlayedCharacters[currentCharacter].PlayedFloors[currentFloor].GameplayEvents.push(Object.assign({}, currentEvent))
                     : episode.PlayedCharacters[currentCharacter].PlayedFloors[currentFloor].GameplayEvents[editGameplayEvent] = currentEvent;
                 currentEvent = resetCurrentEvent();
+                reloadHistory();
             }
             break;
         case GameplayEventType.Curse:
@@ -336,6 +281,7 @@ const addGameplayEvent = (data: { id: string, image: HTMLDivElement | null }, ga
                     ? episode.PlayedCharacters[currentCharacter].PlayedFloors[currentFloor].GameplayEvents.unshift(Object.assign({}, currentEvent))
                     : episode.PlayedCharacters[currentCharacter].PlayedFloors[currentFloor].GameplayEvents[editGameplayEvent] = currentEvent;
                 currentEvent = resetCurrentEvent();
+                reloadHistory();
             }
             break;
         default:
@@ -353,7 +299,6 @@ const addGameplayEvent = (data: { id: string, image: HTMLDivElement | null }, ga
         default: event = 'event'; break;
     }
     console.log(event);
-    addHistoryElement(currentImage, event);
     console.log(episode);
 }
 
@@ -372,6 +317,11 @@ const initializeResourceSelectors = (wrapper: HTMLDivElement) => {
     loadDivElementById('bossfight-box', wrapper).addEventListener('click', () => hideAllExcept('select-boss'));
     loadDivElementById('character-reroll-box', wrapper).addEventListener('click', () => hideAllExcept('select-reroll'));
     loadDivElementById('select-enemy-box', wrapper).addEventListener('click', () => hideAllExcept('select-enemy'));
+    loadDivElementById('select-pill-box', wrapper).addEventListener('click', () => hideAllExcept('select-pill'));
+    loadDivElementById('select-tarot-box', wrapper).addEventListener('click', () => hideAllExcept('select-tarot'));
+    loadDivElementById('select-rune-box', wrapper).addEventListener('click', () => hideAllExcept('select-rune'));
+    loadDivElementById('select-trinket-box', wrapper).addEventListener('click', () => hideAllExcept('select-trinket'));
+    loadDivElementById('select-other-consumable-box', wrapper).addEventListener('click', () => hideAllExcept('select-other-consumable'));
     (<HTMLButtonElement>document.getElementById('another-run-btn')).addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); hideAllExcept('select-character') });
     (<HTMLButtonElement>document.getElementById('victory-lap-btn')).addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); hideAllExcept('select-floor') });
 }
@@ -387,13 +337,18 @@ const initializeResourceSelectors = (wrapper: HTMLDivElement) => {
     uiElements.set('select-absorbed-item', loadDivElementById('select-absorbed-item', wrapper));
     uiElements.set('select-item-source', loadDivElementById('select-item-source', wrapper));
     uiElements.set('select-item', loadDivElementById('select-item', wrapper));
+    uiElements.set('select-touched-item-source', loadDivElementById('select-item-source', wrapper));
+    uiElements.set('select-touched-item', loadDivElementById('select-item', wrapper));
     uiElements.set('select-boss', loadDivElementById('select-boss', wrapper));
     uiElements.set('select-reroll', loadDivElementById('select-reroll', wrapper));
     uiElements.set('select-enemy', loadDivElementById('select-enemy', wrapper));
     uiElements.set('next-run', loadDivElementById('next-run', wrapper));
+    uiElements.set('select-pill-box', loadDivElementById('select-pill', wrapper));
+    uiElements.set('select-tarot-box', loadDivElementById('select-tarot', wrapper));
+    uiElements.set('select-rune-box', loadDivElementById('select-rune', wrapper));
+    uiElements.set('select-trinket-box', loadDivElementById('select-trinket', wrapper));
+    uiElements.set('select-other-consumable-box', loadDivElementById('select-other-consumable', wrapper));
 
-    initializeDropdownContainers();
-    initializeBoxes();
     initializeResourceSelectors(wrapper);
 
     registerBoxCallbackFunction(createRegistration('select-character-boxes', GameplayEventType.Unspecified, 1, ''), selectCharacter);
@@ -406,10 +361,20 @@ const initializeResourceSelectors = (wrapper: HTMLDivElement) => {
     registerDropdownMenuCallbackFunction(createRegistration('select-item-source-dd', GameplayEventType.ItemCollected, 2, 'select-item'), addGameplayEvent);
     registerBoxCallbackFunction(createRegistration('select-item-source-boxes', GameplayEventType.ItemCollected, 2, 'select-item'), addGameplayEvent);
     registerDropdownMenuCallbackFunction(createRegistration('select-item-dd', GameplayEventType.ItemCollected, 1, 'select-gameplay-events'), addGameplayEvent);
+    registerDropdownMenuCallbackFunction(createRegistration('select-touched-item-source-dd', GameplayEventType.ItemTouched, 2, 'select-touched-item'), addGameplayEvent);
+    registerBoxCallbackFunction(createRegistration('select-touched-item-source-boxes', GameplayEventType.ItemTouched, 2, 'select-touched-item'), addGameplayEvent);
+    registerDropdownMenuCallbackFunction(createRegistration('select-touched-item-dd', GameplayEventType.ItemTouched, 1, 'select-gameplay-events'), addGameplayEvent);
     registerBoxCallbackFunction(createRegistration('select-boss-boxes', GameplayEventType.Bossfight, 1, 'select-gameplay-events'), addGameplayEvent);
     registerDropdownMenuCallbackFunction(createRegistration('select-boss-dd', GameplayEventType.Bossfight, 1, 'select-gameplay-events'), addGameplayEvent);
     registerBoxCallbackFunction(createRegistration('select-reroll-boxes', GameplayEventType.CharacterReroll, 1, 'select-gameplay-events'), addGameplayEvent);
     registerDropdownMenuCallbackFunction(createRegistration('select-enemies-dd', GameplayEventType.CharacterDied, 1, 'next-run'), addGameplayEvent);
+    registerDropdownMenuCallbackFunction(createRegistration('select-pill-dd', GameplayEventType.Pill, 1, 'select-gameplay-events'), addGameplayEvent);
+    registerBoxCallbackFunction(createRegistration('select-rune-boxes', GameplayEventType.Rune, 1, 'select-gameplay-events'), addGameplayEvent);
+    registerDropdownMenuCallbackFunction(createRegistration('select-trinket-dd', GameplayEventType.Trinket, 1, 'select-gameplay-events'), addGameplayEvent);
+    registerBoxCallbackFunction(createRegistration('select-other-consumable-boxes', GameplayEventType.OtherConsumable, 1, 'select-gameplay-events'), addGameplayEvent);
+
+    initializeDropdownContainers();
+    initializeBoxes();
 })();
 
 

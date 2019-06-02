@@ -1,4 +1,4 @@
-﻿@{ 
+﻿@{
     ViewData["Title"] = "Isaac Resource Overview";
 }
 
@@ -6,20 +6,20 @@
 
 <h1>Isaac Resource Overview</h1>
 
-<hr/>
+<hr />
 
-@if(!string.IsNullOrWhiteSpace(Model))
+@if (!string.IsNullOrWhiteSpace(Model))
 {
     <h3>Warning!</h3>
     <p>@Model</p>
-    <hr/>
+    <hr />
 }
 
 <p>
     <a asp-action="@nameof(IsaacController.Create)">Create a new Resource</a>
 </p>
 
-<hr/>
+<hr />
 
 <p>
     Choose what to display:
@@ -68,7 +68,7 @@
 </p>
 
 
-@section Scripts { 
-    <script>var admin_mode = true;</script>
+@section Scripts {
+    <script src="~/js/dist/set_admin_mode.min.js" asp-append-version="true"></script>
     <script src="~/js/dist/resource_selector.min.js" asp-append-version="true"></script>
 }

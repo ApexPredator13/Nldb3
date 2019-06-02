@@ -8,6 +8,7 @@ using Website.Models.Database;
 using Website.Models.Database.Enums;
 using Website.Services;
 using System.Reflection;
+using Website.Models.SubmitEpisode;
 
 namespace Website.Areas.Api.Controllers
 {
@@ -19,6 +20,13 @@ namespace Website.Areas.Api.Controllers
         public ResourceController(IIsaacRepository isaacRepository)
         {
             _isaacRepository = isaacRepository;
+        }
+
+        [HttpPost("history")]
+        public async Task<History> GetHistory([FromBody] SubmittedCompleteEpisode episode)
+        {
+            var history = await _isaacRepository.GetHistory(episode);
+            return history;
         }
 
         [HttpGet("{id}")]

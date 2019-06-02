@@ -4,7 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Website.Areas.Api.Models;
+using Website.Models.Database;
 using Website.Models.Database.Enums;
+using Website.Models.SubmitEpisode;
 using Website.Services;
 
 namespace Website.Controllers

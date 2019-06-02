@@ -16,5 +16,6 @@
     AbsorbedItem,
     CharacterReroll,
     WonTheRun,
-    LostTheRun
+    LostTheRun,
+    ItemTouched
 }

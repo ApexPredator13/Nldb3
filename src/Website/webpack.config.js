@@ -8,7 +8,8 @@ module.exports = {
         resource_selector: './wwwroot/js/src/resource-selector.ts',
         video_loader: './wwwroot/js/src/video-loader.ts',
         dropdown_menu: './wwwroot/js/src//lib/dropdown-menu.ts',
-        submit_episode: './wwwroot/js/src/submit-episode.ts'
+        submit_episode: './wwwroot/js/src/submit-episode.ts',
+        set_admin_mode: './wwwroot/js/src/set-admin-mode.ts'
     },
     output: {
         path: path.resolve(__dirname, 'wwwroot', 'js', 'dist'),

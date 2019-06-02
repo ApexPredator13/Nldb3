@@ -16,6 +16,7 @@
         Enemy,
         Transformation,
         Trinket,
-        CharacterReroll
+        CharacterReroll,
+        OtherConsumable
     }
 }

@@ -6,7 +6,7 @@
         @foreach (var item in Model.IsaacResources)
         {
             <div class="dd-line" data-id="@item.Id" title="@item.Name">
-                <div class="dd-image" style="background: url('/img/isaac.png') -@(item.X <= 0 ? 0 : item.X) -@(item.Y <= 0 ? 0 : item.Y) transparent; width: @(item.W <= 5 ? 31.ToString() : item.W.ToString())px; height: @(item.H <= 5 ? 31.ToString() : item.H.ToString())px"></div>
+                <div class="dd-image" style="background: url('/img/isaac.png') -@(item.X <= 0 ? 0 : item.X)px -@(item.Y <= 0 ? 0 : item.Y)px transparent; width: @(item.W <= 5 ? 31.ToString() : item.W.ToString())px; height: @(item.H <= 5 ? 31.ToString() : item.H.ToString())px"></div>
                 <div class="dd-text">@item.Name</div>
             </div>
         }

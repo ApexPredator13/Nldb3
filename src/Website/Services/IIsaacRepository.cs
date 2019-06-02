@@ -6,11 +6,13 @@ using Website.Models.Database;
 using Website.Models.Database.Enums;
 using Website.Models;
 using Website.Areas.Api.Models;
+using Website.Models.SubmitEpisode;
 
 namespace Website.Services
 {
     public interface IIsaacRepository
     {
+        Task<History> GetHistory(SubmittedCompleteEpisode episode);
         Task<string> SaveResource(CreateIsaacResource resource, int x, int y, int w, int h);
         Task<int> CountResources(ResourceType type = ResourceType.Unspecified);
         Task<IsaacResource?> GetResourceById(string id, bool includeMod);

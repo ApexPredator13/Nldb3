@@ -9,6 +9,7 @@ using Website.Areas.Admin.ViewModels;
 using Website.Areas.Api.Models;
 using Website.Models.Database;
 using Website.Models.Database.Enums;
+using Website.Models.SubmitEpisode;
 using Website.Services;
 
 namespace Website.Data
@@ -25,6 +26,80 @@ namespace Website.Data
         private NpgsqlBox CreateBoxCoordinatesFromScreenCoordinates(int x, int y, int w, int h)
             => new NpgsqlBox(-y, x + (w - 1), -y - (h - 1), x);
         
+
+        public async Task<History> GetHistory(SubmittedCompleteEpisode episode)
+        {
+            if (episode.PlayedCharacters is null || episode.PlayedCharacters.Count is 0)
+            {
+                return new History();
+            }
+
+            var characters = episode.PlayedCharacters.Select(x => x.CharacterId).ToList();
+            var floors = episode.PlayedCharacters.SelectMany(x => x.PlayedFloors).Select(x => x.FloorId).ToList();
+            var events = episode.PlayedCharacters.SelectMany(x => x.PlayedFloors).SelectMany(x => x.GameplayEvents).Select(x => x.RelatedResource1).ToList();
+
+            var allResources = new List<string>();
+            allResources.AddRange(characters);
+            allResources.AddRange(floors);
+            allResources.AddRange(events);
+            allResources = allResources.Distinct().ToList();
+
+            var allImages = new Dictionary<string, IsaacResourceImage>();
+            var history = new History();
+            var sb = new StringBuilder();
+            var p = new List<NpgsqlParameter>();
+            sb.Append("SELECT id, x FROM isaac_resources WHERE id IN (");
+
+            for (int resource = 0; resource < allResources.Count; resource++)
+            {
+                p.Add(new NpgsqlParameter($"@R{resource}", NpgsqlDbType.Text) { NpgsqlValue = allResources[resource] });
+                sb.Append($"@R{resource}, ");
+            }
+            sb.Length -= 2;
+            sb.Append(");");
+
+
+            using var con = await _connector.Connect();
+            using var q = new NpgsqlCommand(sb.ToString(), con);
+            q.Parameters.AddRange(p.ToArray());
+            using var r = await q.ExecuteReaderAsync();
+
+            if (r.HasRows)
+            {
+                while (r.Read())
+                {
+                    var box = (NpgsqlBox)r[1];
+
+                    allImages.Add(r.GetString(0), new IsaacResourceImage
+                    {
+                        X = (int)box.Left,
+                        Y = (int)box.Top,
+                        H = (int)box.Height,
+                        W = (int)box.Width
+                    });
+                }
+            }
+
+            for (int c = 0; c < episode.PlayedCharacters.Count; c++)
+            {
+                history.CharacterHistory.Add(new CharacterHistory());
+                history.CharacterHistory[c].CharacterImage = allImages[episode.PlayedCharacters[c].CharacterId];
+
+                for (int f = 0; f < episode.PlayedCharacters[c].PlayedFloors.Count; f++)
+                {
+                    history.CharacterHistory[c].Floors.Add(new FloorHistory());
+                    history.CharacterHistory[c].Floors[f].FloorImage = allImages[episode.PlayedCharacters[c].PlayedFloors[f].FloorId];
+
+                    for (int e = 0; e < episode.PlayedCharacters[c].PlayedFloors[f].GameplayEvents.Count; e++)
+                    {
+                        history.CharacterHistory[c].Floors[f].Events.Add(new EventHistory());
+                        history.CharacterHistory[c].Floors[f].Events[e].Image = allImages[episode.PlayedCharacters[c].PlayedFloors[f].GameplayEvents[e].RelatedResource1];
+                    }
+                }
+            }
+
+            return history;
+        }
 
         public async Task<bool> CoordinatesAreTaken(int x, int y, int h, int w)
         {
