@@ -5,7 +5,9 @@
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "module": "CommonJS",
-    "target": "esnext"
+    "module": "esnext",
+    "target": "es6",
+    "lib": [ "es5", "es6", "dom", "es7", "esnext" ],
+    "moduleResolution": "node"
   }
 }

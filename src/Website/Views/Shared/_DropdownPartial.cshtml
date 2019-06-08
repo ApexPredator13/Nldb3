@@ -1,6 +1,6 @@
 ﻿@model ResourceSelection
 
-<div class="dd-container" data-dropdown-id="@Model.SelectionId">
+<div class="dd-container" id="@Model.SelectionId">
     <div class="dd-search"><input type="text" class="dd-searchbox" /></div>
     <div class="dd-dropdown">
         @foreach (var item in Model.IsaacResources)

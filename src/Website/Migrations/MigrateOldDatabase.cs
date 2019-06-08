@@ -642,8 +642,11 @@ namespace Website.Migrations
             }
 
             // make new list
-            foreach (var (itemName, transformationName) in oldTransformationData)
+            foreach (var data in oldTransformationData)
             {
+                var itemName = data.itemName;
+                var transformationName = data.transformationName;
+                
                 string? titleContent = null;
                 if (transformationName == "Loki" || transformationName == "Tammy")
                 {

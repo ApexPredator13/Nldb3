@@ -146,7 +146,7 @@ namespace Website
         }
 
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider serviceProvider)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             app.Use((context, next) =>
             {

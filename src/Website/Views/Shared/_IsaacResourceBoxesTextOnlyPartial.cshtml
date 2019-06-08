@@ -1,6 +1,6 @@
 ﻿@model ResourceSelectionTextonly
 
-<div class="box-container" data-id="@Model.SelectionId">
+<div class="box-container" id="@Model.SelectionId">
     @foreach (var resource in Model.IsaacResources)
     {
         <div class="box" data-id="@resource.value">

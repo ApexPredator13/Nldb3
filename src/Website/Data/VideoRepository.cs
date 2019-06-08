@@ -379,8 +379,12 @@ namespace Website.Data
                         // STEP 2 - insert transformation data
                         if (itemTransformationData.Count > 0)
                         {
-                            foreach (var (transformation, countsMultipleTimes, numberOfItemsRequired) in itemTransformationData)
+                            foreach (var data in itemTransformationData)
                             {
+                                var transformation = data.transformation;
+                                var countsMultipleTimes = data.countsMultipleTimes;
+                                var numberOfItemsRequired = data.stepsNeeded;
+
                                 // don't process items that don't count multiple times
                                 if (countsMultipleTimes || !transformationProgress.Any(x => x.Transformation == transformation && x.Resource == e.RelatedResource1))
                                 {

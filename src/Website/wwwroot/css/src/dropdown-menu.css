@@ -1,4 +1,7 @@
-﻿.dd-container {
+﻿.highlight {
+    background-color: rgba(255,255,255,0.2);
+}
+.dd-container {
     width: 300px;
     height: 30px;
     position: relative;

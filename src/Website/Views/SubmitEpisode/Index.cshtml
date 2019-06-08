@@ -70,7 +70,8 @@
         <div style="display: flex;">
             <div style="width: 50%;" id="quotes"></div>
             <div style="width: 50%; text-align: left;">
-                <table id="history"></table>
+                <p style="margin: 0; padding: 0; font-size: 0.8rem;">Event History - click on items to remove them</p>
+                <table id="history"><tr><td>Nothing added yet!</td></tr></table>
             </div>
         </div>
     </div>
@@ -164,6 +165,14 @@
             <p><button id="victory-lap-btn">NL did a victory lap!</button></p>
             <p><button id="end-of-video-btn">No, this is the end of the video</button></p>
         </div>
+        <div id="end-of-video-confirmation" class="display-none">
+            <h3>Please confirm</h3>
+            <p>This is the end of the video?</p>
+            <p>
+                <button id="yes-its-over">Yes, it's over!</button>
+                <button id="no-cancel">No, Cancel!</button>
+            </p>
+        </div>
         <div id="select-gameplay-events" class="display-none">
             <h3>What happened on the floor?</h3>
             <div class="box-container">
@@ -212,6 +221,12 @@
                     <div>Other Consumable</div>
                     <div style="background: url('/img/gameplay_events.png') -315px 0px; width:35px; height: 35px; display: inline-block; vertical-align: bottom"></div>
                 </div>
+            </div>
+            <hr/>
+
+            <div>
+                <button id="next-floor">Next Floor</button>
+                <button id="end-of-video">End of the video!</button>
             </div>
         </div>
     </div>

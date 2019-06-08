@@ -18,6 +18,7 @@
     <Content Remove="wwwroot\js\src\interfaces\isaac-resource.ts" />
     <Content Remove="wwwroot\js\src\interfaces\mod-url.ts" />
     <Content Remove="wwwroot\js\src\interfaces\mod.ts" />
+    <Content Remove="wwwroot\js\src\interfaces\selected-isaac-object.ts" />
     <Content Remove="wwwroot\js\src\interfaces\submitted-complete-episode.ts" />
     <Content Remove="wwwroot\js\src\interfaces\submitted-gameplay-event.ts" />
     <Content Remove="wwwroot\js\src\interfaces\submitted-played-character.ts" />
@@ -28,10 +29,13 @@
     <Content Remove="wwwroot\js\src\interfaces\video-result.ts" />
     <Content Remove="wwwroot\js\src\interfaces\Video.ts" />
     <Content Remove="wwwroot\js\src\lib\api-calls.ts" />
+    <Content Remove="wwwroot\js\src\lib\boxes.ts" />
+    <Content Remove="wwwroot\js\src\lib\component-type.ts" />
+    <Content Remove="wwwroot\js\src\lib\episode-manager.ts" />
     <Content Remove="wwwroot\js\src\lib\gameplay-event-type.ts" />
-    <Content Remove="wwwroot\js\src\lib\resource-boxes.ts" />
+    <Content Remove="wwwroot\js\src\lib\history-manager.ts" />
+    <Content Remove="wwwroot\js\src\lib\prerendered-component.ts" />
     <Content Remove="wwwroot\js\src\lib\resource-type.ts" />
-    <Content Remove="wwwroot\js\src\lib\selection-callback-function.ts" />
     <Content Remove="wwwroot\js\src\lib\submit-episode.ts" />
     <Content Remove="wwwroot\js\src\lib\uri-creator.ts" />
     <Content Remove="wwwroot\js\src\polyfills.ts" />
@@ -78,7 +82,6 @@
   <ItemGroup>
     <Folder Include="wwwroot\dump\" />
     <Folder Include="wwwroot\js\dist\" />
-    <Folder Include="wwwroot\css\dist\" />
   </ItemGroup>
 
 
@@ -88,22 +91,34 @@
 
 
   <ItemGroup>
+    <TypeScriptCompile Update="wwwroot\js\src\components\boxes.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Update="wwwroot\js\src\components\history.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Update="wwwroot\js\src\components\prerendered-component.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Update="wwwroot\js\src\enums\component-type.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Update="wwwroot\js\src\enums\gameplay-event-type.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Update="wwwroot\js\src\enums\resource-type.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
     <TypeScriptCompile Update="wwwroot\js\src\interfaces\get-resource-request.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Update="wwwroot\js\src\interfaces\selected-isaac-object.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
     <TypeScriptCompile Update="wwwroot\js\src\lib\api-calls.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Update="wwwroot\js\src\lib\gameplay-event-type.ts">
-      <SubType>Code</SubType>
-    </TypeScriptCompile>
-    <TypeScriptCompile Update="wwwroot\js\src\lib\resource-boxes.ts">
-      <SubType>Code</SubType>
-    </TypeScriptCompile>
-    <TypeScriptCompile Update="wwwroot\js\src\lib\resource-type.ts">
-      <SubType>Code</SubType>
-    </TypeScriptCompile>
-    <TypeScriptCompile Update="wwwroot\js\src\lib\selection-callback-function.ts">
+    <TypeScriptCompile Update="wwwroot\js\src\lib\episode-manager.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
   </ItemGroup>
