@@ -11,13 +11,11 @@ namespace Website.Data
     {
         private readonly IDbConnector _connector;
         private readonly IWebHostEnvironment _env;
-        private readonly IConfiguration _config;
 
-        public DbManager(IDbConnector connector, IWebHostEnvironment env, IConfiguration config)
+        public DbManager(IDbConnector connector, IWebHostEnvironment env)
         {
             _connector = connector;
             _env = env;
-            _config = config;
         }
 
         void Execute(string query)

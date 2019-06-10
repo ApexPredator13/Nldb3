@@ -1,10 +1,11 @@
 ﻿import { SubmittedCompleteEpisode } from "../interfaces/submitted-complete-episode";
 import { History as HistoryInterface, HistoryImage } from '../interfaces/History';
 import { Subject } from "rxjs";
+import { RemovedHistoryItem } from "../interfaces/removed-history-item";
 
 export class History {
 
-    public itemWasRemoved = new Subject<{characterIndex: number, floorIndex: number | undefined, eventIndex: number | undefined}>();
+    public itemWasRemoved = new Subject<RemovedHistoryItem>();
 
     private historyContainer: HTMLTableElement;
 
@@ -21,19 +22,26 @@ export class History {
             }
         }
         fetch(`/api/resources/history`, requestData).then(response => response.json()).then((history: HistoryInterface) => {
-            console.log('response: ', history);
+
+            // create new table that replaces the old one
             const table = document.createElement('table');
             let currentRow: HTMLTableRowElement | null = null;
+
+            // loop through all characters
             for (let c = 0; c < history.characterHistory.length; c++) {
+                // create new row for character, add character image, append it to the table
                 const row = document.createElement('tr');
                 table.appendChild(row);
                 row.appendChild(this.CreateHistoryCell(history.characterHistory[c].characterImage, c));
 
+                // loop through all floors this character went through
                 for (let f = 0; f < history.characterHistory[c].floors.length; f++) {
+                    // don't create a new row for the first floor, just put it next to the character
                     if (f === 0) {
                         currentRow = row;
                         row.appendChild(this.CreateHistoryCell(history.characterHistory[c].floors[f].floorImage, c, f));
                         row.appendChild(document.createElement('td'));
+                    // for every other floor, create a new row
                     } else {
                         const newFloorRow = document.createElement('tr');
                         currentRow = newFloorRow;
@@ -45,6 +53,7 @@ export class History {
                         table.appendChild(newFloorRow);
                     }
 
+                    // loop through all gameplay events that happened on the floor
                     for (let e = 0; e < history.characterHistory[c].floors[f].events.length; e++) {
                         if (!currentRow) {
                             continue;
@@ -53,6 +62,8 @@ export class History {
                     }
                 }
             }
+
+            // replace table
             this.historyContainer.innerHTML = '';
             this.historyContainer.appendChild(table);
         });
@@ -82,7 +93,14 @@ export class History {
         if (eventId !== undefined) {
             element.setAttribute('e', eventId.toString(10));
         }
-        element.addEventListener('click', () => this.itemWasRemoved.next({ characterIndex: characterId, floorIndex: floorId, eventIndex: eventId }));
+
+        const removedItem = {
+            CharacterIndex: characterId,
+            FloorIndex: floorId,
+            EventIndex: eventId
+        };
+
+        element.addEventListener('click', () => this.itemWasRemoved.next(removedItem));
         return element;
     }
 }

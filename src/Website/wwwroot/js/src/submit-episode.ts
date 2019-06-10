@@ -25,6 +25,7 @@ const storeUiElements = (...elementIds: Array<string>) => {
     }
 }
 
+// loads all button logic that is not part of a specific prerendered component from the server
 const initializeButtons = (wrapper: HTMLDivElement) => {
     loadDivElementById('sucked-up-item-box', wrapper).addEventListener('click', () => hideAllExcept('select-absorber'));
     loadDivElementById('collected-item-box', wrapper).addEventListener('click', () => hideAllExcept('select-item-source'));
@@ -42,6 +43,7 @@ const initializeButtons = (wrapper: HTMLDivElement) => {
     (<HTMLButtonElement>document.getElementById('no-cancel')).addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); hideAllExcept('select-gameplay-events'); });
     (<HTMLButtonElement>document.getElementById('next-floor')).addEventListener('click', e => { console.log('next floor!'); e.preventDefault(); e.stopPropagation(); hideAllExcept('select-floor'); });
     (<HTMLButtonElement>document.getElementById('end-of-video')).addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); hideAllExcept('end-of-video-confirmation'); });
+    (<HTMLButtonElement>document.getElementById('end-of-video-btn')).addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); hideAllExcept('end-of-video-confirmation'); });
 }
 
 (() => {
@@ -49,7 +51,7 @@ const initializeButtons = (wrapper: HTMLDivElement) => {
     storeUiElements(
         'select-character', 'select-mode', 'select-floor', 'select-curse', 'select-gameplay-events', 'select-absorber', 'select-absorbed-item',
         'select-item-source', 'select-item', 'select-touched-item-source', 'select-touched-item', 'select-boss', 'select-reroll', 'select-enemy',
-        'next-run', 'select-pill-box', 'select-tarot-box', 'select-rune-box', 'select-trinket-box', 'select-other-consumable-box',
+        'next-run', 'select-pill', 'select-tarot', 'select-rune', 'select-trinket', 'select-other-consumable',
         'end-of-video-confirmation'
     );
 
@@ -57,7 +59,7 @@ const initializeButtons = (wrapper: HTMLDivElement) => {
 
     const episodeManager = new EpisodeManager();
 
-    // register all prerendered ui components and what happens when something is selected
+    // register all prerendered ui components and what happens after something is selected
     const characterBoxes = new Boxes('select-character-boxes');
     characterBoxes.elementWasSelected.subscribe(c => {
         episodeManager.AddCharacter(c);
@@ -85,12 +87,14 @@ const initializeButtons = (wrapper: HTMLDivElement) => {
     const floorSearchBox = new SearchBox('select-floor-dd');
     floorSearchBox.elementWasSelected.subscribe(f => {
         episodeManager.AddFloorToCharacter(f, bossBoxes);
+        episodeManager.LoadNextFloorset(f, floorBoxes);
         hideAllExcept('select-curse');
     });
 
     const floorBoxes = new Boxes('select-floor-boxes');
     floorBoxes.elementWasSelected.subscribe(f => {
         episodeManager.AddFloorToCharacter(f, bossBoxes);
+        episodeManager.LoadNextFloorset(f, floorBoxes);
         hideAllExcept('select-curse');
     });
 
@@ -181,6 +185,12 @@ const initializeButtons = (wrapper: HTMLDivElement) => {
     const otherConsumableBoxes = new Boxes('select-other-consumable-boxes');
     otherConsumableBoxes.elementWasSelected.subscribe(o => {
         episodeManager.AddGameplayEvent(o, GameplayEventType.OtherConsumable, 1);
+        hideAllExcept('select-gameplay-events');
+    });
+
+    const tarotSearchBox = new SearchBox('select-tarot-dd');
+    tarotSearchBox.elementWasSelected.subscribe(t => {
+        episodeManager.AddGameplayEvent(t, GameplayEventType.TarotCard, 1);
         hideAllExcept('select-gameplay-events');
     });
 })();

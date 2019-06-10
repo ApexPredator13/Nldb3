@@ -7,12 +7,11 @@ using Website.Areas.Api.Models;
 using Website.Models.Database;
 using Website.Models.Database.Enums;
 using Website.Services;
-using System.Reflection;
 using Website.Models.SubmitEpisode;
 
 namespace Website.Areas.Api.Controllers
 {
-    [ApiController, Route("api/resources")]
+    [ApiController, Area("api"), Route("resources")]
     public class ResourceController : Controller
     {
         private readonly IIsaacRepository _isaacRepository;
@@ -67,6 +66,24 @@ namespace Website.Areas.Api.Controllers
             }
 
             return result;
+        }
+
+        [HttpGet("next-floorset/{id}")]
+        public async Task<List<IsaacResource>> GetNextFloorset([FromRoute] string id)
+        {
+            if (Enum.TryParse(typeof(Effect), $"ComesAfter{id}", out object effect))
+            {
+                var foundEffect = (Effect)effect;
+                return await _isaacRepository.GetResources(new GetResource()
+                {
+                    RequiredTags = new List<Effect> { foundEffect },
+                    ResourceType = ResourceType.Floor
+                });
+            }
+            else
+            {
+                return new List<IsaacResource>();
+            }
         }
     }
 }

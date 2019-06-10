@@ -25,7 +25,7 @@ namespace Website.Data
 
         private NpgsqlBox CreateBoxCoordinatesFromScreenCoordinates(int x, int y, int w, int h)
             => new NpgsqlBox(-y, x + (w - 1), -y - (h - 1), x);
-        
+
 
         public async Task<History> GetHistory(SubmittedCompleteEpisode episode)
         {

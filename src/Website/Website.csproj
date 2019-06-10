@@ -3,10 +3,10 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <UserSecretsId>aspnet-Website-386D1BF3-0CC3-4035-B90E-CD34A50BB8B2</UserSecretsId>
-    <LangVersion>8.0</LangVersion>
-    <NullableContextOptions>enable</NullableContextOptions>
     <SignAssembly>false</SignAssembly>
     <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
+    <LangVersion>8.0</LangVersion>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
@@ -45,13 +45,17 @@
     <Content Remove="wwwroot\js\src\video-loader.ts" />
   </ItemGroup>
 
+  <ItemGroup>
+    <TypeScriptCompile Remove="wwwroot\js\src\interfaces\removed-history-item.ts" />
+  </ItemGroup>
+
 
   <ItemGroup>
-    <PackageReference Include="AspNet.Security.OpenId.Steam" Version="2.0.0" />
+    <PackageReference Include="AspNet.Security.OpenId.Steam" Version="2.1.0" />
     <PackageReference Include="BundlerMinifier.Core" Version="2.9.406" />
-    <PackageReference Include="Google.Apis.YouTube.v3" Version="1.40.0.1572" />
-    <PackageReference Include="Hangfire.AspNetCore" Version="1.7.2" />
-    <PackageReference Include="Hangfire.Core" Version="1.7.2" />
+    <PackageReference Include="Google.Apis.YouTube.v3" Version="1.40.1.1593" />
+    <PackageReference Include="Hangfire.AspNetCore" Version="1.7.3" />
+    <PackageReference Include="Hangfire.Core" Version="1.7.3" />
     <PackageReference Include="Hangfire.PostgreSql" Version="1.6.0" />
     <PackageReference Include="kg73.AspNet.Security.OAuth.Twitch" Version="3.0.0-preview-009" />
     <PackageReference Include="MailKit" Version="2.1.5.1" />
@@ -68,11 +72,11 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="3.0.0-preview5.19227.9" />
-    <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="3.4.5">
+    <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="3.5.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Npgsql" Version="4.0.6" />
+    <PackageReference Include="Npgsql" Version="4.0.7" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="3.0.0-preview5" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0006" />
     <PackageReference Include="System.ServiceModel.Syndication" Version="4.6.0-preview5.19224.8" />

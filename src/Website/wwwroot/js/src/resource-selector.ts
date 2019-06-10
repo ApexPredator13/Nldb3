@@ -47,12 +47,10 @@ declare const admin_mode: boolean;
                         r.mod ? r.mod.name : null,
                         r.display_order ? r.display_order : null,
                         r.difficulty ? r.difficulty : null,
+                        r.level,
                         adminLink
                     );
                     tableBody.appendChild(tr);
-                    if (r.id === 'TwoSpooky') {
-                        console.log(r);
-                    }
                 });
             }).then(() => {
                 // clear old table and append new

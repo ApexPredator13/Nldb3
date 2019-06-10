@@ -537,6 +537,29 @@ namespace Website.Migrations
 
                 await _isaacRepository.SaveResource(f, -1, -1, -1, -1);
             }
+            
+            // adds 'comes after floor X' tag to all floors
+            using (var c = new NpgsqlConnection(_oldConnectionString))
+            {
+                await c.OpenAsync();
+                using var q = new NpgsqlCommand("SELECT currentfloor, nextfloor FROM nextfloorrelations", c);
+                using var r = await q.ExecuteReaderAsync();
+
+                if (r.HasRows)
+                {
+                    while (r.Read())
+                    {
+                        var currentFloorId = await _isaacRepository.GetFirstResourceIdFromName(r.GetString(0));
+                        var nextFloorId = await _isaacRepository.GetFirstResourceIdFromName(r.GetString(1));
+
+                        if (Enum.TryParse(typeof(Effect), $"ComesAfter{currentFloorId}", out object foundEffect))
+                        {
+                            _logger.LogDebug($"{nextFloorId} comes after {currentFloorId}");
+                            await _isaacRepository.AddTag(nextFloorId, (Effect)foundEffect);
+                        }
+                    }
+                }
+            }
         }
 
         public async Task MigrateItems()

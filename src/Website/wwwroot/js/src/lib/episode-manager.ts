@@ -7,6 +7,7 @@ import { GetResourceRequest } from '../interfaces/get-resource-request';
 import { getEffectNumber } from '../lib/api-calls';
 import { Boxes } from '../components/boxes';
 import { History } from '../components/history';
+import { IsaacResource } from '../interfaces/isaac-resource';
 
 export class EpisodeManager {
 
@@ -33,9 +34,9 @@ export class EpisodeManager {
         this.ResetCurrentEventToDefault();
 
         this.history.itemWasRemoved.subscribe(data => {
-            const e = data.eventIndex;
-            const f = data.floorIndex;
-            const c = data.characterIndex;
+            const e = data.EventIndex;
+            const f = data.FloorIndex;
+            const c = data.CharacterIndex;
 
             if (e !== undefined && f !== undefined && c >= 0) {
                 this.episode.PlayedCharacters[c].PlayedFloors[f].GameplayEvents.splice(e, 1);
@@ -78,6 +79,12 @@ export class EpisodeManager {
         this.currentFloor = cc.PlayedFloors.length - 1;
         this.history.ReloadHistory(this.episode);
         this.LoadBossesForFloor(bossBoxesContainer, id);
+    }
+
+    LoadNextFloorset(currentFloorId: string, floorBoxes: Boxes): void {
+        fetch(`/api/resources/next-floorset/${currentFloorId}`).then(x => x.json()).then((nextFloorset: Array<IsaacResource>) => {
+            floorBoxes.ReplaceBoxes(nextFloorset);
+        });
     }
 
     AddGameplayEvent(id: string, gameplayEvent: GameplayEventType, resourceNumber: 1 | 2 | 3) {
@@ -158,7 +165,7 @@ export class EpisodeManager {
                     OrderBy2: undefined,
                     RequiredTags: effectNumber
                 };
-                bossBoxContainer.ReplaceBoxes(loadFloorBosses);
+                bossBoxContainer.RequestAndReplaceBoxes(loadFloorBosses);
             }
         });
     }
