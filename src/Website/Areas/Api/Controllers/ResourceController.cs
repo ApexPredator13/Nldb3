@@ -11,7 +11,7 @@ using Website.Models.SubmitEpisode;
 
 namespace Website.Areas.Api.Controllers
 {
-    [ApiController, Area("api"), Route("resources")]
+    [ApiController, Area("api"), Route("[area]/resources")]
     public class ResourceController : Controller
     {
         private readonly IIsaacRepository _isaacRepository;

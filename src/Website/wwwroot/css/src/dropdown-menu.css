@@ -33,13 +33,6 @@
     margin-left: -1px;
 }
 
-/* always highlights the first item in the selection as long as there is no hover */
-.dd-dropdown:not(:hover) > .dd-line:not(.display-none) {
-    background-color: rgba(255,255,255,0.1);
-}
-.dd-dropdown:not(:hover) > .dd-line:not(.display-none) ~ .dd-line:not(.display-none) {
-    background-color: transparent;
-}
 
 
 .dd-dropdown::-webkit-scrollbar {

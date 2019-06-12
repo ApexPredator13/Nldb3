@@ -10,9 +10,11 @@ export class SearchBox extends PrerenderedComponent {
 
     private static highlightClassname = 'highlight';
 
-    private lines = new Map<string, SelectedIsaacObject>();
+    private lines = new Array<SelectedIsaacObject>();
     private selected = 0;
-    private selectedLine: [string, SelectedIsaacObject] | null = null;
+    private selectedLine: SelectedIsaacObject | null = null;
+    private lastSelectedLine: SelectedIsaacObject | null = null;
+    private searchBoxInputElement: HTMLInputElement | null = null;
 
     constructor(prerenderedSearchBoxElementId: string) {
         // register component
@@ -20,39 +22,42 @@ export class SearchBox extends PrerenderedComponent {
         const searchBoxComponent = super.GetComponent(ComponentType.SearchBox, prerenderedSearchBoxElementId);
 
         // initialize search events
-        const searchElements = searchBoxComponent.getElementsByClassName('dd-search');
+        const searchElements = searchBoxComponent.getElementsByClassName('dd-searchbox');
         if (searchElements.length > 0) {
-            const searchElement = searchElements[0] as HTMLInputElement;
+            this.searchBoxInputElement = searchElements[0] as HTMLInputElement;
 
             // filter on input
-            searchElement.addEventListener('input', e => {
+            this.searchBoxInputElement.addEventListener('input', e => {
                 if (e.target && e.target instanceof HTMLInputElement) {
-                    this.selected = 0;
                     this.Filter(e.target.value);
+                    this.HighlightElement(0);
                 }
             });
 
             // emit highlighted element on [Enter] keypress
-            searchElement.addEventListener('keydown', e => {
+            this.searchBoxInputElement.addEventListener('keydown', e => {
                 if (e.keyCode === 13) {
                     this.Emit();
                 }
             });
 
-            // initialize searchbox focus on hover
-            searchBoxComponent.addEventListener('mouseover', e => {
-                e.stopPropagation();
-                if (!searchElement.value) {
-                    searchElement.focus();
+            // searchbox focus on hover
+            searchBoxComponent.addEventListener('mouseover', () => {
+                if (this.searchBoxInputElement) {
+                    this.searchBoxInputElement.focus();
                 }
             });
 
             // navigate via up and down arrows
             searchBoxComponent.addEventListener('keydown', e => {
-                if (e.keyCode === 38) {
-                    this.HighlightElement(this.selected + 1);
-                } else if (e.keyCode === 40) {
-                    this.HighlightElement(this.selected - 1);
+                if (e.keyCode === 40) {
+                    if (this.selected < this.lines.length) {
+                        this.HighlightElement(this.selected + 1, true);
+                    }
+                } else if (e.keyCode === 38) {
+                    if (this.selected > 0) {
+                        this.HighlightElement(this.selected - 1, false);
+                    }
                 }
             });
         }
@@ -63,8 +68,7 @@ export class SearchBox extends PrerenderedComponent {
             // save all lines via name (= lowercased title) in a map for quick searching
             const title = searchBoxLines[i].getAttribute('title');
             if (title) {
-                this.lines.set(title.toLowerCase(), { element: <HTMLDivElement>searchBoxLines[i], visible: true });
-                this.HighlightElement();
+                this.lines.push({ element: <HTMLDivElement>searchBoxLines[i], visible: true, name: title.toLowerCase() });
             }
 
             // add click event to each item
@@ -85,77 +89,125 @@ export class SearchBox extends PrerenderedComponent {
                     }
 
                     // reset searchbox
-                    this.ResetSelection();
+                    this.Reset();
                 }
             });
         }
+
+        this.HighlightElement();
     }
 
+    Focus(): void {
+        if (this.searchBoxInputElement) {
+            this.searchBoxInputElement.focus();
+        }
+    }
 
-    ResetSelection(): void {
+    Reset(): void {
+        if (this.searchBoxInputElement) {
+            this.searchBoxInputElement.value = '';
+        }
+        this.Filter('');
         this.selected = 0;
         this.selectedLine = null;
         this.HighlightElement();
     }
 
+    private HighlightElement(elementNumber?: number | undefined, direction: boolean = true): void {
+        this.lastSelectedLine = this.selectedLine !== null ? Object.assign({}, this.selectedLine) : null;
+        this.selectedLine = null;
 
-    HighlightElement(elementNumber?: number | undefined): void {
         if (elementNumber !== undefined) {
             this.selected = elementNumber;
+        } else {
+            elementNumber = this.selected;
         }
 
-        this.selectedLine = null;
-        let i = 0;
+        const nearestElements = this.SelectNearestElements(elementNumber);
+        console.log('nearest elements are ', nearestElements);
+        let nearestElement = direction ? nearestElements.ahead : nearestElements.behind;
+        if (nearestElement === null) {
+            nearestElement = direction ? nearestElements.behind : nearestElements.ahead;
+        }
+        console.log('nearest element is: ', nearestElement);
+        this.selected = nearestElement === null ? 0 : nearestElement;
 
-        for (const line of this.lines) {
+        if (this.lastSelectedLine !== null) {
+            removeClassIfExists(this.lastSelectedLine.element, SearchBox.highlightClassname);
+        }
 
-            // skip invisible items, select next one if current selection is invisible
-            if (!line[1].visible) {
-                this.selected++;
-                continue;
-            }
-
-            // highlight selected item
-            if (i === this.selected) {
-                this.selectedLine = line;
-                addClassIfNotExists(line[1].element, SearchBox.highlightClassname);
-            } else {
-                removeClassIfExists(line[1].element, SearchBox.highlightClassname);
-            }
-            i++;
+        if (nearestElement !== null) {
+            addClassIfNotExists(this.lines[nearestElement].element, SearchBox.highlightClassname);
+            this.selectedLine = this.lines[nearestElement];
         }
     }
 
 
-    Filter(searchString: string): void {
+    private Filter(searchString: string): void {
         if (!searchString) {
-            return;
-        }
+            this.selected = 0;
+            for (const line of this.lines) {
+                removeClassIfExists(line.element, 'display-none');
+                line.visible = true;
+            }
+        } else {
+            const searchStringLower = searchString.toLowerCase();
 
-        const searchStringLower = searchString.toLowerCase();
-
-        for (const line of this.lines) {
-            if (line[0].indexOf(searchStringLower) !== -1) {
-                removeClassIfExists(line[1].element, 'display-none');
-            } else {
-                addClassIfNotExists(line[1].element, 'display-none');
+            for (const line of this.lines) {
+                if (line.name.indexOf(searchStringLower) !== -1) {
+                    removeClassIfExists(line.element, 'display-none');
+                    line.visible = true;
+                } else {
+                    addClassIfNotExists(line.element, 'display-none');
+                    line.visible = false;
+                }
             }
         }
-
-        this.HighlightElement();
     }
 
 
-    Emit(id?: string | undefined): void {
+    private Emit(id?: string | undefined): void {
         if (id !== undefined && id) {
+            console.log('emitting ', id);
             this.elementWasSelected.next(id);
             return;
         } else if (this.selectedLine) {
-            const id = this.selectedLine[1].element.getAttribute('data-id');
+            const id = this.selectedLine.element.getAttribute('data-id');
             if (id) {
+                console.log('emitting ', id);
                 this.elementWasSelected.next(id);
             }
         }
+    }
+
+    private SelectNearestElements(elementNumber: number): { ahead: number | null, behind: number | null } {
+        if (this.lines[elementNumber].visible) {
+            return { ahead: elementNumber, behind: elementNumber };
+        }
+
+        let result: { ahead: number | null, behind: number | null } = {
+            ahead: null,
+            behind: null
+        };
+
+        if (elementNumber !== this.lines.length - 1) {
+            for (let i = elementNumber + 1; i < this.lines.length; i++) {
+                if (this.lines[i].visible) {
+                    result.ahead = i;
+                    break;
+                }
+            }
+        }
+        if (elementNumber !== 0) {
+            for (let i = elementNumber - 1; i >= 0; i--) {
+                if (this.lines[i].visible) {
+                    result.behind = i;
+                    break;
+                }
+            }
+        }
+
+        return result;
     }
 }
 
