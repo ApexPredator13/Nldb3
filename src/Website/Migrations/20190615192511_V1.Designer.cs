@@ -10,8 +10,8 @@ using Website.Data;
 namespace Website.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20190515090528_Identity")]
-    partial class Identity
+    [Migration("20190615192511_V1")]
+    partial class V1
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

@@ -1,36 +1,21 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Authentication.OAuth;
-using Microsoft.AspNetCore.Identity.UI;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Website.Data;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Website.Infrastructure;
 using Website.Services;
 using Microsoft.Extensions.Hosting;
 using Website.Migrations;
 using Microsoft.Extensions.Primitives;
 using Hangfire;
-using Hangfire.AspNetCore;
 using Hangfire.PostgreSql;
-using Hangfire.Processing;
-using Hangfire.Storage;
-using Hangfire.Server;
-using Hangfire.States;
-using Hangfire.Logging;
 using Hangfire.Dashboard;
-using Hangfire.Common;
 
 namespace Website
 {
@@ -55,9 +40,6 @@ namespace Website
                 options.CheckConsentNeeded = context => true;
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
-
-            // entity framework
-            services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(Config.GetConnectionString("DefaultConnection")));
 
             // nldb stuff
             services.AddTransient<ISqlDumper, SqlDumper>();
@@ -85,6 +67,9 @@ namespace Website
                 })
             );
             services.AddHangfireServer();
+
+            // entity framework
+            services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(Config.GetConnectionString("DefaultConnection")));
 
             // identity
             services.AddIdentity<IdentityUser, IdentityRole>(options =>
@@ -173,6 +158,7 @@ namespace Website
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
+
             app.UseCookiePolicy();
 
             app.UseAuthorization();
@@ -188,8 +174,7 @@ namespace Website
                     new HangfireAuthorizationFilter()
                 }
             });
-
-
+            
             app.UseRouting();
             app.UseEndpoints(endpoints =>
             {
