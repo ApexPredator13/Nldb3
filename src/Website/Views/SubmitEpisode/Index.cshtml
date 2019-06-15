@@ -169,8 +169,25 @@
             <h3>Please confirm</h3>
             <p>This is the end of the video?</p>
             <p>
-                <button id="yes-its-over">Yes, it's over!</button>
+                <button id="yes-its-over-button">Yes, it's over!</button>
                 <button id="no-cancel">No, Cancel!</button>
+            </p>
+        </div>
+        <div id="episode-submitted">
+            <h3>Success!</h3>
+            <p>The episode was submitted successfully.</p>
+            <p>
+                <a asp-controller="@VideoController.Controllername" asp-action="@nameof(VideoController.Index)" asp-route-id="@ViewData["Id"]">View Result</a>
+            </p>
+        </div>
+        <div id="episode-submission-failed">
+            <h3>The episode was not submitted successfully :(</h3>
+            <p>
+                Error message:<br/>
+                <span id="submission-failed-error-message"></span>
+            </p>
+            <p>
+                <button id="try-again-button">Click here to try again</button>
             </p>
         </div>
         <div id="select-gameplay-events" class="display-none">

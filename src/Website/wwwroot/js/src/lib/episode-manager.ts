@@ -154,6 +154,14 @@ export class EpisodeManager {
         console.log(this.episode);
     }
 
+    Submit(): Promise<Response> {
+        const request: RequestInit = {
+            method: 'POST',
+            body: JSON.stringify(this.episode)
+        }
+        return fetch(`/SubmitEpisode/${this.episode.VideoId}`, request);
+    }
+
     private LoadBossesForFloor(bossBoxContainer: Boxes, floorId: string): void {
         getEffectNumber(floorId).then(effectNumber => {
             if (effectNumber.length > 0) {
