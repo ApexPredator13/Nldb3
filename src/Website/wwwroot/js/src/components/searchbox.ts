@@ -124,12 +124,10 @@ export class SearchBox extends PrerenderedComponent {
         }
 
         const nearestElements = this.SelectNearestElements(elementNumber);
-        console.log('nearest elements are ', nearestElements);
         let nearestElement = direction ? nearestElements.ahead : nearestElements.behind;
         if (nearestElement === null) {
             nearestElement = direction ? nearestElements.behind : nearestElements.ahead;
         }
-        console.log('nearest element is: ', nearestElement);
         this.selected = nearestElement === null ? 0 : nearestElement;
 
         if (this.lastSelectedLine !== null) {

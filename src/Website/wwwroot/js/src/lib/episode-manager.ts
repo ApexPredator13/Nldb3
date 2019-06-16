@@ -30,6 +30,7 @@ export class EpisodeManager {
             VideoId: window.location.href.substr(window.location.href.length - 11, 11),
             PlayedCharacters: new Array<SubmittedPlayedCharacter>()
         };
+        console.log('initial video object: ', this.episode);
 
         this.ResetCurrentEventToDefault();
 
@@ -75,6 +76,20 @@ export class EpisodeManager {
             FloorId: id,
             GameplayEvents: new Array<SubmittedGameplayEvent>()
         });
+
+        if (cc.PlayedFloors.length > 1) {
+            let totalSoFar = 0;
+            cc.PlayedFloors.map(f => {
+                if (f.Duration !== null) {
+                    totalSoFar += f.Duration;
+                }
+            });
+
+            const exipredSoFar = Math.floor(this.GetVideoTime());
+            const lastFloorDuration = exipredSoFar - totalSoFar;
+
+            cc.PlayedFloors[cc.PlayedFloors.length - 2].Duration = lastFloorDuration;
+        }
 
         this.currentFloor = cc.PlayedFloors.length - 1;
         this.history.ReloadHistory(this.episode);
@@ -155,11 +170,21 @@ export class EpisodeManager {
     }
 
     Submit(): Promise<Response> {
+        const headers: Headers = new Headers();
+        headers.append('content-type', 'application/json');
         const request: RequestInit = {
             method: 'POST',
-            body: JSON.stringify(this.episode)
-        }
-        return fetch(`/SubmitEpisode/${this.episode.VideoId}`, request);
+            body: JSON.stringify(this.episode),
+            headers: headers
+        };
+        return fetch(`/SubmitEpisode`, request);
+    }
+
+    private GetVideoTime(): number {
+        console.log((window as any).youtubePlayer);
+        const time = (window as any).youtubePlayer.getCurrentTime();
+        console.log('seconds elapsed: ', time);
+        return time as number;
     }
 
     private LoadBossesForFloor(bossBoxContainer: Boxes, floorId: string): void {

@@ -1,5 +1,9 @@
-﻿@{ 
+﻿@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment env
+@{ 
     ViewData["Title"] = "Submit Episode";
+
+    var origin = env.EnvironmentName == "Development" ? "https://localhost:5005" : "https://www.northernlion-db.com";
+    var youtubeIframeUrl = $"https://www.youtube.com/embed/{ViewData["Id"]}?enablejsapi=1&origin={origin}&rel=0&autoplay=1";
 
     var characters = Model.Where(x => x.ResourceType == ResourceType.Character).ToList();
     var selectCharacterModel = new ResourceSelection("select-character-boxes", characters);
@@ -64,8 +68,8 @@
 
 <div style="display: flex;" id="menu-wrapper">
     <div style="width: 70%; display: flex; flex-direction: column;">
-        <div style="height: 80vh">
-            Youtube Video Placeholder
+        <div style="width: 100%; padding-bottom: 56.25%; position: relative;">
+            <iframe id="ytplayer" src="@youtubeIframeUrl" frameborder="0"></iframe>
         </div>
         <div style="display: flex;">
             <div style="width: 50%;" id="quotes"></div>
@@ -173,14 +177,14 @@
                 <button id="no-cancel">No, Cancel!</button>
             </p>
         </div>
-        <div id="episode-submitted">
+        <div id="episode-submitted" class="display-none">
             <h3>Success!</h3>
             <p>The episode was submitted successfully.</p>
             <p>
                 <a asp-controller="@VideoController.Controllername" asp-action="@nameof(VideoController.Index)" asp-route-id="@ViewData["Id"]">View Result</a>
             </p>
         </div>
-        <div id="episode-submission-failed">
+        <div id="episode-submission-failed" class="display-none">
             <h3>The episode was not submitted successfully :(</h3>
             <p>
                 Error message:<br/>

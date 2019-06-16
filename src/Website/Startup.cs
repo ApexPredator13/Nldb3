@@ -137,11 +137,15 @@ namespace Website
             {
                 var csp = new StringValues(
                     "default-src 'self'; " +
-                    "child-src 'self' www.youtube.com; " +
+                    "child-src 'self'; " +
+                    "frame-src https://www.youtube.com; " +
                     "style-src 'self' 'unsafe-inline' fonts.googleapis.com; " +
                     "font-src 'self' fonts.gstatic.com; " +
                     "block-all-mixed-content; " +
-                    (env.IsDevelopment() ? "script-src 'self' 'unsafe-eval' www.youtube.com" : string.Empty));
+                    (env.IsDevelopment() 
+                        ? "script-src 'self' 'unsafe-eval' www.youtube.com s.ytimg.com" 
+                        : "script-src 'self' www.youtube.com s.ytimg.com")
+                    );
 
                 context.Response.Headers.Add("Content-Security-Policy", csp);
                 return next();
