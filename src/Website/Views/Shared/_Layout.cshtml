@@ -14,15 +14,19 @@
         <link rel="stylesheet" href="~/css/src/character-box.css" />
         <link rel="stylesheet" href="~/css/src/select-floor.css" />
         <link rel="stylesheet" href="~/css/src/history.css" />
+        <link rel="stylesheet" href="~/css/src/video-page.css" />
+        <link rel="stylesheet" href="~/css/src/navigation.css" />
     </environment>
     <environment include="Production">
         <link rel="stylesheet" href="~/css/dist/bundle.min.css" />
     </environment>
 </head>
 <body>
-    <main role="main" class="pb-3">
+    <partial name="_NavigationPartial" />
+    <main role="main" class="w80">
         @RenderBody()
     </main>
+    
     @RenderSection("Scripts", required: false)
 </body>
 </html>

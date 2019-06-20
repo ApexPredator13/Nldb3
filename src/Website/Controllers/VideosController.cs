@@ -10,6 +10,8 @@ namespace Website.Controllers
 {
     public class VideosController : Controller
     {
+        public const string Controllername = "Videos";
+
         private readonly IVideoRepository _videoRepository;
 
         public VideosController(IVideoRepository videoRepository)

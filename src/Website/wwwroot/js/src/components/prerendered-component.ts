@@ -25,7 +25,7 @@ export class PrerenderedComponent {
 
         const component = componentMap.get(prerenderedComponentId);
         if (!component) {
-            throw "no component with this ID exists!";
+            throw `no component with ID ${prerenderedComponentId} exists!`;
         }
 
         return component;

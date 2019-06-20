@@ -484,7 +484,15 @@ namespace Website.Data
             using var c = await _connector.Connect();
             using var q = new NpgsqlCommand(s.ToString(), c);
             q.Parameters.AddRange(parameters.ToArray());
-            int dbChanges = await q.ExecuteNonQueryAsync();
+            try
+            {
+                int dbChanges = await q.ExecuteNonQueryAsync();
+            }
+            catch(Exception e)
+            {
+                int i = 0;
+                throw e;
+            }
         }
 
         public async Task<NldbVideo?> GetVideoById(string videoId)

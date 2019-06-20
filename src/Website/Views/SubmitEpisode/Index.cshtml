@@ -28,6 +28,8 @@
     var itemsModel = new ResourceSelection("select-item-dd", items);
     var touchedItemsModel = new ResourceSelection("select-touched-item-dd", items);
 
+    var startingItemsModel = new ResourceSelection("select-starting-item-dd", items);
+
     var itemSources = Model.Where(x => x.ResourceType == ResourceType.ItemSource).ToList();
     var itemSourceModel = new ResourceSelection("select-item-source-dd", itemSources);
     var itemSourceTopTenModel = new ResourceSelection("select-item-source-boxes", itemSources.Take(10).ToList());
@@ -83,6 +85,20 @@
         <div id="select-character" class="display-normal">
             <h3>Which Character did NL choose?</h3>
             <partial name="_IsaacResourceBoxesPartial" model="selectCharacterModel" />
+        </div>
+
+        <div id="select-starting-item" class="display-none">
+            <h3 id="starting-items-header">Did the character start with any items?</h3>
+            <partial name="_DropdownPartial" model="startingItemsModel" />
+            <p><button id="cancel-starting-item-input">No more starting items</button></p>
+        </div>
+
+        <div id="more-starting-items">
+            <h3>Was there another starting item?</h3>
+            <p>
+                <button id="more-starting-items">Yes, there was more</button>
+                <button id="no-more-starting-items">No, that was it!</button>
+            </p>
         </div>
 
         <div id="select-mode" class="display-none">

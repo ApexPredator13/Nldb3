@@ -66,7 +66,7 @@ const showSubmitEpisodeErrorMessage = (failureResponse: Response) => {
         'select-character', 'select-mode', 'select-floor', 'select-curse', 'select-gameplay-events', 'select-absorber', 'select-absorbed-item',
         'select-item-source', 'select-item', 'select-touched-item-source', 'select-touched-item', 'select-boss', 'select-reroll', 'select-enemy',
         'next-run', 'select-pill', 'select-tarot', 'select-rune', 'select-trinket', 'select-other-consumable',
-        'end-of-video-confirmation', 'episode-submission-failed', 'episode-submitted'
+        'end-of-video-confirmation', 'episode-submission-failed', 'episode-submitted', 'select-starting-item', 'more-starting-items'
     );
 
     const episodeManager = new EpisodeManager();
@@ -81,8 +81,20 @@ const showSubmitEpisodeErrorMessage = (failureResponse: Response) => {
     const curseSearchBox = new SearchBox('select-curse-dd');
     curseSearchBox.elementWasSelected.subscribe(c => {
         episodeManager.AddGameplayEvent(c, GameplayEventType.Curse, 1);
-        show('select-gameplay-events');
+        if (episodeManager.CharacterIsOnFirstFloor()) {
+            show('select-starting-item');
+        } else {
+            show('select-gameplay-events');
+        }
         curseSearchBox.Reset();
+    });
+
+    const startingItemsSearchBox = new SearchBox('select-starting-item-dd');
+    startingItemsSearchBox.elementWasSelected.subscribe(i => {
+        episodeManager.AddGameplayEvent(i, GameplayEventType.ItemCollected, 1);
+        episodeManager.AddGameplayEvent('StartingItem', GameplayEventType.ItemCollected, 2);
+        show('more-starting-items');
+        startingItemsSearchBox.Reset();
     });
 
     const floorSearchBox = new SearchBox('select-floor-dd');
@@ -244,6 +256,9 @@ const showSubmitEpisodeErrorMessage = (failureResponse: Response) => {
     (<HTMLButtonElement>document.getElementById('next-floor')).addEventListener('click', e => { console.log('next floor!'); e.preventDefault(); e.stopPropagation(); show('select-floor'); });
     (<HTMLButtonElement>document.getElementById('end-of-video')).addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); show('end-of-video-confirmation'); });
     (<HTMLButtonElement>document.getElementById('end-of-video-btn')).addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); show('end-of-video-confirmation'); });
+    (<HTMLButtonElement>document.getElementById('more-starting-items')).addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); show('select-starting-item'); });
+    (<HTMLButtonElement>document.getElementById('no-more-starting-items')).addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); show('select-gameplay-events'); });
+    (<HTMLButtonElement>document.getElementById('cancel-starting-item-input')).addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); show('select-gameplay-events'); });
 
     // 'submit episode' events
     const yesItsOverButton = <HTMLButtonElement>document.getElementById('yes-its-over-button');

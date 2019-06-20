@@ -8,12 +8,14 @@ html {
     background-position: top left, top right;
     background-repeat: repeat-y, repeat-y;
     overflow-x: hidden;
-    min-height: 100vh;
+    height: 100%;
     font-family: 'Poppins', sans-serif;
     text-align: center;
 }
 body {
     color: white;
+    display: flex;
+    height: 100%;
 }
 a, a:visited, a:active {
     color: white;
@@ -42,4 +44,16 @@ a:hover {
 }
 .gray {
     color: gray;
+}
+.w80 {
+    width: 80%;
+}
+.w20 {
+    width: 20%;
+}
+.w90 {
+    width: 90%;
+}
+.w10 {
+    width: 10%;
 }

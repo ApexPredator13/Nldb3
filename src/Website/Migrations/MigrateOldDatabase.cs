@@ -1085,7 +1085,7 @@ namespace Website.Migrations
                                 while (r.Read())
                                 {
                                     // absorbed item with VOID
-                                    if (r.GetString(0) == "AbsorbedItem")
+                                    if (r.GetString(1) == "AbsorbedItem")
                                     {
                                         var e = new SubmittedGameplayEvent()
                                         {

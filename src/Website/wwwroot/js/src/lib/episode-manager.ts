@@ -51,6 +51,16 @@ export class EpisodeManager {
         });
     }
 
+    CharacterIsOnFirstFloor(): boolean {
+        if (!this.episode.PlayedCharacters || this.episode.PlayedCharacters.length === 0) {
+            return false;
+        }
+        if (this.episode.PlayedCharacters[this.currentCharacter].PlayedFloors && this.episode.PlayedCharacters[this.currentCharacter].PlayedFloors.length === 1) {
+            return true;
+        }
+        return false;
+    }
+
     AddCharacter(id: string) {
         this.episode.PlayedCharacters.push({
             CharacterId: id,
