@@ -1,5 +1,16 @@
 ﻿<!DOCTYPE html>
 <html>
+
+@{
+    bool showNavigation = true;
+    if (ViewData.ContainsKey("HideNavigation") && (bool)ViewData["HideNavigation"] == true)
+    {
+        showNavigation = false;
+    }
+
+    var mainTagWidthClass = showNavigation ? "w80" : "w100";
+}
+
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
@@ -22,11 +33,14 @@
     </environment>
 </head>
 <body>
-    <partial name="_NavigationPartial" />
-    <main role="main" class="w80">
+    @if (showNavigation)
+    {
+        <partial name="_NavigationPartial" />
+    }
+    <main role="main" class="@mainTagWidthClass">
         @RenderBody()
     </main>
-    
+
     @RenderSection("Scripts", required: false)
 </body>
 </html>

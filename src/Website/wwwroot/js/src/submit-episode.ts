@@ -66,7 +66,8 @@ const showSubmitEpisodeErrorMessage = (failureResponse: Response) => {
         'select-character', 'select-mode', 'select-floor', 'select-curse', 'select-gameplay-events', 'select-absorber', 'select-absorbed-item',
         'select-item-source', 'select-item', 'select-touched-item-source', 'select-touched-item', 'select-boss', 'select-reroll', 'select-enemy',
         'next-run', 'select-pill', 'select-tarot', 'select-rune', 'select-trinket', 'select-other-consumable',
-        'end-of-video-confirmation', 'episode-submission-failed', 'episode-submitted', 'select-starting-item', 'more-starting-items'
+        'end-of-video-confirmation', 'episode-submission-failed', 'episode-submitted', 'select-starting-item', 'more-starting-items', 'select-starting-trinket',
+        'select-more-starting-trinkets'
     );
 
     const episodeManager = new EpisodeManager();
@@ -237,7 +238,12 @@ const showSubmitEpisodeErrorMessage = (failureResponse: Response) => {
         tarotSearchBox.Reset();
     });
 
-
+    const selectStartingTrinketSearchBox = new SearchBox('select-starting-trinket-dd');
+    selectStartingTrinketSearchBox.elementWasSelected.subscribe(t => {
+        episodeManager.AddGameplayEvent(t, GameplayEventType.StartingTrinket, 1);
+        show('select-more-starting-trinkets');
+        selectStartingTrinketSearchBox.Reset();
+    });
 
     // loads all button logic that is not part of a specific prerendered component from the server
     loadDivElementById('sucked-up-item-box', wrapper).addEventListener('click', () => show('select-absorber'));
@@ -250,6 +256,7 @@ const showSubmitEpisodeErrorMessage = (failureResponse: Response) => {
     loadDivElementById('select-rune-box', wrapper).addEventListener('click', () => show('select-rune'));
     loadDivElementById('select-trinket-box', wrapper).addEventListener('click', () => { show('select-trinket'); trinketSearchBox.Focus(); });
     loadDivElementById('select-other-consumable-box', wrapper).addEventListener('click', () => show('select-other-consumable'));
+    loadDivElementById('touched-item-box', wrapper).addEventListener('click', () => show('select-touched-item-source-dd'));
     (<HTMLButtonElement>document.getElementById('another-run-btn')).addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); show('select-character') });
     (<HTMLButtonElement>document.getElementById('victory-lap-btn')).addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); show('select-floor'); floorSearchBox.Focus; });
     (<HTMLButtonElement>document.getElementById('no-cancel')).addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); show('select-gameplay-events'); });
@@ -257,8 +264,11 @@ const showSubmitEpisodeErrorMessage = (failureResponse: Response) => {
     (<HTMLButtonElement>document.getElementById('end-of-video')).addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); show('end-of-video-confirmation'); });
     (<HTMLButtonElement>document.getElementById('end-of-video-btn')).addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); show('end-of-video-confirmation'); });
     (<HTMLButtonElement>document.getElementById('more-starting-items')).addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); show('select-starting-item'); });
-    (<HTMLButtonElement>document.getElementById('no-more-starting-items')).addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); show('select-gameplay-events'); });
-    (<HTMLButtonElement>document.getElementById('cancel-starting-item-input')).addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); show('select-gameplay-events'); });
+    (<HTMLButtonElement>document.getElementById('no-more-starting-items')).addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); show('select-starting-trinket'); });
+    (<HTMLButtonElement>document.getElementById('cancel-starting-item-input')).addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); show('select-starting-trinket'); });
+    (<HTMLButtonElement>document.getElementById('skip-trinket-selection')).addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); show('select-gameplay-events'); });
+    (<HTMLButtonElement>document.getElementById('no-more-starting-trinkets')).addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); show('select-gameplay-events'); });
+    (<HTMLButtonElement>document.getElementById('more-starting-trinkets')).addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); show('select-starting-trinket'); });
 
     // 'submit episode' events
     const yesItsOverButton = <HTMLButtonElement>document.getElementById('yes-its-over-button');

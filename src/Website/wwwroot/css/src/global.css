@@ -57,3 +57,31 @@ a:hover {
 .w10 {
     width: 10%;
 }
+.w100 {
+    width: 100%;
+}
+button {
+    background-color: beige;
+    padding: 0.5rem;
+    border: 1px solid white;
+    border-radius: 0.3rem;
+    cursor: pointer;
+}
+button:hover {
+    border-color: orange;
+}
+
+.btn-green {
+    background-color: yellowgreen;
+    border-color: lawngreen;
+}
+.btn-green:hover {
+    border-color: darkgreen;
+}
+.btn-red {
+    background-color: orange;
+    border-color: orangered;
+}
+.btn-red:hover {
+    border-color: red;
+}

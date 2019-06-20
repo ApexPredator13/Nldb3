@@ -146,6 +146,7 @@ export class EpisodeManager {
             case GameplayEventType.TarotCard:
             case GameplayEventType.Trinket:
             case GameplayEventType.CharacterReroll:
+            case GameplayEventType.StartingTrinket:
                 this.currentGameplayEvent.Player = this.currentPlayer;
                 if (this.currentGameplayEvent.RelatedResource1 && this.currentGameplayEvent.Player) {
                     this.episode.PlayedCharacters[this.currentCharacter].PlayedFloors[this.currentFloor].GameplayEvents.push(Object.assign({}, this.currentGameplayEvent));

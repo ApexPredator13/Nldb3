@@ -1,6 +1,7 @@
 ﻿@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment env
 @{ 
     ViewData["Title"] = "Submit Episode";
+    ViewData["HideNavigation"] = true;
 
     var origin = env.EnvironmentName == "Development" ? "https://localhost:5005" : "https://www.northernlion-db.com";
     var youtubeIframeUrl = $"https://www.youtube.com/embed/{ViewData["Id"]}?enablejsapi=1&origin={origin}&rel=0&autoplay=1";
@@ -64,6 +65,8 @@
 
     var trinkets = Model.Where(x => x.ResourceType == ResourceType.Trinket).ToList();
     var trinketsModel = new ResourceSelection("select-trinket-dd", trinkets);
+
+    var startingTrinketsModel = new ResourceSelection("select-starting-trinket-dd", trinkets);
 }
 
 @model List<IsaacResource>
@@ -93,12 +96,24 @@
             <p><button id="cancel-starting-item-input">No more starting items</button></p>
         </div>
 
-        <div id="more-starting-items">
+        <div id="more-starting-items" class="display-none">
             <h3>Was there another starting item?</h3>
             <p>
                 <button id="more-starting-items">Yes, there was more</button>
                 <button id="no-more-starting-items">No, that was it!</button>
             </p>
+        </div>
+
+        <div id="select-starting-trinket" class="display-none">
+            <h3>Did the character start with a Trinket?</h3>
+            <p><button id="skip-trinket-selection">No, skip!</button></p>
+            <partial name="_DropdownPartial" model="startingTrinketsModel" />
+        </div>
+
+        <div id="select-more-starting-trinkets" class="display-none">
+            <h3>Did the character start with additional trinkets?</h3>
+            <p><button id="no-more-starting-trinkets">No, that's it!</button></p>
+            <p><button id="more-starting-trinkets">Yes, the character has more trinkets!</button></p>
         </div>
 
         <div id="select-mode" class="display-none">
@@ -189,8 +204,8 @@
             <h3>Please confirm</h3>
             <p>This is the end of the video?</p>
             <p>
-                <button id="yes-its-over-button">Yes, it's over!</button>
-                <button id="no-cancel">No, Cancel!</button>
+                <button id="yes-its-over-button" class="btn-red">Yes, it's over!</button>
+                <button id="no-cancel" class="btn-green">No, Cancel!</button>
             </p>
         </div>
         <div id="episode-submitted" class="display-none">
@@ -217,9 +232,17 @@
                     <div>Item Collected</div>
                     <div style="background: url('/img/gameplay_events.png') -70px 0px; width:35px; height: 35px; display: inline-block; vertical-align: bottom"></div>
                 </div>
+                <div class="box" id="touched-item-box">
+                    <div>Touched Item</div>
+                    <div style="background: url('/img/gameplay_events.png') -595px 0px; width:35px; height: 35px; display: inline-block; vertical-align: bottom"></div>
+                </div>
                 <div class="box" id="bossfight-box">
                     <div>Bossfight</div>
                     <div style="background: url('/img/gameplay_events.png') -140px 0px; width:35px; height: 35px; display: inline-block; vertical-align: bottom"></div>
+                </div>
+                <div class="box" id="select-trinket-box">
+                    <div>Trinket Taken</div>
+                    <div style="background: url('/img/gameplay_events.png') -280px 0px; width:35px; height: 35px; display: inline-block; vertical-align: bottom"></div>
                 </div>
                 <div class="box" id="character-reroll-box">
                     <div>Character Reroll</div>
@@ -249,10 +272,6 @@
                 <div class="box" id="select-rune-box">
                     <div>Rune</div>
                     <div style="background: url('/img/gameplay_events.png') -245px 0px; width:35px; height: 35px; display: inline-block; vertical-align: bottom"></div>
-                </div>
-                <div class="box" id="select-trinket-box">
-                    <div>Trinket</div>
-                    <div style="background: url('/img/gameplay_events.png') -280px 0px; width:35px; height: 35px; display: inline-block; vertical-align: bottom"></div>
                 </div>
                 <div class="box" id="select-other-consumable-box">
                     <div>Other Consumable</div>

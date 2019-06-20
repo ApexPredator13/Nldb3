@@ -20,6 +20,7 @@
         CharacterReroll,
         WonTheRun,
         LostTheRun,
-        ItemTouched
+        ItemTouched,
+        StartingTrinket
     }
 }

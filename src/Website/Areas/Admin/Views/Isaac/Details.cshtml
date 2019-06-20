@@ -21,7 +21,7 @@
 <h3>Icon</h3>
 <p>
     Current Icon:<br/>
-    <div style="background: url('/img/isaac.png') @(Model.X is 0 ? "0px" : $"-{Model.X}px") @(Model.Y is 0 ? "0px" : $"-{Model.Y}px") transparent; width: @(Model.W)px; height: @(Model.H)px"></div>
+    <div style="background: url('/img/isaac.png') -@(Model.X is 0 ? "0px" : $"-{Model.X}px") -@(Model.Y is 0 ? "0px" : $"-{Model.Y}px") transparent; width: @(Model.W)px; height: @(Model.H)px"></div>
 </p>
 <p>
     <a asp-action="@nameof(IsaacController.ChangeIcon)" asp-route-id="@Model.Id">Change Icon</a>
