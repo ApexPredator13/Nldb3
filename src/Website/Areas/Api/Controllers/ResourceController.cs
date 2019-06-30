@@ -8,6 +8,8 @@ using Website.Models.Database;
 using Website.Models.Database.Enums;
 using Website.Services;
 using Website.Models.SubmitEpisode;
+using Website.Models;
+using Website.Models.Resource;
 
 namespace Website.Areas.Api.Controllers
 {
@@ -15,10 +17,12 @@ namespace Website.Areas.Api.Controllers
     public class ResourceController : Controller
     {
         private readonly IIsaacRepository _isaacRepository;
+        private readonly IBarGraphCreator _barGraphCreator;
 
-        public ResourceController(IIsaacRepository isaacRepository)
+        public ResourceController(IIsaacRepository isaacRepository, IBarGraphCreator barGraphCreator)
         {
             _isaacRepository = isaacRepository;
+            _barGraphCreator = barGraphCreator;
         }
 
         [HttpPost("history")]
@@ -84,6 +88,28 @@ namespace Website.Areas.Api.Controllers
             {
                 return new List<IsaacResource>();
             }
+        }
+
+        [HttpGet("{id}/OverTime")]
+        public async Task<ChartObject> Dataset([FromRoute] string id, [FromQuery] IsaacResourceSearchOptions searchOptions)
+        {
+            var resourceNameTask = _isaacRepository.GetResourceNameFromId(id);
+            var datesTask = _isaacRepository.GetEncounteredIsaacResourceTimestamps(id, 1);
+
+            var name = await resourceNameTask;
+            var dates = await datesTask;
+
+            if (dates.Count is 0)
+            {
+                dates = await _isaacRepository.GetEncounteredIsaacResourceTimestamps(id, 2);
+            }
+
+            if (name is null)
+            {
+                name = "Data";
+            }
+
+            return await _barGraphCreator.ThroughoutTheLetsPlay(name, dates, searchOptions);
         }
     }
 }

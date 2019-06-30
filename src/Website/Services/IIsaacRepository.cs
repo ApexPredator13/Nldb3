@@ -33,5 +33,7 @@ namespace Website.Services
         Task<List<PlayedCharacter>> GetPlayedCharactersForVideo(string videoId, int? submissionId = null);
         Task<List<SubmittedEpisode>> GetSubmittedEpisodesForVideo(string videoId, int? submissionId = null);
         Task<int> AddTag(string id, Effect tag);
+        Task<List<DateTime>> GetEncounteredIsaacResourceTimestamps(string isaacResourceId, int resourceNumber);
+        Task<string?> GetResourceNameFromId(string id);
     }
 }

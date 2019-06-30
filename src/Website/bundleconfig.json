@@ -10,5 +10,21 @@
       "wwwroot/css/src/table.css",
       "wwwroot/css/src/video-list.css"
     ]
+  },
+  {
+    "outputFileName": "wwwroot/css/dist/bundle.min.css",
+    "inputFiles": [
+      "wwwroot/css/src/character-box.css",
+      "wwwroot/css/src/charts.css",
+      "wwwroot/css/src/dropdown-menu.css",
+      "wwwroot/css/src/forms.css",
+      "wwwroot/css/src/global.css",
+      "wwwroot/css/src/history.css",
+      "wwwroot/css/src/navigation.css",
+      "wwwroot/css/src/select-floor.css",
+      "wwwroot/css/src/table.css",
+      "wwwroot/css/src/video-list.css",
+      "wwwroot/css/src/video-page.css"
+    ]
   }
 ]

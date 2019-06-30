@@ -47,7 +47,6 @@ namespace Website
 
             services.AddTransient<IDbConnector, DbConnector>();
             services.AddTransient<IDbManager, DbManager>();
-            services.AddScoped<IEmailService, EmailService>();
             services.AddTransient<IMigrateOldDatabase, MigrateOldDatabase>();
             services.AddTransient<IIsaacIconManager, IsaacIconManager>();
 
@@ -55,6 +54,8 @@ namespace Website
             services.AddScoped<IModRepository, ModRepository>();
             services.AddScoped<IVideoRepository, VideoRepository>();
             services.AddScoped<IQuoteRepository, QuoteRepository>();
+            services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<IBarGraphCreator, BarGraphCreator>();
 
             // hangfire
             services.AddHangfire(config => config
@@ -142,8 +143,8 @@ namespace Website
                     "font-src 'self' fonts.gstatic.com; " +
                     "block-all-mixed-content; " +
                     (env.IsDevelopment() 
-                        ? "script-src 'self' 'unsafe-eval' www.youtube.com s.ytimg.com; "
-                        : "script-src 'self' www.youtube.com; s.ytimg.com")
+                        ? "script-src 'self' 'unsafe-eval' 'unsafe-inline' www.youtube.com s.ytimg.com https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.bundle.min.js; "
+                        : "script-src 'self' www.youtube.com; s.ytimg.com https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.bundle.min.js; ")
                     );
 
                 context.Response.Headers.Add("Content-Security-Policy", csp);
@@ -184,6 +185,7 @@ namespace Website
                 endpoints.MapControllerRoute("video", "/Video/{id}", new { Controller = Controllers.VideoController.Controllername, Action = nameof(Controllers.VideoController.Index) });
                 endpoints.MapControllerRoute("submitVideo", "/SubmitEpisode/{id}", new { Controller = Controllers.SubmitEpisodeController.Controllername, Action = nameof(Controllers.SubmitEpisodeController.Index) });
                 endpoints.MapControllerRoute("area", "{area:exists}/{controller=Home}/{action=Index}/{id?}");
+                endpoints.MapControllerRoute("resource", "{id}", new { Controller = Controllers.ResourceController.Controllername, Action = nameof(Controllers.ResourceController.Index) });
                 endpoints.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
             });
 

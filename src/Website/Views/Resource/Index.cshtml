@@ -1,0 +1,41 @@
+﻿@{
+    ViewData["Title"] = Model.Name;
+    var emptyResource = new IsaacResource()
+    {
+        Name = "loading...",
+        Id = "",
+    };
+    var initialEmptyComparisonModel = new ResourceSelection("comparison-dd", new List<IsaacResource>());
+}
+
+@model IsaacResource
+
+
+<h1>@Model.Name</h1>
+<hr/>
+
+<div id="chart-options-menu">
+    <span id="chart-options-link">Show Options</span>
+    
+    <div id="chart-options-box-container">
+        <div>
+            <p>Compare to...</p>
+            <partial name="_DropdownPartial" model="@initialEmptyComparisonModel" />
+            <p><br/><br/>loading resources...</p>
+        </div>
+        <div>
+            <button class="btn-green" id="change-colors">Randomize Colors</button><br />
+            <button class="btn-green" id="hide-background">Hide Background</button><br />
+            <button class="btn-red" id="reset-chart">Reset Chart</button>
+        </div>
+    </div>
+    
+</div>
+
+<canvas id="throughout-the-letsplay" class="over-time chart"></canvas>
+
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.bundle.min.js"></script>
+    <script src="~/js/dist/charts.min.js"></script>
+}

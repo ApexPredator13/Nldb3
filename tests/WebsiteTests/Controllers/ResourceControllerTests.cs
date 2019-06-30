@@ -14,7 +14,7 @@ namespace WebsiteTests.Controllers
         public void T1()
         {
             // arrange
-            var controller = new ResourceController(null);
+            var controller = new ResourceController(null, null);
 
             // act
             var result = controller.GetEffectNumber("reGENeratION", "Drops", "catacombsxl", "AAAAAAAAAAAAAAAAA");

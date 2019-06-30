@@ -1,8 +1,8 @@
-﻿@{ 
+﻿@{
     ViewData["Title"] = $"Overview for '{Model.Name}'";
 }
 
-@model IsaacResource
+@model                 IsaacResource
 
 <h1>Overview for @Model.Name</h1>
 <hr/>
@@ -17,17 +17,20 @@
 <p>
     Current resource ID is '@Model.Id' - <a asp-action="@nameof(IsaacController.ChangeId)" asp-route-id="@Model.Id">Change</a>
 </p>
+<hr/>
 
 <h3>Icon</h3>
 <p>
     Current Icon:<br/>
-    <div style="background: url('/img/isaac.png') -@(Model.X is 0 ? "0px" : $"-{Model.X}px") -@(Model.Y is 0 ? "0px" : $"-{Model.Y}px") transparent; width: @(Model.W)px; height: @(Model.H)px"></div>
+    <div style="background: url('/img/isaac.png') @(Model.X is 0 ? "0px" : $"-{Model.X}px") @(Model.Y is 0 ? "0px" : $"-{Model.Y}px") transparent; width: @(Model.W)px; height: @(Model.H)px; display: inline-block; background-color: rgba(255,255,255,0.5);"></div>
 </p>
 <p>
     <a asp-action="@nameof(IsaacController.ChangeIcon)" asp-route-id="@Model.Id">Change Icon</a>
 </p>
+<hr />
 
 
 <h3>Existance</h3>
 <p>
-    The resource currently exists in: '@Model.ExistsIn.ToString()'; - <a asp-action="@nameof(IsaacController.ChangeExistsIn)">Change</a></p>
+    The resource currently exists in: '@Model.ExistsIn.ToString()'; - <a asp-action="@nameof(IsaacController.ChangeExistsIn)">Change</a>
+</p>

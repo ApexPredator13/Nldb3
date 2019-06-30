@@ -27,6 +27,44 @@ namespace Website.Data
             => new NpgsqlBox(-y, x + (w - 1), -y - (h - 1), x);
 
 
+        public async Task<string?> GetResourceNameFromId(string id)
+        {
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand("SELECT name FROM isaac_resources WHERE id = @Id;", c);
+            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, id);
+            using var r = await q.ExecuteReaderAsync();
+            if (r.HasRows)
+            {
+                r.Read();
+                return r.GetString(0);
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public async Task<List<DateTime>> GetEncounteredIsaacResourceTimestamps(string isaacResourceId, int resourceNumber)
+        {
+            var result = new List<DateTime>();
+
+            string resourceNumberString = resourceNumber is 1 ? "resource_one" : "resource_two";
+
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand($"SELECT v.published FROM gameplay_events g LEFT JOIN videos v ON v.id = g.video WHERE g.{resourceNumberString} = @Id ORDER BY v.published ASC;", c);
+            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, isaacResourceId);
+            using var r = await q.ExecuteReaderAsync();
+            if (r.HasRows)
+            {
+                while (r.Read())
+                {
+                    result.Add(r.GetDateTime(0));
+                }
+            }
+
+            return result;
+        }
+
         public async Task<History> GetHistory(SubmittedCompleteEpisode episode)
         {
             if (episode.PlayedCharacters is null || episode.PlayedCharacters.Count is 0)

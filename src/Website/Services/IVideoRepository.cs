@@ -24,5 +24,7 @@ namespace Website.Services
         Task<int> UpdateVideo(Google.Apis.YouTube.v3.Data.Video updatedVideo);
         Task<bool> VideoExists(string videoId);
         Task<NldbVideoResult> GetVideos(GetVideos request);
+        Task<DateTime> GetMostRecentVideoReleaseDate();
+        Task<DateTime> GetFirstVideoReleaseDate();
     }
 }

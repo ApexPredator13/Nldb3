@@ -44,6 +44,20 @@ namespace Website.Data
             return false;
         }
 
+        public async Task<DateTime> GetMostRecentVideoReleaseDate()
+        {
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand("SELECT MAX(published) FROM videos;", c);
+            return Convert.ToDateTime(await q.ExecuteScalarAsync());
+        }
+
+        public async Task<DateTime> GetFirstVideoReleaseDate()
+        {
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand("SELECT MIN(published) FROM videos;", c);
+            return Convert.ToDateTime(await q.ExecuteScalarAsync());
+        }
+
         public async Task<int> CountVideos(GetVideos? request = null)
         {
             if (request is null)
@@ -115,7 +129,7 @@ namespace Website.Data
                 ApplicationName = "The Northernlion Database"
             };
 
-            var youtubeService = new YouTubeService(youtubeServiceInitializer);
+            using var youtubeService = new YouTubeService(youtubeServiceInitializer);
             VideosResource.ListRequest listRequest = youtubeService.Videos.List("snippet,contentDetails,statistics");
             listRequest.Id = string.Join(',', videoIds);
 
@@ -484,15 +498,7 @@ namespace Website.Data
             using var c = await _connector.Connect();
             using var q = new NpgsqlCommand(s.ToString(), c);
             q.Parameters.AddRange(parameters.ToArray());
-            try
-            {
-                int dbChanges = await q.ExecuteNonQueryAsync();
-            }
-            catch(Exception e)
-            {
-                int i = 0;
-                throw e;
-            }
+            await q.ExecuteNonQueryAsync();
         }
 
         public async Task<NldbVideo?> GetVideoById(string videoId)

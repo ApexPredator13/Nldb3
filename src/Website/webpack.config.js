@@ -8,7 +8,9 @@ module.exports = {
         resource_selector: './wwwroot/js/src/resource-selector.ts',
         video_loader: './wwwroot/js/src/video-loader.ts',
         submit_episode: './wwwroot/js/src/submit-episode.ts',
-        set_admin_mode: './wwwroot/js/src/set-admin-mode.ts'
+        set_admin_mode: './wwwroot/js/src/set-admin-mode.ts',
+        drag_and_drop: './wwwroot/js/src/drag-and-drop.ts',
+        charts: './wwwroot/js/src/charts.ts'
     },
     output: {
         path: path.resolve(__dirname, 'wwwroot', 'js', 'dist'),
@@ -32,5 +34,6 @@ module.exports = {
     },
     plugins: [
         new CleanWebpackPlugin()
-    ]
+    ],
+    mode: 'production'
 }

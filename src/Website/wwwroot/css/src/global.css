@@ -3,16 +3,16 @@
     padding: 0;
 }
 html {
-    background-color: #000;
-    background-image: url('/img/background.jpg'), url('/img/background2.jpg');
-    background-position: top left, top right;
-    background-repeat: repeat-y, repeat-y;
     overflow-x: hidden;
     height: 100%;
     font-family: 'Poppins', sans-serif;
     text-align: center;
 }
 body {
+    background-color: #000;
+    background-image: url('/img/background.jpg'), url('/img/background2.jpg');
+    background-position: top left, top right;
+    background-repeat: repeat-y, repeat-y;
     color: white;
     display: flex;
     height: 100%;
@@ -85,3 +85,5 @@ button:hover {
 .btn-red:hover {
     border-color: red;
 }
+
+

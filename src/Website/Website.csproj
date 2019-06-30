@@ -11,7 +11,9 @@
 
   <ItemGroup>
     <Content Remove="bundleconfig.json" />
+    <Content Remove="wwwroot\js\src\charts.ts" />
     <Content Remove="wwwroot\js\src\dom-operations.ts" />
+    <Content Remove="wwwroot\js\src\drag-and-drop.ts" />
     <Content Remove="wwwroot\js\src\enum-converters.ts" />
     <Content Remove="wwwroot\js\src\interfaces\get-resource-request.ts" />
     <Content Remove="wwwroot\js\src\interfaces\History.ts" />

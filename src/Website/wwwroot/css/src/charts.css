@@ -1,0 +1,71 @@
+﻿.chart {
+    background-color: rgba(255,255,255,0.1);
+    border-radius: 1rem;
+}
+
+.over-time {
+    height: 300px;
+    width: 95% !important;
+    margin: 1rem auto;
+}
+
+#add-comparison span, #close-settings {
+    text-decoration: underline;
+}
+#add-comparison span:hover, #close-settings:hover {
+    cursor: pointer;
+}
+
+#over-time-settings {
+    background-color: rgba(255,255,255,0.1);
+    border-radius: 1rem;
+    margin: 1rem auto;
+    width: 95%;
+    overflow: visible;
+    height: 450px;
+}
+#over-time-settings > div {
+    display: inline-block;
+}
+
+#chart-options-menu {
+    width: 500px;
+    height: 500px;
+    position: fixed;
+    bottom: -450px;
+    left: -300px;
+    background-color: black;
+    border-top: 3px solid white;
+    border-right: 3px solid white;
+    color: white;
+    border-top-right-radius: 1rem;
+    transition: 0.2s ease-in-out;
+}
+
+#chart-options-link {
+    text-decoration: underline;
+    cursor: pointer;
+    padding-right: 1rem;
+    position: absolute;
+    top: 0.3rem;
+    right: 0.3rem;
+    font-size: 1.2rem;
+}
+
+#chart-options-link:hover {
+    cursor: pointer;
+}
+
+#chart-options-box-container {
+    display: flex;
+}
+
+#chart-options-box-container > div:first-of-type {
+    padding: 0.5rem;
+}
+#chart-options-box-container > div:last-of-type {
+    margin-top: 70px;
+}
+#chart-options-box-container button {
+    width: 150px;
+}

@@ -3,6 +3,7 @@ import { SelectedIsaacObject } from "../interfaces/selected-isaac-object";
 import { ComponentType } from "../enums/component-type";
 import { addClassIfNotExists, removeClassIfExists } from "../lib/dom-operations";
 import { PrerenderedComponent } from "./prerendered-component";
+import { IsaacResource } from "../interfaces/isaac-resource";
 
 export class SearchBox extends PrerenderedComponent {
 
@@ -10,23 +11,31 @@ export class SearchBox extends PrerenderedComponent {
 
     private static highlightClassname = 'highlight';
 
-    private lines = new Array<SelectedIsaacObject>();
+    private lines: Array<SelectedIsaacObject>;
     private selected = 0;
     private selectedLine: SelectedIsaacObject | null = null;
     private lastSelectedLine: SelectedIsaacObject | null = null;
     private searchBoxInputElement: HTMLInputElement | null = null;
+    private searchBoxComponent: HTMLDivElement;
 
     constructor(prerenderedSearchBoxElementId: string) {
         // register component
         super(ComponentType.SearchBox, prerenderedSearchBoxElementId);
-        const searchBoxComponent = super.GetComponent(ComponentType.SearchBox, prerenderedSearchBoxElementId);
 
+        this.lines = new Array<SelectedIsaacObject>();
+        this.searchBoxComponent = super.GetComponent(ComponentType.SearchBox, prerenderedSearchBoxElementId);
+        this.Initialize();
+    }
+
+    private Initialize(): void {
         // initialize search events
-        const searchElements = searchBoxComponent.getElementsByClassName('dd-searchbox');
+        console.log('initializing searchbox...');
+        const searchElements = this.searchBoxComponent.getElementsByClassName('dd-searchbox');
         if (searchElements.length > 0) {
             this.searchBoxInputElement = searchElements[0] as HTMLInputElement;
 
             // filter on input
+            console.log('initializing filter on input...');
             this.searchBoxInputElement.addEventListener('input', e => {
                 if (e.target && e.target instanceof HTMLInputElement) {
                     this.Filter(e.target.value);
@@ -35,6 +44,7 @@ export class SearchBox extends PrerenderedComponent {
             });
 
             // emit highlighted element on [Enter] keypress
+            console.log('initializing enter keypress...');
             this.searchBoxInputElement.addEventListener('keydown', e => {
                 if (e.keyCode === 13) {
                     this.Emit();
@@ -42,14 +52,16 @@ export class SearchBox extends PrerenderedComponent {
             });
 
             // searchbox focus on hover
-            searchBoxComponent.addEventListener('mouseover', () => {
+            console.log('initializing focus on hover...');
+            this.searchBoxComponent.addEventListener('mouseover', () => {
                 if (this.searchBoxInputElement) {
                     this.searchBoxInputElement.focus();
                 }
             });
 
             // navigate via up and down arrows
-            searchBoxComponent.addEventListener('keydown', e => {
+            console.log('initializing navigating via up and down arrows...');
+            this.searchBoxComponent.addEventListener('keydown', e => {
                 if (e.keyCode === 40) {
                     if (this.selected < this.lines.length) {
                         this.HighlightElement(this.selected + 1, true);
@@ -62,8 +74,10 @@ export class SearchBox extends PrerenderedComponent {
             });
         }
 
-        const searchBoxLines = searchBoxComponent.getElementsByClassName('dd-line');
+        console.log('finding searchBoxLines');
+        const searchBoxLines = this.searchBoxComponent.getElementsByClassName('dd-line');
 
+        console.log('looping through searchBoxLines', searchBoxLines);
         for (let i = 0; i < searchBoxLines.length; i++) {
             // save all lines via name (= lowercased title) in a map for quick searching
             const title = searchBoxLines[i].getAttribute('title');
@@ -178,7 +192,46 @@ export class SearchBox extends PrerenderedComponent {
         }
     }
 
+    public ReplaceAll(elements: Array<IsaacResource>): void {
+        const newSearchElement = document.createElement('div');
+        newSearchElement.classList.add('dd-search');
+        const newSearchInputElement = document.createElement('input');
+        newSearchInputElement.classList.add('dd-searchbox');
+        newSearchInputElement.setAttribute('type', 'text');
+        newSearchElement.appendChild(newSearchInputElement);
+
+        const newDropDownBox = document.createElement('div');
+        newDropDownBox.classList.add('dd-dropdown');
+        for (const e of elements) {
+            const line = document.createElement('div');
+            line.setAttribute('data-id', e.id);
+            line.setAttribute('title', e.name);
+            line.classList.add('dd-line');
+            const img = document.createElement('div');
+            img.classList.add('dd-image');
+            img.style.background = `url('/img/isaac.png') -${e.x < 0 ? 0 : e.x}px -${e.y < 0 ? 0 : e.y}px transparent`;
+            img.style.width = `${e.w < 5 ? 35 : e.w}px`;
+            img.style.height = `${e.h < 5 ? 35 : e.h}px`;
+            const text = document.createElement('div');
+            text.classList.add('dd-text');
+            text.innerText = e.name;
+            line.appendChild(img);
+            line.appendChild(text);
+            newDropDownBox.appendChild(line);
+        }
+
+        this.searchBoxComponent.innerHTML = '';
+        this.searchBoxComponent.appendChild(newSearchElement);
+        this.searchBoxComponent.appendChild(newDropDownBox);
+
+        this.Initialize();
+    }
+
     private SelectNearestElements(elementNumber: number): { ahead: number | null, behind: number | null } {
+        if (!this.lines[elementNumber]) {
+            return { ahead: null, behind: null };
+        }
+
         if (this.lines[elementNumber].visible) {
             return { ahead: elementNumber, behind: elementNumber };
         }

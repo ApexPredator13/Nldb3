@@ -9,11 +9,11 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@types/vue": "^2.0.0",
+    "@types/chart.js": "^2.7.54",
     "clean-webpack-plugin": "^2.0.1",
     "ts-loader": "^5.3.3",
     "typescript": "^3.4.4",
-    "webpack": "^4.30.0",
+    "webpack": "^4.35.0",
     "webpack-cli": "^3.3.0"
   },
   "dependencies": {
