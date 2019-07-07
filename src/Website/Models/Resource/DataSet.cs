@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace Website.Models.Resource
 {
@@ -11,6 +12,7 @@ namespace Website.Models.Resource
             BackgroundColor = new string[numberOfDatapoints];
             BorderColor = new string[numberOfDatapoints];
             BorderWidth = 1;
+            Coordinates = null;
         }
 
         [JsonProperty("label")]
@@ -27,5 +29,8 @@ namespace Website.Models.Resource
 
         [JsonProperty("borderWidth")]
         public int BorderWidth { get; set; }
+
+        [JsonProperty("coordinates")]
+        public List<Coordinates>? Coordinates { get; set; }
     }
 }

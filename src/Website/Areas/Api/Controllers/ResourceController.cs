@@ -90,13 +90,22 @@ namespace Website.Areas.Api.Controllers
             }
         }
 
-        [HttpGet("{id}/OverTime")]
-        public async Task<ChartObject> Dataset([FromRoute] string id, [FromQuery] IsaacResourceSearchOptions searchOptions)
+        [HttpGet("{id}/Stats")]
+        public async Task<ActionResult<StatsPageResult>> Dataset([FromRoute] string id, [FromQuery] IsaacResourceSearchOptions searchOptions)
         {
-            var resourceNameTask = _isaacRepository.GetResourceNameFromId(id);
+            var result = new StatsPageResult();
+
+            var resourceTask = _isaacRepository.GetResourceById(id, false);
             var datesTask = _isaacRepository.GetEncounteredIsaacResourceTimestamps(id, 1);
 
-            var name = await resourceNameTask;
+            var resource = await resourceTask;
+
+            if (resource is null)
+            {
+                return NotFound();
+            }
+
+            // history
             var dates = await datesTask;
 
             if (dates.Count is 0)
@@ -104,12 +113,29 @@ namespace Website.Areas.Api.Controllers
                 dates = await _isaacRepository.GetEncounteredIsaacResourceTimestamps(id, 2);
             }
 
-            if (name is null)
+            result.History = await _barGraphCreator.ThroughoutTheLetsPlay(resource.Name, dates, searchOptions);
+
+            // found at ranking
+            if (resource.ResourceType == ResourceType.Item)
             {
-                name = "Data";
+                var foundAtStats = await _isaacRepository.GetFoundAtRanking(id);
+                result.FoundAtStats = _barGraphCreator.IsaacResourceRanking(resource.Name, foundAtStats);
             }
 
-            return await _barGraphCreator.ThroughoutTheLetsPlay(name, dates, searchOptions);
+            // character ranking
+            if (resource.ResourceType != ResourceType.Character)
+            {
+                var characterStats = await _isaacRepository.GetCharacterRanking(id, 1);
+                if (characterStats.Count is 0)
+                {
+                    characterStats = await _isaacRepository.GetCharacterRanking(id, 2);
+                }
+                result.CharacterStats = _barGraphCreator.IsaacResourceRanking(resource.Name, characterStats);
+            }
+
+            return result;
         }
     }
 }
+
+

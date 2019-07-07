@@ -3,7 +3,10 @@ import { IsaacResource } from './interfaces/isaac-resource';
 
 declare const Chart: any;
 
-let chart: any = null;
+let historyChart: any = null;
+let foundAtChart: any = null;
+let characterChart: any = null;
+
 let compareSearchComponent: SearchBox | null = null;
 let idsInChart: Array<string> = new Array<string>();
 let originalBodyBackground = (' ' + getComputedStyle(document.body).backgroundImage as string).slice(1);
@@ -17,19 +20,40 @@ let showOptions = false;
 let canChangeOptions = true;
 
 const addComparison = (id: string) => {
-    if (chart.data.datasets.length === 1) {
-        fillDatasetWithRandomColor(chart.data.datasets[0]);
+    // randomize colors
+    if (historyChart.data.datasets.length === 1) {
+        fillDatasetWithRandomColor(historyChart.data.datasets[0]);
     }
-    if (chart.data.datasets.length < 5) {
-        fetch(`/api/resources/${id}/OverTime`).then(x => x.json()).then(result => {
-            chart.data.datasets.push(result.datasets[0]);
-            fillDatasetWithRandomColor(chart.data.datasets[chart.data.datasets.length - 1]);
-            chart.update();
+    if (foundAtChart.data.datasets.length === 1) {
+        fillDatasetWithRandomColor(foundAtChart.data.datasets[0]);
+    }
+
+    if (historyChart.data.datasets.length < 5) {
+        fetch(`/api/resources/${id}/Stats`).then(x => x.json()).then(result => {
+            historyChart.data.datasets.push(result.history.datasets[0]);
+            historyChart.update();
+            fillDatasetWithRandomColor(historyChart.data.datasets[historyChart.data.datasets.length - 1]);
+
+            if (result.found_at_stats) {
+                foundAtChart.data.datasets.push(result.found_at_stats.datasets[0]);
+                foundAtChart.update();
+                fillDatasetWithRandomColor(foundAtChart.data.datasets[foundAtChart.data.datasets.length - 1]);
+            }
+            if (result.character_stats) {
+                characterChart.data.datasets.push(result.character_stats.datasets[0]);
+                characterChart.update();
+            }
         });
+    }
+
+    // update 'found at' chart
+    if (foundAtChart.data.datasets.length === 1) {
+        fillDatasetWithRandomColor(foundAtChart.data.datasets[0]);
     }
 };
 
 const fillDatasetWithRandomColor = (dataSet: any) => {
+    console.log('dataSet is ', dataSet);
     const color = randomColor();
     for (let i = 0; i < dataSet.backgroundColor.length; i++) {
         dataSet.backgroundColor[i] = color;
@@ -98,10 +122,14 @@ const initializeShowOptionsLink = () => {
 
 
 const changeColors = (): void => {
-    for (let i = 0; i < chart.data.datasets.length; i++) {
-        fillDatasetWithRandomColor(chart.data.datasets[i]);
+    for (let i = 0; i < historyChart.data.datasets.length; i++) {
+        fillDatasetWithRandomColor(foundAtChart.data.datasets[i]);
     }
-    chart.update();
+    for (let i = 0; i < historyChart.data.datasets.length; i++) {
+        fillDatasetWithRandomColor(historyChart.data.datasets[i]);
+    }
+    historyChart.update();
+    foundAtChart.update();
 }
 
 const initializeResetChartButton = () => {
@@ -112,8 +140,18 @@ const initializeResetChartButton = () => {
             e.stopPropagation();
             e.preventDefault();
             fetchInitialChartData().then(result => {
-                chart.data = result;
-                chart.update();
+                historyChart.data = result.history;
+                historyChart.update();
+
+                if (result.found_at_stats) {
+                    foundAtChart.data = result.found_at_stats;
+                    foundAtChart.update();
+                }
+                if (result.character_stats) {
+                    characterChart.data = result.character_stats;
+                    characterChart.update();
+                }
+                
                 idsInChart.splice(1, idsInChart.length - 1);
                 (e.target as HTMLButtonElement).disabled = false;
             });
@@ -132,7 +170,7 @@ const initializeChangeColorButton = () => {
 const fetchInitialChartData = () => {
     const resourceId = window.location.href.substring(window.location.href.lastIndexOf('/') + 1);
     idsInChart = new Array<string>(resourceId);
-    return fetch(`/api/resources/${resourceId}/OverTime`).then(x => x.json());
+    return fetch(`/api/resources/${resourceId}/Stats`).then(x => x.json());
 }
 
 (() => {
@@ -144,11 +182,15 @@ const fetchInitialChartData = () => {
 
     fetchInitialChartData().then(result => {
         console.log('result is', result);
-        const canvas = document.getElementById('throughout-the-letsplay');
-        if (canvas) {
-            chart = new Chart(canvas, {
+        const historyCanvas = document.getElementById('throughout-the-letsplay');
+        const foundAtCanvas = document.getElementById('found-at-ranking');
+        const characterCanvas = document.getElementById('character-ranking')
+
+        // initialize history chart
+        if (historyCanvas && historyCanvas instanceof HTMLCanvasElement) {
+            historyChart = new Chart(historyCanvas, {
                 type: 'bar',
-                data: result,
+                data: result.history,
                 options: {
                     scales: {
                         xAxes: [{
@@ -158,6 +200,46 @@ const fetchInitialChartData = () => {
                             }
                         }]
                     }
+                }
+            });
+        }
+
+        // initialize 'found at' chart
+        if (foundAtCanvas && foundAtCanvas instanceof HTMLCanvasElement) {
+            foundAtChart = new Chart(foundAtCanvas, {
+                type: 'bar',
+                data: result.found_at_stats,
+                options: {
+                    scales: {
+                        xAxes: [{
+                            beginAtZero: true,
+                            ticks: {
+                                autoSkip: false
+                            }
+                        }]
+                    },
+                    maintainAspectRatio: false,
+                    responsive: true
+                }
+            });
+        }
+
+        // initialize 'character ranking' chart
+        if (characterCanvas && characterCanvas instanceof HTMLCanvasElement) {
+            characterChart = new Chart(characterCanvas, {
+                type: 'doughnut',
+                data: result.character_stats,
+                options: {
+                    scales: {
+                        xAxes: [{
+                            beginAtZero: true,
+                            ticks: {
+                                autoSkip: false
+                            }
+                        }]
+                    },
+                    maintainAspectRatio: false,
+                    responsive: true
                 }
             });
         }

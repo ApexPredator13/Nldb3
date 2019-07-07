@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Website.Models;
+using Website.Models.Database;
 using Website.Models.Resource;
 using Website.Services;
 
@@ -11,10 +12,29 @@ namespace Website.Infrastructure
     public class BarGraphCreator : IBarGraphCreator
     {
         private readonly IVideoRepository _videoRepository;
+        private readonly IIsaacRepository _isaacRepository;
 
-        public BarGraphCreator(IVideoRepository videoRepository)
+        public BarGraphCreator(IVideoRepository videoRepository, IIsaacRepository isaacRepository)
         {
             _videoRepository = videoRepository;
+            _isaacRepository = isaacRepository;
+        }
+
+        public ChartObject IsaacResourceRanking(string label, List<(int amount, IsaacResource foundAt)> data)
+        {
+            return new ChartObject(
+                data.Select(x => x.foundAt.Name).ToList(),
+                new List<DataSet>()
+                {
+                    new DataSet(data.Count, label)
+                    {
+                        BackgroundColor = data.Select(x => x.foundAt.Color).ToArray(),
+                        BorderColor = data.Select(x => x.foundAt.Color).ToArray(),
+                        Data = data.Select(x => x.amount).ToArray(),
+                        Coordinates = data.Select(x => new Coordinates(x.foundAt.X, x.foundAt.Y, x.foundAt.W, x.foundAt.H)).ToList()
+                    }
+                }
+            );
         }
 
         public async Task<ChartObject> ThroughoutTheLetsPlay(string label, List<DateTime> timestamps, IsaacResourceSearchOptions searchOptions)

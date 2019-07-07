@@ -27,6 +27,97 @@ namespace Website.Data
             => new NpgsqlBox(-y, x + (w - 1), -y - (h - 1), x);
 
 
+        public async Task<List<(int amount, IsaacResource characters)>> GetCharacterRanking(string resourceId, int resourceNumber)
+        {
+            var result = new List<(int amount, IsaacResource character)>();
+
+            string resourceName = resourceNumber == 1 ? "resource_one" : "resource_two";
+
+            var query =
+                "SELECT COUNT(pc.game_character) AS gc_count, r.id, r.name, r.type, r.exists_in, r.x, r.game_mode, r.color, r.display_order, r.difficulty, r.tags " +
+                "FROM gameplay_events e " +
+                "LEFT JOIN played_characters pc ON pc.id = e.played_character " +
+                "LEFT JOIN isaac_resources r ON pc.game_character = r.id " +
+                $"WHERE e.{resourceName} = @ResourceId " +
+                "GROUP BY r.id " +
+                "ORDER BY gc_count DESC, r.name ASC;";
+
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand(query, c);
+            q.Parameters.AddWithValue("@ResourceId", NpgsqlDbType.Text, resourceId);
+            using var r = await q.ExecuteReaderAsync();
+            if (r.HasRows)
+            {
+                while (r.Read())
+                {
+                    var amount = r.GetInt32(0);
+                    var resource = new IsaacResource()
+                    {
+                        Id = r.GetString(1),
+                        Name = r.GetString(2),
+                        ResourceType = (ResourceType)r.GetInt32(3),
+                        ExistsIn = (ExistsIn)r.GetInt32(4),
+                        CssCoordinates = (NpgsqlBox)r.GetValue(5),
+                        GameMode = (GameMode)r.GetInt32(6),
+                        Color = r.GetString(7),
+                        Mod = null,
+                        DisplayOrder = r.IsDBNull(8) ? null : (int?)r.GetInt32(8),
+                        Difficulty = r.IsDBNull(9) ? null : (int?)r.GetInt32(9),
+                        Tags = r.IsDBNull(10) ? null : ((int[])r[10]).Select(x => (Effect)x).ToList()
+                    };
+
+                    result.Add((amount, resource));
+                }
+            }
+
+            return result;
+        }
+
+        public async Task<List<(int amount, IsaacResource foundAt)>> GetFoundAtRanking(string itemId)
+        {
+            var result = new List<(int amount, IsaacResource foundAt)>();
+
+            var query = 
+                "SELECT COUNT(e.resource_two) as r2c, r.id, r.name, r.type, r.exists_in, r.x, r.game_mode, r.color, r.display_order, r.difficulty, r.tags " +
+                "FROM gameplay_events e " +
+                "LEFT JOIN isaac_resources r ON r.id = e.resource_two " +
+                "WHERE(e.event_type = 2 OR e.event_type = 18) " +
+                "AND e.resource_one = @Id " +
+                "GROUP BY r.id " +
+                "ORDER BY r2c DESC, r.id ASC;";
+
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand(query, c);
+            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, itemId);
+            using var r = await q.ExecuteReaderAsync();
+
+            if (r.HasRows)
+            {
+                while(r.Read())
+                {
+                    var amount = r.GetInt32(0);
+                    var resource = new IsaacResource()
+                    {
+                        Id = r.GetString(1),
+                        Name = r.GetString(2),
+                        ResourceType = (ResourceType)r.GetInt32(3),
+                        ExistsIn = (ExistsIn)r.GetInt32(4),
+                        CssCoordinates = (NpgsqlBox)r.GetValue(5),
+                        GameMode = (GameMode)r.GetInt32(6),
+                        Color = r.GetString(7),
+                        Mod = null,
+                        DisplayOrder = r.IsDBNull(8) ? null : (int?)r.GetInt32(8),
+                        Difficulty = r.IsDBNull(9) ? null : (int?)r.GetInt32(9),
+                        Tags = r.IsDBNull(10) ? null : ((int[])r[10]).Select(x => (Effect)x).ToList()
+                    };
+
+                    result.Add((amount, resource));
+                }
+            }
+
+            return result;
+        }
+
         public async Task<string?> GetResourceNameFromId(string id)
         {
             using var c = await _connector.Connect();

@@ -69,3 +69,15 @@
 #chart-options-box-container button {
     width: 150px;
 }
+
+
+.labelled-chart-container {
+    height: 400px;
+    width: 100%;
+}
+
+.labelled-chart-container .labels {
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+}
