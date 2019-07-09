@@ -6,6 +6,7 @@ declare const Chart: any;
 let historyChart: any = null;
 let foundAtChart: any = null;
 let characterChart: any = null;
+let curseChart: any = null;
 
 let compareSearchComponent: SearchBox | null = null;
 let idsInChart: Array<string> = new Array<string>();
@@ -243,5 +244,8 @@ const fetchInitialChartData = () => {
                 }
             });
         }
+
+        // initialize 'curse ranking' chart
+
     });
 })();

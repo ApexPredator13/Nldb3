@@ -27,6 +27,53 @@ namespace Website.Data
             => new NpgsqlBox(-y, x + (w - 1), -y - (h - 1), x);
 
 
+        public async Task<List<(int amount, IsaacResource curse)>> GetCurseRanking(string resourceId, int resourceNumber)
+        {
+            var result = new List<(int amount, IsaacResource curse)>();
+
+            string resourceName = resourceNumber == 1 ? "resource_one" : "resource_two";
+
+            var query =
+                "SELECT COUNT(c.resource_one) AS curse_count, r.id, r.name, r.type, r.exists_in, r.x, r.game_mode, r.color, r.display_order, r.difficulty, r.tags " +
+                "FROM gameplay_events e " +
+                "LEFT JOIN gameplay_events c ON c.played_floor = e.played_floor " +
+                "LEFT JOIN isaac_resources r ON r.id = c.resource_one " +
+                $"WHERE e.{resourceName} = @ResourceId " +
+                $"AND c.event_type = {((int)GameplayEventType.Curse).ToString()} " +
+                "GROUP BY r.id " +
+                "ORDER BY curse_count DESC, r.name ASC;";
+
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand(query, c);
+            q.Parameters.AddWithValue("@ResourceId", NpgsqlDbType.Text, resourceId);
+            using var r = await q.ExecuteReaderAsync();
+
+            if (r.HasRows)
+            {
+                while(r.Read())
+                {
+                    var amount = r.GetInt32(0);
+                    var resource = new IsaacResource()
+                    {
+                        Id = r.GetString(1),
+                        Name = r.GetString(2),
+                        ResourceType = (ResourceType)r.GetInt32(3),
+                        ExistsIn = (ExistsIn)r.GetInt32(4),
+                        CssCoordinates = (NpgsqlBox)r.GetValue(5),
+                        GameMode = (GameMode)r.GetInt32(6),
+                        Color = r.GetString(7),
+                        Mod = null,
+                        DisplayOrder = r.IsDBNull(8) ? null : (int?)r.GetInt32(8),
+                        Difficulty = r.IsDBNull(9) ? null : (int?)r.GetInt32(9),
+                        Tags = r.IsDBNull(10) ? null : ((int[])r[10]).Select(x => (Effect)x).ToList()
+                    };
+                    result.Add((amount, resource));
+                }
+            }
+
+            return result;
+        }
+
         public async Task<List<(int amount, IsaacResource characters)>> GetCharacterRanking(string resourceId, int resourceNumber)
         {
             var result = new List<(int amount, IsaacResource character)>();

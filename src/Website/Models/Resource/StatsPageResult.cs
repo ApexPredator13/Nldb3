@@ -12,5 +12,8 @@ namespace Website.Models.Resource
 
         [JsonProperty("character_stats")]
         public ChartObject? CharacterStats { get; set; }
+
+        [JsonProperty("curse_stats")]
+        public ChartObject? CurseStats { get; set; }
     }
 }

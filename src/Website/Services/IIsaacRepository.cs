@@ -37,5 +37,6 @@ namespace Website.Services
         Task<string?> GetResourceNameFromId(string id);
         Task<List<(int amount, IsaacResource foundAt)>> GetFoundAtRanking(string videoId);
         Task<List<(int amount, IsaacResource characters)>> GetCharacterRanking(string resourceId, int resourceNumber);
+        Task<List<(int amount, IsaacResource curse)>> GetCurseRanking(string resourceId, int resourceNumber);
     }
 }
