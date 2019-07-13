@@ -35,8 +35,13 @@ namespace Website.Services
         Task<int> AddTag(string id, Effect tag);
         Task<List<DateTime>> GetEncounteredIsaacResourceTimestamps(string isaacResourceId, int resourceNumber);
         Task<string?> GetResourceNameFromId(string id);
+        Task<ResourceType> GetResourceTypeFromId(string id);
         Task<List<(int amount, IsaacResource foundAt)>> GetFoundAtRanking(string videoId);
         Task<List<(int amount, IsaacResource characters)>> GetCharacterRanking(string resourceId, int resourceNumber);
         Task<List<(int amount, IsaacResource curse)>> GetCurseRanking(string resourceId, int resourceNumber);
+        Task<List<(int amount, IsaacResource floor)>> GetFloorRanking(string resourceId, int resourceNumber);
+        List<AvailableStats> GetAvailableStats(IsaacResource resource);
+        int GetResourceNumber(IsaacResource resource);
+        int GetResourceNumber(ResourceType resourceType);
     }
 }

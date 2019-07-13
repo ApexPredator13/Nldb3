@@ -90,6 +90,12 @@ namespace Website.Areas.Api.Controllers
             }
         }
 
+        [HttpGet("{id}/Type")]
+        public async Task<int> GetResourceType([FromRoute] string id)
+        {
+            return Convert.ToInt32(await _isaacRepository.GetResourceTypeFromId(id));
+        }
+
         [HttpGet("{id}/Stats")]
         public async Task<ActionResult<StatsPageResult>> Dataset([FromRoute] string id, [FromQuery] IsaacResourceSearchOptions searchOptions)
         {
@@ -101,93 +107,46 @@ namespace Website.Areas.Api.Controllers
             }
 
             var result = new StatsPageResult();
-            var awailableStats = GetAvailableStats(resource);
-            var resourceNumber = GetResourceNumber(resource);
+            var awailableStats = _isaacRepository.GetAvailableStats(resource);
+            var resourceNumber = _isaacRepository.GetResourceNumber(resource);
 
             // history
-            if (awailableStats.Contains(RequiredStats.History))
+            if (awailableStats.Contains(AvailableStats.History))
             {
                 var dates = await _isaacRepository.GetEncounteredIsaacResourceTimestamps(id, resourceNumber);
                 result.History = await _barGraphCreator.ThroughoutTheLetsPlay(resource.Name, dates, searchOptions);
             }
 
             // 'found at' ranking
-            if (awailableStats.Contains(RequiredStats.FoundAt))
+            if (awailableStats.Contains(AvailableStats.FoundAt))
             {
                 var foundAtStats = await _isaacRepository.GetFoundAtRanking(id);
                 result.FoundAtStats = _barGraphCreator.IsaacResourceRanking(resource.Name, foundAtStats);
             }
 
             // character ranking
-            if (awailableStats.Contains(RequiredStats.Character))
+            if (awailableStats.Contains(AvailableStats.Character))
             {
                 var characterStats = await _isaacRepository.GetCharacterRanking(id, resourceNumber);
                 result.CharacterStats = _barGraphCreator.IsaacResourceRanking(resource.Name, characterStats);
             }
 
             // curse ranking
-            if (awailableStats.Contains(RequiredStats.Curse))
+            if (awailableStats.Contains(AvailableStats.Curse))
             {
                 var curseStats = await _isaacRepository.GetCurseRanking(id, resourceNumber);
                 result.CurseStats = _barGraphCreator.IsaacResourceRanking(resource.Name, curseStats);
             }
 
+            // floor ranking
+            if (awailableStats.Contains(AvailableStats.Floor))
+            {
+                var floorStats = await _isaacRepository.GetFloorRanking(id, resourceNumber);
+                result.FloorStats = _barGraphCreator.IsaacResourceRanking(resource.Name, floorStats);
+            }
+
             return result;
         }
-
-        private enum RequiredStats
-        {
-            History,
-            FoundAt,
-            Character,
-            Curse
-        }
-
-        private List<RequiredStats> GetAvailableStats(IsaacResource resource)
-        {
-            switch (resource.ResourceType)
-            {
-                case ResourceType.Boss:
-                    return new List<RequiredStats>() { RequiredStats.Character, RequiredStats.Curse, RequiredStats.History };
-                case ResourceType.Character:
-                    return new List<RequiredStats>() { RequiredStats.Curse, RequiredStats.History };
-                case ResourceType.CharacterReroll:
-                    return new List<RequiredStats>() { RequiredStats.Character, RequiredStats.Curse, RequiredStats.History };
-                case ResourceType.Curse:
-                    return new List<RequiredStats>() { RequiredStats.Character, RequiredStats.History };
-                case ResourceType.Enemy:
-                    return new List<RequiredStats>() { RequiredStats.Character, RequiredStats.Curse, RequiredStats.History };
-                case ResourceType.Floor:
-                    return new List<RequiredStats>() { RequiredStats.Character, RequiredStats.Curse, RequiredStats.History };
-                case ResourceType.Item:
-                    return new List<RequiredStats>() { RequiredStats.Character, RequiredStats.Curse, RequiredStats.FoundAt, RequiredStats.History };
-                case ResourceType.ItemSource:
-                    return new List<RequiredStats>() { RequiredStats.Character, RequiredStats.Curse, RequiredStats.History };
-                case ResourceType.OtherConsumable:
-                    return new List<RequiredStats>() { RequiredStats.Character, RequiredStats.Curse, RequiredStats.History };
-                case ResourceType.OtherEvent:
-                    return new List<RequiredStats>() { RequiredStats.History };
-                case ResourceType.Pill:
-                    return new List<RequiredStats>() { RequiredStats.Character, RequiredStats.Curse, RequiredStats.History };
-                case ResourceType.Rune:
-                    return new List<RequiredStats>() { RequiredStats.Character, RequiredStats.Curse, RequiredStats.History };
-                case ResourceType.TarotCard:
-                    return new List<RequiredStats>() { RequiredStats.Character, RequiredStats.Curse, RequiredStats.History };
-                case ResourceType.Transformation:
-                    return new List<RequiredStats>() { RequiredStats.Character, RequiredStats.Curse, RequiredStats.History };
-                case ResourceType.Trinket:
-                    return new List<RequiredStats>() { RequiredStats.Character, RequiredStats.Curse, RequiredStats.History };
-                default:
-                    return new List<RequiredStats>();
-            }
-        }
-
-        private int GetResourceNumber(IsaacResource resource)
-            => resource.ResourceType switch
-            {
-                ResourceType.ItemSource => 2,
-                _ => 1
-            };
     }
 }
 

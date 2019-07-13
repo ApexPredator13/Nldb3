@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Website.Models.Database;
 
 namespace Website.Models.Resource
 {
@@ -15,5 +16,11 @@ namespace Website.Models.Resource
 
         [JsonProperty("curse_stats")]
         public ChartObject? CurseStats { get; set; }
+
+        [JsonProperty("floor_stats")]
+        public ChartObject? FloorStats { get; set; }
+
+        [JsonProperty("videos")]
+        public NldbVideoResult? Videos { get; set; }
     }
 }

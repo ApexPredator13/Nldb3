@@ -13,7 +13,7 @@ namespace Website.Services
         Task SaveVideo(Video newVideo);
         Task SubmitEpisode(SubmittedCompleteEpisode episode, string userId, SubmissionType type = SubmissionType.New);
         Task SubmitLostEpisode(string videoId, string userId);
-        Task<int> CountVideos(GetVideos? request = null);
+        Task<int> CountVideos(IsaacSearchOptions? request = null);
         Task<int> CountVideoSubmissions();
         Task<DateTime?> GetVideoReleasedate(string videoId);
         Task<VideoListResponse> GetYoutubeVideoData(params string[] videoIds);
@@ -23,8 +23,9 @@ namespace Website.Services
         Task<int> SetThumbnails(ThumbnailDetails thumbnailDetails, string videoId);
         Task<int> UpdateVideo(Google.Apis.YouTube.v3.Data.Video updatedVideo);
         Task<bool> VideoExists(string videoId);
-        Task<NldbVideoResult> GetVideos(GetVideos request);
+        Task<NldbVideoResult> GetVideos(IsaacSearchOptions request);
         Task<DateTime> GetMostRecentVideoReleaseDate();
         Task<DateTime> GetFirstVideoReleaseDate();
+
     }
 }

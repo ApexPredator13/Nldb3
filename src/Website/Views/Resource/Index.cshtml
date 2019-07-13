@@ -1,5 +1,5 @@
 ﻿@{
-    ViewData["Title"] = Model.Name;
+    ViewData["Title"] = Model.IsaacResource.Name;
     var emptyResource = new IsaacResource()
     {
         Name = "loading...",
@@ -8,54 +8,64 @@
     var initialEmptyComparisonModel = new ResourceSelection("comparison-dd", new List<IsaacResource>());
 }
 
-@model IsaacResource
+@model InitialResourceViewModel
 
 
-<h1>@Model.Name</h1>
-<hr/>
+<h1>@Model.IsaacResource.Name</h1>
+<hr />
 
 <div id="chart-options-menu">
     <span id="chart-options-link">Show Options</span>
-    
+
     <div id="chart-options-box-container">
         <div>
             <p>Compare to...</p>
             <partial name="_DropdownPartial" model="@initialEmptyComparisonModel" />
-            <p><br/><br/>loading resources...</p>
+            <p><br /><br />loading resources...</p>
         </div>
         <div>
-            <button class="btn-green" id="change-colors">Randomize Colors</button><br />
+            <button class="btn-green" id="change-colors">Randomize Bar-Colors</button><br />
             <button class="btn-green" id="hide-background">Hide Background</button><br />
             <button class="btn-red" id="reset-chart">Reset Chart</button>
         </div>
     </div>
-    
+
 </div>
 
-<canvas id="throughout-the-letsplay" class="over-time chart"></canvas>
+<canvas id="throughout-the-letsplay" class="chart"></canvas>
 
-<hr/>
+<hr />
 <h3>Found At Ranking</h3>
-<div class="labelled-chart-container">
-    <canvas id="found-at-ranking"></canvas>
+<div class="doughnut-chart-container">
+    <canvas id="found-at-ranking" class="chart"></canvas>
 </div>
 
-<hr/>
+<hr />
 
-<h3>Pickups by character</h3>
-<div class="labelled-chart-container">
-    <canvas id="character-ranking"></canvas>
+<h3>Character Ranking</h3>
+<div class="doughnut-chart-container">
+    <canvas id="character-ranking" class="chart"></canvas>
 </div>
 
-<hr/>
+<hr />
 
 <h3>Curse Ranking</h3>
-<div class="labelled-chart-container">
-    <canvas id="curse-ranking"></canvas>
+<div class="doughnut-chart-container">
+    <canvas id="curse-ranking" class="chart"></canvas>
 </div>
 
+<hr/>
+
+<h3>Floor Ranking</h3>
+<canvas id="floor-ranking" class="chart"></canvas>
+
+
+<hr/>
+
+<partial name="_VideosPartial" model="Model.Videos" />
 
 @section Scripts {
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.bundle.min.js"></script>
-    <script src="~/js/dist/charts.min.js"></script>
+    <script src="~/js/dist/charts.min.js" asp-append-version="true"></script>
+    <script src="~/js/dist/video_loader.min.js" asp-append-version="true"></script>
 }
+

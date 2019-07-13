@@ -20,11 +20,11 @@ namespace Website.Areas.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<NldbVideoResult> GetVideos([FromQuery] GetVideos? request = null)
+        public async Task<NldbVideoResult> GetVideos([FromQuery] IsaacSearchOptions? request = null)
         {
             if (request is null)
             {
-                request = new GetVideos();
+                request = new IsaacSearchOptions();
             }
 
             return await _videoRepository.GetVideos(request);

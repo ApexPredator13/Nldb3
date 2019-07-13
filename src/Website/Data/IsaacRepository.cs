@@ -27,6 +27,70 @@ namespace Website.Data
             => new NpgsqlBox(-y, x + (w - 1), -y - (h - 1), x);
 
 
+        public async Task<ResourceType> GetResourceTypeFromId(string id)
+        {
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand("SELECT type FROM isaac_resources WHERE id = @Id;", c);
+            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, id);
+            using var r = await q.ExecuteReaderAsync();
+
+            if (r.HasRows)
+            {
+                r.Read();
+                return (ResourceType)r.GetInt32(0);
+            }
+            else
+            {
+                return ResourceType.Unspecified;
+            }
+        }
+
+        public async Task<List<(int amount, IsaacResource floor)>> GetFloorRanking(string resourceId, int resourceNumber)
+        {
+            var result = new List<(int amount, IsaacResource floor)>();
+
+            string resourceName = resourceNumber == 1 ? "resource_one" : "resource_two";
+
+            var query =
+                "SELECT COUNT(f.id) AS floor_count, r.id, r.name, r.type, r.exists_in, r.x, r.game_mode, r.color, r.display_order, r.difficulty, r.tags " +
+                "FROM gameplay_events e " +
+                "LEFT JOIN played_floors f ON f.id = e.played_floor " +
+                "LEFT JOIN isaac_resources r ON r.id = f.floor " +
+                $"WHERE e.{resourceName} = @ResourceId " +
+                $"GROUP BY r.id " +
+                $"ORDER BY floor_count DESC, r.name ASC;";
+
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand(query, c);
+            q.Parameters.AddWithValue("@ResourceId", NpgsqlDbType.Text, resourceId);
+            using var r = await q.ExecuteReaderAsync();
+
+            if (r.HasRows)
+            {
+                while (r.Read())
+                {
+                    var amount = r.GetInt32(0);
+                    var resource = new IsaacResource()
+                    {
+                        Id = r.GetString(1),
+                        Name = r.GetString(2),
+                        ResourceType = (ResourceType)r.GetInt32(3),
+                        ExistsIn = (ExistsIn)r.GetInt32(4),
+                        CssCoordinates = (NpgsqlBox)r.GetValue(5),
+                        GameMode = (GameMode)r.GetInt32(6),
+                        Color = r.GetString(7),
+                        Mod = null,
+                        DisplayOrder = r.IsDBNull(8) ? null : (int?)r.GetInt32(8),
+                        Difficulty = r.IsDBNull(9) ? null : (int?)r.GetInt32(9),
+                        Tags = r.IsDBNull(10) ? null : ((int[])r[10]).Select(x => (Effect)x).ToList()
+                    };
+                    result.Add((amount, resource));
+                }
+            }
+
+            return result;
+        }
+
         public async Task<List<(int amount, IsaacResource curse)>> GetCurseRanking(string resourceId, int resourceNumber)
         {
             var result = new List<(int amount, IsaacResource curse)>();
@@ -989,5 +1053,53 @@ namespace Website.Data
             q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, id);
             return await q.ExecuteNonQueryAsync();
         }
+
+        public List<AvailableStats> GetAvailableStats(IsaacResource resource)
+        {
+            switch (resource.ResourceType)
+            {
+                case ResourceType.Boss:
+                    return new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History, AvailableStats.Floor };
+                case ResourceType.Character:
+                    return new List<AvailableStats>() { AvailableStats.Curse, AvailableStats.History };
+                case ResourceType.CharacterReroll:
+                    return new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History, AvailableStats.Floor };
+                case ResourceType.Curse:
+                    return new List<AvailableStats>() { AvailableStats.Character, AvailableStats.History, AvailableStats.Floor };
+                case ResourceType.Enemy:
+                    return new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History, AvailableStats.Floor };
+                case ResourceType.Floor:
+                    return new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History };
+                case ResourceType.Item:
+                    return new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.FoundAt, AvailableStats.History, AvailableStats.Floor };
+                case ResourceType.ItemSource:
+                    return new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History, AvailableStats.Floor };
+                case ResourceType.OtherConsumable:
+                    return new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History, AvailableStats.Floor };
+                case ResourceType.OtherEvent:
+                    return new List<AvailableStats>() { AvailableStats.History };
+                case ResourceType.Pill:
+                    return new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History, AvailableStats.Floor };
+                case ResourceType.Rune:
+                    return new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History, AvailableStats.Floor };
+                case ResourceType.TarotCard:
+                    return new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History, AvailableStats.Floor };
+                case ResourceType.Transformation:
+                    return new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History, AvailableStats.Floor };
+                case ResourceType.Trinket:
+                    return new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History, AvailableStats.Floor };
+                default:
+                    return new List<AvailableStats>();
+            }
+        }
+        public int GetResourceNumber(IsaacResource resource)
+            => GetResourceNumber(resource.ResourceType);
+
+        public int GetResourceNumber(ResourceType resourceType) 
+            => resourceType switch
+            {
+                ResourceType.ItemSource => 2,
+                _ => 1
+            };
     }
 }

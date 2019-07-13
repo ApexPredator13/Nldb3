@@ -143,8 +143,8 @@ namespace Website
                     "font-src 'self' fonts.gstatic.com; " +
                     "block-all-mixed-content; " +
                     (env.IsDevelopment() 
-                        ? "script-src 'self' 'unsafe-eval' 'unsafe-inline' www.youtube.com s.ytimg.com https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.bundle.min.js; "
-                        : "script-src 'self' www.youtube.com; s.ytimg.com https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.bundle.min.js; ")
+                        ? "script-src 'self' 'unsafe-eval' 'unsafe-inline' www.youtube.com s.ytimg.com; "
+                        : "script-src 'self' www.youtube.com; s.ytimg.com;")
                     );
 
                 context.Response.Headers.Add("Content-Security-Policy", csp);

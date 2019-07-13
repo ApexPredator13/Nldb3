@@ -9,7 +9,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@types/chart.js": "^2.7.54",
+    "@types/chart.js": "^2.7.55",
     "clean-webpack-plugin": "^2.0.1",
     "ts-loader": "^5.3.3",
     "typescript": "^3.4.4",
@@ -17,6 +17,7 @@
     "webpack-cli": "^3.3.0"
   },
   "dependencies": {
+    "chart.js": "^2.8.0",
     "rxjs": "^6.5.2"
   }
 }

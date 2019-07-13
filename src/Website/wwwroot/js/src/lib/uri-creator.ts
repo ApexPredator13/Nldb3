@@ -10,8 +10,10 @@ const CreateGetVideosUri = (request: VideoRequest) => {
     const amount = `&Amount=${request.Amount.toString(10)}`;
     const from = request.From ? `&From=${request.From}` : '';
     const until = request.Until ? `&From=${request.Until}` : '';
-    const completeUri = `${base}${asc}${orderBy}${search}${page}${amount}${from}${until}`;
-    console.log(completeUri);
+    const resourceId = request.ResourceId ? `&ResourceId=${request.ResourceId}` : '';
+    const resourceType = request.ResourceType ? `&ResourceType=${request.ResourceType.toString(10)}` : '';
+    const completeUri = `${base}${asc}${orderBy}${search}${page}${amount}${from}${until}${resourceType}${resourceId}`;
+    console.log('requesting videos: ', completeUri);
     return completeUri;
 };
 

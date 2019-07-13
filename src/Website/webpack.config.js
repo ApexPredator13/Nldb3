@@ -35,5 +35,8 @@ module.exports = {
     plugins: [
         new CleanWebpackPlugin()
     ],
-    mode: 'production'
+    mode: 'production',
+    externals: {
+        moment: 'moment'
+    }
 }

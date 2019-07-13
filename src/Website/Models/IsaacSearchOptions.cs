@@ -6,7 +6,7 @@ using Website.Models.Database.Enums;
 
 namespace Website.Models
 {
-    public class GetVideos
+    public class IsaacSearchOptions
     {
         public bool Asc { get; set; } = false;
         public VideoOrderBy OrderBy { get; set; } = VideoOrderBy.Published;
@@ -15,5 +15,7 @@ namespace Website.Models
         public int Amount { get; set; } = 50;
         public DateTime? From { get; set; } = null;
         public DateTime? Until { get; set; } = null;
+        public string? ResourceId { get; set; } = null;
+        public ResourceType ResourceType { get; set; } = ResourceType.Unspecified;
     }
 }

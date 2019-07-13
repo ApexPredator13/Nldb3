@@ -19,11 +19,11 @@ namespace Website.Controllers
             _videoRepository = videoRepository;
         }
 
-        public async Task<ViewResult> Index([FromQuery] GetVideos? request = null)
+        public async Task<ViewResult> Index([FromQuery] IsaacSearchOptions? request = null)
         {
             if (request is null)
             {
-                request = new GetVideos();
+                request = new IsaacSearchOptions();
             }
 
             var videos = await _videoRepository.GetVideos(request);

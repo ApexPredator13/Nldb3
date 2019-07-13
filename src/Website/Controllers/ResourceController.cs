@@ -16,19 +16,22 @@ namespace Website.Controllers
         public const string Controllername = "Resource";
 
         private readonly IIsaacRepository _isaacRepository;
-        private readonly IBarGraphCreator _barGraphCreator;
+        private readonly IVideoRepository _videoRepository;
 
-        public ResourceController(IIsaacRepository isaacRepository, IBarGraphCreator barGraphCreator)
+        public ResourceController(IIsaacRepository isaacRepository, IVideoRepository videoRepository)
         {
             _isaacRepository = isaacRepository;
-            _barGraphCreator = barGraphCreator;
+            _videoRepository = videoRepository;
         }
 
         [HttpGet]
-        public async Task<ActionResult> Index([FromRoute] string id, IsaacResourceSearchOptions searchOptions)
+        public async Task<ActionResult> Index([FromRoute] string id, IsaacSearchOptions searchOptions)
         {
+            searchOptions.ResourceId = id;
             var item = await _isaacRepository.GetResourceById(id, true);
-            return View(item);
+            searchOptions.ResourceType = item.ResourceType;
+            var videos = await _videoRepository.GetVideos(searchOptions);
+            return View(new InitialResourceViewModel(item, videos));
         }
     }
 }

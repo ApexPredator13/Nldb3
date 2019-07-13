@@ -71,6 +71,18 @@ const addClassIfNotExists = (e: Element, className: string) => {
     }
 }
 
+const setIsaacResourceName = (resourceName: string) => {
+    (window as any).isaac_resource = resourceName;
+}
+
+const getIsaacResourceName = (): string | null => {
+    if ((window as any).isaac_resource) {
+        return (window as any).isaac_resource;
+    } else {
+        return null;
+    }
+}
+
 export {
     swapClass,
     fillTableCells,
@@ -79,6 +91,8 @@ export {
     loadDivElementsByClass,
     removeClassIfExists,
     addClassIfNotExists,
-    loadElementsByTagName
+    loadElementsByTagName,
+    setIsaacResourceName,
+    getIsaacResourceName
 }
 

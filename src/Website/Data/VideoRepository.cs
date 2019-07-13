@@ -35,7 +35,7 @@ namespace Website.Data
             _formatProvider = new System.Globalization.CultureInfo("en-US");
         }
 
-        private bool RequireWhere(GetVideos request)
+        private bool RequireWhere(IsaacSearchOptions request)
         {
             if (request.From != null || request.Search != null || request.Until != null)
             {
@@ -58,11 +58,33 @@ namespace Website.Data
             return Convert.ToDateTime(await q.ExecuteScalarAsync());
         }
 
-        public async Task<int> CountVideos(GetVideos? request = null)
+        public async Task<int> CountVideosForIsaacResource(IsaacSearchOptions? request = null)
         {
             if (request is null)
             {
-                request = new GetVideos();
+                request = new IsaacSearchOptions();
+            }
+
+            var resourceName = _isaacRepository.GetResourceNumber(request.ResourceType) == 1 ? "resource_one" : "resource_two";
+
+            var query =
+                "WITH x AS (" +
+                    $"SELECT DISTINCT(video) FROM gameplay_events WHERE {resourceName} = @ResourceId" +
+                ") " +
+                "SELECT COUNT(*) " +
+                "FROM x;";
+
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand(query, c);
+            q.Parameters.AddWithValue("@ResourceId", NpgsqlDbType.Text, request.ResourceId);
+            return Convert.ToInt32(await q.ExecuteScalarAsync());
+        }
+
+        public async Task<int> CountVideos(IsaacSearchOptions? request = null)
+        {
+            if (request is null)
+            {
+                request = new IsaacSearchOptions();
             }
 
             var s = new StringBuilder();
@@ -610,17 +632,28 @@ namespace Website.Data
             return video;
         }
 
-        public async Task<NldbVideoResult> GetVideos(GetVideos request)
+        public async Task<NldbVideoResult> GetVideos(IsaacSearchOptions request)
         {
             var result = new NldbVideoResult()
             {
                 AmountPerPage = request.Amount
             };
 
-            var countVideosTask = CountVideos(request);
+            // count videos in background
+            var countVideosTask = request.ResourceId is null 
+                ? CountVideos(request) 
+                : CountVideosForIsaacResource(request);
 
             var s = new StringBuilder();
             var p = new List<NpgsqlParameter>();
+
+            // WITH
+            if (request.ResourceId != null)
+            {
+                var resourceName = _isaacRepository.GetResourceNumber(request.ResourceType) == 1 ? "resource_one" : "resource_two";
+                s.Append($"WITH x AS (SELECT DISTINCT(video) AS video FROM gameplay_events WHERE {resourceName} = @ResourceId) ");
+                p.Add(new NpgsqlParameter("@ResourceId", NpgsqlDbType.Text) { NpgsqlValue = request.ResourceId });
+            }
 
             // SELECT
             s.Append(
@@ -634,6 +667,10 @@ namespace Website.Data
             s.Append(" FROM videos v");
 
             // JOIN
+            if (request.ResourceId != null)
+            {
+                s.Append(" RIGHT JOIN x ON x.video = v.id");
+            }
             s.Append(" LEFT JOIN video_submissions s ON s.video = v.id");
 
             // WHERE

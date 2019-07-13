@@ -1,12 +1,13 @@
 ﻿import { SearchBox } from './components/searchbox';
 import { IsaacResource } from './interfaces/isaac-resource';
-
-declare const Chart: any;
+import { Chart } from 'chart.js';
+import { setIsaacResourceName } from './lib/dom-operations';
 
 let historyChart: any = null;
 let foundAtChart: any = null;
 let characterChart: any = null;
 let curseChart: any = null;
+let floorChart: any = null;
 
 let compareSearchComponent: SearchBox | null = null;
 let idsInChart: Array<string> = new Array<string>();
@@ -21,40 +22,53 @@ let showOptions = false;
 let canChangeOptions = true;
 
 const addComparison = (id: string) => {
-    // randomize colors
-    if (historyChart.data.datasets.length === 1) {
+    // update colors if only 1 dataset exists
+    if (historyChart && historyChart.data.datasets.length === 1) {
         fillDatasetWithRandomColor(historyChart.data.datasets[0]);
     }
-    if (foundAtChart.data.datasets.length === 1) {
+    if (foundAtChart && foundAtChart.data.datasets.length === 1) {
         fillDatasetWithRandomColor(foundAtChart.data.datasets[0]);
     }
+    if (floorChart && floorChart.data.datasets.length === 1) {
+        fillDatasetWithRandomColor(floorChart.data.datasets[0]);
+    }
 
-    if (historyChart.data.datasets.length < 5) {
+    // get data, update charts with available data
+    if (historyChart && historyChart.data.datasets.length < 5) {
         fetch(`/api/resources/${id}/Stats`).then(x => x.json()).then(result => {
             historyChart.data.datasets.push(result.history.datasets[0]);
-            historyChart.update();
             fillDatasetWithRandomColor(historyChart.data.datasets[historyChart.data.datasets.length - 1]);
+            historyChart.update();
 
-            if (result.found_at_stats) {
+            if (foundAtChart && result.found_at_stats) {
+                debugger;
                 foundAtChart.data.datasets.push(result.found_at_stats.datasets[0]);
-                foundAtChart.update();
                 fillDatasetWithRandomColor(foundAtChart.data.datasets[foundAtChart.data.datasets.length - 1]);
+                foundAtChart.update();
             }
-            if (result.character_stats) {
+            if (characterChart && result.character_stats) {
                 characterChart.data.datasets.push(result.character_stats.datasets[0]);
                 characterChart.update();
+            }
+            if (curseChart && result.curse_stats) {
+                curseChart.data.datasets.push(result.curse_stats.datasets[0]);
+                curseChart.update();
+            }
+            if (floorChart && result.floor_stats) {
+                floorChart.data.datasets.push(result.floor_stats.datasets[0]);
+                floorChart.update();
             }
         });
     }
 
-    // update 'found at' chart
-    if (foundAtChart.data.datasets.length === 1) {
-        fillDatasetWithRandomColor(foundAtChart.data.datasets[0]);
-    }
+    
 };
 
 const fillDatasetWithRandomColor = (dataSet: any) => {
     console.log('dataSet is ', dataSet);
+    if (!dataSet || !dataSet.backgroundColor) {
+        debugger;
+    }
     const color = randomColor();
     for (let i = 0; i < dataSet.backgroundColor.length; i++) {
         dataSet.backgroundColor[i] = color;
@@ -123,14 +137,18 @@ const initializeShowOptionsLink = () => {
 
 
 const changeColors = (): void => {
-    for (let i = 0; i < historyChart.data.datasets.length; i++) {
+    for (let i = 0; i < foundAtChart.data.datasets.length; i++) {
         fillDatasetWithRandomColor(foundAtChart.data.datasets[i]);
     }
     for (let i = 0; i < historyChart.data.datasets.length; i++) {
         fillDatasetWithRandomColor(historyChart.data.datasets[i]);
     }
+    for (let i = 0; i < floorChart.data.datasets.length; i++) {
+        fillDatasetWithRandomColor(floorChart.data.datasets[i]);
+    }
     historyChart.update();
     foundAtChart.update();
+    floorChart.update();
 }
 
 const initializeResetChartButton = () => {
@@ -170,6 +188,7 @@ const initializeChangeColorButton = () => {
 
 const fetchInitialChartData = () => {
     const resourceId = window.location.href.substring(window.location.href.lastIndexOf('/') + 1);
+    setIsaacResourceName(resourceId);
     idsInChart = new Array<string>(resourceId);
     return fetch(`/api/resources/${resourceId}/Stats`).then(x => x.json());
 }
@@ -185,7 +204,9 @@ const fetchInitialChartData = () => {
         console.log('result is', result);
         const historyCanvas = document.getElementById('throughout-the-letsplay');
         const foundAtCanvas = document.getElementById('found-at-ranking');
-        const characterCanvas = document.getElementById('character-ranking')
+        const characterCanvas = document.getElementById('character-ranking');
+        const curseCanvas = document.getElementById('curse-ranking');
+        const floorCanvas = document.getElementById('floor-ranking');
 
         // initialize history chart
         if (historyCanvas && historyCanvas instanceof HTMLCanvasElement) {
@@ -195,9 +216,9 @@ const fetchInitialChartData = () => {
                 options: {
                     scales: {
                         xAxes: [{
-                            beginAtZero: true,
                             ticks: {
-                                autoSkip: false
+                                autoSkip: false,
+                                beginAtZero: true
                             }
                         }]
                     }
@@ -213,9 +234,9 @@ const fetchInitialChartData = () => {
                 options: {
                     scales: {
                         xAxes: [{
-                            beginAtZero: true,
                             ticks: {
-                                autoSkip: false
+                                autoSkip: false,
+                                beginAtZero: true
                             }
                         }]
                     },
@@ -233,8 +254,8 @@ const fetchInitialChartData = () => {
                 options: {
                     scales: {
                         xAxes: [{
-                            beginAtZero: true,
                             ticks: {
+                                beginAtZero: true,
                                 autoSkip: false
                             }
                         }]
@@ -246,6 +267,47 @@ const fetchInitialChartData = () => {
         }
 
         // initialize 'curse ranking' chart
+        if (curseCanvas && curseCanvas instanceof HTMLCanvasElement) {
+            curseChart = new Chart(curseCanvas, {
+                type: 'doughnut',
+                data: result.curse_stats,
+                options: {
+                    scales: {
+                        xAxes: [{
+                            ticks: {
+                                beginAtZero: true,
+                                autoSkip: false
+                            }
+                        }]
+                    },
+                    maintainAspectRatio: false,
+                    responsive: true
+                }
+            });
+        }
 
+        // initialize 'floor ranking' chart
+        if (floorCanvas && floorCanvas instanceof HTMLCanvasElement) {
+            floorChart = new Chart(floorCanvas, {
+                type: 'horizontalBar',
+                data: result.floor_stats,
+                options: {
+                    scales: {
+                        xAxes: [{
+                            barPercentage: 0.8,
+                            ticks: {
+                                beginAtZero: true,
+                                autoSkip: false
+                            }
+                        }]
+                    },
+                    maintainAspectRatio: true,
+                    responsive: true
+                }
+            });
+        }
+
+        // get videos
+        
     });
 })();
