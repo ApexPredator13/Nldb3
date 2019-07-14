@@ -16,6 +16,7 @@ using Microsoft.Extensions.Primitives;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Hangfire.Dashboard;
+using System.Linq;
 
 namespace Website
 {
@@ -182,9 +183,20 @@ namespace Website
             app.UseRouting();
             app.UseEndpoints(endpoints =>
             {
+                // video page
                 endpoints.MapControllerRoute("video", "/Video/{id}", new { Controller = Controllers.VideoController.Controllername, Action = nameof(Controllers.VideoController.Index) });
                 endpoints.MapControllerRoute("submitVideo", "/SubmitEpisode/{id}", new { Controller = Controllers.SubmitEpisodeController.Controllername, Action = nameof(Controllers.SubmitEpisodeController.Index) });
+
+                // default route for all areas
                 endpoints.MapControllerRoute("area", "{area:exists}/{controller=Home}/{action=Index}/{id?}");
+
+                // isaac resource overview pages
+                foreach (var overviewPageId in Controllers.ResourceController.OverviewPageNames.Keys)
+                {
+                    endpoints.MapControllerRoute(overviewPageId, $"{{id={overviewPageId}}}", new { Controller = Controllers.ResourceController.Controllername, Action = nameof(Controllers.ResourceController.Overview) });
+                }
+
+                // catchall for arbitrary isaac resource
                 endpoints.MapControllerRoute("resource", "{id}", new { Controller = Controllers.ResourceController.Controllername, Action = nameof(Controllers.ResourceController.Index) });
                 endpoints.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
             });
