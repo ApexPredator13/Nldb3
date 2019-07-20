@@ -20,6 +20,9 @@ namespace Website.Models.Resource
         [JsonProperty("floor_stats")]
         public ChartObject? FloorStats { get; set; }
 
+        [JsonProperty("transformation_item_ranking")]
+        public ChartObject? TransformationItemRanking { get; set; }
+
         [JsonProperty("videos")]
         public NldbVideoResult? Videos { get; set; }
     }

@@ -8,6 +8,7 @@ let foundAtChart: any = null;
 let characterChart: any = null;
 let curseChart: any = null;
 let floorChart: any = null;
+let transformationItemRankingChart: any = null;
 
 let compareSearchComponent: SearchBox | null = null;
 let idsInChart: Array<string> = new Array<string>();
@@ -58,10 +59,13 @@ const addComparison = (id: string) => {
                 floorChart.data.datasets.push(result.floor_stats.datasets[0]);
                 floorChart.update();
             }
+            
+            if (transformationItemRankingChart && result.transformation_item_ranking) {
+                // cannot update transformation item ranking chart, items cannot be compared in the same chart!
+                // transformationItemRankingChart.data.datasets.push(result.transformation_item_ranking.datasets[0]);
+            }
         });
     }
-
-    
 };
 
 const fillDatasetWithRandomColor = (dataSet: any) => {
@@ -137,18 +141,24 @@ const initializeShowOptionsLink = () => {
 
 
 const changeColors = (): void => {
-    for (let i = 0; i < foundAtChart.data.datasets.length; i++) {
-        fillDatasetWithRandomColor(foundAtChart.data.datasets[i]);
+    if (foundAtChart) {
+        for (let i = 0; i < foundAtChart.data.datasets.length; i++) {
+            fillDatasetWithRandomColor(foundAtChart.data.datasets[i]);
+        }
+        foundAtChart.update();
     }
-    for (let i = 0; i < historyChart.data.datasets.length; i++) {
-        fillDatasetWithRandomColor(historyChart.data.datasets[i]);
+    if (historyChart) {
+        for (let i = 0; i < historyChart.data.datasets.length; i++) {
+            fillDatasetWithRandomColor(historyChart.data.datasets[i]);
+        }
+        historyChart.update();
     }
-    for (let i = 0; i < floorChart.data.datasets.length; i++) {
-        fillDatasetWithRandomColor(floorChart.data.datasets[i]);
+    if (floorChart) {
+        for (let i = 0; i < floorChart.data.datasets.length; i++) {
+            fillDatasetWithRandomColor(floorChart.data.datasets[i]);
+        }
+        floorChart.update();
     }
-    historyChart.update();
-    foundAtChart.update();
-    floorChart.update();
 }
 
 const initializeResetChartButton = () => {
@@ -207,6 +217,7 @@ const fetchInitialChartData = () => {
         const characterCanvas = document.getElementById('character-ranking');
         const curseCanvas = document.getElementById('curse-ranking');
         const floorCanvas = document.getElementById('floor-ranking');
+        const transformationItemRankingCanvas = document.getElementById('transformation-item-ranking');
 
         // initialize history chart
         if (historyCanvas && historyCanvas instanceof HTMLCanvasElement) {
@@ -307,7 +318,24 @@ const fetchInitialChartData = () => {
             });
         }
 
-        // get videos
-        
+        // initialize 'transformation item ranking' chart
+        if (transformationItemRankingCanvas && transformationItemRankingCanvas instanceof HTMLCanvasElement) {
+            transformationItemRankingChart = new Chart(transformationItemRankingCanvas, {
+                type: 'doughnut',
+                data: result.transformation_item_ranking,
+                options: {
+                    scales: {
+                        xAxes: [{
+                            ticks: {
+                                beginAtZero: true,
+                                autoSkip: false
+                            }
+                        }]
+                    },
+                    maintainAspectRatio: false,
+                    responsive: true
+                }
+            });
+        }
     });
 })();

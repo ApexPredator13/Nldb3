@@ -6,6 +6,7 @@
         FoundAt,
         Character,
         Curse,
-        Floor
+        Floor,
+        TransformationItemRanking
     }
 }

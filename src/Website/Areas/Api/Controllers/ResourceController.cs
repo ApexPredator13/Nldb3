@@ -107,42 +107,49 @@ namespace Website.Areas.Api.Controllers
             }
 
             var result = new StatsPageResult();
-            var awailableStats = _isaacRepository.GetAvailableStats(resource);
+            var availableStats = _isaacRepository.GetAvailableStats(resource);
             var resourceNumber = _isaacRepository.GetResourceNumber(resource);
 
             // history
-            if (awailableStats.Contains(AvailableStats.History))
+            if (availableStats.Contains(AvailableStats.History))
             {
                 var dates = await _isaacRepository.GetEncounteredIsaacResourceTimestamps(id, resourceNumber);
                 result.History = await _barGraphCreator.ThroughoutTheLetsPlay(resource.Name, dates, searchOptions);
             }
 
             // 'found at' ranking
-            if (awailableStats.Contains(AvailableStats.FoundAt))
+            if (availableStats.Contains(AvailableStats.FoundAt))
             {
                 var foundAtStats = await _isaacRepository.GetFoundAtRanking(id);
                 result.FoundAtStats = _barGraphCreator.IsaacResourceRanking(resource.Name, foundAtStats);
             }
 
             // character ranking
-            if (awailableStats.Contains(AvailableStats.Character))
+            if (availableStats.Contains(AvailableStats.Character))
             {
                 var characterStats = await _isaacRepository.GetCharacterRanking(id, resourceNumber);
                 result.CharacterStats = _barGraphCreator.IsaacResourceRanking(resource.Name, characterStats);
             }
 
             // curse ranking
-            if (awailableStats.Contains(AvailableStats.Curse))
+            if (availableStats.Contains(AvailableStats.Curse))
             {
                 var curseStats = await _isaacRepository.GetCurseRanking(id, resourceNumber);
                 result.CurseStats = _barGraphCreator.IsaacResourceRanking(resource.Name, curseStats);
             }
 
             // floor ranking
-            if (awailableStats.Contains(AvailableStats.Floor))
+            if (availableStats.Contains(AvailableStats.Floor))
             {
                 var floorStats = await _isaacRepository.GetFloorRanking(id, resourceNumber);
                 result.FloorStats = _barGraphCreator.IsaacResourceRanking(resource.Name, floorStats);
+            }
+
+            // transformation item ranking
+            if (availableStats.Contains(AvailableStats.TransformationItemRanking))
+            {
+                var itemRanking = await _isaacRepository.GetTransformationItemRanking(id);
+                result.TransformationItemRanking = _barGraphCreator.IsaacResourceRanking(resource.Name, itemRanking);
             }
 
             return result;

@@ -6,6 +6,75 @@
         Id = "",
     };
     var initialEmptyComparisonModel = new ResourceSelection("comparison-dd", new List<IsaacResource>());
+
+    var historyHeader = Model.IsaacResource.ResourceType switch
+    {
+        ResourceType.Boss => $"{Model.IsaacResource.Name}-Bossfights throughout the Let's Play",
+        ResourceType.Character => $"{Model.IsaacResource.Name}-Plays Throughout the Let's Play",
+        ResourceType.CharacterReroll => $"{Model.IsaacResource.Name}-Rerolls Throughout the Let's Play",
+        ResourceType.Curse => $"Floors cursed with '{Model.IsaacResource.Name}' Throughout the Let's Play",
+        ResourceType.Enemy => $"Characters that were killed by '{Model.IsaacResource.Name}'",
+        ResourceType.Floor => $"{Model.IsaacResource.Name}-Visits Throughout the Let's Play",
+        ResourceType.Item => $"{Model.IsaacResource.Name}-Pickups Throughout the Let's Play",
+        ResourceType.ItemSource => $"Collected Items from {Model.IsaacResource.Name} Throughout the Let's Play",
+        ResourceType.Pill => $"Swallowed '{Model.IsaacResource.Name}' Pills Throughout the Let's Play",
+        ResourceType.Rune => $"Used '{Model.IsaacResource.Name}'-Runes Throughout the Let's Play",
+        ResourceType.TarotCard => $"Used '{Model.IsaacResource.Name}'-Cards Throughout the Let's Play",
+        ResourceType.Transformation => $"{Model.IsaacResource.Name}-Transformations Throughout the Let's Play",
+        ResourceType.Trinket => $"{Model.IsaacResource.Name}-Uses Throughout the Let's Play",
+        _ => $"History for {Model.IsaacResource.Name}"
+    };
+
+    var characterRankingHeader = Model.IsaacResource.ResourceType switch
+    {
+        ResourceType.Boss => $"Most {Model.IsaacResource.Name}-Fights per Character",
+        ResourceType.CharacterReroll => $"Most {Model.IsaacResource.Name}-Rerolls per Character",
+        ResourceType.Curse => $"Characters that were cursed by '{Model.IsaacResource.Name}' most often",
+        ResourceType.Enemy => $"Characters most often killed by '{Model.IsaacResource.Name}'",
+        ResourceType.Floor => $"{Model.IsaacResource.Name}-Visits per Character",
+        ResourceType.Item => $"{Model.IsaacResource.Name}-Pickups per Character",
+        ResourceType.ItemSource => $"Characters who collected items from {Model.IsaacResource.Name} the most",
+        ResourceType.Pill => $"Characters who took '{Model.IsaacResource.Name}' the most",
+        ResourceType.Rune => $"Characters who used '{Model.IsaacResource.Name}'-Runes the most",
+        ResourceType.TarotCard => $"Characters who used '{Model.IsaacResource.Name}'-Cards the most",
+        ResourceType.Transformation => $"Characters who transformed into {Model.IsaacResource.Name} the most",
+        ResourceType.Trinket => $"Characters who used {Model.IsaacResource.Name} most often",
+        _ => $"Character Ranking for {Model.IsaacResource.Name}"
+    };
+
+    var curseRankingHeader = Model.IsaacResource.ResourceType switch
+    {
+        ResourceType.Boss => $"{Model.IsaacResource.Name}-Bossfights while being cursed",
+        ResourceType.Character => $"Most frequent Curses while playing as {Model.IsaacResource.Name}",
+        ResourceType.CharacterReroll => $"Most frequest Curses when rerolling the Character with {Model.IsaacResource.Name}",
+        ResourceType.Enemy => $"Most frequent Curses when dying from '{Model.IsaacResource.Name}'",
+        ResourceType.Floor => $"Most frequent Curses for {Model.IsaacResource.Name}",
+        ResourceType.Item => $"Most frequent Curses when collecting '{Model.IsaacResource.Name}'",
+        ResourceType.ItemSource => $"Most frequent Curses when an item was collected from '{Model.IsaacResource.Name}'",
+        ResourceType.Pill => $"Most frequent Curses when swallowing a '{Model.IsaacResource.Name}'-Pill",
+        ResourceType.Rune => $"Most frequent Curses when using a '{Model.IsaacResource.Name}'-Rune",
+        ResourceType.TarotCard => $"Most frequent Curses when using a '{Model.IsaacResource.Name}'-Card",
+        ResourceType.Transformation => $"Most frequent Curses when transforming into {Model.IsaacResource.Name}",
+        ResourceType.Trinket => $"Most frequent Curses when collecting a '{Model.IsaacResource.Name}'-Trinket",
+        _ => $"Curse Ranking for {Model.IsaacResource.Name}"
+    };
+
+    var floorRankingHeader = Model.IsaacResource.ResourceType switch
+    {
+        ResourceType.Boss => $"{Model.IsaacResource.Name}-Bossfights per floor",
+        ResourceType.Character => $"Floors who {Model.IsaacResource.Name} visited the most",
+        ResourceType.CharacterReroll => $"Most {Model.IsaacResource.Name} Rerolls per Floor",
+        ResourceType.Curse => $"Floors cursed most often by '{Model.IsaacResource.Name}'",
+        ResourceType.Enemy => $"Losses caused by '{Model.IsaacResource.Name}' per Floor",
+        ResourceType.Item => $"{Model.IsaacResource.Name}-Pickups per Floor",
+        ResourceType.ItemSource => $"Collected Items from {Model.IsaacResource.Name} per Floor",
+        ResourceType.Pill => $"Swallowed '{Model.IsaacResource.Name}' Pills per Floor",
+        ResourceType.Rune => $"Used '{Model.IsaacResource.Name}'-Runes per Floor",
+        ResourceType.TarotCard => $"Used '{Model.IsaacResource.Name}'-Cards per Floor",
+        ResourceType.Transformation => $"{Model.IsaacResource.Name}-Transformations per Floor",
+        ResourceType.Trinket => $"{Model.IsaacResource.Name}-Uses per Floor",
+        _ => $"Floor Ranking for {Model.IsaacResource.Name}"
+    };
 }
 
 @model InitialResourceViewModel
@@ -29,38 +98,56 @@
             <button class="btn-red" id="reset-chart">Reset Chart</button>
         </div>
     </div>
-
 </div>
 
-<canvas id="throughout-the-letsplay" class="chart"></canvas>
+@if (Model.AvailableStats.Contains(AvailableStats.History))
+{
+    <h4>@historyHeader</h4>
+    <canvas id="throughout-the-letsplay" class="chart"></canvas>
+    <hr />
+}
 
-<hr />
-<h3>Found At Ranking</h3>
-<div class="doughnut-chart-container">
-    <canvas id="found-at-ranking" class="chart"></canvas>
-</div>
+@if (Model.AvailableStats.Contains(AvailableStats.FoundAt))
+{
+    <h3>'@Model.IsaacResource.Name' was mostly collected from...</h3>
+    <div class="doughnut-chart-container">
+        <canvas id="found-at-ranking" class="chart"></canvas>
+    </div>
+    <hr />
+}
 
-<hr />
+@if (Model.AvailableStats.Contains(AvailableStats.Character))
+{
+    <h3>@characterRankingHeader</h3>
+    <div class="doughnut-chart-container">
+        <canvas id="character-ranking" class="chart"></canvas>
+    </div>
+    <hr />
+}
 
-<h3>Character Ranking</h3>
-<div class="doughnut-chart-container">
-    <canvas id="character-ranking" class="chart"></canvas>
-</div>
+@if (Model.AvailableStats.Contains(AvailableStats.Curse))
+{
+    <h3>@curseRankingHeader</h3>
+    <div class="doughnut-chart-container">
+        <canvas id="curse-ranking" class="chart"></canvas>
+    </div>
+    <hr />
+}
 
-<hr />
+@if (Model.AvailableStats.Contains(AvailableStats.Floor))
+{
+    <h3>@floorRankingHeader</h3>
+    <canvas id="floor-ranking" class="chart"></canvas>
+    <hr />
+}
 
-<h3>Curse Ranking</h3>
-<div class="doughnut-chart-container">
-    <canvas id="curse-ranking" class="chart"></canvas>
-</div>
-
-<hr/>
-
-<h3>Floor Ranking</h3>
-<canvas id="floor-ranking" class="chart"></canvas>
-
-
-<hr/>
+@if (Model.AvailableStats.Contains(AvailableStats.TransformationItemRanking))
+{
+    <h3>Frequency of Transformation-Relevant Items</h3>
+    <div class="doughnut-chart-container">
+        <canvas id="transformation-item-ranking" class="chart"></canvas>
+    </div>
+}
 
 <partial name="_VideosPartial" model="Model.Videos" />
 

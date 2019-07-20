@@ -193,11 +193,11 @@ namespace Website
                 // isaac resource overview pages
                 foreach (var overviewPageId in Controllers.ResourceController.OverviewPageNames.Keys)
                 {
-                    endpoints.MapControllerRoute(overviewPageId, $"{{id={overviewPageId}}}", new { Controller = Controllers.ResourceController.Controllername, Action = nameof(Controllers.ResourceController.Overview) });
+                    endpoints.MapControllerRoute(overviewPageId, $"/{overviewPageId}", new { Controller = Controllers.ResourceController.Controllername, Action = nameof(Controllers.ResourceController.Overview), Id = overviewPageId });
                 }
 
                 // catchall for arbitrary isaac resource
-                endpoints.MapControllerRoute("resource", "{id}", new { Controller = Controllers.ResourceController.Controllername, Action = nameof(Controllers.ResourceController.Index) });
+                endpoints.MapControllerRoute("general_resource", "{id}", new { Controller = Controllers.ResourceController.Controllername, Action = nameof(Controllers.ResourceController.Index) });
                 endpoints.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
             });
 

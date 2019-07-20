@@ -1,1 +1,91 @@
-﻿<h1>Overview</h1>
+﻿@model IsaacResourceOverview
+
+@{
+    ViewData["Title"] = "Overview";
+    var models = Model.Resources.Keys;
+
+    var header = Model.ResourceType switch
+    {
+        ResourceType.Boss => "Overview of all Bosses Northernlion defeated",
+        ResourceType.Character => "Overview of all Binding Of Isaac-Characters",
+        ResourceType.CharacterReroll => "Overview of all Character Rerolls in The Binding Of Isaac",
+        ResourceType.Curse => "Overview of all Curses in The Binding Of Isaac",
+        ResourceType.Enemy => "Overview of everything that can kill you in The Binding Of Isaac",
+        ResourceType.Floor => "Overview of all floors in The Binding Of Isaac",
+        ResourceType.Transformation => "Overview of all Transformations in The Binding Of Isaac",
+        ResourceType.Trinket => "Overview of all Trinkets in The Binding Of Isaac",
+        ResourceType.Item => "Overview of all Items in The Binding Of Isaac",
+        ResourceType.ItemSource => "Overview of all Item-Sources in The Binding Of Isaac",
+        ResourceType.OtherConsumable => "Overview of Other Consumables",
+        ResourceType.Pill => "Overview of all Pills in The Binding Of Isaac",
+        ResourceType.Rune => "Overview of all Runes in The Binding Of Isaac",
+        ResourceType.TarotCard => "Overview of all Tarot Cards in The Binding Of Isaac",
+        _ => "Overview"
+    };
+
+    var descriptionLine1 = Model.ResourceType switch
+    {
+        ResourceType.Boss => "Click on a boss for more details!",
+        ResourceType.Character => "Click on a character for more details!",
+        ResourceType.CharacterReroll => "A list of all items, rooms or other events that can reroll the character you're playing. Click on a reroll for more details!",
+        ResourceType.Curse => "A list of all curses Northernlion has encountered.",
+        ResourceType.Enemy => "Specific Enemies don't kill Northernlion too often, so most entries won't have too much data in them.",
+        ResourceType.Floor => "Click on a floor for more details!",
+        ResourceType.Transformation => "Click on a transformation for more details!",
+        ResourceType.Trinket => "NOTE: Support for trinkets was added very recently, so most trinkets won't have much data yet!",
+        ResourceType.Item => "Click on an item for more details!",
+        ResourceType.ItemSource => "Everything that can drop an item can be found here! Click on an item source for more details!",
+        ResourceType.OtherConsumable => "NOTE: Support for misc consumables was added very recently, so most of them won't have much data yet!",
+        ResourceType.Pill => "NOTE: Support for pills was added very recently, so most pills won't have much data yet!",
+        ResourceType.Rune => "NOTE: Support for runes was added very recently, so most runes won't have much data yet!",
+        ResourceType.TarotCard => "NOTE: Support for tarot cards was added very recently, so most tarot cards won't have much data yet!",
+        _ => string.Empty
+    };
+
+    var descriptionLine2 = Model.ResourceType switch
+    {
+        ResourceType.Curse => "Special curses that can be found in certain challenges (like 'curse of the cursed') have a seperate entry!",
+        ResourceType.Enemy => "However, it can sometimes be interesting to compare enemies with each other! Consider using the 'Options' in the bottom left of the page after selecting an emeny!",
+        ResourceType.Pill => "Click on a pill for more details!",
+        ResourceType.Rune => "Click on a rune for more details!",
+        ResourceType.TarotCard => "Click on a rune for more details!",
+        ResourceType.OtherConsumable => "Click on a consumable for more details!",
+        _ => string.Empty
+    };
+
+    var descriptionLine3 = Model.ResourceType switch
+    {
+        ResourceType.Curse => "Click on a curse for more details!",
+        _ => string.Empty
+    };
+}
+
+
+<h1>@header</h1>
+
+@if (!string.IsNullOrWhiteSpace(descriptionLine1))
+{
+    <p>@descriptionLine1</p>
+}
+@if (!string.IsNullOrWhiteSpace(descriptionLine2))
+{
+    <p>@descriptionLine2</p>
+}
+@if (!string.IsNullOrWhiteSpace(descriptionLine3))
+{
+    <p>@descriptionLine3</p>
+}
+
+<div id="resources">
+    @foreach (var resource in Model.Resources)
+    {
+        <h4 style="margin-bottom: 0;">@resource.Key</h4>
+        var model = new ResourceSelection(resource.Key, resource.Value);
+        <partial name="_IsaacResourceBoxesPartial" model="model" />
+        <hr />
+    }
+</div>
+
+@section Scripts {
+    <script src="~/js/dist/resource_overview.min.js"></script>
+}

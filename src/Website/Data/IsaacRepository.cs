@@ -45,6 +45,50 @@ namespace Website.Data
             }
         }
 
+        public async Task<List<(int amount, IsaacResource item)>> GetTransformationItemRanking(string transformationId)
+        {
+            var result = new List<(int amount, IsaacResource item)>();
+
+            var query =
+                "SELECT COUNT(e.resource_one) AS item_count, r.id, r.name, r.type, r.exists_in, r.x, r.game_mode, r.color, r.display_order, r.difficulty, r.tags " +
+                "FROM gameplay_events e " +
+                "LEFT JOIN isaac_resources r ON r.id = e.resource_one " +
+                "WHERE e.resource_two = @TransformationId " +
+                $"AND e.event_type = {(int)GameplayEventType.TransformationProgress} " +
+                "GROUP BY r.id " +
+                "ORDER BY item_count DESC, r.name ASC;";
+
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand(query, c);
+            q.Parameters.AddWithValue("@TransformationId", NpgsqlDbType.Text, transformationId);
+            using var r = await q.ExecuteReaderAsync();
+
+            if (r.HasRows)
+            {
+                while (r.Read())
+                {
+                    var amount = r.GetInt32(0);
+                    var resource = new IsaacResource()
+                    {
+                        Id = r.GetString(1),
+                        Name = r.GetString(2),
+                        ResourceType = (ResourceType)r.GetInt32(3),
+                        ExistsIn = (ExistsIn)r.GetInt32(4),
+                        CssCoordinates = (NpgsqlBox)r.GetValue(5),
+                        GameMode = (GameMode)r.GetInt32(6),
+                        Color = r.GetString(7),
+                        Mod = null,
+                        DisplayOrder = r.IsDBNull(8) ? null : (int?)r.GetInt32(8),
+                        Difficulty = r.IsDBNull(9) ? null : (int?)r.GetInt32(9),
+                        Tags = r.IsDBNull(10) ? null : ((int[])r[10]).Select(x => (Effect)x).ToList()
+                    };
+                    result.Add((amount, resource));
+                }
+            }
+
+            return result;
+        }
+
         public async Task<List<(int amount, IsaacResource floor)>> GetFloorRanking(string resourceId, int resourceNumber)
         {
             var result = new List<(int amount, IsaacResource floor)>();
@@ -1085,19 +1129,21 @@ namespace Website.Data
                 case ResourceType.TarotCard:
                     return new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History, AvailableStats.Floor };
                 case ResourceType.Transformation:
-                    return new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History, AvailableStats.Floor };
+                    return new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History, AvailableStats.Floor, AvailableStats.TransformationItemRanking };
                 case ResourceType.Trinket:
                     return new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History, AvailableStats.Floor };
                 default:
                     return new List<AvailableStats>();
             }
         }
+
         public int GetResourceNumber(IsaacResource resource)
             => GetResourceNumber(resource.ResourceType);
 
         public int GetResourceNumber(ResourceType resourceType) 
             => resourceType switch
             {
+                ResourceType.Transformation => 2,
                 ResourceType.ItemSource => 2,
                 _ => 1
             };

@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Website.Areas.Admin.ViewModels;
 using Website.Models.Database;
 using Website.Models.Database.Enums;
-using Website.Models;
 using Website.Areas.Api.Models;
 using Website.Models.SubmitEpisode;
 
@@ -40,6 +39,7 @@ namespace Website.Services
         Task<List<(int amount, IsaacResource characters)>> GetCharacterRanking(string resourceId, int resourceNumber);
         Task<List<(int amount, IsaacResource curse)>> GetCurseRanking(string resourceId, int resourceNumber);
         Task<List<(int amount, IsaacResource floor)>> GetFloorRanking(string resourceId, int resourceNumber);
+        Task<List<(int amount, IsaacResource item)>> GetTransformationItemRanking(string transformationId);
         List<AvailableStats> GetAvailableStats(IsaacResource resource);
         int GetResourceNumber(IsaacResource resource);
         int GetResourceNumber(ResourceType resourceType);

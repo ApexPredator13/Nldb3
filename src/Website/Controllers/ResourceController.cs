@@ -31,8 +31,8 @@ namespace Website.Controllers
             { "rerolls", ResourceType.CharacterReroll},
             { "characterrerolls", ResourceType.CharacterReroll},
             { "character_rerolls", ResourceType.CharacterReroll},
-            { "otherconsumable", ResourceType.OtherConsumable},
-            { "other_consumable", ResourceType.OtherConsumable},
+            { "otherconsumables", ResourceType.OtherConsumable},
+            { "other_consumables", ResourceType.OtherConsumable},
         };
 
         private readonly IIsaacRepository _isaacRepository;
@@ -48,20 +48,21 @@ namespace Website.Controllers
         public async Task<ActionResult> Index([FromRoute] string id, IsaacSearchOptions searchOptions)
         {
             searchOptions.ResourceId = id;
-            var item = await _isaacRepository.GetResourceById(id, true);
-            searchOptions.ResourceType = item.ResourceType;
+            var resource = await _isaacRepository.GetResourceById(id, true);
+            var availableResources = _isaacRepository.GetAvailableStats(resource);
+            searchOptions.ResourceType = resource.ResourceType;
             var videos = await _videoRepository.GetVideos(searchOptions);
-            return View(new InitialResourceViewModel(item, videos));
+            return View(new InitialResourceViewModel(resource, videos, availableResources));
         }
 
-        [HttpGet("{id}")]
+        [HttpGet]
         public async Task<ViewResult> Overview([FromRoute] string id)
         {
             var request = new GetResource()
             {
                 IncludeMod = true,
                 OrderBy1 = ResourceOrderBy.Name,
-                ResourceType = OverviewPageNames[id]
+                ResourceType = OverviewPageNames[id.ToLower()]
             };
 
             var resources = await _isaacRepository.GetResources(request);
@@ -80,7 +81,7 @@ namespace Website.Controllers
                 sortedResources[key].Add(resource);
             }
 
-            var model = new IsaacResourceOverview(sortedResources);
+            var model = new IsaacResourceOverview(sortedResources, OverviewPageNames[id.ToLower()]);
             return View(model);
         }
     }
