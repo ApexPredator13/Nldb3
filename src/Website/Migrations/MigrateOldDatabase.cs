@@ -552,10 +552,13 @@ namespace Website.Migrations
                         var currentFloorId = await _isaacRepository.GetFirstResourceIdFromName(r.GetString(0));
                         var nextFloorId = await _isaacRepository.GetFirstResourceIdFromName(r.GetString(1));
 
-                        if (Enum.TryParse(typeof(Effect), $"ComesAfter{currentFloorId}", out object foundEffect))
+                        if (!string.IsNullOrEmpty(nextFloorId) && Enum.TryParse(typeof(Effect), $"ComesAfter{currentFloorId}", out object? foundEffect))
                         {
-                            _logger.LogDebug($"{nextFloorId} comes after {currentFloorId}");
-                            await _isaacRepository.AddTag(nextFloorId, (Effect)foundEffect);
+                            if (!(foundEffect is null))
+                            {
+                                _logger.LogDebug($"{nextFloorId} comes after {currentFloorId}");
+                                await _isaacRepository.AddTag(nextFloorId, (Effect)foundEffect);
+                            }
                         }
                     }
                 }
@@ -682,6 +685,12 @@ namespace Website.Migrations
 
                 var itemId = await _isaacRepository.GetFirstResourceIdFromName(itemName);
                 var transformationId = await _isaacRepository.GetFirstResourceIdFromName(transformationName);
+
+                if (itemId is null || transformationId is null)
+                {
+                    continue;
+                }
+
                 DateTime? validFrom = null;
 
                 switch (transformationId)

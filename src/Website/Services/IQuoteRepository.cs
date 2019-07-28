@@ -9,8 +9,8 @@ namespace Website.Services
     {
         Task<int> SaveQuote(SubmittedQuote quote, string userId);
         Task<int> DeleteQuote(int quoteId, string userId);
-        Task<List<Quote>> GetQuotesForVideo(string videoId);
-        Task<Quote?> GetQuoteById(int id);
+        Task<List<Quote>> GetQuotesForVideo(string videoId, string? userId);
+        Task<Quote?> GetQuoteById(int id, string? userId);
         Task<int> Vote(SubmittedQuoteVote vote, string userId);
         Task<List<QuoteVote>> GetVotesForUser(string userId);
         Task<int> DeleteVote(int voteId, string userId);

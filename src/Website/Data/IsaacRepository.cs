@@ -716,7 +716,7 @@ namespace Website.Data
             return result;
         }
 
-        public async Task<string> GetFirstResourceIdFromName(string name)
+        public async Task<string?> GetFirstResourceIdFromName(string name)
         {
             using var c = await _connector.Connect();
             using var q = new NpgsqlCommand("SELECT id FROM isaac_resources WHERE name = @Name", c);
@@ -724,7 +724,7 @@ namespace Website.Data
             return Convert.ToString(await q.ExecuteScalarAsync());
         }
 
-        public async Task<string> SaveResource(CreateIsaacResource resource, int x, int y, int w, int h)
+        public async Task<string?> SaveResource(CreateIsaacResource resource, int x, int y, int w, int h)
         {
             Console.WriteLine("Saving Resource " + resource.Id);
             string query = "INSERT INTO isaac_resources (id, name, type, exists_in, x, game_mode, color, mod, display_order, difficulty, tags) VALUES (" +
@@ -758,18 +758,18 @@ namespace Website.Data
 
         private string GetOrderByClause(ResourceOrderBy orderBy, string prefix, bool asc)
         {
-            switch (orderBy)
+            return orderBy switch
             {
-                case ResourceOrderBy.Color: return $"{prefix}.color {(asc ? "ASC" : "DESC")}";
-                case ResourceOrderBy.Difficulty: return $"{prefix}.difficulty {(asc ? "ASC" : "DESC")} NULLS LAST";
-                case ResourceOrderBy.DisplayOrder: return $"{prefix}.display_order {(asc ? "ASC" : "DESC")} NULLS LAST";
-                case ResourceOrderBy.ExistsIn: return $"{prefix}.exists_in {(asc ? "ASC" : "DESC")}";
-                case ResourceOrderBy.GameMode: return $"{prefix}.game_mode {(asc ? "ASC" : "DESC")}";
-                case ResourceOrderBy.Id: return $"{prefix}.id {(asc ? "ASC" : "DESC")}";
-                case ResourceOrderBy.Name: return $"{prefix}.name {(asc ? "ASC" : "DESC")}";
-                case ResourceOrderBy.Type: return $"{prefix}.type {(asc ? "ASC" : "DESC")}";
-                default: return $"{prefix}.id";
-            }
+                ResourceOrderBy.Color => $"{prefix}.color {(asc ? "ASC" : "DESC")}",
+                ResourceOrderBy.Difficulty => $"{prefix}.difficulty {(asc ? "ASC" : "DESC")} NULLS LAST",
+                ResourceOrderBy.DisplayOrder => $"{prefix}.display_order {(asc ? "ASC" : "DESC")} NULLS LAST",
+                ResourceOrderBy.ExistsIn => $"{prefix}.exists_in {(asc ? "ASC" : "DESC")}",
+                ResourceOrderBy.GameMode => $"{prefix}.game_mode {(asc ? "ASC" : "DESC")}",
+                ResourceOrderBy.Id => $"{prefix}.id {(asc ? "ASC" : "DESC")}",
+                ResourceOrderBy.Name => $"{prefix}.name {(asc ? "ASC" : "DESC")}",
+                ResourceOrderBy.Type => $"{prefix}.type {(asc ? "ASC" : "DESC")}",
+                _ => $"{prefix}.id",
+            };
         }
 
         #region StatementCreatorsForGetResources
@@ -1100,41 +1100,25 @@ namespace Website.Data
 
         public List<AvailableStats> GetAvailableStats(IsaacResource resource)
         {
-            switch (resource.ResourceType)
+            return resource.ResourceType switch
             {
-                case ResourceType.Boss:
-                    return new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History, AvailableStats.Floor };
-                case ResourceType.Character:
-                    return new List<AvailableStats>() { AvailableStats.Curse, AvailableStats.History };
-                case ResourceType.CharacterReroll:
-                    return new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History, AvailableStats.Floor };
-                case ResourceType.Curse:
-                    return new List<AvailableStats>() { AvailableStats.Character, AvailableStats.History, AvailableStats.Floor };
-                case ResourceType.Enemy:
-                    return new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History, AvailableStats.Floor };
-                case ResourceType.Floor:
-                    return new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History };
-                case ResourceType.Item:
-                    return new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.FoundAt, AvailableStats.History, AvailableStats.Floor };
-                case ResourceType.ItemSource:
-                    return new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History, AvailableStats.Floor };
-                case ResourceType.OtherConsumable:
-                    return new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History, AvailableStats.Floor };
-                case ResourceType.OtherEvent:
-                    return new List<AvailableStats>() { AvailableStats.History };
-                case ResourceType.Pill:
-                    return new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History, AvailableStats.Floor };
-                case ResourceType.Rune:
-                    return new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History, AvailableStats.Floor };
-                case ResourceType.TarotCard:
-                    return new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History, AvailableStats.Floor };
-                case ResourceType.Transformation:
-                    return new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History, AvailableStats.Floor, AvailableStats.TransformationItemRanking };
-                case ResourceType.Trinket:
-                    return new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History, AvailableStats.Floor };
-                default:
-                    return new List<AvailableStats>();
-            }
+                ResourceType.Boss => new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History, AvailableStats.Floor },
+                ResourceType.Character => new List<AvailableStats>() { AvailableStats.Curse, AvailableStats.History },
+                ResourceType.CharacterReroll => new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History, AvailableStats.Floor },
+                ResourceType.Curse => new List<AvailableStats>() { AvailableStats.Character, AvailableStats.History, AvailableStats.Floor },
+                ResourceType.Enemy => new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History, AvailableStats.Floor },
+                ResourceType.Floor => new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History },
+                ResourceType.Item => new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.FoundAt, AvailableStats.History, AvailableStats.Floor },
+                ResourceType.ItemSource => new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History, AvailableStats.Floor },
+                ResourceType.OtherConsumable => new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History, AvailableStats.Floor },
+                ResourceType.OtherEvent => new List<AvailableStats>() { AvailableStats.History },
+                ResourceType.Pill => new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History, AvailableStats.Floor },
+                ResourceType.Rune => new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History, AvailableStats.Floor },
+                ResourceType.TarotCard => new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History, AvailableStats.Floor },
+                ResourceType.Transformation => new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History, AvailableStats.Floor, AvailableStats.TransformationItemRanking },
+                ResourceType.Trinket => new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History, AvailableStats.Floor },
+                _ => new List<AvailableStats>(),
+            };
         }
 
         public int GetResourceNumber(IsaacResource resource)

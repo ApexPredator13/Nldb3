@@ -12,13 +12,13 @@ namespace Website.Services
     public interface IIsaacRepository
     {
         Task<History> GetHistory(SubmittedCompleteEpisode episode);
-        Task<string> SaveResource(CreateIsaacResource resource, int x, int y, int w, int h);
+        Task<string?> SaveResource(CreateIsaacResource resource, int x, int y, int w, int h);
         Task<int> CountResources(ResourceType type = ResourceType.Unspecified);
         Task<IsaacResource?> GetResourceById(string id, bool includeMod);
         Task<List<IsaacResource>> GetResources(GetResource request);
         Task<int> DeleteResource(string resourceId);
         Task<int> MakeTransformative(MakeIsaacResourceTransformative model);
-        Task<string> GetFirstResourceIdFromName(string name);
+        Task<string?> GetFirstResourceIdFromName(string name);
         Task<List<(string transformation, bool countsMultipleTimes, int stepsNeeded)>> GetTransformationData(string resourceId, string videoTitle, DateTime videoReleasedate);
         Task<bool> HasTags(string resourceId, params Effect[] RequiredTags);
         Task<int> UpdateName(string id, string newName);

@@ -1,4 +1,6 @@
-﻿@{
+﻿@model InitialResourceViewModel
+
+@{
     ViewData["Title"] = Model.IsaacResource.Name;
     var emptyResource = new IsaacResource()
     {
@@ -76,8 +78,6 @@
         _ => $"Floor Ranking for {Model.IsaacResource.Name}"
     };
 }
-
-@model InitialResourceViewModel
 
 
 <h1>@Model.IsaacResource.Name</h1>

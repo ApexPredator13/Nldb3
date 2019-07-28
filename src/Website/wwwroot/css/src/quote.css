@@ -1,0 +1,23 @@
+﻿.quote {
+    width: 250px;
+    display: inline-block;
+    margin: 0.4rem;
+}
+
+.quote img {
+    margin-top: -1px;
+}
+
+.speechbubble {
+    width: 95%;
+    margin: 0 auto;
+    padding: 5px;
+    background-color: beige;
+    border-radius: 1.2rem;
+    color: black;
+    font-size: 0.9rem;
+}
+
+.quote-footer {
+    font-size: 0.8rem;
+}

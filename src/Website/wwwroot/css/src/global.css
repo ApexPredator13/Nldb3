@@ -87,4 +87,12 @@ button:hover {
     border-color: red;
 }
 
-
+.red {
+    color: red;
+}
+.green {
+    color: green;
+}
+.hand {
+    cursor: pointer;
+}

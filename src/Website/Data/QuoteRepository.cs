@@ -60,9 +60,9 @@ namespace Website.Data
             return await q.ExecuteNonQueryAsync();
         }
 
-        public async Task<List<Quote>> GetQuotesForVideo(string videoId)
+        public async Task<List<Quote>> GetQuotesForVideo(string videoId, string? userId)
         {
-            var result = new List<Quote>();
+            var quotes = new List<Quote>();
 
             var query =
                 "SELECT " +
@@ -85,7 +85,7 @@ namespace Website.Data
                 {
                     int i = 0;
 
-                    result.Add(new Quote()
+                    quotes.Add(new Quote()
                     {
                         Id = r.GetInt32(i++),
                         VideoId = r.GetString(i++),
@@ -96,11 +96,48 @@ namespace Website.Data
                     });
                 }
             }
+            
+            await AddVotesToQuotes(quotes, userId);
 
-            return result;
+            return quotes;
         }
 
-        public async Task<Quote?> GetQuoteById(int id)
+        public async Task AddVotesToQuotes(Quote quote, string? userId)
+        {
+            await AddVotesToQuotes(new List<Quote>() { quote }, userId);
+        }
+
+        public async Task AddVotesToQuotes(List<Quote> quotes, string? userId)
+        {
+            if (userId is null)
+            {
+                return;
+            }
+
+            var ids = quotes.Select(x => (x.Id, $"@{x.Id}X")).ToList();
+            var commandText = $"SELECT quote, vote FROM quote_votes WHERE user_id = @U AND quote IN ({string.Join(", ", ids.Select(x => x.Item2))});";
+
+            using var c = await _connector.Connect();
+            using var qVotes = new NpgsqlCommand(commandText, c);
+            qVotes.Parameters.AddWithValue("@U", NpgsqlDbType.Text, userId);
+            foreach (var id in ids)
+            {
+                qVotes.Parameters.AddWithValue(id.Item2, NpgsqlDbType.Integer, id.Id);
+            }
+
+            using var rVotes = await qVotes.ExecuteReaderAsync();
+            if (rVotes.HasRows)
+            {
+                while (rVotes.Read())
+                {
+                    var quoteId = rVotes.GetInt32(0);
+                    var vote = (Vote?)rVotes.GetInt32(1);
+                    quotes.First(x => x.Id == quoteId).Vote = vote;
+                }
+            }
+        }
+
+        public async Task<Quote?> GetQuoteById(int id, string? userId)
         {
             Quote? result = null;
 
@@ -132,6 +169,11 @@ namespace Website.Data
                     SubmissionTime = r.GetDateTime(i++),
                     Contributor = r.IsDBNull(i++) ? "[Deleted User]" : r.GetString(i - 1)
                 };
+            }
+
+            if (result != null)
+            {
+                await AddVotesToQuotes(result, userId);
             }
 
             return result;

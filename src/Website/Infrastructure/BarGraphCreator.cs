@@ -12,12 +12,10 @@ namespace Website.Infrastructure
     public class BarGraphCreator : IBarGraphCreator
     {
         private readonly IVideoRepository _videoRepository;
-        private readonly IIsaacRepository _isaacRepository;
 
-        public BarGraphCreator(IVideoRepository videoRepository, IIsaacRepository isaacRepository)
+        public BarGraphCreator(IVideoRepository videoRepository)
         {
             _videoRepository = videoRepository;
-            _isaacRepository = isaacRepository;
         }
 
         public ChartObject IsaacResourceRanking(string label, List<(int amount, IsaacResource foundAt)> data)

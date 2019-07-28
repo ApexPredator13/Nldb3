@@ -11,7 +11,8 @@ module.exports = {
         set_admin_mode: './wwwroot/js/src/set-admin-mode.ts',
         drag_and_drop: './wwwroot/js/src/drag-and-drop.ts',
         charts: './wwwroot/js/src/charts.ts',
-        resource_overview: './wwwroot/js/src/resource-overview.ts'
+        resource_overview: './wwwroot/js/src/resource-overview.ts',
+        video_quotes: './wwwroot/js/src/video-quotes.ts'
     },
     output: {
         path: path.resolve(__dirname, 'wwwroot', 'js', 'dist'),

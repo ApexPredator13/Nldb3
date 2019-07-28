@@ -75,8 +75,13 @@ namespace Website.Areas.Api.Controllers
         [HttpGet("next-floorset/{id}")]
         public async Task<List<IsaacResource>> GetNextFloorset([FromRoute] string id)
         {
-            if (Enum.TryParse(typeof(Effect), $"ComesAfter{id}", out object effect))
+            if (Enum.TryParse(typeof(Effect), $"ComesAfter{id}", out object? effect))
             {
+                if (effect is null)
+                {
+                    return new List<IsaacResource>();
+                }
+
                 var foundEffect = (Effect)effect;
                 return await _isaacRepository.GetResources(new GetResource()
                 {

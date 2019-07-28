@@ -1,0 +1,24 @@
+﻿/* iri = isaac resource image, shortened to save bytes because it's used a lot! */
+.iri {
+    display: inline-block;
+    vertical-align: middle;
+    position: relative;
+    z-index: 0;
+}
+
+.popup {
+    position: absolute;
+    top: 30px;
+    background-color: black;
+    border: 0.2rem solid white;
+    margin: 0.3rem;
+    border-radius: 0.2rem;
+    display: none;
+    overflow: visible;
+    z-index: 1000;
+    width: 150px;
+}
+
+.iri:hover + .popup {
+    display: inline-block;
+}

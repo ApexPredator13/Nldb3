@@ -13,5 +13,8 @@ namespace Website.Models.Database
 
         [JsonProperty("amount_per_page")]
         public int AmountPerPage { get; set; } = 0;
+
+        [JsonProperty("header")]
+        public string Header { get; set; } = "Videos";
     }
 }

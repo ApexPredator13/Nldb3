@@ -13,6 +13,7 @@
   <ItemGroup>
     <Content Remove="bundleconfig.json" />
     <Content Remove="wwwroot\js\src\charts.ts" />
+    <Content Remove="wwwroot\js\src\components\quotes.ts" />
     <Content Remove="wwwroot\js\src\dom-operations.ts" />
     <Content Remove="wwwroot\js\src\drag-and-drop.ts" />
     <Content Remove="wwwroot\js\src\enum-converters.ts" />
@@ -21,6 +22,7 @@
     <Content Remove="wwwroot\js\src\interfaces\isaac-resource.ts" />
     <Content Remove="wwwroot\js\src\interfaces\mod-url.ts" />
     <Content Remove="wwwroot\js\src\interfaces\mod.ts" />
+    <Content Remove="wwwroot\js\src\interfaces\quote.ts" />
     <Content Remove="wwwroot\js\src\interfaces\selected-isaac-object.ts" />
     <Content Remove="wwwroot\js\src\interfaces\submitted-complete-episode.ts" />
     <Content Remove="wwwroot\js\src\interfaces\submitted-gameplay-event.ts" />
@@ -47,6 +49,7 @@
     <Content Remove="wwwroot\js\src\set-admin-mode.ts" />
     <Content Remove="wwwroot\js\src\validation.ts" />
     <Content Remove="wwwroot\js\src\video-loader.ts" />
+    <Content Remove="wwwroot\js\src\video-quotes.ts" />
   </ItemGroup>
 
   <ItemGroup>
@@ -58,32 +61,32 @@
     <PackageReference Include="AspNet.Security.OpenId.Steam" Version="2.1.0" />
     <PackageReference Include="BundlerMinifier.Core" Version="2.9.406" />
     <PackageReference Include="Google.Apis.YouTube.v3" Version="1.40.2.1593" />
-    <PackageReference Include="Hangfire.AspNetCore" Version="1.7.3" />
-    <PackageReference Include="Hangfire.Core" Version="1.7.3" />
+    <PackageReference Include="Hangfire.AspNetCore" Version="1.7.5" />
+    <PackageReference Include="Hangfire.Core" Version="1.7.5" />
     <PackageReference Include="Hangfire.PostgreSql" Version="1.6.0" />
     <PackageReference Include="kg73.AspNet.Security.OAuth.Twitch" Version="3.0.0-preview-009" />
     <PackageReference Include="MailKit" Version="2.2.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.Facebook" Version="3.0.0-preview5-19227-01" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="3.0.0-preview5-19227-01" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.Twitter" Version="3.0.0-preview5-19227-01" />
-    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="3.0.0-preview5-19227-01" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="3.0.0-preview5-19227-01" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="3.0.0-preview5-19227-01" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.0.0-preview5-19227-01" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="3.0.0-preview5-19227-01" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.0.0-preview5.19227.1">
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Facebook" Version="3.0.0-preview7.19365.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="3.0.0-preview7.19365.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Twitter" Version="3.0.0-preview7.19365.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="3.0.0-preview7.19365.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="3.0.0-preview7.19365.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="3.0.0-preview7.19365.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.0.0-preview7.19365.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="3.0.0-preview7.19365.7" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.0.0-preview7.19362.6">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="3.0.0-preview5.19227.9" />
-    <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="3.5.2">
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="3.0.0-preview7.19362.4" />
+    <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="3.6.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Npgsql" Version="4.0.7" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="3.0.0-preview5" />
+    <PackageReference Include="Npgsql" Version="4.0.8" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="3.0.0-preview7" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0006" />
-    <PackageReference Include="System.ServiceModel.Syndication" Version="4.6.0-preview5.19224.8" />
+    <PackageReference Include="System.ServiceModel.Syndication" Version="4.6.0-preview7.19362.9" />
   </ItemGroup>
 
 

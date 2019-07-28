@@ -49,10 +49,18 @@ namespace Website.Controllers
         {
             searchOptions.ResourceId = id;
             var resource = await _isaacRepository.GetResourceById(id, true);
-            var availableResources = _isaacRepository.GetAvailableStats(resource);
-            searchOptions.ResourceType = resource.ResourceType;
-            var videos = await _videoRepository.GetVideos(searchOptions);
-            return View(new InitialResourceViewModel(resource, videos, availableResources));
+            if (!(resource is null))
+            {
+                var availableResources = _isaacRepository.GetAvailableStats(resource);
+                searchOptions.ResourceType = resource.ResourceType;
+                var videos = await _videoRepository.GetVideos(searchOptions);
+                videos.Header = $"Videos where '{resource.Name}' appears";
+                return View(new InitialResourceViewModel(resource, videos, availableResources));
+            }
+            else
+            {
+                return NotFound();
+            }
         }
 
         [HttpGet]

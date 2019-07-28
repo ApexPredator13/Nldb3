@@ -14,86 +14,145 @@
 <div>
     <h3>Episode Overview</h3>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Floor</th>
-                <th>Items</th>
-                <th colspan="2">Transformation</th>
-            </tr>
-        </thead>
-        <tbody>
-            @for (int c = 0; c < playedCharacters.Count; c++)
-            {
+    <div id="video-page-tables">
+        <table>
+            <thead>
                 <tr>
-                    <td colspan="2">Run @playedCharacters[c].RunNumber</td>
+                    <th>Floor</th>
+                    <th>Items</th>
+                    <th colspan="2">Transformation</th>
                 </tr>
-                @for (int f = 0; f < playedCharacters[c].PlayedFloors.Count; f++)
+            </thead>
+            <tbody>
+                @for (int c = 0; c < playedCharacters.Count; c++)
                 {
                     <tr>
-                        <td>Floor @playedCharacters[c].PlayedFloors[f].FloorNumber</td>
-                        <td>
-                            @foreach (var gameplayEvent in playedCharacters[c].PlayedFloors[f].GameplayEvents)
-                            {
-                                if (gameplayEvent.EventType == GameplayEventType.ItemCollected)
+                        <td colspan="4">Run @playedCharacters[c].RunNumber</td>
+                    </tr>
+                    @for (int f = 0; f < playedCharacters[c].PlayedFloors.Count; f++)
+                    {
+                        <tr>
+                            <td>(@playedCharacters[c].PlayedFloors[f].FloorNumber) @playedCharacters[c].PlayedFloors[f].Floor.Name</td>
+                            <td style="position: relative">
+                                @foreach (var gameplayEvent in playedCharacters[c].PlayedFloors[f].GameplayEvents)
                                 {
-                                    var item = gameplayEvent.Resource1;
-                                    var source = gameplayEvent.Resource2;
+                                    if (gameplayEvent.EventType == GameplayEventType.ItemCollected)
+                                    {
+                                        var item = gameplayEvent.Resource1;
+                                        var source = gameplayEvent.Resource2;
 
-                                    <div style="background: url('/img/isaac.png') -@(item.X <= 0 ? 0 : item.X)px -@(item.Y <= 0 ? 0 : item.Y)px transparent; width: @(item.W <= 5 ? 31.ToString() : item.W.ToString())px; height: @(item.H <= 5 ? 31.ToString() : item.H.ToString())px; display: inline-block; vertical-align: top">@item.Name</div>
+                                        <isaac-image resource="item"></isaac-image>
+
+                                        @if (source != null)
+                                        {
+                                            <div class="popup c">
+                                                <b>
+                                                    Item Collected:<br />
+                                                    @item.Name
+                                                </b>
+                                                <hr />
+                                                <isaac-image resource="source"></isaac-image> ⟹ <isaac-image resource="item"></isaac-image><br />
+                                                From: @source.Name
+                                            </div>
+                                        }
+                                    }
                                 }
-                            }
-                        </td>
-                        <td>
-                            @foreach (var gameplayEvent in playedCharacters[c].PlayedFloors[f].GameplayEvents)
-                            {
-                                if (gameplayEvent.EventType == GameplayEventType.TransformationProgress)
+                            </td>
+                            <td style="position: relative">
+                                @foreach (var gameplayEvent in playedCharacters[c].PlayedFloors[f].GameplayEvents)
                                 {
-                                    <div>@(gameplayEvent.Resource2!.Name)</div>
+                                    if (gameplayEvent.EventType == GameplayEventType.TransformationProgress && gameplayEvent.Resource2 != null && gameplayEvent.Resource3 != null)
+                                    {
+                                        <isaac-image resource="gameplayEvent.Resource2"></isaac-image>
+
+                                        <div class="popup c">
+                                            <b>Transformation Progress:</b><br />
+                                            <hr />
+
+                                            <isaac-image resource="gameplayEvent.Resource1"></isaac-image><br />
+                                            @gameplayEvent.Resource1.Name collected<br />
+                                            <hr />
+
+                                            @gameplayEvent.Resource3 / 3 items necessary for @gameplayEvent.Resource2.Name
+                                        </div>
+                                    }
                                 }
-                            }
-                        </td>
-                        <td>
-                            @foreach (var gameplayEvent in playedCharacters[c].PlayedFloors[f].GameplayEvents)
-                            {
-                                if (gameplayEvent.EventType == GameplayEventType.TransformationComplete)
+                            </td>
+                            <td style="position: relative">
+                                @foreach (var gameplayEvent in playedCharacters[c].PlayedFloors[f].GameplayEvents)
                                 {
-                                    <div>@(gameplayEvent.Resource2!.Name) Completed</div>
+                                    if (gameplayEvent.EventType == GameplayEventType.TransformationComplete && gameplayEvent.Resource2 != null)
+                                    {
+                                        <isaac-image resource="gameplayEvent.Resource2"></isaac-image>
+
+                                        <div class="popup c">
+                                            <b>Transformation Complete!</b>
+                                            <hr />
+
+                                            <isaac-image resource="gameplayEvent.Resource2"></isaac-image><br />
+                                            NL successfully transformed into @gameplayEvent.Resource2.Name
+                                        </div>
+                                    }
                                 }
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+
+        <table>
+            <thead>
+                <tr>
+                    <td>Contributed By</td>
+                    <td>
+                        @for (int i = 0; i < submitters.Count; i++)
+                        {
+                            @if (i < submitters.Count - 1)
+                            {
+                                <span>
+                                    @submitters[i],
+                                </span>
                             }
+                            else
+                            {
+                                <span>
+                                    @submitters[i]
+                                </span>
+                            }
+                        }
+                    </td>
+                </tr>
+                <tr>
+                    <td>Release Date</td>
+                    <td>@Model.Published</td>
+                </tr>
+                <tr>
+                    <td>Video Length</td>
+                    <td>@Model.Duration.Minutes minutes, @Model.Duration.Seconds seconds</td>
+                </tr>
+                <tr>
+                    <td>Youtube Link</td>
+                    <td><a href="https://www.youtube.com/watch?v=@Model.Id">https://www.youtube.com/watch?v=@Model.Id</a></td>
+                </tr>
+                @if (Model.Thumbnails.Count > 0)
+                {
+                    <tr>
+                        <td>Thumbnails</td>
+                        <td>
+                            <ul>
+                                @foreach (var t in Model.Thumbnails)
+                                {
+                                    <li>@t.Width x @t.Height: @t.Url</li>
+                                }
+                            </ul>
                         </td>
                     </tr>
                 }
-            }
-        </tbody>
-    </table>
-
-    <hr />
-
-    <table>
-        <thead>
-            <tr>
-                <td>Contributed By</td>
-                <td>
-                    @for (int i = 0; i < submitters.Count; i++)
-                    {
-                        @if (i < submitters.Count - 1)
-                        {
-                            <span>
-                                @submitters[i], 
-                            </span>
-                        }
-                        else
-                        {
-                            <span>
-                                @submitters[i]
-                            </span>
-                        }
-                    }
-                </td>
-            </tr>
-        </thead>
-    </table>
+            </thead>
+        </table>
+    </div>
+    
 
     <hr/>
 
@@ -135,4 +194,11 @@
         </div>
         }
     </div>
+
+    <div id="quotes"></div>
 </div>
+
+@section Scripts {
+    <script src="~/js/dist/video_quotes.min.js" asp-append-version="true"></script>
+}
+
