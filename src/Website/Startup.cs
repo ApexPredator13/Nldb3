@@ -32,7 +32,6 @@ namespace Website
         }
 
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             services.Configure<CookiePolicyOptions>(options =>
@@ -125,7 +124,8 @@ namespace Website
                 {
                     options.ClientId = _env.IsDevelopment() ? Config["TwitchClientId_Development"] : Config["TwitchClientId_Production"];
                     options.ClientSecret = _env.IsDevelopment() ? Config["TwitchClientSecret_Development"] : Config["TwitchClientSecret_Production"];
-                });
+                })
+                .AddCookie();
 
             services.AddMvc()
                 .AddRazorRuntimeCompilation()   // necessary during .net core 3 preview only? maybe safe to remove this line later

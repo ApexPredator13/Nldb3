@@ -97,7 +97,10 @@ namespace Website.Data
                 }
             }
             
-            await AddVotesToQuotes(quotes, userId);
+            if (quotes.Count > 0)
+            {
+                await AddVotesToQuotes(quotes, userId);
+            }
 
             return quotes;
         }
@@ -239,6 +242,124 @@ namespace Website.Data
             q.Parameters.AddWithValue("@I", NpgsqlDbType.Integer, voteId);
             q.Parameters.AddWithValue("@U", NpgsqlDbType.Text, userId);
             return await q.ExecuteNonQueryAsync();
+        }
+
+        public async Task<List<Quote>> RandomQuotes(int amount, string? userId)
+        {
+            var randomQuotes = new List<Quote>();
+            var commandText =
+                "SELECT q.id, q.video, q.content, q.at, q.submitted_at, u.\"UserName\" " +
+                "FROM public.quotes q " +
+                "LEFT JOIN quotes_userdata d ON d.quote = q.id " +
+                "LEFT JOIN identity.\"AspNetUsers\" u ON u.\"Id\" = d.user_id " +
+                "ORDER BY RANDOM() LIMIT @Limit;";
+            
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand(commandText, c);
+            q.Parameters.AddWithValue("@Limit", NpgsqlDbType.Integer, amount);
+            using var r = await q.ExecuteReaderAsync();
+
+            if (r.HasRows)
+            {
+                while (r.Read())
+                {
+                    randomQuotes.Add(new Quote()
+                    {
+                        Id = r.GetInt32(0),
+                        VideoId = r.GetString(1),
+                        QuoteText = r.GetString(2),
+                        At = r.GetInt32(3),
+                        SubmissionTime = r.GetDateTime(4),
+                        Contributor = r.GetString(5)
+                    });
+                }
+            }
+
+            if (randomQuotes.Count > 0 && !string.IsNullOrEmpty(userId))
+            {
+                await AddVotesToQuotes(randomQuotes, userId);
+            }
+
+            return randomQuotes;
+        }
+
+        public async Task<List<Quote>> NewestQuotes(int amount, string? userId)
+        {
+            var newestQuotes = new List<Quote>();
+            var commandText =
+                "SELECT q.id, q.video, q.content, q.at, q.submitted_at, u.\"UserName\" " +
+                "FROM public.quotes q " +
+                "LEFT JOIN quotes_userdata d ON d.quote = q.id " +
+                "LEFT JOIN identity.\"AspNetUsers\" u ON u.\"Id\" = d.user_id " +
+                "ORDER BY q.submitted_at DESC LIMIT @Limit;";
+
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand(commandText, c);
+            q.Parameters.AddWithValue("@Limit", NpgsqlDbType.Integer, amount);
+            using var r = await q.ExecuteReaderAsync();
+
+            if (r.HasRows)
+            {
+                while (r.Read())
+                {
+                    newestQuotes.Add(new Quote()
+                    {
+                        Id = r.GetInt32(0),
+                        VideoId = r.GetString(1),
+                        QuoteText = r.GetString(2),
+                        At = r.GetInt32(3),
+                        SubmissionTime = r.GetDateTime(4),
+                        Contributor = r.GetString(5)
+                    });
+                }
+            }
+
+            if (newestQuotes.Count > 0 && !string.IsNullOrEmpty(userId))
+            {
+                await AddVotesToQuotes(newestQuotes, userId);
+            }
+
+            return newestQuotes;
+        }
+
+        public async Task<List<Quote>> Search(string searchTerm, string? userId)
+        {
+            var foundQuotes = new List<Quote>();
+            var commandText =
+                "SELECT q.id, q.video, q.content, q.at, q.submitted_at, u.\"UserName\" " +
+                "FROM public.quotes q " +
+                "LEFT JOIN quotes_userdata d ON d.quote = q.id " +
+                "LEFT JOIN identity.\"AspNetUsers\" u ON u.\"Id\" = d.user_id " +
+                "WHERE LOWER(q.content) LIKE LOWER(@Search)" +
+                "ORDER BY q.submitted_at DESC;";
+
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand(commandText, c);
+            q.Parameters.AddWithValue("@Search", NpgsqlDbType.Text, $"%{searchTerm}%");
+            using var r = await q.ExecuteReaderAsync();
+
+            if (r.HasRows)
+            {
+                while (r.Read())
+                {
+                    foundQuotes.Add(new Quote()
+                    {
+                        Id = r.GetInt32(0),
+                        VideoId = r.GetString(1),
+                        QuoteText = r.GetString(2),
+                        At = r.GetInt32(3),
+                        SubmissionTime = r.GetDateTime(4),
+                        Contributor = r.GetString(5)
+                    });
+                }
+            }
+
+            if (foundQuotes.Count > 0 && !string.IsNullOrEmpty(userId))
+            {
+                await AddVotesToQuotes(foundQuotes, userId);
+            }
+
+            return foundQuotes;
         }
     }
 }

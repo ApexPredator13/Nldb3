@@ -9,6 +9,7 @@ using Website.Models.SubmitEpisode;
 using Website.Services;
 using Website.Infrastructure;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace Website.Areas.Api.Controllers
 {
@@ -24,7 +25,7 @@ namespace Website.Areas.Api.Controllers
             _userManager = userManager;
         }
 
-        [Route("{id}")]
+        [HttpGet, Route("{id}")]
         public async Task<List<Quote>> ForVideo([FromRoute] string id)
         {
             string? userId = User.Identity.IsAuthenticated ? _userManager.GetUserId(User) : null;
@@ -32,11 +33,32 @@ namespace Website.Areas.Api.Controllers
             return quotes;
         }
 
-        [Route("vote"), Authorize, HttpPost]
+        [Route("vote"), Authorize(CookieAuthenticationDefaults.AuthenticationScheme), HttpPost]
         public async Task<OkResult> Vote([FromBody] SubmittedQuoteVote vote)
         {
-            await _quoteRepository.Vote(vote, _userManager.GetUserId(User));
+            await _quoteRepository.Vote(vote, _userManager.GetUserId(HttpContext.User));
             return Ok();
+        }
+
+        [HttpGet, Route("random/{amount:int}")]
+        public async Task<List<Quote>> GetRandomQuotes([FromRoute] int amount)
+        {
+            string? userId = User.Identity.IsAuthenticated ? _userManager.GetUserId(User) : null;
+            return await _quoteRepository.RandomQuotes(amount, userId);
+        }
+
+        [HttpGet, Route("recent/{amount:int}")]
+        public async Task<List<Quote>> GetNewestQuotes([FromRoute] int amount)
+        {
+            string? userId = User.Identity.IsAuthenticated ? _userManager.GetUserId(User) : null;
+            return await _quoteRepository.NewestQuotes(amount, userId);
+        }
+
+        [HttpGet, Route("search")]
+        public async Task<List<Quote>> SearchQuoteText([FromQuery] string text)
+        {
+            string? userId = User.Identity.IsAuthenticated ? _userManager.GetUserId(User) : null;
+            return await _quoteRepository.Search(text, userId);
         }
     }
 }

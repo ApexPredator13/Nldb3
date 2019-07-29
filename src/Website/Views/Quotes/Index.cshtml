@@ -1,0 +1,34 @@
+﻿@{ 
+    ViewData["Title"] = "Northernlion Quotes";
+}
+
+<h1>Welcome to the Northernlion Quotes Section!</h1>
+<hr/>
+
+
+<h3>Random Quotes</h3>
+<p>
+    Amount: <input type="number" id="random-quotes-amount" value="10"/>
+</p>
+<div id="random-quotes"></div>
+<hr/>
+
+
+<h3>Newest Quotes</h3>
+<p>
+    Amount: <input type="number" id="recent-quotes-amount" value="10"/>
+</p>
+<div id="recent-quotes"></div>
+<hr/>
+
+
+<h3>Search for Quotes</h3>
+<p>
+    <input type="text" id="search-quotes-text" placeholder="min. 3 characters" size="30"/>
+</p>
+<div id="search-quotes"></div>
+
+
+@section Scripts {
+    <script src="~/js/dist/quotes.min.js"></script>
+}
