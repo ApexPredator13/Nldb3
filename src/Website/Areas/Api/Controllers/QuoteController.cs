@@ -1,19 +1,15 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Website.Models.Database;
 using Website.Models.SubmitEpisode;
 using Website.Services;
-using Website.Infrastructure;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace Website.Areas.Api.Controllers
 {
-    [ApiController, Area("api"), Route("[area]/quotes")]
+    [Area("api"), Route("[area]/quotes")]
     public class QuoteController : Controller
     {
         private readonly IQuoteRepository _quoteRepository;
@@ -33,7 +29,7 @@ namespace Website.Areas.Api.Controllers
             return quotes;
         }
 
-        [Route("vote"), Authorize(CookieAuthenticationDefaults.AuthenticationScheme), HttpPost]
+        [Route("vote"), Authorize, HttpPost]
         public async Task<OkResult> Vote([FromBody] SubmittedQuoteVote vote)
         {
             await _quoteRepository.Vote(vote, _userManager.GetUserId(HttpContext.User));
@@ -60,5 +56,34 @@ namespace Website.Areas.Api.Controllers
             string? userId = User.Identity.IsAuthenticated ? _userManager.GetUserId(User) : null;
             return await _quoteRepository.Search(text, userId);
         }
+
+        [HttpPost, Authorize]
+        public async Task<ActionResult> CreateQuote([FromBody] SubmittedQuote quote)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest("Invalid request.");
+            }
+
+            var userId = _userManager.GetUserId(User);
+            var userCanCreateQuote = await _quoteRepository.UserCanCreateQuote(userId);
+
+            if (!userCanCreateQuote)
+            {
+                return BadRequest("A quote can only be submitted every 15 seconds");
+            }
+
+            var quoteInsertChanges = await _quoteRepository.SaveQuote(quote, userId);
+            if (quoteInsertChanges > 0)
+            {
+                return Ok();
+            }
+            else
+            {
+                return BadRequest("The quote was not saved successfully. Please try again.");
+            }
+        }
     }
 }
+
+

@@ -27,6 +27,32 @@ namespace Website.Data
             return Convert.ToInt32(await q.ExecuteScalarAsync());
         }
 
+        public async Task<bool> UserCanCreateQuote(string userId)
+        {
+            string commandText = 
+                "SELECT " +
+                    "quotes.submitted_at AS submitted_at, " +
+                    "quotes_userdata.user_id AS user_id " +
+                "FROM quotes " +
+                "LEFT JOIN quotes_userdata ON quotes_userdata.quote = quotes.id " +
+                "WHERE user_id = @UserId " +
+                "AND submitted_at >= @NowMinus15Seconds;";
+
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand(commandText, c);
+            q.Parameters.AddWithValue("@UserId", NpgsqlDbType.Text, userId);
+            q.Parameters.AddWithValue("@NowMinus15Seconds", NpgsqlDbType.TimestampTz, DateTime.Now - TimeSpan.FromSeconds(15));
+            using var r = await q.ExecuteReaderAsync();
+            if (r.HasRows)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
         public async Task<int> SaveQuote(SubmittedQuote quote, string userId)
         {
             using var c = await _connector.Connect();

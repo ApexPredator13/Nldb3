@@ -18,5 +18,6 @@ namespace Website.Services
         Task<List<Quote>> RandomQuotes(int amount, string? userId);
         Task<List<Quote>> NewestQuotes(int amount, string? userId);
         Task<List<Quote>> Search(string searchTerm, string? userId);
+        Task<bool> UserCanCreateQuote(string userId);
     }
 }

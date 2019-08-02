@@ -1,0 +1,19 @@
+﻿#quotes-textarea {
+    border-radius: 0.5rem;
+    background-color: beige;
+    padding: 0.3rem;
+    margin-right: 0.3rem;
+}
+
+#quotes-textarea:focus {
+    outline: none;
+}
+
+.submit-quote-error {
+    color: orange;
+}
+
+.submit-quote-error:hover {
+    cursor: pointer;
+}
+

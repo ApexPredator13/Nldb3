@@ -71,6 +71,15 @@ const addClassIfNotExists = (e: Element, className: string) => {
     }
 }
 
+const getSpecificElementById = <T extends Function, E extends HTMLElement>(elementId: string, elementType: T): E => {
+    const element = document.getElementById(elementId);
+    if (element && element instanceof elementType) {
+        return <E>element;
+    } else {
+        throw `element with ID ${elementId} was not found`;
+    }
+}
+
 const setIsaacResourceName = (resourceName: string) => {
     (window as any).isaac_resource = resourceName;
 }
@@ -93,6 +102,7 @@ export {
     addClassIfNotExists,
     loadElementsByTagName,
     setIsaacResourceName,
-    getIsaacResourceName
+    getIsaacResourceName,
+    getSpecificElementById
 }
 

@@ -14,6 +14,7 @@
     <Content Remove="bundleconfig.json" />
     <Content Remove="wwwroot\js\src\charts.ts" />
     <Content Remove="wwwroot\js\src\components\quotes.ts" />
+    <Content Remove="wwwroot\js\src\components\youtube-player.ts" />
     <Content Remove="wwwroot\js\src\dom-operations.ts" />
     <Content Remove="wwwroot\js\src\drag-and-drop.ts" />
     <Content Remove="wwwroot\js\src\enum-converters.ts" />
@@ -36,7 +37,7 @@
     <Content Remove="wwwroot\js\src\lib\api-calls.ts" />
     <Content Remove="wwwroot\js\src\lib\boxes.ts" />
     <Content Remove="wwwroot\js\src\lib\component-type.ts" />
-    <Content Remove="wwwroot\js\src\lib\episode-manager.ts" />
+    <Content Remove="wwwroot\js\src\lib\episode-history-manager.ts" />
     <Content Remove="wwwroot\js\src\lib\gameplay-event-type.ts" />
     <Content Remove="wwwroot\js\src\lib\history-manager.ts" />
     <Content Remove="wwwroot\js\src\lib\prerendered-component.ts" />
@@ -130,7 +131,7 @@
     <TypeScriptCompile Update="wwwroot\js\src\lib\api-calls.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Update="wwwroot\js\src\lib\episode-manager.ts">
+    <TypeScriptCompile Update="wwwroot\js\src\lib\episode-history-manager.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
   </ItemGroup>

@@ -9,7 +9,7 @@ import { Boxes } from '../components/boxes';
 import { History } from '../components/history';
 import { IsaacResource } from '../interfaces/isaac-resource';
 
-export class EpisodeManager {
+export class EpisodeHistoryManager {
 
     private currentCharacter = 0;
     private currentFloor = 0;
