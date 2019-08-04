@@ -1,77 +1,90 @@
 ﻿import { Subject } from 'rxjs';
-import { GetResourceRequest } from '../interfaces/get-resource-request';
-import { getIsaacResources } from '../lib/api-calls';
-import { ComponentType } from '../enums/component-type';
-import { PrerenderedComponent } from './prerendered-component';
 import { IsaacResource } from '../interfaces/isaac-resource';
 
-export class Boxes extends PrerenderedComponent {
+export class Boxes {
 
     public elementWasSelected = new Subject<string>();
 
-    private container: HTMLDivElement | null = null;;
+    private wrapper: HTMLDivElement;
+    private imagePath: string;
+    private futureParent: HTMLElement;
+    private slice: number | undefined;
+    private withId: Array<string> | undefined;
 
-    constructor(boxContainerId: string) {
-        // register box container
-        super(ComponentType.Boxes, boxContainerId);
-        this.container = super.GetComponent(ComponentType.Boxes, boxContainerId);
+    constructor(futureParentElement: HTMLElement, futureElements: Array<IsaacResource> | Promise<Array<IsaacResource>>, replace: boolean, imagePath?: string, slice?: number, withId?: Array<string>) {
+        this.imagePath = imagePath ? imagePath : '/img/isaac.png';
+        this.futureParent = futureParentElement;
+        this.slice = slice;
+        this.withId = withId;
 
-        const boxes = this.container.getElementsByClassName('box');
-        this.InitializeBoxes(boxes);
-    }
+        this.wrapper = document.createElement('div');
+        this.wrapper.className = 'box-container';
 
-    private InitializeBoxes(boxes: HTMLCollectionOf<Element> | Array<HTMLDivElement>) {
-        for (let i = 0; i < boxes.length; i++) {
-            boxes[i].addEventListener('click', () => {
-                const id = boxes[i].getAttribute('data-id');
-                if (id) {
-                    this.Emit(id);
-                }
-            });
+        // check if array or promise was given, then continue in method
+        if (Array.isArray(futureElements)) {
+            this.createBoxes(futureElements, replace);
+        } else {
+            futureElements.then(resources => this.createBoxes(resources, replace));
         }
     }
 
-    private Emit(id: string) {
-        this.elementWasSelected.next(id);
-    }
+    private createBoxes(resources: Array<IsaacResource>, replace: boolean) {
 
-    ReplaceBoxes(newIsaacResources: Array<IsaacResource>): void {
-        const newBoxes = new Array<HTMLDivElement>();
-        for (const r of newIsaacResources) {
-            if (r.name.indexOf('Double') !== -1) {
+        // create boxes
+        const amount = this.slice ? this.slice : resources.length;
+
+        for (let i = 0; i < amount; i++) {
+            if (this.withId && this.withId.indexOf(resources[i].id) === -1) {
                 continue;
             }
+
+            const box = document.createElement('div');
+            box.className = 'box';
+            box.setAttribute('data-id', resources[i].id);
+
             const name = document.createElement('div');
-            name.innerText = r.name;
+            name.innerText = resources[i].name;
+
             const image = document.createElement('div');
-            image.style.background = `url('/img/isaac.png') -${r.x <= 0 ? 0 : r.x}px -${r.y <= 0 ? 0 : r.y}px transparent`;
-            image.style.width = `${r.w < 5 ? 31 : r.w}px`;
-            image.style.height = `${r.h < 5 ? 31 : r.h}px`;
-            const newBox = document.createElement('div');
-            newBox.classList.add('box');
-            newBox.setAttribute('data-id', r.id);
-            newBox.appendChild(name);
-            newBox.appendChild(image);
-            newBoxes.push(newBox);
+            const x = resources[i].x <= 0 ? '0px' : `-${resources[i].x.toString(10)}px`;
+            const y = resources[i].y <= 0 ? '0px' : `-${resources[i].y.toString(10)}px`;
+            image.style.background = `url('${this.imagePath}') ${x} ${y} transparent`;
+            image.style.width = `${resources[i].w.toString(10)}px`;
+            image.style.height = `${resources[i].h.toString(10)}px`;
+
+            box.appendChild(name);
+            box.appendChild(image);
+
+            this.wrapper.appendChild(box);
         }
 
-        this.InitializeBoxes(newBoxes);
+        // add click event listener
+        this.wrapper.addEventListener('click', this.click);
 
-        if (this.container) {
-            this.container.innerHTML = '';
-            for (const newBox of newBoxes) {
-                this.container.appendChild(newBox);
-            }
+        if (replace) {
+            this.futureParent.innerHTML = '';
+        }
+
+        this.futureParent.appendChild(this.wrapper);
+    }
+
+    private click(e: MouseEvent) {
+        let selectedId: string | null = null;
+        const target = <HTMLDivElement>e.target;
+
+        if (target.className === 'box') {
+            selectedId = target.getAttribute('data-id');
+        } else if (target.parentElement && target.parentElement.className === 'box') {
+            selectedId = target.parentElement.getAttribute('data-id');
+        }
+
+        if (selectedId) {
+            this.elementWasSelected.next(selectedId);
         }
     }
 
-    RequestAndReplaceBoxes(request: GetResourceRequest): void {
-        getIsaacResources(request).then(x => {
-            if (!x || x.length === 0) {
-                return;
-            }
-            this.ReplaceBoxes(x);
-        });
+    public removeEventListeners(): void {
+        this.wrapper.removeEventListener('click', this.click);
     }
 }
 

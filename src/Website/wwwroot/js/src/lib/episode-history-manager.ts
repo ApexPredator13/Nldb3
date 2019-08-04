@@ -75,7 +75,7 @@ export class EpisodeHistoryManager {
         this.episode.PlayedCharacters[this.currentCharacter].GameMode = parseInt(id, 10);
     }
 
-    AddFloorToCharacter(id: string, bossBoxesContainer: Boxes) {
+    AddFloorToCharacter(id: string) {
         const cc = this.episode.PlayedCharacters[this.currentCharacter];
         if (!cc.PlayedFloors) {
             cc.PlayedFloors = new Array<SubmittedPlayedFloor>();
@@ -103,7 +103,6 @@ export class EpisodeHistoryManager {
 
         this.currentFloor = cc.PlayedFloors.length - 1;
         this.history.ReloadHistory(this.episode);
-        this.LoadBossesForFloor(bossBoxesContainer, id);
     }
 
     LoadNextFloorset(currentFloorId: string, floorBoxes: Boxes): void {
@@ -196,22 +195,6 @@ export class EpisodeHistoryManager {
         const time = (window as any).youtubePlayer.getCurrentTime();
         console.log('seconds elapsed: ', time);
         return time as number;
-    }
-
-    private LoadBossesForFloor(bossBoxContainer: Boxes, floorId: string): void {
-        getEffectNumber(floorId).then(effectNumber => {
-            if (effectNumber.length > 0) {
-                const loadFloorBosses: GetResourceRequest = {
-                    ResourceType: 1,
-                    Asc: true,
-                    IncludeMod: false,
-                    OrderBy1: undefined,
-                    OrderBy2: undefined,
-                    RequiredTags: effectNumber
-                };
-                bossBoxContainer.RequestAndReplaceBoxes(loadFloorBosses);
-            }
-        });
     }
 
     private ResetCurrentEventToDefault() {

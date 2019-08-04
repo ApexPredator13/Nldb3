@@ -10,6 +10,7 @@
         SpecialChallenge,
         SpecialSeed,
         Unspecified,
-        HardAndNormal
+        HardAndNormal,
+        CommunityChallenge
     }
 }

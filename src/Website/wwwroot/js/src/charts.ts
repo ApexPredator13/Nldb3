@@ -1,5 +1,4 @@
 ﻿import { SearchBox } from './components/searchbox';
-import { IsaacResource } from './interfaces/isaac-resource';
 import { Chart } from 'chart.js';
 import { setIsaacResourceName } from './lib/dom-operations';
 
@@ -111,16 +110,11 @@ const initializeShowOptionsLink = () => {
             if (canChangeOptions) {
                 // initialize comparison window
                 if (compareSearchComponent === null) {
-                    compareSearchComponent = new SearchBox("comparison-dd");
+                    compareSearchComponent = new SearchBox("compare-to-searchbox", fetch(`/api/resources`).then(response => response.json()));
                     compareSearchComponent.elementWasSelected.subscribe(id => {
                         if (idsInChart.indexOf(id) === -1) {
                             idsInChart.push(id);
                             addComparison(id);
-                        }
-                    });
-                    fetch(`/api/resources`).then(response => response.json()).then((result: Array<IsaacResource>) => {
-                        if (compareSearchComponent) {
-                            compareSearchComponent.ReplaceAll(result);
                         }
                     });
                 }
