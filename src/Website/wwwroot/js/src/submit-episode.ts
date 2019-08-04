@@ -15,6 +15,9 @@ class SubmitEpisodePageHandler {
     private loadedIsaacResources: Map<string, Array<IsaacResource>> = new Map<string, Array<IsaacResource>>();
     private uiContainer: HTMLDivElement;
     private uiHeader: HTMLHeadingElement;
+
+    private selectedEnemy: string | undefined;
+    private submitEpisodeErrormessage: string | undefined;
     // ==========
 
     // ui element container, main wrapper
@@ -52,13 +55,13 @@ class SubmitEpisodePageHandler {
             { id: 'trinket', name: 'Trinket Taken', x: 280, y: 0, w: 35, h: 35 } as IsaacResource,
             { id: 'reroll', name: 'Character Reroll', x: 385, y: 0, w: 35, h: 35 } as IsaacResource,
             { id: 'absorbed_item', name: 'Sucked Up Item', x: 350, y: 0, w: 35, h: 35 } as IsaacResource,
-            { id: 'enemy', name: 'Northernlion DIED', x: 35, y: 0, w: 35, h: 35 } as IsaacResource,
+            { id: 'enemy', name: 'Northernlion DIED', x: 35, y: 0, w: 35, h: 35 } as IsaacResource
         ]);
         this.loadedIsaacResources.set('used', [
             { id: 'pill', name: 'Pill', x: 175, y: 0, w: 35, h: 35 } as IsaacResource,
             { id: 'tarot', name: 'Tarot Card', x: 210, y: 0, w: 35, h: 35 } as IsaacResource,
             { id: 'rune', name: 'Rune', x: 245, y: 0, w: 35, h: 35 } as IsaacResource,
-            { id: 'other', name: 'Other Consumable', x: 315, y: 0, w: 35, h: 35 } as IsaacResource,
+            { id: 'other', name: 'Other Consumable', x: 315, y: 0, w: 35, h: 35 } as IsaacResource
         ]);
         this.loadedIsaacResources.set('game-modes', [
             { id: '1', name: 'Normal Game', x: 0, y: 0, w: 30, h: 30 } as IsaacResource,
@@ -66,7 +69,7 @@ class SubmitEpisodePageHandler {
             { id: '5', name: 'A Special Challenge', x: 0, y: 0, w: 30, h: 30 } as IsaacResource,
             { id: '9', name: 'Community-Requested Challenge', x: 0, y: 0, w: 30, h: 30 } as IsaacResource,
             { id: '6', name: 'A Special Seed', x: 0, y: 0, w: 30, h: 30 } as IsaacResource,
-            { id: '7', name: 'Something else', x: 0, y: 0, w: 30, h: 30 } as IsaacResource,
+            { id: '7', name: 'Something else', x: 0, y: 0, w: 30, h: 30 } as IsaacResource
         ]);
         this.loadedIsaacResources.set('no-starting-items', [
             { id: 'none', name: 'No, continue!', x: 0, y: 0, w: 30, h: 30 } as IsaacResource,
@@ -76,14 +79,41 @@ class SubmitEpisodePageHandler {
         ]);
         this.loadedIsaacResources.set('more-starting-items', [
             { id: 'yes', name: 'Yes, there were more!', x: 0, y: 0, w: 30, h: 30 } as IsaacResource,
-            { id: 'no', name: 'No, that was it!', x: 0, y: 0, w: 30, h: 30 } as IsaacResource,
+            { id: 'no', name: 'No, that was it!', x: 0, y: 0, w: 30, h: 30 } as IsaacResource
         ]);
         this.loadedIsaacResources.set('more-starting-trinkets', [
             { id: 'yes', name: 'Yes, there was another trinket!', x: 0, y: 0, w: 30, h: 30 } as IsaacResource,
-            { id: 'no', name: 'No, that was it!', x: 0, y: 0, w: 30, h: 30 } as IsaacResource,
+            { id: 'no', name: 'No, that was it!', x: 0, y: 0, w: 30, h: 30 } as IsaacResource
+        ]);
+        this.loadedIsaacResources.set('common-bosses', []);
+        this.loadedIsaacResources.set('common-floors', []);
+        this.loadedIsaacResources.set('confirm-dead', [
+            { id: 'yes', name: 'Yes, NL died!', x: 0, y: 0, w: 30, h: 30 } as IsaacResource,
+            { id: 'no', name: 'No, CANCEL!', x: 0, y: 0, w: 30, h: 30 } as IsaacResource
+        ]);
+        this.loadedIsaacResources.set('another-run', [
+            { id: 'run', name: 'Yes, another normal run!', x: 0, y: 0, w: 30, h: 30 } as IsaacResource,
+            { id: 'victory-lap', name: 'Yes, a victory lap!', x: 0, y: 0, w: 30, h: 30 } as IsaacResource,
+            { id: 'end', name: 'No, the episode ended here!', x: 0, y: 0, w: 30, h: 30 } as IsaacResource
+        ]);
+        this.loadedIsaacResources.set('submit-run', [
+            { id: 'submit-episode', name: 'Submit Episode!', x: 0, y: 0, w: 30, h: 30 } as IsaacResource
+        ]);
+        this.loadedIsaacResources.set('submit-failed', [
+            { id: 'submit-episode', name: 'Submit Episode!', x: 0, y: 0, w: 30, h: 30 } as IsaacResource
+        ]);
+        this.loadedIsaacResources.set('run-submitted', [
+            { id: 'run-submitted', name: 'View Results!', x: 0, y: 0, w: 30, h: 30 } as IsaacResource
+        ]);
+        this.loadedIsaacResources.set('did-black-rune-absorb', [
+            { id: 'no', name: 'It didn\'t absorb abything, move on!', x: 0, y: 0, w: 30, h: 30 } as IsaacResource
+        ]);
+        this.loadedIsaacResources.set('did-black-rune-absorb-another', [
+            { id: 'yes', name: 'Yes, more items were absorbed!', x: 0, y: 0, w: 30, h: 30 } as IsaacResource,
+            { id: 'no', name: 'No, that was it!', x: 0, y: 0, w: 30, h: 30 } as IsaacResource
         ]);
 
-        // get all elements that are relevant to the quotes section
+        // get all elements that are relevant to the quotes section, then initialize all events
         this.submitQuotesTextarea = getSpecificElementById('quotes-textarea', HTMLTextAreaElement);
         this.submitQuotesTextareaCounter = getSpecificElementById('quotes-textarea-counter', HTMLSpanElement);
         this.submitQuotesExactTimeRadio = getSpecificElementById('exact-time', HTMLInputElement);
@@ -97,16 +127,13 @@ class SubmitEpisodePageHandler {
 
         // ...then start displaying UI
         this.renderWhatCharacterGotPlayed();
-
-        // finally initialize episode submission
-        this.initializeSubmitEpisodeEvents();
     }
 
     private renderMainMenu(): void {
         let events = this.loadedIsaacResources.get('events');
-        let used = this.loadedIsaacResources.get('used');
+        let usedConsumables = this.loadedIsaacResources.get('used');
 
-        if (!events || !used) {
+        if (!events || !usedConsumables) {
             return;
         }
 
@@ -116,17 +143,50 @@ class SubmitEpisodePageHandler {
         middleParagraph.innerText = 'what got used?';
         this.uiContainer.appendChild(middleParagraph);
 
-        const usedBoxes = new Boxes(this.uiContainer, used, false, '/img/gameplay_events.png');
+        const usedBoxes = new Boxes(this.uiContainer, usedConsumables, false, '/img/gameplay_events.png');
 
-        let sub = eventBoxes.elementWasSelected.subscribe(selection => {
+        let sub = merge(
+            eventBoxes.elementWasSelected,
+            usedBoxes.elementWasSelected
+        ).subscribe(selection => {
             this.unsubscribe(sub);
             this.removeEventListeners(eventBoxes, usedBoxes);
 
             switch (selection) {
                 case 'collected-item':
                     this.renderWhereDidCollectedItemComeFrom();
+                    break;
+                case 'bossfight':
+                    this.renderWhatBossfight();
+                    break;
+                case 'absorbed_item':
+                    this.renderWhatAbsorber();
+                    break;
+                case 'touched-item':
+                    this.renderWhereDidTouchedItemComeFrom();
+                    break;
+                case 'reroll':
+                    this.renderHowWasCharacterRerolled();
+                    break;
+                case 'enemy':
+                    this.renderHowDidNlDie();
+                    break;
+                case 'pill':
+                    this.renderSelectPill();
+                    break;
+                case 'trinket':
+                    this.renderSelectTrinket();
+                    break;
+                case 'tarot':
+                    this.renderSelectTarotCard();
+                    break;
+                case 'rune':
+                    this.renderSelectRune();
+                    break;
+                case 'other':
+                    this.renderOtherConsumable();
+                    break;
             }
-            
         });
     }
 
@@ -173,6 +233,8 @@ class SubmitEpisodePageHandler {
         ).subscribe(selectedFloor => {
             this.unsubscribe(sub);
             this.removeEventListeners(floorBoxes, floorSelection);
+            this.loadCommonBossesForFloor(selectedFloor);
+            this.loadNextFloorset(selectedFloor);
             this.historyManager.AddFloorToCharacter(selectedFloor);
             this.renderWasTheFloorCursed();
         });
@@ -203,20 +265,30 @@ class SubmitEpisodePageHandler {
 
     private renderDidCharacterStartWithItems() {
         this.setHeader('Did the character start with any items?');
+        const noItemsData = this.getIsaacResources('no-starting-items', '');
         const data = this.getIsaacResources('items', '/api/resources/?ResourceType=6');
 
-        const itemSearchBox = new SearchBox(this.uiContainer, data, true);
+        const noItemsSkip = new Boxes(this.uiContainer, noItemsData, true);
+        const itemSearchBox = new SearchBox(this.uiContainer, data, false);
 
-        const sub = itemSearchBox.elementWasSelected.subscribe(selectedStartingItem => {
+        const sub = merge(
+            itemSearchBox.elementWasSelected,
+            noItemsSkip.elementWasSelected
+        ).subscribe(selectedStartingItem => {
             this.unsubscribe(sub);
             this.removeEventListeners(itemSearchBox);
-            this.historyManager.AddGameplayEvent(selectedStartingItem, GameplayEventType.ItemCollected, 1);
-            this.historyManager.AddGameplayEvent('StartingItem', GameplayEventType.ItemCollected, 2);
-            this.renderWhereThereMoreStartingItems();
+
+            if (selectedStartingItem === 'none') {
+                this.renderDidCharacterStartWithTrinkets();
+            } else {
+                this.historyManager.AddGameplayEvent(selectedStartingItem, GameplayEventType.ItemCollected, 1);
+                this.historyManager.AddGameplayEvent('StartingItem', GameplayEventType.ItemCollected, 2);
+                this.renderWereThereMoreStartingItems();
+            }
         });
     }
 
-    private renderWhereThereMoreStartingItems() {
+    private renderWereThereMoreStartingItems() {
         this.setHeader('Did the character have another starting item?');
         const data = this.getIsaacResources('more-starting-items', '');
 
@@ -235,12 +307,43 @@ class SubmitEpisodePageHandler {
 
     private renderDidCharacterStartWithTrinkets() {
         this.setHeader('Did the character start with a trinket?');
+        const dataNoTrinket = this.getIsaacResources('no-starting-trinkets', '');
         const data = this.getIsaacResources('trinkets', '/api/resources/?ResourceType=13');
 
-        const trinketSearchBox = new SearchBox(this.uiContainer, data, true);
+        const noTrinketsSkip = new Boxes(this.uiContainer, dataNoTrinket, true);
+        const trinketSearchBox = new SearchBox(this.uiContainer, data, false);
 
-        const sub = trinketSearchBox.elementWasSelected.subscribe(selectedStartingTrinket => {
+        const sub = merge(
+            noTrinketsSkip.elementWasSelected,
+            trinketSearchBox.elementWasSelected
+        ).subscribe(selectedStartingTrinket => {
+            this.unsubscribe(sub);
+            this.removeEventListeners(noTrinketsSkip, trinketSearchBox);
 
+            if (selectedStartingTrinket === 'none') {
+                this.renderMainMenu();
+            } else {
+                this.renderDidCharacterStartWithMoreTrinkets();
+            }
+        });
+    }
+
+    private renderDidCharacterStartWithMoreTrinkets() {
+        this.setHeader('Did the character start with another trinket?');
+        const data = this.getIsaacResources('more-starting-trinkets', '');
+        // 'none'
+
+        const boxes = new Boxes(this.uiContainer, data, true);
+
+        const sub = boxes.elementWasSelected.subscribe(result => {
+            this.unsubscribe(sub);
+            this.removeEventListeners(boxes);
+
+            if (result === 'yes') {
+                this.renderDidCharacterStartWithTrinkets();
+            } else {
+                this.renderMainMenu();
+            }
         });
     }
 
@@ -275,174 +378,370 @@ class SubmitEpisodePageHandler {
         });
     }
 
-    private initializeEventGotSelectedLogic() {
-
-        // after a starting item was selected, ask if more starting items exist
-        const startingItemsSearchBox = new SearchBox('select-starting-item-dd');
-        startingItemsSearchBox.elementWasSelected.subscribe(i => {
-            this.historyManager.AddGameplayEvent(i, GameplayEventType.ItemCollected, 1);
-            this.historyManager.AddGameplayEvent('StartingItem', GameplayEventType.ItemCollected, 2);
-            this.showUiElement('more-starting-items');
-            startingItemsSearchBox.ResetSearch();
-        });
-
-        const floorBoxes = new Boxes('select-floor-boxes');
-        floorBoxes.elementWasSelected.subscribe(f => {
-            this.historyManager.AddFloorToCharacter(f, bossBoxes);
-            this.historyManager.LoadNextFloorset(f, floorBoxes);
-            this.showUiElement('select-curse');
-        });
-
-        // after a gameplay mode was selected, ask what floor we start on
-        const gameplayModeBoxes = new Boxes('select-mode-boxes');
-        gameplayModeBoxes.elementWasSelected.subscribe(m => {
-            this.historyManager.AddGameModeToCharacter(m);
-            this.showUiElement('select-floor');
-            floorSearchBox.Focus();
-        });
-
-        // after a boss was selected, go back to gameplay events overview
-        const bossBoxes = new Boxes('select-boss-boxes');
-        bossBoxes.elementWasSelected.subscribe(b => {
-            this.historyManager.AddGameplayEvent(b, GameplayEventType.Bossfight, 1);
-            this.showUiElement('select-gameplay-events');
-        });
-
-        const bossSearchBox = new SearchBox('select-boss-dd');
-        bossSearchBox.elementWasSelected.subscribe(b => {
-            this.historyManager.AddGameplayEvent(b, GameplayEventType.Bossfight, 1);
-            this.showUiElement('select-gameplay-events');
-            bossSearchBox.ResetSearch();
-        });
-
-        // after an absorbed item was selected, go back to gameplay events overview
-        const absorbedItemSearchBox = new SearchBox('select-absorbed-item-dd');
-        absorbedItemSearchBox.elementWasSelected.subscribe(i => {
-            this.historyManager.AddGameplayEvent(i, GameplayEventType.AbsorbedItem, 1);
-            this.showUiElement('select-gameplay-events');
-            absorbedItemSearchBox.ResetSearch();
-        });
-
-        // after an absorber was selected, ask which item was absorbed
-        const absorberBoxes = new Boxes('select-absorber-boxes');
-        absorberBoxes.elementWasSelected.subscribe(a => {
-            this.historyManager.AddGameplayEvent(a, GameplayEventType.AbsorbedItem, 2);
-            this.showUiElement('select-absorbed-item');
-            absorbedItemSearchBox.Focus();
-        });
-
-        // after a touched item was selected, go back to gameplay events overview
-        const touchedItemSearchBox = new SearchBox('select-touched-item-dd');
-        touchedItemSearchBox.elementWasSelected.subscribe(i => {
-            this.historyManager.AddGameplayEvent(i, GameplayEventType.ItemCollected, 1);
-            this.showUiElement('select-gameplay-events');
-            touchedItemSearchBox.ResetSearch();
-        });
-
-        // after choosing what dropped the item the player touched, ask which item it was
-        const touchedItemSourceSearchBox = new SearchBox('select-touched-item-source-dd');
-        touchedItemSourceSearchBox.elementWasSelected.subscribe(i => {
-            this.historyManager.AddGameplayEvent(i, GameplayEventType.ItemCollected, 2);
-            this.showUiElement('select-touched-item');
-            touchedItemSearchBox.Focus();
-            touchedItemSourceSearchBox.ResetSearch();
-        });
-
-        const touchedItemSourceBoxes = new Boxes('select-touched-item-source-boxes');
-        touchedItemSourceBoxes.elementWasSelected.subscribe(i => {
-            this.historyManager.AddGameplayEvent(i, GameplayEventType.ItemCollected, 2);
-            this.showUiElement('select-touched-item');
-            touchedItemSearchBox.Focus();
-        });
-
-        // after selecting how the player rerolled his character, go back to gameplay events overview
-        const rerollBoxes = new Boxes('select-reroll-boxes');
-        rerollBoxes.elementWasSelected.subscribe(r => {
-            this.historyManager.AddGameplayEvent(r, GameplayEventType.CharacterReroll, 1);
-            this.showUiElement('select-gameplay-events');
-        });
-
-        // after selecting an enemy, ask if there was another run
-        const enemiesSearchBox = new SearchBox('select-enemies-dd');
-        enemiesSearchBox.elementWasSelected.subscribe(e => {
-            this.historyManager.AddGameplayEvent(e, GameplayEventType.CharacterDied, 1);
-            this.showUiElement('next-run');
-            enemiesSearchBox.ResetSearch();
-        });
-
-        // after selecting a pill, go back to gameplay events overview
-        const pillSearchBox = new SearchBox('select-pill-dd');
-        pillSearchBox.elementWasSelected.subscribe(p => {
-            this.historyManager.AddGameplayEvent(p, GameplayEventType.Pill, 1);
-            this.showUiElement('select-gameplay-events');
-            pillSearchBox.ResetSearch();
-        });
-
-        // after selecting a rune, go back to gameplay events overview
-        const runeBoxes = new Boxes('select-rune-boxes');
-        runeBoxes.elementWasSelected.subscribe(r => {
-            this.historyManager.AddGameplayEvent(r, GameplayEventType.Rune, 1);
-            this.showUiElement('select-gameplay-events');
-        });
-
-        // after selecting a trinket, go back to gameplay events overview
-        const trinketSearchBox = new SearchBox('select-trinket-dd');
-        trinketSearchBox.elementWasSelected.subscribe(r => {
-            this.historyManager.AddGameplayEvent(r, GameplayEventType.Trinket, 1);
-            this.showUiElement('select-gameplay-events');
-            trinketSearchBox.ResetSearch();
-        });
-
-        // after selecting a misc. consumable, go back to gameplay events overview
-        const otherConsumableBoxes = new Boxes('select-other-consumable-boxes');
-        otherConsumableBoxes.elementWasSelected.subscribe(o => {
-            this.historyManager.AddGameplayEvent(o, GameplayEventType.OtherConsumable, 1);
-            this.showUiElement('select-gameplay-events');
-        });
-
-        // after selecting a tarot card, go back to gameplay events overview
-        const tarotSearchBox = new SearchBox('select-tarot-dd');
-        tarotSearchBox.elementWasSelected.subscribe(t => {
-            this.historyManager.AddGameplayEvent(t, GameplayEventType.TarotCard, 1);
-            this.showUiElement('select-gameplay-events');
-            tarotSearchBox.ResetSearch();
-        });
-
-        // after selecting a starting trinket, ask if the player started with any other trinkets
-        const selectStartingTrinketSearchBox = new SearchBox('select-starting-trinket-dd');
-        selectStartingTrinketSearchBox.elementWasSelected.subscribe(t => {
-            this.historyManager.AddGameplayEvent(t, GameplayEventType.StartingTrinket, 1);
-            this.showUiElement('select-more-starting-trinkets');
-            selectStartingTrinketSearchBox.ResetSearch();
-        });
-
-
-
-        // navigation logic that doesn't touch the history manager
-        getSpecificElementById('sucked-up-item-box', HTMLDivElement).addEventListener('click', () => this.showUiElement('select-absorber'));
-        getSpecificElementById('collected-item-box', HTMLDivElement).addEventListener('click', () => { this.showUiElement('select-item-source'); itemSourceSearchBox.Focus(); });
-        getSpecificElementById('bossfight-box', HTMLDivElement).addEventListener('click', () => { this.showUiElement('select-boss'); bossSearchBox.Focus(); });
-        getSpecificElementById('character-reroll-box', HTMLDivElement).addEventListener('click', () => this.showUiElement('select-reroll'));
-        getSpecificElementById('select-enemy-box', HTMLDivElement).addEventListener('click', () => { this.showUiElement('select-enemy'); enemiesSearchBox.Focus(); });
-        getSpecificElementById('select-pill-box', HTMLDivElement).addEventListener('click', () => { this.showUiElement('select-pill'); pillSearchBox.Focus(); });
-        getSpecificElementById('select-tarot-box', HTMLDivElement).addEventListener('click', () => { this.showUiElement('select-tarot'); tarotSearchBox.Focus(); });
-        getSpecificElementById('select-rune-box', HTMLDivElement).addEventListener('click', () => this.showUiElement('select-rune'));
-        getSpecificElementById('select-trinket-box', HTMLDivElement).addEventListener('click', () => { this.showUiElement('select-trinket'); trinketSearchBox.Focus(); });
-        getSpecificElementById('select-other-consumable-box', HTMLDivElement).addEventListener('click', () => this.showUiElement('select-other-consumable'));
-        getSpecificElementById('touched-item-box', HTMLDivElement).addEventListener('click', () => this.showUiElement('select-touched-item-source'));
-        getSpecificElementById('another-run-btn', HTMLButtonElement).addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); this.showUiElement('select-character') });
-        getSpecificElementById('victory-lap-btn', HTMLButtonElement).addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); this.showUiElement('select-floor'); floorSearchBox.Focus; });
-        getSpecificElementById('no-cancel', HTMLButtonElement).addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); this.showUiElement('select-gameplay-events'); });
-        getSpecificElementById('next-floor', HTMLButtonElement).addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); this.showUiElement('select-floor'); });
-        getSpecificElementById('end-of-video', HTMLButtonElement).addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); this.showUiElement('end-of-video-confirmation'); });
-        getSpecificElementById('end-of-video-btn', HTMLButtonElement).addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); this.showUiElement('end-of-video-confirmation'); });
-        getSpecificElementById('more-starting-items-button', HTMLButtonElement).addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); this.showUiElement('select-starting-item'); });
-        getSpecificElementById('no-more-starting-items', HTMLButtonElement).addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); this.showUiElement('select-starting-trinket'); });
-        getSpecificElementById('cancel-starting-item-input', HTMLButtonElement).addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); this.showUiElement('select-starting-trinket'); });
-        getSpecificElementById('skip-trinket-selection', HTMLButtonElement).addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); this.showUiElement('select-gameplay-events'); });
-        getSpecificElementById('no-more-starting-trinkets', HTMLButtonElement).addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); this.showUiElement('select-gameplay-events'); });
-        getSpecificElementById('more-starting-trinkets', HTMLButtonElement).addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); this.showUiElement('select-starting-trinket'); });
+    private loadCommonBossesForFloor(floorId: string) {
+        fetch(`/api/resources/effect/?name=AppearsOn${floorId}`)
+            .then(response => response.json())
+            .then((commenBossesForFloor: Array<IsaacResource>) => this.loadedIsaacResources.set('common-bosses', commenBossesForFloor.filter(b => b.name.toLowerCase().indexOf('double') === -1)))
+            .catch(() => this.loadedIsaacResources.set('common-bosses', []));
     }
+
+    private loadNextFloorset(floorId: string) {
+        fetch(`/api/resources/next-floorset/${floorId}`)
+            .then(response => response.json())
+            .then((nextFloors: Array<IsaacResource>) => this.loadedIsaacResources.set('common-floors', nextFloors.filter(f => f.id.toLowerCase().indexOf('xl') === -1)));
+    }
+
+    private renderWhatBossfight(): void {
+        this.setHeader('What boss did NL fight?');
+        const commonBosses = this.getIsaacResources('common-bosses', '');
+        const allBosses = this.getIsaacResources('bosses', '/api/resources/?ResourceType=1');
+
+        const boxes = new Boxes(this.uiContainer, commonBosses, true);
+        const searchBox = new SearchBox(this.uiContainer, allBosses, false);
+
+        const sub = merge(
+            boxes.elementWasSelected,
+            searchBox.elementWasSelected
+        ).subscribe(selectedBoss => {
+            this.unsubscribe(sub);
+            this.removeEventListeners(boxes, searchBox);
+            this.historyManager.AddGameplayEvent(selectedBoss, GameplayEventType.Bossfight, 1);
+            this.renderMainMenu();
+        });
+    }
+
+    private renderWhatAbsorber(): void {
+        this.setHeader('What did Northernlion use to absorb the item?');
+        const absorbers = this.getIsaacResources('absorbers', '/api/resources/?RequiredTags=149');
+
+        const boxes = new Boxes(this.uiContainer, absorbers, true);
+
+        const sub = boxes.elementWasSelected.subscribe(selectedAbsorber => {
+            this.unsubscribe(sub);
+            this.removeEventListeners(boxes);
+            if (selectedAbsorber === 'BlackRune') {
+                this.historyManager.AddGameplayEvent(selectedAbsorber, GameplayEventType.Rune, 1);
+            }
+            this.historyManager.AddGameplayEvent(selectedAbsorber, GameplayEventType.AbsorbedItem, 2);
+            this.renderWhichItemWasAbsorbed();
+        });
+    }
+
+    private renderWhichItemWasAbsorbed(): void {
+        this.setHeader('Which item was absorbed?');
+        const items = this.getIsaacResources('items', '/api/resources/?ResourceType=6');
+
+        const searchBox = new SearchBox(this.uiContainer, items, true);
+
+        const sub = searchBox.elementWasSelected.subscribe(selectedItem => {
+            this.unsubscribe(sub);
+            this.removeEventListeners(searchBox);
+            this.historyManager.AddGameplayEvent(selectedItem, GameplayEventType.AbsorbedItem, 1);
+            this.renderMainMenu();
+        });
+    }
+
+    private renderWhereDidTouchedItemComeFrom(): void {
+        this.setHeader('Where did the item come from that Northernlion touched?');
+        const itemSources = this.getIsaacResources('item-sources', '/api/resources/?ResourceType=7');
+
+        const itemSourceBoxes = new Boxes(this.uiContainer, itemSources, true, undefined, 10);
+        const itemSourceSearchbox = new SearchBox(this.uiContainer, itemSources, false);
+
+        const sub = merge(
+            itemSourceBoxes.elementWasSelected,
+            itemSourceSearchbox.elementWasSelected
+        ).subscribe(selectedItemsource => {
+            this.unsubscribe(sub);
+            this.removeEventListeners(itemSourceBoxes, itemSourceSearchbox);
+            this.historyManager.AddGameplayEvent(selectedItemsource, GameplayEventType.ItemTouched, 2);
+            this.renderWhichItemWasTouched();
+        });
+    }
+
+    private renderWhichItemWasTouched(): void {
+        this.setHeader('Which item was touched?');
+        const items = this.getIsaacResources('items', '/api/resources/?ResourceType=6');
+
+        const searchBox = new SearchBox(this.uiContainer, items, true);
+
+        const sub = searchBox.elementWasSelected.subscribe(selectedItem => {
+            this.unsubscribe(sub);
+            this.removeEventListeners(searchBox);
+            this.historyManager.AddGameplayEvent(selectedItem, GameplayEventType.ItemTouched, 1);
+            this.renderMainMenu();
+        });
+    }
+
+    private renderHowDidNlDie(): void {
+        this.setHeader('What killed NL? :(');
+        const enemies = this.getIsaacResources('emenies', '/api/resources/?ResourceType=11');
+
+        const searchBox = new SearchBox(this.uiContainer, enemies, true);
+
+        const sub = searchBox.elementWasSelected.subscribe(selectedEnemy => {
+            this.unsubscribe(sub);
+            this.removeEventListeners(searchBox);
+            this.selectedEnemy = selectedEnemy;
+            this.renderConfirmNlDied();
+        });
+    }
+
+    private renderConfirmNlDied(): void {
+        if (!this.selectedEnemy) {
+            return;
+        }
+
+        this.setHeader(`Please Confirm: Northernlion was killed by: ${this.selectedEnemy}`);
+        const dead = this.getIsaacResources('confirm-dead', '');
+        const boxes = new Boxes(this.uiContainer, dead, true);
+
+        const sub = boxes.elementWasSelected.subscribe(choice => {
+            this.unsubscribe(sub);
+            this.removeEventListeners(boxes);
+
+            if (choice === 'true' && this.selectedEnemy) {
+                this.historyManager.AddGameplayEvent(this.selectedEnemy, GameplayEventType.CharacterDied, 1)
+                this.renderDidNlDoAnotherRun();
+            } else {
+                this.renderMainMenu();
+            }
+        });
+    }
+
+    private renderDidNlDoAnotherRun(): void {
+        this.setHeader('The run ended. Did NL do another run?');
+        const choices = this.getIsaacResources('another-run', '');
+        const boxes = new Boxes(this.uiContainer, choices, true);
+        const sub = boxes.elementWasSelected.subscribe(choice => {
+            this.unsubscribe(sub);
+            this.removeEventListeners(boxes);
+
+            switch (choice) {
+                case 'run':
+                    this.renderWhatCharacterGotPlayed();
+                    break;
+                case 'victory-lap':
+                    this.renderWhatFloorAreWeOn();
+                    break;
+                case 'end':
+                    this.renderSubmitEpisode();
+                    break;
+            }
+        });
+    }
+
+    private renderHowWasCharacterRerolled(): void {
+        this.setHeader('How was the character rerolled?');
+        const rerolls = this.getIsaacResources('rerolls', '/api/resources/?ResourceType=14');
+
+        const boxes = new Boxes(this.uiContainer, rerolls, true);
+
+        const sub = boxes.elementWasSelected.subscribe(selectedReroll => {
+            this.unsubscribe(sub);
+            this.removeEventListeners(boxes);
+            this.historyManager.AddGameplayEvent(selectedReroll, GameplayEventType.CharacterReroll, 1);
+            this.renderMainMenu();
+        });
+    }
+
+    private renderWhatFloorAreWeOn(): void {
+        this.setHeader('What floor was next?');
+        const commonFloors = this.getIsaacResources('common-floors', '');
+        const allFloors = this.getIsaacResources('floors', '/api/resources/?ResourceType=5');
+
+        const boxes = new Boxes(this.uiContainer, commonFloors, true);
+        const searchBox = new SearchBox(this.uiContainer, allFloors, false);
+
+        const sub = merge(
+            boxes.elementWasSelected,
+            searchBox.elementWasSelected
+        ).subscribe(selectedFloor => {
+            this.unsubscribe(sub);
+            this.removeEventListeners(boxes, searchBox);
+            this.loadCommonBossesForFloor(selectedFloor);
+            this.loadNextFloorset(selectedFloor);
+            this.historyManager.AddFloorToCharacter(selectedFloor);
+            this.renderWasTheFloorCursed();
+        });
+    }
+
+    private renderSubmitEpisode(): void {
+        this.setHeader('Thank you very much for contributing! Please Click this button to submit the episode:');
+        const choice = this.getIsaacResources('submit-episode', '');
+
+        const boxes = new Boxes(this.uiContainer, choice, true);
+
+        const sub = boxes.elementWasSelected.subscribe(choice => {
+            this.unsubscribe(sub);
+            this.removeEventListeners(boxes);
+            if (choice === 'submit-episode') {
+                this.renderCurrentlySubmitting();
+            }
+        });
+    }
+
+    private renderCurrentlySubmitting(): void {
+        this.setHeader('Saving episode, please wait...');
+        this.historyManager.Submit().then(response => {
+            if (response.ok) {
+                this.renderEpisodeSubmitted();
+            } else {
+                response.text().then(response => {
+                    this.submitEpisodeErrormessage = response;
+                    this.renderEpisodeSubmissionFailed();
+                });
+            }
+        }).catch((errorResponse: Response) => {
+            errorResponse.text().then(response => {
+                this.submitEpisodeErrormessage = response;
+                this.renderEpisodeSubmissionFailed();
+            });
+        });
+    }
+
+    private renderEpisodeSubmitted(): void {
+        this.setHeader('Episode Submitted! Click the button below to see the results!');
+        const choice = this.getIsaacResources('run-submitted', '');
+
+        const boxes = new Boxes(this.uiContainer, choice, true);
+
+        const sub = boxes.elementWasSelected.subscribe(choice => {
+            this.unsubscribe(sub);
+            this.removeEventListeners(boxes);
+            if (choice === 'run-submitted') {
+                window.location.href = `/video/${window.location.href.substring(window.location.href.length - 11)}`;
+            }
+        });
+    }
+
+    private renderEpisodeSubmissionFailed(): void {
+        this.setHeader(`The episode could not be saved correctly. :( Error message: ${this.submitEpisodeErrormessage}`);
+        const choice = this.getIsaacResources('submit-episode', '');
+
+        const boxes = new Boxes(this.uiContainer, choice, true);
+
+        const sub = boxes.elementWasSelected.subscribe(choice => {
+            this.unsubscribe(sub);
+            this.removeEventListeners(boxes);
+            if (choice === 'submit-episode') {
+                this.renderCurrentlySubmitting();
+            }
+        });
+    }
+
+    private renderSelectPill(): void {
+        this.setHeader('What pill was used?');
+        const pills = this.getIsaacResources('pills', '/api/resources/?ResourceType=8');
+
+        const searchBox = new SearchBox(this.uiContainer, pills, true);
+
+        const sub = searchBox.elementWasSelected.subscribe(selectedPill => {
+            this.unsubscribe(sub);
+            this.removeEventListeners(searchBox);
+            this.historyManager.AddGameplayEvent(selectedPill, GameplayEventType.Pill, 1);
+            this.renderMainMenu();
+        });
+    }
+
+    private renderSelectTrinket(): void {
+        this.setHeader('What trinket did NL take?');
+        const trinkets = this.getIsaacResources('trinkets', '/api/resources/?ResourceType=13');
+
+        const searchBox = new SearchBox(this.uiContainer, trinkets, true);
+
+        const sub = searchBox.elementWasSelected.subscribe(selectedTrinket => {
+            this.unsubscribe(sub);
+            this.removeEventListeners(searchBox);
+            this.historyManager.AddGameplayEvent(selectedTrinket, GameplayEventType.Trinket, 1);
+            this.renderMainMenu();
+        });
+    }
+
+    private renderSelectTarotCard(): void {
+        this.setHeader('Which tarot card was used?');
+        const cards = this.getIsaacResources('tarot-cards', '/api/resources/?ResourceType=10');
+
+        const searchBox = new SearchBox(this.uiContainer, cards, true);
+
+        const sub = searchBox.elementWasSelected.subscribe(selectedCard => {
+            this.unsubscribe(sub);
+            this.removeEventListeners(searchBox);
+            this.historyManager.AddGameplayEvent(selectedCard, GameplayEventType.TarotCard, 1);
+            this.renderMainMenu();
+        });
+    }
+
+    private renderSelectRune(): void {
+        this.setHeader('Which rune was used?');
+        const runes = this.getIsaacResources('runes', '/api/resources/?ResourceType=9');
+
+        const searchBox = new SearchBox(this.uiContainer, runes, true);
+
+        const sub = searchBox.elementWasSelected.subscribe(selectedRune => {
+            this.unsubscribe(sub);
+            this.removeEventListeners(searchBox);
+            this.historyManager.AddGameplayEvent(selectedRune, GameplayEventType.Rune, 1);
+
+            if (selectedRune !== 'BlackRune') {
+                this.renderMainMenu();
+            } else {
+                this.renderDidBlackRuneAbsorbAnything()
+            }
+        });
+    }
+
+    private renderDidBlackRuneAbsorbAnything(): void {
+        this.setHeader('Which item did the black rune absorb?');
+        const choice = this.getIsaacResources('did-black-rune-absorb', '');
+        const items = this.getIsaacResources('items', '/api/resources/?ResourceType=6');
+
+        const boxes = new Boxes(this.uiContainer, choice, true);
+        const searchBox = new SearchBox(this.uiContainer, items, false);
+
+        const sub = merge(
+            boxes.elementWasSelected,
+            searchBox.elementWasSelected
+        ).subscribe(absorbedItem => {
+            this.unsubscribe(sub);
+            this.removeEventListeners(boxes, searchBox);
+            this.historyManager.AddGameplayEvent('BlackRune', GameplayEventType.AbsorbedItem, 2);
+            this.historyManager.AddGameplayEvent(absorbedItem, GameplayEventType.AbsorbedItem, 1);
+            this.renderDidBlackRuneAbsorbAnotherThing();
+        });
+    }
+
+    private renderDidBlackRuneAbsorbAnotherThing(): void {
+        this.setHeader('Did the black rune absorb another item?');
+        const choices = this.getIsaacResources('did-black-rune-absorb-another', '');
+
+        const boxes = new Boxes(this.uiContainer, choices, true);
+
+        const sub = boxes.elementWasSelected.subscribe(choice => {
+            this.unsubscribe(sub);
+            this.removeEventListeners(boxes);
+            if (choice === 'yes') {
+                this.renderDidBlackRuneAbsorbAnything();
+            } else {
+                this.renderMainMenu();
+            }
+        });
+    }
+
+    private renderOtherConsumable(): void {
+        this.setHeader('What consumable was used?');
+        const consumables = this.getIsaacResources('other-consumables', '/api/resources/?ResourceType=15');
+
+        const boxes = new Boxes(this.uiContainer, consumables, true);
+
+        const sub = boxes.elementWasSelected.subscribe(selectedConsumable => {
+            this.unsubscribe(sub);
+            this.removeEventListeners(boxes);
+            this.historyManager.AddGameplayEvent(selectedConsumable, GameplayEventType.OtherConsumable, 1);
+            this.renderMainMenu();
+        });
+    }
+
 
     private initializeQuotesSectionLogic() {
         // textarea typing
@@ -550,59 +849,10 @@ class SubmitEpisodePageHandler {
         });
     }
 
-    private initializeSubmitEpisodeEvents(): void {
-        // 'submit episode' events
-        const yesItsOverButton = getSpecificElementById('yes-its-over-button', HTMLButtonElement);
-        const trySubmitAgainButton = getSpecificElementById('try-again-button', HTMLButtonElement);
-
-        const submitEpisode = (e: MouseEvent) => {
-            if (e.target && e.target instanceof HTMLButtonElement) {
-                e.preventDefault();
-                e.target.disabled = true;
-                e.stopPropagation();
-                this.historyManager.Submit().then(response => {
-                    if (response.ok) {
-                        this.showUiElement('episode-submitted');
-                    } else {
-                        this.showSubmitEpisodeErrorMessage(response);
-                        this.showUiElement('episode-submission-failed');
-                    }
-                    (e.target as HTMLButtonElement).disabled = false;
-                });
-            }
-        };
-
-        yesItsOverButton.addEventListener('click', submitEpisode);
-        trySubmitAgainButton.addEventListener('click', submitEpisode);
-    }
-
     private replaceQuoteHeaderWithError(message: string) {
         this.submitQuoteHeader.innerHTML = '';
         this.submitQuoteHeader.innerText = message;
         addClassIfNotExists(this.submitQuoteHeader, 'submit-quote-error');
-    }
-
-    private showUiElement(uiElementId: string): void {
-        for (const container of this.uiElements) {
-            if (container[1].id === uiElementId) {
-                addClassIfNotExists(container[1], 'display-normal');
-                removeClassIfExists(container[1], 'display-none');
-            } else {
-                removeClassIfExists(container[1], 'display-normal');
-                addClassIfNotExists(container[1], 'display-none');
-            }
-        }
-    }
-
-    public showSubmitEpisodeErrorMessage(failureResponse: Response): void {
-        if (failureResponse.ok) {
-            return;
-        } else {
-            failureResponse.text().then(errorMessage => {
-                const errorMessageSpan = <HTMLSpanElement>document.getElementById('submission-failed-error-message');
-                errorMessageSpan.innerText = errorMessage;
-            });
-        }
     }
 
     private resetQuoteHeader(): void {

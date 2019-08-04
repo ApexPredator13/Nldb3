@@ -22,14 +22,14 @@
             throw 'no wrapper found';
         }
 
-        // create all box-elements
-        for (const id of boxContainerIds) {
-            const box = new Boxes(id);
-            boxes.push(box);
-            box.elementWasSelected.subscribe(isaacResourceId => {
-                window.location.assign(`/${isaacResourceId}`);
-            });
-        }
+        // todo: create boxes!
+        //for (const id of boxContainerIds) {
+        //    const box = new Boxes(id);
+        //    boxes.push(box);
+        //    box.elementWasSelected.subscribe(isaacResourceId => {
+        //        window.location.assign(`/${isaacResourceId}`);
+        //    });
+        //}
 
         console.log('created boxes:', boxes);
     });

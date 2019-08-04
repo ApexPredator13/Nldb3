@@ -3,11 +3,7 @@ import { SubmittedPlayedCharacter } from '../interfaces/submitted-played-charact
 import { SubmittedPlayedFloor } from '../interfaces/submitted-played-floor';
 import { SubmittedGameplayEvent } from '../interfaces/submitted-gameplay-event';
 import { GameplayEventType } from '../enums/gameplay-event-type';
-import { GetResourceRequest } from '../interfaces/get-resource-request';
-import { getEffectNumber } from '../lib/api-calls';
-import { Boxes } from '../components/boxes';
 import { History } from '../components/history';
-import { IsaacResource } from '../interfaces/isaac-resource';
 
 export class EpisodeHistoryManager {
 
@@ -103,12 +99,6 @@ export class EpisodeHistoryManager {
 
         this.currentFloor = cc.PlayedFloors.length - 1;
         this.history.ReloadHistory(this.episode);
-    }
-
-    LoadNextFloorset(currentFloorId: string, floorBoxes: Boxes): void {
-        fetch(`/api/resources/next-floorset/${currentFloorId}`).then(x => x.json()).then((nextFloorset: Array<IsaacResource>) => {
-            floorBoxes.ReplaceBoxes(nextFloorset);
-        });
     }
 
     AddGameplayEvent(id: string, gameplayEvent: GameplayEventType, resourceNumber: 1 | 2 | 3) {

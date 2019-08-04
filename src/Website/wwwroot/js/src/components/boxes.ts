@@ -1,6 +1,21 @@
 ﻿import { Subject } from 'rxjs';
 import { IsaacResource } from '../interfaces/isaac-resource';
 
+let boxesClickEventListener = function (this: Boxes, e: MouseEvent) {
+    let selectedId: string | null = null;
+    const target = <HTMLDivElement>e.target;
+
+    if (target.className === 'box') {
+        selectedId = target.getAttribute('data-id');
+    } else if (target.parentElement && target.parentElement.className === 'box') {
+        selectedId = target.parentElement.getAttribute('data-id');
+    }
+
+    if (selectedId) {
+        this.elementWasSelected.next(selectedId);
+    }
+};
+
 export class Boxes {
 
     public elementWasSelected = new Subject<string>();
@@ -11,11 +26,14 @@ export class Boxes {
     private slice: number | undefined;
     private withId: Array<string> | undefined;
 
+    private clickEventListener: ((this: Boxes, e: MouseEvent) => void);
+
     constructor(futureParentElement: HTMLElement, futureElements: Array<IsaacResource> | Promise<Array<IsaacResource>>, replace: boolean, imagePath?: string, slice?: number, withId?: Array<string>) {
         this.imagePath = imagePath ? imagePath : '/img/isaac.png';
         this.futureParent = futureParentElement;
         this.slice = slice;
         this.withId = withId;
+        this.clickEventListener = boxesClickEventListener.bind(this);
 
         this.wrapper = document.createElement('div');
         this.wrapper.className = 'box-container';
@@ -58,8 +76,8 @@ export class Boxes {
             this.wrapper.appendChild(box);
         }
 
-        // add click event listener
-        this.wrapper.addEventListener('click', this.click);
+        // add click event listener, has been cast to any because event listener function signature doesn't match for whatever reason
+        this.wrapper.addEventListener('click', <any>this.clickEventListener);
 
         if (replace) {
             this.futureParent.innerHTML = '';
@@ -68,23 +86,8 @@ export class Boxes {
         this.futureParent.appendChild(this.wrapper);
     }
 
-    private click(e: MouseEvent) {
-        let selectedId: string | null = null;
-        const target = <HTMLDivElement>e.target;
-
-        if (target.className === 'box') {
-            selectedId = target.getAttribute('data-id');
-        } else if (target.parentElement && target.parentElement.className === 'box') {
-            selectedId = target.parentElement.getAttribute('data-id');
-        }
-
-        if (selectedId) {
-            this.elementWasSelected.next(selectedId);
-        }
-    }
-
     public removeEventListeners(): void {
-        this.wrapper.removeEventListener('click', this.click);
+        this.wrapper.removeEventListener('click', <any>this.clickEventListener);
     }
 }
 

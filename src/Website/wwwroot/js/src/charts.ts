@@ -110,13 +110,16 @@ const initializeShowOptionsLink = () => {
             if (canChangeOptions) {
                 // initialize comparison window
                 if (compareSearchComponent === null) {
-                    compareSearchComponent = new SearchBox("compare-to-searchbox", fetch(`/api/resources`).then(response => response.json()));
-                    compareSearchComponent.elementWasSelected.subscribe(id => {
-                        if (idsInChart.indexOf(id) === -1) {
-                            idsInChart.push(id);
-                            addComparison(id);
-                        }
-                    });
+                    const container = document.getElementById("compare-to-searchbox");
+                    if (container) {
+                        compareSearchComponent = new SearchBox(container, fetch(`/api/resources`).then(response => response.json()), true);
+                        compareSearchComponent.elementWasSelected.subscribe(id => {
+                            if (idsInChart.indexOf(id) === -1) {
+                                idsInChart.push(id);
+                                addComparison(id);
+                            }
+                        });
+                    }
                 }
 
                 // change button text

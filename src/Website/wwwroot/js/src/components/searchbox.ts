@@ -2,6 +2,42 @@
 import { addClassIfNotExists, removeClassIfExists } from "../lib/dom-operations";
 import { IsaacResource } from "../interfaces/isaac-resource";
 
+let click = function(this: SearchBox, e: MouseEvent) {
+    const target = <HTMLDivElement>e.target;
+    let selectedId: string | null = null;
+
+    if (target.className === 'dd-line') {
+        selectedId = target.getAttribute('data-id');
+    } else if (target.className === 'dd-text' || target.className === 'dd-image') {
+        const parent = <HTMLDivElement>target.parentElement;
+        selectedId = parent.getAttribute('data-id');
+    }
+
+    if (selectedId) {
+        this.elementWasSelected.next(selectedId);
+    }
+}
+
+let filterOnInput = function (this: SearchBox) {
+    if (!this.searchBoxInputElement.value) {
+        return;
+    }
+
+    const searchLower = this.searchBoxInputElement.value.toLowerCase();
+
+    for (let line of this.lines) {
+        if (line[0].indexOf(searchLower) === -1) {
+            addClassIfNotExists(line[1], 'display-none');
+        } else {
+            removeClassIfExists(line[1], 'display-none');
+        }
+    }
+}
+
+let focusOnHover = function (this: SearchBox) {
+    this.searchBoxInputElement.focus();
+}
+
 export class SearchBox {
 
     public elementWasSelected = new Subject<string>();
@@ -10,13 +46,20 @@ export class SearchBox {
     private container: HTMLDivElement;
     private dropdown: HTMLDivElement;
     private searchContainer: HTMLDivElement;
-    private searchBoxInputElement: HTMLInputElement;
+    public searchBoxInputElement: HTMLInputElement;
 
-    private lines: Map<string, HTMLDivElement> = new Map<string, HTMLDivElement>();
+    public lines: Map<string, HTMLDivElement> = new Map<string, HTMLDivElement>();
     
+    private clickEventListener: (this: SearchBox, e: MouseEvent) => void;
+    private filterOnInputEventListener: (this: SearchBox) => void;
+    private focusOnHoverEventListener: (this: SearchBox) => void;
 
     constructor(futureParentElement: HTMLElement, elements: Array<IsaacResource> | Promise<Array<IsaacResource>>, replace: boolean) {
         this.futureParent = futureParentElement;
+
+        this.clickEventListener = click.bind(this);
+        this.filterOnInputEventListener = filterOnInput.bind(this);
+        this.focusOnHoverEventListener = focusOnHover.bind(this);
 
         // create wrapper
         this.container = document.createElement('div');
@@ -76,53 +119,19 @@ export class SearchBox {
         this.container.appendChild(this.dropdown);
 
         // add click event
-        this.dropdown.addEventListener('click', this.click);
+        this.dropdown.addEventListener('click', <any>this.clickEventListener);
 
         // add filter on input event
-        this.searchBoxInputElement.addEventListener('input', this.filterOnInput);
+        this.searchBoxInputElement.addEventListener('input', this.filterOnInputEventListener);
 
         // add 'on hover, focus on search element' event
-        this.container.addEventListener('mouseover', this.focusOnHover);
+        this.container.addEventListener('mouseover', this.focusOnHoverEventListener);
 
         // append finished component to parent
         if (replace) {
             this.futureParent.innerHTML = '';
         }
         this.futureParent.appendChild(this.container);
-    }
-
-    private focusOnHover() {
-        this.searchBoxInputElement.focus();
-    }
-
-    private click = (e: MouseEvent) => {
-        const target = <HTMLDivElement>e.target;
-        let selectedId: string | null = null;
-
-        if (target.className === 'dd-line') {
-            selectedId = target.getAttribute('data-id');
-        } else if (target.className === 'dd-text' || target.className === 'dd-image') {
-            const parent = <HTMLDivElement>target.parentElement;
-            selectedId = parent.getAttribute('data-id');
-        }
-
-        if (selectedId) {
-            this.elementWasSelected.next(selectedId);
-        }
-    }
-
-    private filterOnInput() {
-        if (!this.searchBoxInputElement.value) {
-            return;
-        }
-
-        for (let line of this.lines) {
-            if (line.indexOf(this.searchBoxInputElement.value.toLowerCase()) === -1) {
-                addClassIfNotExists(line[1], 'display-none');
-            } else {
-                removeClassIfExists(line[1], 'display-none');
-            }
-        }
     }
 
     public focus(): void {
@@ -138,9 +147,9 @@ export class SearchBox {
     }
 
     public removeEventListeners(): void {
-        this.dropdown.removeEventListener('click', this.click);
-        this.searchBoxInputElement.removeEventListener('input', this.filterOnInput);
-        this.container.removeEventListener('mouseover', this.focusOnHover);
+        this.dropdown.removeEventListener('click', <any>this.clickEventListener);
+        this.searchBoxInputElement.removeEventListener('input', <any>this.filterOnInputEventListener);
+        this.container.removeEventListener('mouseover', <any>this.focusOnHoverEventListener);
     }
 }
 
