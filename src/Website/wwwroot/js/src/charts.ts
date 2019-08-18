@@ -177,6 +177,14 @@ const initializeResetChartButton = () => {
                     characterChart.data = result.character_stats;
                     characterChart.update();
                 }
+                if (result.curse_stats) {
+                    curseChart.data = result.curse_stats;
+                    curseChart.update();
+                }
+                if (result.floor_stats) {
+                    floorChart.data = result.floor_stats;
+                    floorChart.update();
+                }
                 
                 idsInChart.splice(1, idsInChart.length - 1);
                 (e.target as HTMLButtonElement).disabled = false;

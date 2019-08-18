@@ -726,7 +726,7 @@ namespace Website.Data
                 case VideoOrderBy.FavoriteCount: s.Append(" v.favorite_count"); break;
                 case VideoOrderBy.Id: s.Append(" v.id"); break;
                 case VideoOrderBy.Likes: s.Append(" v.likes"); break;
-                case VideoOrderBy.LikeDislikeRatio: s.Append(" v.like_dislike_ratio"); break;
+                case VideoOrderBy.LikeDislikeRatio: s.Append(" like_dislike_ratio"); break;
                 case VideoOrderBy.Title: s.Append(" v.title"); break;
                 case VideoOrderBy.ViewCount: s.Append(" v.view_count"); break;
                 default: s.Append(" v.published"); break;

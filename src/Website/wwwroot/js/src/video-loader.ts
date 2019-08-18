@@ -5,6 +5,7 @@ import { VideoResult } from './interfaces/video-result';
 import { ResourceType } from './enums/resource-type';
 
 let request: VideoRequest | null = null;
+let lastClickedOn: HTMLTableHeaderCellElement | undefined;
 
 const createDefaultVideoRequest = (): Promise<VideoRequest> => {
     const resourceName = getIsaacResourceName();
@@ -49,10 +50,20 @@ const initializeTableHeaderClickEvents = () => {
         return;
     }
 
+    // removes down arrow of releasedate on first click
+    if (!lastClickedOn) {
+        for (let i = 0; i < tableHeaderFields.length; i++) {
+            if (tableHeaderFields[i].innerText.indexOf('Releasedate') !== -1) {
+                lastClickedOn = tableHeaderFields[i];
+                break;
+            }
+        }
+    }
+
     for (let i = 0; i < tableHeaderFields.length; i++) {
         if (tableHeaderFields[i].hasAttribute("data-sort-by")) {
-            tableHeaderFields[i].addEventListener('click', () => {
-                if (!request) {
+            tableHeaderFields[i].addEventListener('click', e => {
+                if (!request || !e.target) {
                     return;
                 }
 
@@ -70,6 +81,16 @@ const initializeTableHeaderClickEvents = () => {
                     request.Page = 1;
                     request.Asc = false;
                 }
+
+                if (lastClickedOn) {
+                    console.log('last', lastClickedOn.innerText);
+                    lastClickedOn.innerText = lastClickedOn.innerText.substring(0, lastClickedOn.innerText.length - 2);
+                }
+
+                const target = <HTMLTableHeaderCellElement>e.target;
+                target.innerText = target.innerText + (request.Asc ? ' ⇑' : ' ⇓');
+
+                lastClickedOn = target;
 
                 loadVideos();
             });
