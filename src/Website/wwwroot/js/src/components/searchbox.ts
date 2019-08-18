@@ -20,6 +20,9 @@ let click = function(this: SearchBox, e: MouseEvent) {
 
 let filterOnInput = function (this: SearchBox) {
     if (!this.searchBoxInputElement.value) {
+        for (let line of this.lines) {
+            removeClassIfExists(line[1], 'display-none');
+        }
         return;
     }
 
@@ -54,8 +57,11 @@ export class SearchBox {
     private filterOnInputEventListener: (this: SearchBox) => void;
     private focusOnHoverEventListener: (this: SearchBox) => void;
 
-    constructor(futureParentElement: HTMLElement, elements: Array<IsaacResource> | Promise<Array<IsaacResource>>, replace: boolean) {
+    private displayResourceTypeInName: boolean;
+
+    constructor(futureParentElement: HTMLElement, elements: Array<IsaacResource> | Promise<Array<IsaacResource>>, replace: boolean, displayResourceTypeInName: boolean = false) {
         this.futureParent = futureParentElement;
+        this.displayResourceTypeInName = displayResourceTypeInName;
 
         this.clickEventListener = click.bind(this);
         this.filterOnInputEventListener = filterOnInput.bind(this);
@@ -87,7 +93,6 @@ export class SearchBox {
     }
 
     private createSearchboxElements(elements: Array<IsaacResource>, replace: boolean) {
-
         for (let i = 0; i < elements.length; i++) {
             const line = document.createElement('div');
             line.className = 'dd-line';
@@ -105,12 +110,33 @@ export class SearchBox {
 
             const text = document.createElement('div');
             text.className = 'dd-text';
-            text.innerText = elements[i].name;
+
+            let displayName = elements[i].name;
+
+            if (this.displayResourceTypeInName) {
+                switch (elements[i].resource_type) {
+                    case 11: displayName += ' (killed by)'; break;
+                    case 7: displayName += ' (item source)'; break;
+                    case 14: displayName += ' (character reroll)'; break;
+                    case 1: displayName += ' (bossfight)'; break;
+                }
+            }
+
+            text.innerText = displayName;
 
             line.appendChild(image);
             line.appendChild(text);
 
-            this.lines.set(elements[i].name.toLowerCase(), line);
+            let keyName = elements[i].name.toLowerCase();
+            if (elements[i].resource_type === 11) {
+                keyName = `${keyName} (enemy)`;
+            } else if (elements[i].resource_type === 7) {
+                keyName = `${keyName} (spawned item)`;
+            }
+            if (this.lines.has(keyName)) {
+                keyName = keyName + i.toString(10);
+            }
+            this.lines.set(keyName, line);
             this.dropdown.appendChild(line);
         }
 

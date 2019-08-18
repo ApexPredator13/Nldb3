@@ -1,10 +1,9 @@
-﻿@model IsaacResourceOverview
+﻿@model ResourceType
 
 @{
     ViewData["Title"] = "Overview";
-    var models = Model.Resources.Keys;
 
-    var header = Model.ResourceType switch
+    var header = Model switch
     {
         ResourceType.Boss => "Overview of all Bosses Northernlion defeated",
         ResourceType.Character => "Overview of all Binding Of Isaac-Characters",
@@ -23,7 +22,7 @@
         _ => "Overview"
     };
 
-    var descriptionLine1 = Model.ResourceType switch
+    var descriptionLine1 = Model switch
     {
         ResourceType.Boss => "Click on a boss for more details!",
         ResourceType.Character => "Click on a character for more details!",
@@ -42,7 +41,7 @@
         _ => string.Empty
     };
 
-    var descriptionLine2 = Model.ResourceType switch
+    var descriptionLine2 = Model switch
     {
         ResourceType.Curse => "Special curses that can be found in certain challenges (like 'curse of the cursed') have a seperate entry!",
         ResourceType.Enemy => "However, it can sometimes be interesting to compare enemies with each other! Consider using the 'Options' in the bottom left of the page after selecting an emeny!",
@@ -53,7 +52,7 @@
         _ => string.Empty
     };
 
-    var descriptionLine3 = Model.ResourceType switch
+    var descriptionLine3 = Model switch
     {
         ResourceType.Curse => "Click on a curse for more details!",
         _ => string.Empty
@@ -77,13 +76,7 @@
 }
 
 <div id="resources">
-    @foreach (var resource in Model.Resources)
-    {
-        <h4 style="margin-bottom: 0;">@resource.Key</h4>
-        var model = new ResourceSelection(resource.Key, resource.Value);
-        <partial name="_IsaacResourceBoxesPartial" model="model" />
-        <hr />
-    }
+    loading resources...
 </div>
 
 @section Scripts {

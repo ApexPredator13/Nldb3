@@ -16,5 +16,8 @@ namespace Website.Models.Database
 
         [JsonProperty("header")]
         public string Header { get; set; } = "Videos";
+
+        [JsonProperty("description")]
+        public string? Description { get; set; } = null;
     }
 }

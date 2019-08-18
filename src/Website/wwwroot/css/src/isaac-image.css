@@ -22,3 +22,9 @@
 .iri:hover + .popup {
     display: inline-block;
 }
+
+.floor-progress:hover > .popup {
+    display: inline-block;
+    right: 0;
+    width: 220px;
+}

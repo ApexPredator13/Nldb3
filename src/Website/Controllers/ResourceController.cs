@@ -66,14 +66,14 @@ namespace Website.Controllers
         [HttpGet]
         public async Task<ViewResult> Overview([FromRoute] string id)
         {
-            var request = new GetResource()
+            var getResourcesOptions = new GetResource()
             {
                 IncludeMod = true,
                 OrderBy1 = ResourceOrderBy.Name,
                 ResourceType = OverviewPageNames[id.ToLower()]
             };
 
-            var resources = await _isaacRepository.GetResources(request);
+            var resources = await _isaacRepository.GetResources(getResourcesOptions);
 
             var sortedResources = new Dictionary<string, List<IsaacResource>>();
 
@@ -89,8 +89,7 @@ namespace Website.Controllers
                 sortedResources[key].Add(resource);
             }
 
-            var model = new IsaacResourceOverview(sortedResources, OverviewPageNames[id.ToLower()]);
-            return View(model);
+            return View(getResourcesOptions.ResourceType);
         }
     }
 }

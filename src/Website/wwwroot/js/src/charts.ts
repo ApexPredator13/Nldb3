@@ -112,7 +112,7 @@ const initializeShowOptionsLink = () => {
                 if (compareSearchComponent === null) {
                     const container = document.getElementById("compare-to-searchbox");
                     if (container) {
-                        compareSearchComponent = new SearchBox(container, fetch(`/api/resources`).then(response => response.json()), true);
+                        compareSearchComponent = new SearchBox(container, fetch(`/api/resources`).then(response => response.json()), true, true);
                         compareSearchComponent.elementWasSelected.subscribe(id => {
                             if (idsInChart.indexOf(id) === -1) {
                                 idsInChart.push(id);

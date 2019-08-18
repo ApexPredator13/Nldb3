@@ -10,6 +10,7 @@ namespace Website.Infrastructure
     public class IsaacImageTagHelper : TagHelper
     {
         public IsaacResource? Resource { get; set; }
+        public bool TwoPlayerMode { get; set; } = false;
 
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {

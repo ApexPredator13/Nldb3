@@ -1,10 +1,15 @@
 ﻿@model NldbVideoResult
 
-@{ 
+@{
     int pageCounter = 1;
 }
 
 <h1>@Model.Header</h1>
+
+@if (!string.IsNullOrEmpty(Model.Description))
+{
+    <p>@Model.Description</p>
+}
 
 <div>
     <p>

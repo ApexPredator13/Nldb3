@@ -5,6 +5,7 @@
     var floors = submission.PlayedCharacters.SelectMany(x => x.PlayedFloors).ToList();
     var culture = new System.Globalization.CultureInfo("en-US");
     var submitters = Model.Submissions.Select(x => x.UserName).ToList();
+    var twoPlayerMode = Model.Submissions.Any(x => x.IsTwoPlayerMode) ? true : false;
 }
 
 @model NldbVideo
@@ -12,7 +13,7 @@
 <h1>@Model.Title</h1>
 
 <div>
-    <h3>Episode Overview</h3>
+    <h2>Episode Overview</h2>
 
     <div id="video-page-tables">
         <table>
@@ -53,6 +54,15 @@
                                                 <hr />
                                                 <isaac-image resource="source"></isaac-image> ⟹ <isaac-image resource="item"></isaac-image><br />
                                                 From: @source.Name
+
+                                                @if (twoPlayerMode && gameplayEvent.Player.HasValue)
+                                                {
+                                                    <hr />
+                                                    <span>Collected by:</span><br />
+                                                    <span class="@(gameplayEvent.Player.Value == 1 ? "player-one" : "player-two")">
+                                                        <strong>Player @gameplayEvent.Player.Value.ToString()</strong>
+                                                    </span>
+                                                }
                                             </div>
                                         }
                                     }
@@ -152,50 +162,238 @@
             </thead>
         </table>
     </div>
-    
 
-    <hr/>
 
+    <hr />
+
+    <h2>Progress throughout the Episode</h2>
     <div style="display: flex;">
-        @foreach (var floor in floors)
+        @for (int i = 0; i < floors.Count; i++)
         {
+            var floor = floors[i];
             var videoLength = (double)Model.Duration.Ticks;
             var floorLength = (double)TimeSpan.FromSeconds(floor.Duration).Ticks - 0.01;
             var percentage = (100 * floorLength) / videoLength;
 
-            <div style="height: 40px; background-color: @floor.Floor.Color; width: @(percentage.ToString(culture))%;">
-                @floor.Floor.Name
+            <div style="height: 40px; background-color: @floor.Floor.Color; width: @(percentage.ToString(culture))%; position: relative;" class="floor-progress r">
+                @{
+                    var floorHasBossfights = floor.GameplayEvents.Any(x => x.EventType == GameplayEventType.Bossfight);
+                    var bossfights = floorHasBossfights ? floor.GameplayEvents.Where(x => x.EventType == GameplayEventType.Bossfight).ToList() : new List<GameplayEvent>();
+                    var playedCharacter = playedCharacters[floor.RunNumber - 1].GameCharacter;
+                }
+                @if (floorHasBossfights)
+                {
+                    foreach (var bossfight in bossfights)
+                    {
+                        <div class="display-inline">
+                            <isaac-image resource="bossfight.Resource1"></isaac-image>
+                        </div>
+                    }
+                }
+                <div class="popup c">
+                    <h4>@floor.Floor.Name</h4>
+                    @{
+                        var minutes = (int)Math.Floor((float)floor.Duration / 60.0f);
+                        var seconds = floor.Duration - minutes * 60;
+                    }
+                    <p>~ @minutes minute@(minutes == 1 ? string.Empty : "s"), @seconds second@(seconds == 1 ? string.Empty : "s")</p>
+                    <hr />
+
+                    @if (!floorHasBossfights)
+                    {
+                        <p>No bossfights on this floor</p>
+                    }
+                    else
+                    {
+                        for (int j = 0; j < bossfights.Count; j++)
+                        {
+                            <p>
+                                @if (bossfights.Count is 1)
+                                {
+                                    <span>Bossfight:</span><br />
+                                }
+                                else
+                                {
+                                    <span>Bossfight @((j + 1).ToString()):</span><br />
+                                }
+
+                                <strong>@bossfights[j].Resource1.Name</strong>
+                                <isaac-image resource="bossfights[j].Resource1"></isaac-image>
+                            </p>
+                        }
+                    }
+
+                    @if (floor.DiedFrom != null)
+                    {
+                        <hr />
+                        <p>
+                            @playedCharacter.Name @(playedCharacter.Name == "Jacob & Esau" ? "were" : "was") Killed by:<br />
+                            <isaac-image resource="floor.DiedFrom"></isaac-image><br />
+                            @floor.DiedFrom.Name
+                        </p>
+                    }
+                    @if (floor.GameplayEvents.Any(x => x.EventType == GameplayEventType.WonTheRun))
+                    {
+                        <hr />
+                        <p>
+                            @playedCharacter.Name won the run!
+                        </p>
+                    }
+                </div>
             </div>
         }
     </div>
 
     <hr />
 
-    <div>
-        @foreach (var c in playedCharacters)
+    <h2>Transformation Progress</h2>
+
+    @{
+        // extract all transformation data from the episode, sorted by run number and transformation
+        var transformationProgressEvents = floors
+            .SelectMany(x => x.GameplayEvents)
+            .Where(x => x.EventType == GameplayEventType.TransformationProgress)
+            .ToList();
+
+        // stores transformation name, and a tuple of (transformation + items + floor) for each run
+        var transformationData = new List<Dictionary<string, (IsaacResource, List<IsaacResource>)>>();
+
+        for (int i = 0; i < transformationProgressEvents.Count; i++)
         {
-        <div>
-            <p>
-                @c.GameCharacter.Name
-            </p>
-            
-                @if (c.DiedFrom is null)
+            // check if new run started
+            if (i == 0 || transformationProgressEvents[i].RunNumber > transformationProgressEvents[i - 1].RunNumber)
+            {
+                transformationData.Add(new Dictionary<string, (IsaacResource, List<IsaacResource>)>());
+            }
+
+            var transformation = transformationProgressEvents[i].Resource2;
+            var item = transformationProgressEvents[i].Resource1;
+
+            if (transformation is null)
+            {
+                continue;
+            }
+
+            if (transformationData.Last().TryGetValue(transformation.Name, out var items))
+            {
+                items.Item2.Add(item);
+            }
+            else
+            {
+                transformationData.Last().Add(transformation.Name, (transformation, new List<IsaacResource>() { item }));
+            }
+        }
+    }
+
+    <div style="margin: 0 auto; display: flex; justify-content: center;">
+        @for (int i = 0; i < transformationData.Count; i++)
+        {
+            <div id="transformation-stats-wrapper">
+                @foreach (var run in transformationData)
                 {
-                    <p>
-                        @c.GameCharacter.Name survived the Run!
-                    </p>
+                    int runNumber = 1;
+
+                    foreach (var runTransformationData in run.Values)
+                    {
+                        <div class="transformation-stats-set">
+                            @foreach (var item in runTransformationData.Item2)
+                            {
+                                <div class="transformation-stats-block"></div>
+                            }
+                            <div class="transformation-stats-block">
+                                <isaac-image resource="runTransformationData.Item1"></isaac-image>
+                                <div class="popup c" style="width: 350px;">
+                                    <p>
+                                        <strong>
+                                            @runTransformationData.Item1.Name
+                                            @(transformationData.Count > 1 ? $"- Run {runNumber}" : string.Empty)
+                                        </strong>
+                                        <br />
+                                        <isaac-image resource="runTransformationData.Item1"></isaac-image>
+                                    </p>
+                                    <hr />
+                                    <p>
+                                        Collected Items (@runTransformationData.Item2.Count / 3):<br />
+                                        @foreach (var item in runTransformationData.Item2)
+                                        {
+                                            <div class="display-inline transformation-stats-item-box">
+                                                <isaac-image resource="item"></isaac-image><br />
+                                                @item.Name
+                                            </div>
+                                        }
+                                    </p>
+                                    <p>
+                                        @if (runTransformationData.Item2.Count < 3)
+                                        {
+                                            <span class="orange"><strong>Transformation Incomplete</strong></span>
+                                        }
+                                        else
+                                        {
+                                            <span class="green"><strong>Transformation Complete!</strong></span>
+                                        }
+                                    </p>
+                                </div>
+                            </div>
+
+                        </div>
+                    }
+
+                    runNumber++;
                 }
-                else
-                {
-                    <p>
-                        Was killed by @c.DiedFrom.Name
-                    </p>
-                }
-        </div>
+            </div>
         }
     </div>
 
+    <hr />
+
+    <h2>Played Characters</h2>
+    @for (int i = 0; i < playedCharacters.Count; i++)
+    {
+        var c = playedCharacters[i];
+        <div class="played-character">
+            <p>
+                @c.GameCharacter.Name<br />
+                <isaac-image resource="c.GameCharacter"></isaac-image>
+            </p>
+
+            <hr />
+
+            <p>
+                @{
+                    var numberOfCollectedItems = c.PlayedFloors.SelectMany(x => x.GameplayEvents).Count(x => x.EventType == GameplayEventType.ItemTouched || x.EventType == GameplayEventType.ItemCollected);
+                    var numberOfVisitedFloors = c.PlayedFloors.Count;
+                    var numberOfBossfights = c.PlayedFloors.SelectMany(x => x.GameplayEvents).Count(x => x.EventType == GameplayEventType.Bossfight);
+                }
+                @c.GameCharacter.Name went through 
+                @numberOfVisitedFloors floor@(numberOfVisitedFloors is 1 ? string.Empty : "s"), 
+                collected @numberOfCollectedItems item@(numberOfCollectedItems is 1 ? string.Empty : "s") 
+                and fought @numberOfBossfights boss@(numberOfBossfights is 1 ? string.Empty : "es").
+            </p>
+
+            @if (c.DiedFrom is null)
+            {
+                <p>
+                    @c.GameCharacter.Name survived the Run!
+                </p>
+            }
+            else
+            {
+                <p>
+                    @c.GameCharacter.Name @(c.GameCharacter.Name == "Jacob & Esau" ? "were" : "was") killed by<br />
+                    <isaac-image resource="c.DiedFrom"></isaac-image><br />
+                    @c.DiedFrom.Name
+                </p>
+            }
+        </div>
+    }
+
+    <hr/>
+
+    <h3>Quotes from this episode</h3>
     <div id="quotes"></div>
+
+    @*placeholder at the bottom*@
+    <div style="width: 100%; height: 300px"></div>
 </div>
 
 @section Scripts {

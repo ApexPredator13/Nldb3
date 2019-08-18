@@ -27,6 +27,9 @@ namespace Website.Controllers
             }
 
             var videos = await _videoRepository.GetVideos(request);
+
+            videos.Description = "Click on a video title to see details about the episode!";
+
             return View(videos);
         }
     }

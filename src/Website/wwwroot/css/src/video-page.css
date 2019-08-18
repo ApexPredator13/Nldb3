@@ -1,3 +1,9 @@
 ﻿#video-page-tables {
     display: flex;
 }
+.player-one {
+    color: green;
+}
+.player-two {
+    color: purple;
+}
