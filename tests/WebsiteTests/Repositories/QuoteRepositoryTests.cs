@@ -41,7 +41,7 @@ namespace WebsiteTests.Repositories
 
             // act
             var quoteId = await repo.SaveQuote(quote, _userId);
-            var savedQuote = await repo.GetQuoteById(quoteId);
+            var savedQuote = await repo.GetQuoteById(quoteId, _userId);
 
             // assert
             quoteId.Should().BeGreaterOrEqualTo(1);
@@ -64,9 +64,9 @@ namespace WebsiteTests.Repositories
             var quoteId = await repo.SaveQuote(quote, _userId);
 
             // act
-            var quoteBefore = await repo.GetQuoteById(quoteId);
+            var quoteBefore = await repo.GetQuoteById(quoteId, _userId);
             var deleteResult = await repo.DeleteQuote(quoteId, _userId);
-            var quoteAfter = await repo.GetQuoteById(quoteId);
+            var quoteAfter = await repo.GetQuoteById(quoteId, _userId);
 
             quoteBefore.Should().NotBeNull();
             deleteResult.Should().Be(1);
@@ -88,7 +88,7 @@ namespace WebsiteTests.Repositories
             var quoteId2 = await repo.SaveQuote(quote2, _userId);
 
             // act
-            var result = await repo.GetQuotesForVideo(video.Id);
+            var result = await repo.GetQuotesForVideo(video.Id, _userId);
 
             // assert
             result.Should().NotBeNullOrEmpty().And.HaveCount(2);
