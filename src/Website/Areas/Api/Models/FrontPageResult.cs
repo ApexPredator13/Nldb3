@@ -91,5 +91,8 @@ namespace Website.Areas.Api.Models
 
         [JsonProperty("average_win_percentage")]
         public float AverageWinPercentage { get; set; }
+
+        [JsonProperty("video_count")]
+        public int VideoCount { get; set; }
     }
 }

@@ -13,7 +13,8 @@ module.exports = {
         charts: './wwwroot/js/src/charts.ts',
         resource_overview: './wwwroot/js/src/resource-overview.ts',
         video_quotes: './wwwroot/js/src/video-quotes.ts',
-        quotes: './wwwroot/js/src/quotes.ts'
+        quotes: './wwwroot/js/src/quotes.ts',
+        frontpage: './wwwroot/js/src/frontpage.ts'
     },
     output: {
         path: path.resolve(__dirname, 'wwwroot', 'js', 'dist'),

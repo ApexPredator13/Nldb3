@@ -11,5 +11,6 @@ namespace Website.Models.Database
         public IsaacResource? DiedFrom { get; set; } = null;
         public List<PlayedFloor> PlayedFloors { get; set; } = new List<PlayedFloor>();
         public int Submission { get; set; } = 0;
+        public string? Seed { get; set; }
     }
 }

@@ -32,7 +32,7 @@ namespace Website.Data
                 return;
             }
 
-            string query = "DROP TABLE IF EXISTS quotes_userdata, video_submissions_userdata, quote_votes, quotes, mods, mod_url, isaac_resources, tags, thumbnails, videos, video_submissions, played_characters, played_floors, gameplay_events, transformative_resources; ";
+            string query = "DROP TABLE IF EXISTS discussion_topics, quotes_userdata, video_submissions_userdata, quote_votes, quotes, mods, mod_url, isaac_resources, tags, thumbnails, videos, video_submissions, played_characters, played_floors, gameplay_events, transformative_resources; ";
 
             Execute(query);
         }
@@ -48,8 +48,22 @@ namespace Website.Data
             CreatePlayedFloorTable();
             CreateGameplayEventsTable();
             CreateQuotesTable();
+            CreateDiscussionTopicsTable();
         }
 
+        private void CreateDiscussionTopicsTable()
+        {
+            string query =
+                "CREATE TABLE discussion_topics (" +
+                    "id SERIAL PRIMARY KEY, " +
+                    "video TEXT NOT NULL REFERENCES videos (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
+                    "topic TEXT NOT NULL, " +
+                    "user_id TEXT NOT NULL, " +
+                    "submitted_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()" +
+                "); ";
+
+            Execute(query);
+        }
         private void CreateQuotesTable()
         {
             string query =
@@ -199,7 +213,8 @@ namespace Website.Data
                     "action INTEGER NOT NULL, " +
                     "video TEXT NOT NULL REFERENCES videos (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
                     "run_number INTEGER NOT NULL DEFAULT 1, " +
-                    "died_from TEXT REFERENCES isaac_resources (id) ON UPDATE CASCADE ON DELETE SET NULL" +
+                    "died_from TEXT REFERENCES isaac_resources (id) ON UPDATE CASCADE ON DELETE SET NULL, " +
+                    "seed TEXT" +
                 "); ";
 
             Execute(query);

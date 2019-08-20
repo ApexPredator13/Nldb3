@@ -75,7 +75,7 @@ export class History {
         return cell;
     }
 
-    private CreateHistoryImage(i: HistoryImage, characterId: number, floorId?: number | undefined, eventId?: number | undefined) {
+    private CreateHistoryImage(i: HistoryImage, characterId: number, floorId?: number, eventId?: number) {
         const element = document.createElement('div');
         element.style.background = `url('/img/isaac.png') -${i.x <= 0 ? 0 : i.x}px -${i.y <= 0 ? 0 : i.y}px transparent`;
         element.style.width = `${i.w <= 5 ? 31 : i.w}px`;
@@ -93,13 +93,18 @@ export class History {
         if (eventId !== undefined) {
             element.setAttribute('e', eventId.toString(10));
         }
+        if (i.type !== undefined) {
+            element.setAttribute('type', i.type.toString(10));
+        }
 
-        const removedItem = {
+        const removedItem: RemovedHistoryItem = {
             CharacterIndex: characterId,
             FloorIndex: floorId,
-            EventIndex: eventId
+            EventIndex: eventId,
+            Type: i.type
         };
 
+        console.log('removed item: ', removedItem);
         element.addEventListener('click', () => this.itemWasRemoved.next(removedItem));
         return element;
     }

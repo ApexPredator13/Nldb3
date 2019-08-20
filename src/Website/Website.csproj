@@ -18,6 +18,9 @@
     <Content Remove="wwwroot\js\src\dom-operations.ts" />
     <Content Remove="wwwroot\js\src\drag-and-drop.ts" />
     <Content Remove="wwwroot\js\src\enum-converters.ts" />
+    <Content Remove="wwwroot\js\src\frontpage.ts" />
+    <Content Remove="wwwroot\js\src\interfaces\frontpage-top-user.ts" />
+    <Content Remove="wwwroot\js\src\interfaces\frontpage.ts" />
     <Content Remove="wwwroot\js\src\interfaces\get-resource-request.ts" />
     <Content Remove="wwwroot\js\src\interfaces\History.ts" />
     <Content Remove="wwwroot\js\src\interfaces\isaac-resource.ts" />

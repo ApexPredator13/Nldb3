@@ -56,6 +56,7 @@ namespace Website
             services.AddScoped<IQuoteRepository, QuoteRepository>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IBarGraphCreator, BarGraphCreator>();
+            services.AddScoped<IDiscussionTopicsRepository, DiscussionTopicsRepository>();
 
             // hangfire
             services.AddHangfire(config => config

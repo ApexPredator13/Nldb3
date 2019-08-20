@@ -425,7 +425,7 @@ namespace Website.Migrations
             {
                 await c.OpenAsync();
 
-                using var q = new NpgsqlCommand("SELECT name, urlname, frommod FROM curses WHERE urlname != 'MissingCurse'; ", c);
+                using var q = new NpgsqlCommand("SELECT name, urlname, frommod FROM curses WHERE urlname != 'MissingCurse' AND urlname != 'NoCurse'; ", c);
                 using var r = await q.ExecuteReaderAsync();
                 if (r.HasRows)
                 {
@@ -1002,6 +1002,21 @@ namespace Website.Migrations
                 {
                     c.Open();
 
+                    // get seed
+                    string? seed = null;
+                    string getSeedQuery = $"SELECT seed FROM videos WHERE youtubeid = '{videoId}';";
+                    using (var q = new NpgsqlCommand(getSeedQuery, c))
+                    {
+                        using var r = await q.ExecuteReaderAsync();
+
+                        if (r.HasRows)
+                        {
+                            r.Read();
+
+                            seed = r.IsDBNull(0) ? null : r.GetString(0);
+                        }
+                    }
+
                     // get submitters
                     string getSubmittersQuery = $"SELECT sub FROM watchedvideos WHERE video = '{videoId}' ORDER BY id DESC; ";
                     using (var q = new NpgsqlCommand(getSubmittersQuery, c))
@@ -1049,7 +1064,7 @@ namespace Website.Migrations
                             if (r.HasRows)
                             {
                                 r.Read();
-                                submission.PlayedCharacters.Add(new SubmittedPlayedCharacter { CharacterId = (r.GetString(0)) });
+                                submission.PlayedCharacters.Add(new SubmittedPlayedCharacter { CharacterId = (r.GetString(0)), Seed = seed });
                             }
                         }
 
@@ -1224,6 +1239,8 @@ namespace Website.Migrations
                     }
                 }
             }
+
+            _logger.LogInformation("All runs have been migrated successfully!");
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿#history {
     float: left;
+    margin-top: 0.5rem;
 }
 #history tr td:first-of-type, #history tr td:nth-of-type(2) {
     white-space: nowrap;

@@ -1,8 +1,11 @@
-﻿interface HistoryImage {
+﻿import { ResourceType } from "../enums/resource-type";
+
+interface HistoryImage {
     x: number,
     y: number,
     w: number,
-    h: number
+    h: number,
+    type: ResourceType
 }
 
 interface History {

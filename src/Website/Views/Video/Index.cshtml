@@ -27,9 +27,16 @@
             <tbody>
                 @for (int c = 0; c < playedCharacters.Count; c++)
                 {
-                    <tr>
+                <tr>
+                    @if (!string.IsNullOrEmpty(playedCharacters[c].Seed))
+                    {
+                    <td colspan="4">Run @playedCharacters[c].RunNumber (Seed: @playedCharacters[c].Seed)</td>
+                    }
+                    else
+                    {
                         <td colspan="4">Run @playedCharacters[c].RunNumber</td>
-                    </tr>
+                    }
+                </tr>
                     @for (int f = 0; f < playedCharacters[c].PlayedFloors.Count; f++)
                     {
                         <tr>

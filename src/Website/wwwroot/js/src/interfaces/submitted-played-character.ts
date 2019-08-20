@@ -3,5 +3,6 @@
 export interface SubmittedPlayedCharacter {
     CharacterId: string,
     GameMode: number,
-    PlayedFloors: Array<SubmittedPlayedFloor>
+    PlayedFloors: Array<SubmittedPlayedFloor>,
+    Seed: string | null |undefined
 }

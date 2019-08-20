@@ -14,5 +14,7 @@ namespace Website.Models.SubmitEpisode
 
         [Required]
         public List<SubmittedPlayedFloor> PlayedFloors { get; set; } = new List<SubmittedPlayedFloor>();
+
+        public string? Seed { get; set; }
     }
 }

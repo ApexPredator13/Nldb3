@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Npgsql;
+using NpgsqlTypes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,45 +15,74 @@ namespace Website.Areas.Api.Controllers
     public class FrontpageController : Controller
     {
         private readonly IDbConnector _connector;
+        private readonly IConfiguration _config;
 
-        public FrontpageController(IDbConnector connector)
+        public FrontpageController(IDbConnector connector, IConfiguration config)
         {
+            _config = config;
             _connector = connector;
+        }
+
+        [HttpGet("top-users")]
+        public async Task<List<FrontPageTopUser>> GetTopUsers()
+        {
+            var foundUsers = new List<FrontPageTopUser>();
+
+            var commandText =
+                "SELECT COUNT(public.video_submissions_userdata.user_id) AS submission_count, identity.\"AspNetUsers\".\"UserName\" AS username " +
+                "FROM public.video_submissions_userdata " +
+                "LEFT JOIN identity.\"AspNetUsers\" " +
+                "ON public.video_submissions_userdata.user_id = identity.\"AspNetUsers\".\"Id\" " +
+                "WHERE identity.\"AspNetUsers\".\"UserName\" NOT IN (@AdminUsername)" +
+                "GROUP BY username " +
+                "ORDER BY submission_count DESC " +
+                "LIMIT 25;";
+
+            using var connection = await _connector.Connect();
+            using var command = new NpgsqlCommand(commandText, connection);
+            command.Parameters.AddWithValue("@AdminUsername", NpgsqlDbType.Text, _config["AdminUsername"]);
+            using var reader = await command.ExecuteReaderAsync();
+
+            if (reader.HasRows)
+            {
+                while (reader.Read())
+                {
+                    foundUsers.Add(new FrontPageTopUser(reader.GetString(1), reader.GetInt32(0)));
+                }
+            }
+
+            return foundUsers;
         }
 
         [HttpGet]
         public async Task<ActionResult<FrontPageResult>> Get()
         {
             var commandText =
-                "WITH floor_count AS (" +
-                    "SELECT COUNT(*) AS played_floors FROM played_floors" +
-                "), " +
-                "character_count AS (" +
-                    "SELECT COUNT(*) AS played_characters FROM played_characters" +
-                "), " +
-                "event_data AS (" +
-                    "SELECT " +
-                        "SUM(CASE WHEN event_type = 2 OR event_type = 18 THEN 1 ELSE 0 END) AS collected_items, " +
-                        "SUM(CASE WHEN event_type = 4 THEN 1 ELSE 0 END) AS bossfights, " +
-                        "SUM(CASE WHEN event_type = 17 THEN 1 ELSE 0 END) AS characters_killed, " +
-                        "SUM(CASE WHEN event_type = 2 AND resource_one = 'MomsKnife' THEN 1 ELSE 0 END) AS moms_knife_runs, " +
-                        "SUM(CASE WHEN event_type = 2 AND resource_one = 'Brimstone' THEN 1 ELSE 0 END) AS brimstone_runs, " +
-                        "SUM(CASE WHEN event_type = 11 AND resource_two = 'Guppy' THEN 1 ELSE 0 END) AS guppy_runs, " +
-                        "SUM(CASE WHEN event_type = 2 AND resource_one = 'SacredHeart' THEN 1 ELSE 0 END) AS sacred_heart_runs, " +
-                        "SUM(CASE WHEN event_type = 2 AND resource_one = 'Godhead' THEN 1 ELSE 0 END) AS godhead_runs, " +
-                        "SUM(CASE WHEN event_type = 4 AND resource_one = 'Mom' THEN 1 ELSE 0 END) AS mom_kills, " +
-                        "SUM(CASE WHEN event_type = 4 AND resource_one = 'BlueBabyBoss' THEN 1 ELSE 0 END) AS blue_baby_kills, " +
-                        "SUM(CASE WHEN event_type = 4 AND resource_one = 'TheLamb' THEN 1 ELSE 0 END) AS lamb_kills, " +
-                        "SUM(CASE WHEN event_type = 4 AND resource_one = 'Delirium' THEN 1 ELSE 0 END) AS delirium_kills, " +
-                        "SUM(CASE WHEN event_type = 4 AND resource_one = 'MegaSatan' THEN 1 ELSE 0 END) AS mega_satan_kills, " +
-                        "SUM(CASE WHEN(event_type = 2 OR event_type = 18) AND resource_two = 'Shop' THEN 1 ELSE 0 END) AS average_shop_items, " +
-                        "SUM(CASE WHEN(event_type = 2 OR event_type = 18) AND resource_two = 'ChestItem' THEN 1 ELSE 0 END) AS chest_items, " +
-                        "SUM(CASE WHEN event_type = 1 THEN 1 ELSE 0 END) AS transformations " +
-                    "FROM gameplay_events" +
-                "), " +
-                "playtime AS (" +
-                    "SELECT SUM(duration) AS total_duration FROM videos" +
-                ") " +
+                "WITH " +
+                    "floor_count AS (SELECT COUNT(*) AS played_floors FROM played_floors), " +
+                    "video_count AS (SELECT COUNT(*) AS video_count FROM videos), " +
+                    "character_count AS (SELECT COUNT(*) AS played_characters FROM played_characters), " +
+                    "playtime AS (SELECT SUM(duration) AS total_duration FROM videos), " +
+                    "event_data AS (" +
+                        "SELECT " +
+                            "SUM(CASE WHEN event_type = 2 OR event_type = 18 THEN 1 ELSE 0 END) AS collected_items, " +
+                            "SUM(CASE WHEN event_type = 4 THEN 1 ELSE 0 END) AS bossfights, " +
+                            "SUM(CASE WHEN event_type = 17 THEN 1 ELSE 0 END) AS characters_killed, " +
+                            "SUM(CASE WHEN event_type = 2 AND resource_one = 'MomsKnife' THEN 1 ELSE 0 END) AS moms_knife_runs, " +
+                            "SUM(CASE WHEN event_type = 2 AND resource_one = 'Brimstone' THEN 1 ELSE 0 END) AS brimstone_runs, " +
+                            "SUM(CASE WHEN event_type = 11 AND resource_two = 'Guppy' THEN 1 ELSE 0 END) AS guppy_runs, " +
+                            "SUM(CASE WHEN event_type = 2 AND resource_one = 'SacredHeart' THEN 1 ELSE 0 END) AS sacred_heart_runs, " +
+                            "SUM(CASE WHEN event_type = 2 AND resource_one = 'Godhead' THEN 1 ELSE 0 END) AS godhead_runs, " +
+                            "SUM(CASE WHEN event_type = 4 AND resource_one = 'Mom' THEN 1 ELSE 0 END) AS mom_kills, " +
+                            "SUM(CASE WHEN event_type = 4 AND resource_one = 'BlueBabyBoss' THEN 1 ELSE 0 END) AS blue_baby_kills, " +
+                            "SUM(CASE WHEN event_type = 4 AND resource_one = 'TheLamb' THEN 1 ELSE 0 END) AS lamb_kills, " +
+                            "SUM(CASE WHEN event_type = 4 AND resource_one = 'Delirium' THEN 1 ELSE 0 END) AS delirium_kills, " +
+                            "SUM(CASE WHEN event_type = 4 AND resource_one = 'MegaSatan' THEN 1 ELSE 0 END) AS mega_satan_kills, " +
+                            "SUM(CASE WHEN(event_type = 2 OR event_type = 18) AND resource_two = 'Shop' THEN 1 ELSE 0 END) AS average_shop_items, " +
+                            "SUM(CASE WHEN(event_type = 2 OR event_type = 18) AND resource_two = 'ChestItem' THEN 1 ELSE 0 END) AS chest_items, " +
+                            "SUM(CASE WHEN event_type = 1 THEN 1 ELSE 0 END) AS transformations " +
+                        "FROM gameplay_events" +
+                    ") " +
                 "SELECT " +
                     "event_data.collected_items, " +
                     "event_data.bossfights, " +
@@ -76,9 +107,9 @@ namespace Website.Areas.Api.Controllers
                     "event_data.chest_items::REAL / character_count.played_characters::REAL AS average_chest_items_per_run, " +
                     "event_data.bossfights::REAL / character_count.played_characters::REAL AS average_bossfights_per_run, " +
                     "event_data.transformations::REAL / character_count.played_characters::REAL AS average_transformations_per_run, " +
-                    "100::REAL - (100::REAL * event_data.characters_killed::REAL) / character_count.played_characters::REAL AS chance_to_win " +
-                "FROM " +
-                    "floor_count, event_data, character_count, playtime";
+                    "100::REAL - (100::REAL * event_data.characters_killed::REAL) / character_count.played_characters::REAL AS chance_to_win, " +
+                    "video_count.video_count AS video_count " +
+                "FROM floor_count, event_data, character_count, playtime, video_count;";
 
             using var connection = await _connector.Connect();
             using var command = new NpgsqlCommand(commandText, connection);
@@ -118,12 +149,13 @@ namespace Website.Areas.Api.Controllers
                     AverageChestItems = reader.GetFloat(20),
                     AverageBossfights = reader.GetFloat(21),
                     AverageTransformations = reader.GetFloat(22),
-                    AverageWinPercentage = reader.GetFloat(23)
+                    AverageWinPercentage = reader.GetFloat(23),
+                    VideoCount = reader.GetInt32(24)
                 };
             }
             else
             {
-                return BadRequest("front page data not available");
+                return NotFound();
             }
         }
     }

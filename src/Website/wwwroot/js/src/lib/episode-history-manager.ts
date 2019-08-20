@@ -12,7 +12,8 @@ export class EpisodeHistoryManager {
     private currentGameplayEvent: SubmittedGameplayEvent;
     private currentPlayer = 1;
     private episode: SubmittedCompleteEpisode;
-    private history = new History();
+
+    public history = new History();
 
     constructor() {
         this.currentGameplayEvent = {
@@ -57,11 +58,34 @@ export class EpisodeHistoryManager {
         return false;
     }
 
+    CharacterHasSeed(): boolean {
+        if (!this.episode.PlayedCharacters || this.episode.PlayedCharacters.length === 0) {
+            return false;
+        }
+
+        const character = this.episode.PlayedCharacters[this.episode.PlayedCharacters.length - 1];
+
+        if (character.Seed || character.Seed === null) {
+            return true;
+        }
+
+        return false;
+    }
+
+    AddSeedToCharacter(seed: string | null) {
+        if (seed === null) {
+            this.episode.PlayedCharacters[this.episode.PlayedCharacters.length - 1].Seed = seed;
+        } else if (seed.length === 8 && this.episode.PlayedCharacters.length >= 1) {
+            this.episode.PlayedCharacters[this.episode.PlayedCharacters.length - 1].Seed = seed;
+        }
+    }
+
     AddCharacter(id: string) {
         this.episode.PlayedCharacters.push({
             CharacterId: id,
             GameMode: 7,
-            PlayedFloors: new Array<SubmittedPlayedFloor>()
+            PlayedFloors: new Array<SubmittedPlayedFloor>(),
+            Seed: undefined
         });
         this.currentCharacter = this.episode.PlayedCharacters.length - 1;
         this.history.ReloadHistory(this.episode);

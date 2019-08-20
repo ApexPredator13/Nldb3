@@ -6,8 +6,9 @@ import { EpisodeHistoryManager } from './lib/episode-history-manager';
 import { YoutubePlayer } from './components/youtube-player';
 import { IsaacResource } from './interfaces/isaac-resource';
 import { Subscription, merge } from 'rxjs';
+import { ResourceType } from './enums/resource-type';
 
-
+let episodeWasSubmitted = false;
 
 class SubmitEpisodePageHandler {
 
@@ -37,7 +38,29 @@ class SubmitEpisodePageHandler {
     private submitQuoteHeader: HTMLParagraphElement;
     private submitQuoteButton: HTMLButtonElement;
 
+    // 'submit topic' html elements
+    private submitTopicTextarea: HTMLTextAreaElement;
+    private submitTopicButton: HTMLButtonElement;
+
     constructor(historyManager: EpisodeHistoryManager) {
+
+        // make sure the correct UI gets rendered if things are deleted.
+        historyManager.history.itemWasRemoved.subscribe(removedItem => {
+            if (removedItem.Type !== undefined) {
+                switch (removedItem.Type) {
+                    case ResourceType.Curse:
+                        this.renderWasTheFloorCursed();
+                        break;
+                    case ResourceType.Floor:
+                        this.renderWhatFloorAreWeOn();
+                        break;
+                    case ResourceType.Character:
+                        this.renderWhatCharacterGotPlayed();
+                        break;
+                }
+            }
+        });
+
         // set default values
         this.buttonTimeoutNumber = 15;
         this.buttonTimeoutInterval = undefined;
@@ -72,18 +95,18 @@ class SubmitEpisodePageHandler {
             { id: '7', name: 'Something else', x: 0, y: 0, w: 30, h: 30 } as IsaacResource
         ]);
         this.loadedIsaacResources.set('no-starting-items', [
-            { id: 'none', name: 'No, continue!', x: 0, y: 0, w: 30, h: 30 } as IsaacResource,
+            { id: 'none', name: 'No, continue!', x: 700, y: 0, w: 35, h: 35 } as IsaacResource,
         ]);
         this.loadedIsaacResources.set('no-starting-trinkets', [
-            { id: 'none', name: 'No, continue!', x: 0, y: 0, w: 30, h: 30 } as IsaacResource,
+            { id: 'none', name: 'No, continue!', x: 665, y: 0, w: 35, h: 35 } as IsaacResource,
         ]);
         this.loadedIsaacResources.set('more-starting-items', [
             { id: 'yes', name: 'Yes, there were more!', x: 0, y: 0, w: 30, h: 30 } as IsaacResource,
-            { id: 'no', name: 'No, that was it!', x: 0, y: 0, w: 30, h: 30 } as IsaacResource
+            { id: 'no', name: 'No, that was it!', x: 665, y: 0, w: 35, h: 35 } as IsaacResource
         ]);
         this.loadedIsaacResources.set('more-starting-trinkets', [
             { id: 'yes', name: 'Yes, there was another trinket!', x: 0, y: 0, w: 30, h: 30 } as IsaacResource,
-            { id: 'no', name: 'No, that was it!', x: 0, y: 0, w: 30, h: 30 } as IsaacResource
+            { id: 'no', name: 'No, that was it!', x: 665, y: 0, w: 35, h: 35 } as IsaacResource
         ]);
         this.loadedIsaacResources.set('common-bosses', []);
         this.loadedIsaacResources.set('common-floors', []);
@@ -112,6 +135,9 @@ class SubmitEpisodePageHandler {
             { id: 'yes', name: 'Yes, more items were absorbed!', x: 0, y: 0, w: 30, h: 30 } as IsaacResource,
             { id: 'no', name: 'No, that was it!', x: 0, y: 0, w: 30, h: 30 } as IsaacResource
         ]);
+        this.loadedIsaacResources.set('no-curse', [
+            { id: 'NoCurse', name: 'No Curse!', x: 735, y: 0, w: 35, h: 35 } as IsaacResource
+        ]);
 
         // get all elements that are relevant to the quotes section, then initialize all events
         this.submitQuotesTextarea = getSpecificElementById('quotes-textarea', HTMLTextAreaElement);
@@ -123,13 +149,18 @@ class SubmitEpisodePageHandler {
         this.submitQuoteHeader = getSpecificElementById('submit-quote-header', HTMLParagraphElement);
         this.submitQuoteButton = getSpecificElementById('submit-quote-button', HTMLButtonElement);
 
+        this.submitTopicButton = getSpecificElementById('submit-topic-button', HTMLButtonElement);
+        this.submitTopicTextarea = getSpecificElementById('submit-topic-textarea', HTMLTextAreaElement);
+
         this.initializeQuotesSectionLogic();
+        this.initializeTopicSectionLogic();
 
         // ...then start displaying UI
         this.renderWhatCharacterGotPlayed();
     }
 
     private renderMainMenu(): void {
+        this.setHeader('What happened?');
         let events = this.loadedIsaacResources.get('events');
         let usedConsumables = this.loadedIsaacResources.get('used');
 
@@ -243,8 +274,9 @@ class SubmitEpisodePageHandler {
     private renderWasTheFloorCursed(): void {
         this.setHeader('Was the floor cursed?');
         const data = this.getIsaacResources('curses', '/api/resources/?ResourceType=3');
+        const noCurseData = this.getIsaacResources('no-curse', '');
 
-        const curseBoxes = new Boxes(this.uiContainer, data, true, undefined, undefined, ['NoCurse']);
+        const curseBoxes = new Boxes(this.uiContainer, noCurseData, true, '/img/gameplay_events.png', undefined, ['NoCurse']);
         const curseSearchbox = new SearchBox(this.uiContainer, data, false);
 
         const sub = merge(
@@ -255,8 +287,8 @@ class SubmitEpisodePageHandler {
             this.removeEventListeners(curseBoxes, curseSearchbox);
             this.historyManager.AddGameplayEvent(selectedCurse, GameplayEventType.Curse, 1);
 
-            if (this.historyManager.CharacterIsOnFirstFloor()) {
-                this.renderDidCharacterStartWithItems()
+            if (!this.historyManager.CharacterHasSeed()) {
+                this.renderSeed();
             } else {
                 this.renderMainMenu();
             }
@@ -268,7 +300,7 @@ class SubmitEpisodePageHandler {
         const noItemsData = this.getIsaacResources('no-starting-items', '');
         const data = this.getIsaacResources('items', '/api/resources/?ResourceType=6');
 
-        const noItemsSkip = new Boxes(this.uiContainer, noItemsData, true);
+        const noItemsSkip = new Boxes(this.uiContainer, noItemsData, true, '/img/gameplay_events.png');
         const itemSearchBox = new SearchBox(this.uiContainer, data, false);
 
         const sub = merge(
@@ -292,7 +324,7 @@ class SubmitEpisodePageHandler {
         this.setHeader('Did the character have another starting item?');
         const data = this.getIsaacResources('more-starting-items', '');
 
-        const moreStartingItemBoxes = new Boxes(this.uiContainer, data, true);
+        const moreStartingItemBoxes = new Boxes(this.uiContainer, data, true, '/img/gameplay_events.png');
 
         const sub = moreStartingItemBoxes.elementWasSelected.subscribe(selection => {
             this.unsubscribe(sub);
@@ -310,7 +342,7 @@ class SubmitEpisodePageHandler {
         const dataNoTrinket = this.getIsaacResources('no-starting-trinkets', '');
         const data = this.getIsaacResources('trinkets', '/api/resources/?ResourceType=13');
 
-        const noTrinketsSkip = new Boxes(this.uiContainer, dataNoTrinket, true);
+        const noTrinketsSkip = new Boxes(this.uiContainer, dataNoTrinket, true, '/img/gameplay_events.png');
         const trinketSearchBox = new SearchBox(this.uiContainer, data, false);
 
         const sub = merge(
@@ -566,6 +598,75 @@ class SubmitEpisodePageHandler {
         });
     }
 
+    private renderSeed(): void {
+        this.setHeader('Did Northernlion show the SEED?');
+
+        const submitSeedButton = document.createElement('button');
+        submitSeedButton.innerText = 'Yes, use this seed';
+        submitSeedButton.disabled = true;
+
+        const skipSeedButton = document.createElement('button');
+        skipSeedButton.innerText = 'No, Skip!';
+
+        const input1 = document.createElement('input');
+        const input2 = document.createElement('input');
+        input1.type = 'text';
+        input2.type = 'text';
+        input1.maxLength = 4;
+        input2.maxLength = 4;
+        input1.size = 4;
+        input2.size = 4;
+
+        const inputEventListener = () => {
+            const input1Value = input1.value;
+            const input2Value = input2.value;
+
+            if ((input1Value.length === 4 && input2Value.length === 4) && (input1Value.indexOf(' ') === -1 && input2Value.indexOf(' ') === -1)) {
+                submitSeedButton.disabled = false;
+            } else {
+                submitSeedButton.disabled = true;
+            }
+        };
+
+        input1.addEventListener('input', inputEventListener);
+        input2.addEventListener('input', inputEventListener);
+
+        submitSeedButton.addEventListener('click', () => {
+            const seed = input1.value + input2.value;
+            if (seed.length != 8) {
+                return;
+            }
+
+            this.historyManager.AddSeedToCharacter(seed);
+            if (this.historyManager.CharacterIsOnFirstFloor()) {
+                this.renderDidCharacterStartWithItems()
+            } else {
+                this.renderMainMenu();
+            }
+        });
+
+        skipSeedButton.addEventListener('click', () => {
+            this.historyManager.AddSeedToCharacter(null);
+            if (this.historyManager.CharacterIsOnFirstFloor()) {
+                this.renderDidCharacterStartWithItems()
+            } else {
+                this.renderMainMenu();
+            }
+        });
+
+        const inputDiv = document.createElement('div');
+        inputDiv.appendChild(input1);
+        inputDiv.appendChild(input2);
+
+        const buttonDiv = document.createElement('div');
+        buttonDiv.appendChild(submitSeedButton);
+        buttonDiv.appendChild(skipSeedButton);
+
+        this.uiContainer.innerHTML = '';
+        this.uiContainer.appendChild(inputDiv);
+        this.uiContainer.appendChild(buttonDiv);
+    }
+
     private renderSubmitEpisode(): void {
         this.setHeader('Thank you very much for contributing! Please Click this button to submit the episode:');
         const choice = this.getIsaacResources('submit-episode', '');
@@ -586,6 +687,7 @@ class SubmitEpisodePageHandler {
         this.historyManager.Submit().then(response => {
             if (response.ok) {
                 this.renderEpisodeSubmitted();
+                episodeWasSubmitted = true;
             } else {
                 response.text().then(response => {
                     this.submitEpisodeErrormessage = response;
@@ -849,6 +951,35 @@ class SubmitEpisodePageHandler {
         });
     }
 
+    private initializeTopicSectionLogic(): void {
+        this.submitTopicButton.addEventListener('click', () => {
+            if (this.submitTopicTextarea.value.length > 3) {
+                const request: RequestInit = {
+                    method: 'POST',
+                    headers: { 'content-type': 'application/json' },
+                    body: JSON.stringify({
+                        video_id: window.location.href.substring(window.location.href.length - 11),
+                        topic: this.submitTopicTextarea.value
+                    })
+                };
+
+                this.submitTopicButton.disabled = true;
+                fetch('/api/topics', request).then(response => {
+                    this.submitTopicTextarea.value = '';
+                    if (response.ok) {
+                        this.submitTopicButton.innerText = 'Saved! Thanks!';
+                        setTimeout(() => {
+                            this.submitTopicButton.disabled = false;
+                            this.submitTopicButton.innerText = 'Submit';
+                        }, 5000);
+                    } else {
+                        this.submitTopicButton.disabled = false;
+                    }
+                });
+            }
+        });
+    }
+
     private replaceQuoteHeaderWithError(message: string) {
         this.submitQuoteHeader.innerHTML = '';
         this.submitQuoteHeader.innerText = message;
@@ -908,6 +1039,17 @@ class SubmitEpisodePageHandler {
 
 
 (() => {
+    // warn before window closes
+    window.addEventListener('beforeunload', e => {
+        if (!episodeWasSubmitted) {
+            const ok = confirm('WARNING! Leaving this page before submitting will DELETE your progress. Are you sure you want to leave?');
+            if (!ok) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        }
+    });
+
     // initialize youtube player
     const youtubePlayer = new YoutubePlayer();
     console.log('youtube player created: ', youtubePlayer);
@@ -915,8 +1057,8 @@ class SubmitEpisodePageHandler {
     // create object that handles all events that got selected by the user and saves them in a data structure
     const episodeHistoryManager = new EpisodeHistoryManager();
 
-    // create a page handler that loads and stores all server-prerendered UI elements, handles navigation of the entire page
-    // and sends information to the history manager as events get selected by the user
+    // create a page handler that handles navigation of the entire page
+    // and sends information to the history manager as things get selected by the user
     new SubmitEpisodePageHandler(episodeHistoryManager);
 })();
 
