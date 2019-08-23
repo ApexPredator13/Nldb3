@@ -10,7 +10,7 @@ export class EpisodeHistoryManager {
     private currentCharacter = 0;
     private currentFloor = 0;
     private currentGameplayEvent: SubmittedGameplayEvent;
-    private currentPlayer = 1;
+    private currentPlayer: 1 | 2 = 1;
     private episode: SubmittedCompleteEpisode;
 
     public history = new History();
@@ -123,6 +123,10 @@ export class EpisodeHistoryManager {
 
         this.currentFloor = cc.PlayedFloors.length - 1;
         this.history.ReloadHistory(this.episode);
+    }
+
+    ChangeCurrentPlayer(currentPlayer: 1 | 2) {
+        this.currentPlayer = currentPlayer;
     }
 
     AddGameplayEvent(id: string, gameplayEvent: GameplayEventType, resourceNumber: 1 | 2 | 3) {

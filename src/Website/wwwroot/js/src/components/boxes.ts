@@ -60,6 +60,11 @@ export class Boxes {
             box.className = 'box';
             box.setAttribute('data-id', resources[i].id);
 
+            // adjust width for wide icons
+            if (resources[i].w && resources[i].w > 85) {
+                box.style.width = `${resources[i].w}px`;
+            }
+
             const name = document.createElement('div');
             name.innerText = resources[i].name;
 

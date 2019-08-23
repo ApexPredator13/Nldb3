@@ -74,6 +74,9 @@ button {
 button:hover {
     border-color: orange;
 }
+button:focus {
+    outline: none;
+}
 
 .btn-green {
     background-color: yellowgreen;

@@ -15,7 +15,7 @@
             <iframe id="ytplayer" src="@youtubeIframeUrl" frameborder="0"></iframe>
         </div>
         <div style="display: flex;">
-            <div style="width: 50%; font-size: 0.85rem" id="quotes" class="l">
+            <div style="width: 50%; font-size: 0.85rem; padding: 0 0.5rem;" id="quotes" class="l">
                 <p id="submit-quote-header">Did NL say something interesting/funny? Submit a quote here: <span id="quotes-textarea-counter">(0/300 characters)</span></p>
                 <div style="display: flex;">
                     <div>
@@ -43,7 +43,7 @@
                 </div>
                 <button id="submit-quote-button">Submit Quote</button>
             </div>
-            <div style="width: 20%; text-align: left;">
+            <div style="width: 20%; text-align: left; padding: 0 0.5rem;" id="submit-topic-container">
                 <p style="font-size: 0.85rem">
                     Did NL talk about a topic for a while?<br/>
                     Submit interesting topics here!
@@ -55,7 +55,7 @@
                     <button id="submit-topic-button">Submit</button>
                 </div>
             </div>
-            <div style="width: 30%; text-align: left;">
+            <div style="width: 30%; text-align: left; padding: 0 0.5rem;">
                 <p style="margin: 0; padding: 0; font-size: 0.8rem;">Event History - click on items to remove them</p>
                 <table id="history"><tr><td>Nothing added yet!</td></tr></table>
             </div>
@@ -66,6 +66,8 @@
         <div id="ui-menus"></div>
     </div>
 </div>
+
+<div id="current-player-container">Player: <button id="current-player-button">1</button></div>
 
 @section Scripts {
     <script src="~/js/dist/submit_episode.min.js"></script>

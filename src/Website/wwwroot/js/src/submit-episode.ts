@@ -11,15 +11,12 @@ import { ResourceType } from './enums/resource-type';
 let episodeWasSubmitted = false;
 
 class SubmitEpisodePageHandler {
-
-    // ==========
     private loadedIsaacResources: Map<string, Array<IsaacResource>> = new Map<string, Array<IsaacResource>>();
     private uiContainer: HTMLDivElement;
     private uiHeader: HTMLHeadingElement;
 
     private selectedEnemy: string | undefined;
     private submitEpisodeErrormessage: string | undefined;
-    // ==========
 
     // ui element container, main wrapper
     private historyManager: EpisodeHistoryManager;
@@ -41,6 +38,10 @@ class SubmitEpisodePageHandler {
     // 'submit topic' html elements
     private submitTopicTextarea: HTMLTextAreaElement;
     private submitTopicButton: HTMLButtonElement;
+
+    // 'change player' elements
+    private changePlayerContainer: HTMLDivElement;
+    private changePlayerButton: HTMLButtonElement;
 
     constructor(historyManager: EpisodeHistoryManager) {
 
@@ -152,8 +153,12 @@ class SubmitEpisodePageHandler {
         this.submitTopicButton = getSpecificElementById('submit-topic-button', HTMLButtonElement);
         this.submitTopicTextarea = getSpecificElementById('submit-topic-textarea', HTMLTextAreaElement);
 
+        this.changePlayerButton = getSpecificElementById('current-player-button', HTMLButtonElement);
+        this.changePlayerContainer = getSpecificElementById('current-player-container', HTMLDivElement);
+
         this.initializeQuotesSectionLogic();
         this.initializeTopicSectionLogic();
+        this.initializeChangePlayerLogic();
 
         // ...then start displaying UI
         this.renderWhatCharacterGotPlayed();
@@ -285,7 +290,10 @@ class SubmitEpisodePageHandler {
         ).subscribe(selectedCurse => {
             this.unsubscribe(sub);
             this.removeEventListeners(curseBoxes, curseSearchbox);
-            this.historyManager.AddGameplayEvent(selectedCurse, GameplayEventType.Curse, 1);
+
+            if (selectedCurse !== 'NoCurse') {
+                this.historyManager.AddGameplayEvent(selectedCurse, GameplayEventType.Curse, 1);
+            }
 
             if (!this.historyManager.CharacterHasSeed()) {
                 this.renderSeed();
@@ -841,6 +849,24 @@ class SubmitEpisodePageHandler {
             this.removeEventListeners(boxes);
             this.historyManager.AddGameplayEvent(selectedConsumable, GameplayEventType.OtherConsumable, 1);
             this.renderMainMenu();
+        });
+    }
+
+
+    private initializeChangePlayerLogic() {
+        this.changePlayerButton.addEventListener('click', () => {
+            const buttonText = this.changePlayerButton.innerText;
+            if (buttonText === '1') {
+                this.changePlayerButton.innerText = '2';
+                addClassIfNotExists(this.changePlayerButton, 'btn-red');
+                addClassIfNotExists(this.changePlayerContainer, 'change-player-container-modifier');
+                this.historyManager.ChangeCurrentPlayer(2);
+            } else {
+                this.changePlayerButton.innerText = '1';
+                removeClassIfExists(this.changePlayerButton, 'btn-red');
+                removeClassIfExists(this.changePlayerContainer, 'change-player-container-modifier');
+                this.historyManager.ChangeCurrentPlayer(1);
+            }
         });
     }
 

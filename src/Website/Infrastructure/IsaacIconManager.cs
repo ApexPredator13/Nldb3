@@ -52,26 +52,24 @@ namespace Website.Infrastructure
                 throw new Exception("invalid file format - must be .png!");
             }
 
-            using (var ms = new MemoryStream())
+            using var ms = new MemoryStream();
+            await file.CopyToAsync(ms);
+            var imageDecoder = new PngDecoder();
+
+            if (ms.Position == ms.Length)
             {
-                await file.CopyToAsync(ms);
-                var imageDecoder = new PngDecoder();
+                ms.Position = ms.Seek(0, SeekOrigin.Begin);
+            }
 
-                if (ms.Position == ms.Length)
-                {
-                    ms.Position = ms.Seek(0, SeekOrigin.Begin);
-                }
+            var image = imageDecoder.Decode<Rgba32>(Configuration.Default, ms);
 
-                var image = imageDecoder.Decode<Rgba32>(Configuration.Default, ms);
-
-                if (image != null)
-                {
-                    return (image.Width, image.Height);
-                }
-                else
-                {
-                    throw new Exception("invalid png!");
-                }
+            if (image != null)
+            {
+                return (image.Width, image.Height);
+            }
+            else
+            {
+                throw new Exception("invalid png!");
             }
         }
 
@@ -137,6 +135,9 @@ namespace Website.Infrastructure
 
                 bigImage.Save(_defaultIsaacImage);
             }
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
         }
 
         public void ClearRectangle(int xCoordinate, int yCoordinate, int width, int height)

@@ -293,62 +293,58 @@
     }
 
     <div style="margin: 0 auto; display: flex; justify-content: center;">
-        @for (int i = 0; i < transformationData.Count; i++)
-        {
-            <div id="transformation-stats-wrapper">
-                @foreach (var run in transformationData)
+        <div id="transformation-stats-wrapper">
+        @{ int runNumber = 1; }
+            @foreach (var run in transformationData)
+            {
+                foreach (var runTransformationData in run.Values)
                 {
-                    int runNumber = 1;
-
-                    foreach (var runTransformationData in run.Values)
-                    {
-                        <div class="transformation-stats-set">
-                            @foreach (var item in runTransformationData.Item2)
-                            {
-                                <div class="transformation-stats-block"></div>
-                            }
-                            <div class="transformation-stats-block">
-                                <isaac-image resource="runTransformationData.Item1"></isaac-image>
-                                <div class="popup c" style="width: 350px;">
-                                    <p>
-                                        <strong>
-                                            @runTransformationData.Item1.Name
-                                            @(transformationData.Count > 1 ? $"- Run {runNumber}" : string.Empty)
-                                        </strong>
-                                        <br />
-                                        <isaac-image resource="runTransformationData.Item1"></isaac-image>
-                                    </p>
-                                    <hr />
-                                    <p>
-                                        Collected Items (@runTransformationData.Item2.Count / 3):<br />
-                                        @foreach (var item in runTransformationData.Item2)
-                                        {
-                                            <div class="display-inline transformation-stats-item-box">
-                                                <isaac-image resource="item"></isaac-image><br />
-                                                @item.Name
-                                            </div>
-                                        }
-                                    </p>
-                                    <p>
-                                        @if (runTransformationData.Item2.Count < 3)
-                                        {
-                                            <span class="orange"><strong>Transformation Incomplete</strong></span>
-                                        }
-                                        else
-                                        {
-                                            <span class="green"><strong>Transformation Complete!</strong></span>
-                                        }
-                                    </p>
-                                </div>
+                    <div class="transformation-stats-set">
+                        @foreach (var item in runTransformationData.Item2)
+                        {
+                            <div class="transformation-stats-block"></div>
+                        }
+                        <div class="transformation-stats-block">
+                            <isaac-image resource="runTransformationData.Item1"></isaac-image>
+                            <div class="popup c" style="width: 350px;">
+                                <p>
+                                    <strong>
+                                        @runTransformationData.Item1.Name
+                                        @(transformationData.Count > 1 ? $"- Run {runNumber.ToString()}" : string.Empty)
+                                    </strong>
+                                    <br />
+                                    <isaac-image resource="runTransformationData.Item1"></isaac-image>
+                                </p>
+                                <hr />
+                                <p>
+                                    Collected Items (@runTransformationData.Item2.Count / 3):<br />
+                                    @foreach (var item in runTransformationData.Item2)
+                                    {
+                                        <div class="display-inline transformation-stats-item-box">
+                                            <isaac-image resource="item"></isaac-image><br />
+                                            @item.Name
+                                        </div>
+                                    }
+                                </p>
+                                <p>
+                                    @if (runTransformationData.Item2.Count < 3)
+                                    {
+                                        <span class="orange"><strong>Transformation Incomplete</strong></span>
+                                    }
+                                    else
+                                    {
+                                        <span class="green"><strong>Transformation Complete!</strong></span>
+                                    }
+                                </p>
                             </div>
-
                         </div>
-                    }
 
-                    runNumber++;
+                    </div>
                 }
-            </div>
-        }
+
+                runNumber++;
+            }
+        </div>
     </div>
 
     <hr />

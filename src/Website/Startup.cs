@@ -143,6 +143,7 @@ namespace Website
                     "frame-src https://www.youtube.com; " +
                     "style-src 'self' 'unsafe-inline' fonts.googleapis.com; " +
                     "font-src 'self' fonts.gstatic.com; " +
+                    "img-src 'self' https://i.ytimg.com; " +
                     "block-all-mixed-content; " +
                     (env.IsDevelopment() 
                         ? "script-src 'self' 'unsafe-eval' 'unsafe-inline' www.youtube.com s.ytimg.com; "

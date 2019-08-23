@@ -17,3 +17,23 @@
     cursor: pointer;
 }
 
+#current-player-container {
+    position: absolute;
+    top: 0;
+    right: 0;
+    border-bottom-left-radius: 0.5rem;
+    background-color: rgba(255,255,255,0.1);
+    border-left: 1px solid rgba(255,255,255,0.1);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding: 0.2rem;
+}
+
+.change-player-container-modifier {
+    background-color: red !important;
+    border-color: red !important;
+}
+
+#submit-topic-container {
+    border-left: 1px solid rgba(255,255,255,0.1);
+    border-right: 1px solid rgba(255,255,255,0.1);
+}
