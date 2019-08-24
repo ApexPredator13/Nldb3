@@ -208,7 +208,7 @@ namespace Website
             //app.ResetDatabaseInDevMode();
             //BackgroundJob.Enqueue<IMigrateOldDatabase>(migrator => migrator.MigrateEverything());
 
-            // RecurringJob.AddOrUpdate<ISqlDumper>(dumper => dumper.Dump(), Cron.Hourly());
+            RecurringJob.AddOrUpdate<ISqlDumper>(dumper => dumper.Dump(), Cron.Hourly());
         }
     }
 }

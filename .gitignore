@@ -12,9 +12,6 @@
 # compiled javascript files
 /src/Website/wwwroot/js/dist/*
 
-# compiled image of isaac resources, ignored temporarily
-/src/Website/wwwroot/img/isaac.png
-
 # compiled css files via bundler / minifier
 /src/Website/wwwroot/css/dist/*.css
 
