@@ -11,6 +11,7 @@ using Website.Services;
 using Microsoft.AspNetCore.Http;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.Primitives;
+using SixLabors.ImageSharp.Processing.Processors;
 
 namespace Website.Infrastructure
 {
@@ -153,11 +154,23 @@ namespace Website.Infrastructure
 
         public void RemoveTransparentBorder(Image<Rgba32> icon)
         {
+            // adds a transparent outline around the image
+            // otherwise the algorithm below won't work if there are non-transparent pixels on any edge
+            var options = new ResizeOptions()
+            {
+                Compand = true,
+                Mode = ResizeMode.BoxPad,
+                Position = AnchorPositionMode.Center,
+                Size = new Size(icon.Width + 2, icon.Height + 2)
+            };
+            icon.Mutate(x => x.Resize(options));
+
             var transparentRowsFromTop = new List<int>();
             var transparentRowsFromRight = new List<int>();
             var transparentRowsFromBottom = new List<int>();
             var transparentRowsFromLeft = new List<int>();
 
+            // gets transparent rows from every edge
             for (int y = 0; y < icon.Height; y++)
             {
                 bool isTransparent = true;
@@ -254,7 +267,13 @@ namespace Website.Infrastructure
                 }
             }
 
-            var startingPoint = new Point(transparentRowsFromLeft.Last() + 1, transparentRowsFromTop.Last() + 1);
+            if (!transparentRowsFromLeft.Any() || !transparentRowsFromRight.Any() || !transparentRowsFromTop.Any() || !transparentRowsFromBottom.Any())
+            {
+                return;
+            }
+
+            // crops transparent edges
+            var startingPoint = new Point(transparentRowsFromLeft.LastOrDefault() + 1, transparentRowsFromTop.LastOrDefault() + 1);
             var visibleWidth = (transparentRowsFromRight.Last() - 1) - transparentRowsFromLeft.Last();
             var visibleHeight = (transparentRowsFromBottom.Last() - 1) - transparentRowsFromTop.Last();
             var size = new Size(visibleWidth, visibleHeight);
