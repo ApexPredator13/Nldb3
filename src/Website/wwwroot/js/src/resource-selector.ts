@@ -9,17 +9,7 @@ declare const admin_mode: boolean;
         const selector = <HTMLSelectElement>document.getElementById('resource-selector');
         const displayer = <HTMLTableSectionElement>document.getElementById('resource-displayer');
 
-        if (!selector || !displayer) {
-            return;
-        }
-
-        selector.addEventListener("change", () => {
-            const newValue = selector.value
-
-            if (!newValue) {
-                return;
-            }
-
+        let createTable = (newValue: string) => {
             // create new table body
             const tableBody = document.createElement('tbody');
 
@@ -58,6 +48,24 @@ declare const admin_mode: boolean;
                 }
                 displayer.appendChild(tableBody);
             }).catch(e => console.error(e));
+        };
+
+        if (!selector || !displayer) {
+            return;
+        }
+
+        if (selector.value) {
+            createTable(selector.value);
+        }
+
+        selector.addEventListener("change", () => {
+            const newValue = selector.value
+
+            if (!newValue) {
+                return;
+            }
+
+            createTable(newValue);
         })
     });
 })();

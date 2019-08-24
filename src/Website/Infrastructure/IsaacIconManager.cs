@@ -10,6 +10,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using Website.Services;
 using Microsoft.AspNetCore.Http;
 using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.Primitives;
 
 namespace Website.Infrastructure
 {
@@ -112,17 +113,25 @@ namespace Website.Infrastructure
             return true;
         }
 
-        public void EmbedIcon(IFormFile image, int xCoordinate, int yCoordinate, int width, int height)
+        public (int embeddedIconWidth, int embeddedIconHeight) EmbedIcon(IFormFile image, int xCoordinate, int yCoordinate)
         {
+            int width = 0;
+            int height = 0;
+
             using (var bigImage = GetDefaultImage())
             {
                 using (var icon = Image.Load<Rgba32>(image.OpenReadStream()))
                 {
+                    RemoveTransparentBorder(icon);
+                    width = icon.Width;
+                    height = icon.Height;
+
                     int iconX = 0;
                     int iconY = 0;
-                    for (int y = yCoordinate; y < yCoordinate + height; y++)
+
+                    for (int y = yCoordinate; y < yCoordinate + icon.Height; y++)
                     {
-                        for (int x = xCoordinate; x < xCoordinate + width; x++)
+                        for (int x = xCoordinate; x < xCoordinate + icon.Width; x++)
                         {
                             var pixel = icon[iconX, iconY];
                             bigImage[x, y] = pixel;
@@ -138,6 +147,120 @@ namespace Website.Infrastructure
 
             GC.Collect();
             GC.WaitForPendingFinalizers();
+
+            return (width, height);
+        }
+
+        public void RemoveTransparentBorder(Image<Rgba32> icon)
+        {
+            var transparentRowsFromTop = new List<int>();
+            var transparentRowsFromRight = new List<int>();
+            var transparentRowsFromBottom = new List<int>();
+            var transparentRowsFromLeft = new List<int>();
+
+            for (int y = 0; y < icon.Height; y++)
+            {
+                bool isTransparent = true;
+                for (int x = 0; x < icon.Width; x++)
+                {
+                    var pixel = icon[x, y];
+
+                    if (pixel.A > 0)
+                    {
+                        isTransparent = false;
+                        break;
+                    }
+                }
+
+                if (!isTransparent)
+                {
+                    break;
+                }
+                else
+                {
+                    transparentRowsFromTop.Add(y);
+                }
+            }
+
+            for (int y = icon.Height - 1; y >= 0; y--)
+            {
+                bool isTransparent = true;
+                for (int x = 0; x < icon.Width; x++)
+                {
+                    var pixel = icon[x, y];
+
+                    if (pixel.A > 0)
+                    {
+                        isTransparent = false;
+                        break;
+                    }
+                }
+
+                if (!isTransparent)
+                {
+                    break;
+                }
+                else
+                {
+                    transparentRowsFromBottom.Add(y);
+                }
+            }
+
+            for (int x = 0; x < icon.Width; x++)
+            {
+                bool isTransparent = true;
+                for (int y = 0; y < icon.Height; y++)
+                {
+                    var pixel = icon[x, y];
+
+                    if (pixel.A > 0)
+                    {
+                        isTransparent = false;
+                        break;
+                    }
+                }
+
+                if (!isTransparent)
+                {
+                    break;
+                }
+                else
+                {
+                    transparentRowsFromLeft.Add(x);
+                }
+            }
+
+            for (int x = icon.Width - 1; x >= 0; x--)
+            {
+                bool isTransparent = true;
+                for (int y = 0; y < icon.Height; y++)
+                {
+                    var pixel = icon[x, y];
+
+                    if (pixel.A > 0)
+                    {
+                        isTransparent = false;
+                        break;
+                    }
+                }
+
+                if (!isTransparent)
+                {
+                    break;
+                }
+                else
+                {
+                    transparentRowsFromRight.Add(x);
+                }
+            }
+
+            var startingPoint = new Point(transparentRowsFromLeft.Last() + 1, transparentRowsFromTop.Last() + 1);
+            var visibleWidth = (transparentRowsFromRight.Last() - 1) - transparentRowsFromLeft.Last();
+            var visibleHeight = (transparentRowsFromBottom.Last() - 1) - transparentRowsFromTop.Last();
+            var size = new Size(visibleWidth, visibleHeight);
+            var rectangle = new Rectangle(startingPoint, size);
+            
+            icon.Mutate(x => x.Crop(rectangle));
         }
 
         public void ClearRectangle(int xCoordinate, int yCoordinate, int width, int height)

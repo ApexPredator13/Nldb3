@@ -13,9 +13,10 @@ import { IsaacResource } from './interfaces/isaac-resource';
         const resourceId = splitUrl[splitUrl.length - 1];
         const startsWithLetterRegex = /[a-z]/i;
         let resourceType;
+        let scale = true;
         
         switch (resourceId.toLowerCase()) {
-            case 'bosses': resourceType = 1; break;
+            case 'bosses': resourceType = 1; scale = false; break;
             case 'characters': resourceType = 2; break;
             case 'itemsources': resourceType = 7; break;
             case 'floors': resourceType = 5; break;
@@ -75,7 +76,7 @@ import { IsaacResource } from './interfaces/isaac-resource';
 
                     boxWrapper.appendChild(header);
 
-                    const boxes = new Boxes(boxWrapper, resources, false);
+                    const boxes = new Boxes(boxWrapper, resources, false, undefined, undefined, undefined, scale);
                     boxes.elementWasSelected.subscribe(clickedElement => {
                         window.location.assign(`/${clickedElement}`);
                     });

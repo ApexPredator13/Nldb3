@@ -122,7 +122,7 @@ namespace Website.Areas.Admin.Controllers
 
             var (w, h) = await _iconManager.GetPostedImageSize(icon);
             var (x, y) = await _iconManager.FindEmptySquare(w, h);
-            _iconManager.EmbedIcon(icon, x, y, w, h);
+            _iconManager.EmbedIcon(icon, x, y);
 
             var id = await _isaacRepository.SaveResource(model, x, y, w, h);
 
@@ -150,9 +150,9 @@ namespace Website.Areas.Admin.Controllers
             _iconManager.ClearRectangle(resource.X, resource.Y, resource.W, resource.H);
             var (w, h) = await _iconManager.GetPostedImageSize(model.NewIcon!);
             var (x, y) = await _iconManager.FindEmptySquare(w, h);
-            _iconManager.EmbedIcon(model.NewIcon!, x, y, w, h);
+            var (iconWidth, iconHeight) = _iconManager.EmbedIcon(model.NewIcon!, x, y);
 
-            await _isaacRepository.UpdateIconCoordinates(model.ResourceId, x, y, w, h);
+            await _isaacRepository.UpdateIconCoordinates(model.ResourceId, x, y, iconWidth, iconHeight);
             return RedirectToAction(nameof(Details), new { id = model.ResourceId });
         }
 

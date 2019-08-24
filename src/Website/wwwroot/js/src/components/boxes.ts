@@ -28,7 +28,7 @@ export class Boxes {
 
     private clickEventListener: ((this: Boxes, e: MouseEvent) => void);
 
-    constructor(futureParentElement: HTMLElement, futureElements: Array<IsaacResource> | Promise<Array<IsaacResource>>, replace: boolean, imagePath?: string, slice?: number, withId?: Array<string>) {
+    constructor(futureParentElement: HTMLElement, futureElements: Array<IsaacResource> | Promise<Array<IsaacResource>>, replace: boolean, imagePath?: string, slice?: number, withId?: Array<string>, upscale?: boolean) {
         this.imagePath = imagePath ? imagePath : '/img/isaac.png';
         this.futureParent = futureParentElement;
         this.slice = slice;
@@ -40,13 +40,13 @@ export class Boxes {
 
         // check if array or promise was given, then continue in method
         if (Array.isArray(futureElements)) {
-            this.createBoxes(futureElements, replace);
+            this.createBoxes(futureElements, replace, upscale);
         } else {
-            futureElements.then(resources => this.createBoxes(resources, replace));
+            futureElements.then(resources => this.createBoxes(resources, replace, upscale));
         }
     }
 
-    private createBoxes(resources: Array<IsaacResource>, replace: boolean) {
+    private createBoxes(resources: Array<IsaacResource>, replace: boolean, upscale?: boolean) {
 
         // create boxes
         const amount = this.slice ? this.slice : resources.length;
@@ -74,6 +74,11 @@ export class Boxes {
             image.style.background = `url('${this.imagePath}') ${x} ${y} transparent`;
             image.style.width = `${resources[i].w.toString(10)}px`;
             image.style.height = `${resources[i].h.toString(10)}px`;
+
+            if (upscale) {
+                image.classList.add('upscale');
+                box.style.padding = '0 20px 20px 20px';
+            }
 
             box.appendChild(name);
             box.appendChild(image);

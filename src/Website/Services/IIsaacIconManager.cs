@@ -11,7 +11,8 @@ namespace Website.Services
         Task<(int x, int y)> FindEmptySquare(int requiredWidth, int requiredHeight);
         void SetDefaultImage(string path);
         Task<(int width, int height)> GetPostedImageSize(IFormFile file);
-        void EmbedIcon(IFormFile image, int xCoordinate, int yCoordinate, int width, int height);
+        (int embeddedIconWidth, int embeddedIconHeight) EmbedIcon(IFormFile image, int xCoordinate, int yCoordinate);
         void ClearRectangle(int xCoordinate, int yCoordinate, int width, int height);
+        void RemoveTransparentBorder(Image<Rgba32> icon);
     }
 }

@@ -335,7 +335,7 @@ namespace Website.Data
                         QuoteText = r.GetString(2),
                         At = r.GetInt32(3),
                         SubmissionTime = r.GetDateTime(4),
-                        Contributor = r.GetString(5)
+                        Contributor = r.IsDBNull(5) ? "[Unknown]" : r.GetString(5)
                     });
                 }
             }
