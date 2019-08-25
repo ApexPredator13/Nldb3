@@ -122,9 +122,9 @@ namespace Website.Areas.Admin.Controllers
 
             var (w, h) = await _iconManager.GetPostedImageSize(icon);
             var (x, y) = await _iconManager.FindEmptySquare(w, h);
-            _iconManager.EmbedIcon(icon, x, y);
+            var (iconWidth, iconHeight) = _iconManager.EmbedIcon(icon, x, y);
 
-            var id = await _isaacRepository.SaveResource(model, x, y, w, h);
+            var id = await _isaacRepository.SaveResource(model, x, y, iconWidth, iconHeight);
 
             return RedirectToAction(nameof(Details), new { id });
         }
