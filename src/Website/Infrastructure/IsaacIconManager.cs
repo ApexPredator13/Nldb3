@@ -154,6 +154,32 @@ namespace Website.Infrastructure
 
         public void RemoveTransparentBorder(Image<Rgba32> icon)
         {
+            // if whole image is transparent, just continue
+            var everythingIsTransparent = true;
+
+            for (int y = 0; y < icon.Height; y++)
+            {
+                for (int x = 0; x < icon.Width; x++)
+                {
+                    var pixel = icon[x, y];
+                    if (pixel.A > 0)
+                    {
+                        everythingIsTransparent = false;
+                        break;
+                    }
+                }
+
+                if (everythingIsTransparent)
+                {
+                    break;
+                }
+            }
+
+            if (everythingIsTransparent)
+            {
+                return;
+            }
+
             // adds a transparent outline around the image
             // otherwise the algorithm below won't work if there are non-transparent pixels on any edge
             var options = new ResizeOptions()

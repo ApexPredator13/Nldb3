@@ -61,8 +61,8 @@ export class Boxes {
             box.setAttribute('data-id', resources[i].id);
 
             // adjust width for wide icons
-            if (resources[i].w && resources[i].w > 85) {
-                box.style.width = `${resources[i].w}px`;
+            if (resources[i].w && resources[i].w > 65) {
+                box.style.width = `${resources[i].w * (upscale ? 2 : 1)}px`;
             }
 
             const name = document.createElement('div');

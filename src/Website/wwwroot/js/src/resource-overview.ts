@@ -19,7 +19,7 @@ import { IsaacResource } from './interfaces/isaac-resource';
             case 'bosses': resourceType = 1; scale = false; break;
             case 'characters': resourceType = 2; break;
             case 'itemsources': resourceType = 7; break;
-            case 'floors': resourceType = 5; break;
+            case 'floors': resourceType = 5; scale = false; break;
             case 'transformations': resourceType = 12; break;
             case 'characterrerolls': resourceType = 14; break;
             case 'curses': resourceType = 3; break;

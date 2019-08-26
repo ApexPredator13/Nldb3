@@ -47,7 +47,7 @@
         ResourceType.Enemy => "However, it can sometimes be interesting to compare enemies with each other! Consider using the 'Options' in the bottom left of the page after selecting an emeny!",
         ResourceType.Pill => "Click on a pill for more details!",
         ResourceType.Rune => "Click on a rune for more details!",
-        ResourceType.TarotCard => "Click on a rune for more details!",
+        ResourceType.TarotCard => "Click on a tarot card for more details!",
         ResourceType.OtherConsumable => "Click on a consumable for more details!",
         _ => string.Empty
     };
@@ -80,5 +80,5 @@
 </div>
 
 @section Scripts {
-    <script src="~/js/dist/resource_overview.min.js"></script>
+    <script src="~/js/dist/resource_overview.min.js" asp-append-version="true"></script>
 }
