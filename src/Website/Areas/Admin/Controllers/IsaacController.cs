@@ -25,7 +25,6 @@ namespace Website.Areas.Admin.Controllers
             _modRepository = modRepository;
         }
 
-        [HttpGet]
         public ViewResult Index([FromQuery] string? message = null) => View(nameof(Index), message);
 
         [HttpGet]
@@ -199,6 +198,68 @@ namespace Website.Areas.Admin.Controllers
             else
             {
                 return RedirectToAction(nameof(Index), new { message = $"could not update game mode value for item with id '{model.ResourceId}'" });
+            }
+        }
+
+        [HttpGet]
+        public async Task<ActionResult> ChangeColor([FromRoute] string id)
+        {
+            var resource = await _isaacRepository.GetResourceById(id, false);
+
+            if (resource is null)
+            {
+                return NotFound();
+            }
+
+            return View(new ChangeColor(resource));
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> ChangeColor(ChangeColor model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            int result = await _isaacRepository.UpdateColor(model);
+
+            if (result > 0)
+            {
+                return RedirectToAction(nameof(Details), new { id = model.ResourceId });
+            }
+            else
+            {
+                return RedirectToAction(nameof(Index), new { message = $"could not update color value for item with id '{model.ResourceId}'" });
+            }
+        }
+
+        [HttpGet]
+        public async Task<ActionResult> ChangeMod([FromRoute] string id)
+        {
+            var resource = await _isaacRepository.GetResourceById(id, true);
+
+            if (resource is null)
+            {
+                return NotFound();
+            }
+
+            var viewModel = new ChangeMod(resource.Id, resource.Mod?.ModName ?? null, null);
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> ChangeMod(ChangeMod model)
+        {
+            var dbChanges = await _isaacRepository.UpdateMod(model);
+
+            if (dbChanges > 0)
+            {
+                return RedirectToAction(nameof(Details), new { id = model.ResourceId });
+            }
+            else
+            {
+                return RedirectToAction(nameof(Index), new { message = $"could not update mod value for item with id '{model.ResourceId}'" });
             }
         }
     }

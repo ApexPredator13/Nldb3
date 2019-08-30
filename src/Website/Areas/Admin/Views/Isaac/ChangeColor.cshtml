@@ -1,0 +1,21 @@
+﻿@{
+    ViewData["Title"] = "Change Color";
+}
+
+@model ChangeColor
+
+<h1>Change Exists In</h1>
+<hr />
+
+<p>Current Color:</p>
+<div style="width: 50px; height: 50px; background-color: @Model.Color; margin: 1rem auto;"></div>
+
+<form method="post" asp-area="Admin" asp-controller="@IsaacController.Controllername" asp-action="@nameof(IsaacController.ChangeColor)">
+    <input type="hidden" asp-for="ResourceId" />
+    <div>
+        <label asp-for="Color"></label>
+        <input type="color" asp-for="Color" />
+    </div>
+    <button type="submit">Submit</button>
+</form>
+

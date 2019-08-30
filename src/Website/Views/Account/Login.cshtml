@@ -13,36 +13,68 @@
 </p>
 
 <form method="post" asp-route-returnUrl="@returnUrl">
-    <div>
-        <label asp-for="EmailOrUsername"></label>
-        <input asp-for="EmailOrUsername" type="text" data-required />
-        <div class="error-message"></div>
-    </div>
-    <div>
-        <label asp-for="Password"></label>
-        <input asp-for="Password" type="password" data-required />
-        <div class="error-message"></div>
-    </div>
-    <div>
-        <button type="submit">Login</button>
-    </div>
+    <section class="myaccount-grid">
+        <div>
+            <label asp-for="EmailOrUsername"></label>
+        </div>
+        <div>
+            <input asp-for="EmailOrUsername" type="text" data-required />
+            <div class="error-message"></div>
+        </div>
+            
+        <div>
+            <label asp-for="Password"></label>
+        </div>
+        <div>
+            <input asp-for="Password" type="password" data-required />
+            <div class="error-message"></div>
+        </div>
+
+        <div class="width-two">
+            <button type="submit">Login</button>
+        </div>
+    </section>
 </form>
 
 <div>
-    <a asp-controller="@AccountController.Controllername" asp-action="@nameof(AccountController.Register)">Create a new account</a>
+    <a asp-controller="@AccountController.Controllername" asp-action="@nameof(AccountController.Register)">Create a new account</a><br/>
+    <a asp-controller="@AccountController.Controllername" asp-action="@nameof(AccountController.ForgotPassword)">Forgot Password</a>
 </div>
 
-<div>
-    <h3>Or use one of your existing accounts to log yourself in</h3>
+<section class="myaccount-grid">
+    <h3>Or use one an existing account to log yourself in</h3>
     @foreach (var scheme in externalAuthenticationSchemes)
     {
-        <form method="get" asp-action="@nameof(AccountController.ExternalLogin)" asp-controller="@AccountController.Controllername">
-            <input type="hidden" value="@scheme.Name" name="provider" />
-            <input type="hidden" value="@returnUrl" name="returnUrl" />
-            <button type="submit">@scheme.DisplayName</button>
-        </form>
+        <div>
+            @(scheme.DisplayName ?? scheme.Name)
+            @switch ((scheme.DisplayName ?? scheme.Name).ToLower())
+            {
+            case "facebook":
+                <partial name="_IconFacebookPartial" />
+                break;
+            case "twitter":
+                <partial name="_IconTwitterPartial" />
+                break;
+            case "google":
+                <partial name="_IconGooglePartial" />
+                break;
+            case "twitch":
+                <partial name="_IconTwitchPartial" />
+                break;
+            case "steam":
+                <partial name="_IconSteamPartial" />
+                break;
+            }
+        </div>
+        <div>
+            <form method="get" asp-action="@nameof(AccountController.ExternalLogin)" asp-controller="@AccountController.Controllername">
+                <input type="hidden" value="@scheme.Name" name="provider" />
+                <input type="hidden" value="@returnUrl" name="returnUrl" />
+                <button type="submit" style="width: 200px;">Continue to @scheme.DisplayName</button>
+            </form>
+        </div>
     }
-</div>
+</section>
 
 
 

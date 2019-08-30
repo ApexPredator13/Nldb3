@@ -3,8 +3,31 @@
     box-shadow: 0 0 10px orange;
 }
 .error-message {
+    position: absolute;
+    right: -210px;
+    top: 0;
+    background-color: rgba(255,255,255,0.2);
+    width: 200px;
     color: darkorange;
+    border-radius: 0.5rem;
+    font-size: 0.8rem;
 }
 form {
     display: block;
+}
+input[type=text], input[type=password] {
+    padding: 0.2rem;
+    background-color: beige;
+    border-radius: 0.3rem;
+}
+input[type=text]:focus, input[type=password]:focus {
+    outline: none;
+}
+button {
+    margin: 0.4rem;
+}
+label {
+    margin-right: 0.4rem;
+    text-align: right;
+    display: inline-block;
 }

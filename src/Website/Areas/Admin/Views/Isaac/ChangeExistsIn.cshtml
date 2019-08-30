@@ -10,7 +10,7 @@
 @Html.ValidationSummary()
 
 <form method="post">
-    <input type="hidden" asp-for="ResourceId" />
+    <input type="hidden" asp-for="ResourceId" value="@Model.ResourceId" />
     <div>
         <label asp-for="NewExistsIn"></label>
         <select asp-for="NewExistsIn">

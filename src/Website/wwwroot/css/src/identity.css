@@ -1,0 +1,44 @@
+﻿.myaccount-grid {
+    display: grid;
+    grid-template-columns: 0.6fr 1fr;
+    grid-row-gap: 0.4rem;
+    align-items: center;
+    width: 95%;
+    max-width: 500px;
+    background-color: rgba(255,255,255,0.1);
+    margin: 2rem auto;
+    border-radius: 1rem;
+    padding: 1rem 0;
+}
+.myaccount-grid h3, .myaccount-grid p, .myaccount-grid .width-two {
+    grid-column-start: 1;
+    grid-column-end: span 2;
+    margin-top: 0;
+}
+.myaccount-grid > div {
+    position: relative;
+}
+.myaccount-grid > div:nth-of-type(odd) {
+    justify-self: end;
+    margin-right: 1rem;
+}
+.myaccount-grid > div:nth-of-type(even) {
+    justify-self: start;
+}
+#danger-zone {
+    background-color: rgba(255, 100, 100, 0.2);
+}
+.width-two {
+    justify-self: center !important;
+}
+.social-media-icon {
+    display: inline-block;
+    height: 35px;
+    width: 35px;
+    vertical-align: middle;
+    margin: 0 0.5rem;
+}
+.validation-summary-errors ul {
+    color: orange;
+    list-style-type: none;
+}

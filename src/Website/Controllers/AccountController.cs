@@ -90,7 +90,7 @@ namespace Website.Controllers
                 return View(model);
             }
 
-            var result = await _signInManager.PasswordSignInAsync(model.EmailOrUsername, model.Password, model.RememberMe, true);
+            var result = await _signInManager.PasswordSignInAsync(user.UserName, model.Password, model.RememberMe, false);
 
             if (result.Succeeded)
             {
@@ -330,10 +330,10 @@ namespace Website.Controllers
             }
 
             var code = await _userManager.GeneratePasswordResetTokenAsync(user);
-            var callbackUrl = Url.Action(nameof(ForgotPassword), Controllername, new { code }, Request.Scheme);
+            var callbackUrl = Url.Action(nameof(ResetPassword), Controllername, new { code }, Request.Scheme);
 
-            var email = _emailSender.GenerateResetPasswordEmail(model.Email ?? string.Empty, callbackUrl);
-            await _emailSender.SendEmailAsync(email, "The Northernlion Database - Password Reset", email);
+            var emailMessage = _emailSender.GenerateResetPasswordEmail(model.Email ?? string.Empty, callbackUrl);
+            await _emailSender.SendEmailAsync(model.Email, "The Northernlion Database - Password Reset", emailMessage);
 
             return RedirectToAction(nameof(ForgotPasswordEmailSent));
         }

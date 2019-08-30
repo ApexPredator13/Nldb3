@@ -77,10 +77,11 @@ export class History {
 
     private CreateHistoryImage(i: HistoryImage, characterId: number, floorId?: number, eventId?: number) {
         const element = document.createElement('div');
-        element.style.background = `url('/img/isaac.png') -${i.x <= 0 ? 0 : i.x}px -${i.y <= 0 ? 0 : i.y}px transparent`;
+        element.style.background = `url('/img/isaac.png') -${i.x <= 0 ? 0 : i.x}px -${i.y <= 0 ? i.y * -1 : i.y}px transparent`;
         element.style.width = `${i.w <= 5 ? 31 : i.w}px`;
         element.style.height = `${i.h <= 5 ? 31 : i.h}px`;
         element.style.display = 'inline-block';
+        element.style.verticalAlign = 'middle';
         element.style.cursor = 'pointer';
         element.title = 'click to delete';
 

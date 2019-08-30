@@ -77,7 +77,7 @@ namespace Website
             services.AddIdentity<IdentityUser, IdentityRole>(options =>
             {
                 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(1);
-                options.Lockout.MaxFailedAccessAttempts = 10;
+                options.Lockout.MaxFailedAccessAttempts = 50;
                 options.Lockout.AllowedForNewUsers = true;
                 options.Password.RequireDigit = false;
                 options.Password.RequiredLength = 6;

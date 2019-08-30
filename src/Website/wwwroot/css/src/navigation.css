@@ -21,3 +21,12 @@
 .nav-point:hover .nav-icon {
     margin-right: 1.2rem;
 }
+
+.nav-section {
+    border-bottom: 1px dashed rgba(255,255,255,0.2);
+}
+
+.nav-section:first-of-type p {
+    margin-top: 0.2rem;
+    margin-bottom: 0.2rem;
+}

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using Website.Models.Database.Enums;
 
 namespace Website.Models
 {

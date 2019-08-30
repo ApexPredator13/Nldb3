@@ -9,30 +9,78 @@
 
 @Html.ValidationSummary()
 
-<div>
+
+<section class="myaccount-grid">
     @foreach(var currentLogin in currentLogins)
     {
-        <form method="post" asp-controller="@MyAccountController.Controllername" asp-action="@nameof(MyAccountController.RemoveExternalLogin)">
-            <input type="hidden" value="@currentLogin.LoginProvider" name="@nameof(RemoveLoginModel.LoginProvider)" />
-            <input type="hidden" value="@currentLogin.ProviderKey" name="@nameof(RemoveLoginModel.ProviderKey)" />
-
+        <div>
             @(currentLogin.ProviderDisplayName ?? currentLogin.LoginProvider)
-            @if (showRemoveButton)
+            @switch ((currentLogin.ProviderDisplayName ?? currentLogin.LoginProvider).ToLower())
             {
-                <button type="submit">Remove Login</button>
+            case "facebook":
+                <partial name="_IconFacebookPartial" />
+                break;
+            case "twitter":
+                <partial name="_IconTwitterPartial" />
+                break;
+            case "google":
+                <partial name="_IconGooglePartial" />
+                break;
+            case "twitch":
+                <partial name="_IconTwitchPartial" />
+                break;
+            case "steam":
+                <partial name="_IconSteamPartial" />
+                break;
             }
-        </form>
-    }
-</div>
+        </div>
+        <div>
+            <form method="post" asp-controller="@MyAccountController.Controllername" asp-action="@nameof(MyAccountController.RemoveExternalLogin)">
+                <input type="hidden" value="@currentLogin.LoginProvider" name="@nameof(RemoveLoginModel.LoginProvider)" />
+                <input type="hidden" value="@currentLogin.ProviderKey" name="@nameof(RemoveLoginModel.ProviderKey)" />
 
-<div>
+                @if (showRemoveButton)
+                {
+                    <button type="submit">Remove Login</button>
+                }
+            </form>
+        </div>
+    }
+</section>
+
+<section class="myaccount-grid">
     @foreach (var otherLogin in otherLogins)
     {
-        <form method="get" asp-action="@nameof(MyAccountController.LinkLogin)" asp-controller="@MyAccountController.Controllername">
-            <input type="hidden" value="@otherLogin.Name" name="provider" />
-            <button type="submit">@otherLogin.DisplayName</button>
-        </form>
+    <div>
+        @(otherLogin.DisplayName ?? otherLogin.Name)
+        @switch ((otherLogin.DisplayName ?? otherLogin.Name).ToLower())
+        {
+            case "facebook":
+                <partial name="_IconFacebookPartial" />
+                break;
+            case "twitter":
+                <partial name="_IconTwitterPartial" />
+                break;
+            case "google":
+                <partial name="_IconGooglePartial" />
+                break;
+            case "twitch":
+                <partial name="_IconTwitchPartial" />
+                break;
+            case "steam":
+                <partial name="_IconSteamPartial" />
+                break;
+        }
+
+
+    </div>
+        <div>
+            <form method="get" asp-action="@nameof(MyAccountController.LinkLogin)" asp-controller="@MyAccountController.Controllername">
+                <input type="hidden" value="@otherLogin.Name" name="provider" />
+                <button type="submit" style="width: 200px;">Add @(otherLogin.DisplayName ?? otherLogin.Name) Login</button>
+            </form>
+        </div>
     }
-</div>
+</section>
 
 

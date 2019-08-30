@@ -2,7 +2,7 @@
     ViewData["Title"] = $"Overview for '{Model.Name}'";
 }
 
-@model                 IsaacResource
+@model IsaacResource
 
 <h1>Overview for @Model.Name</h1>
 <hr/>
@@ -32,9 +32,33 @@
 
 <h3>Existance</h3>
 <p>
-    The resource currently exists in: '@Model.ExistsIn.ToString()'; - <a asp-action="@nameof(IsaacController.ChangeExistsIn)">Change</a>
+    The resource currently exists in: '@Model.ExistsIn.ToString()'; - <a asp-action="@nameof(IsaacController.ChangeExistsIn)" asp-route-id="@Model.Id">Change</a>
 </p>
 
 <hr/>
 
+<h3>Color</h3>
+<p>Current Color:</p>
+<div style="width: 50px; height: 50px; margin: 1rem auto; background-color: @Model.Color"></div>
+<p>
+    <a asp-action="@nameof(IsaacController.ChangeColor)" asp-route-id="@Model.Id">Change Color</a>
+</p>
+
+<hr/>
+
+<h3>Mod</h3>
+@if(Model.Mod is null)
+{
+    <p>Not assigned to a mod</p>
+}
+else
+{
+    <p>Assigned to mod: @Model.Mod.ModName</p>
+}
+<p>
+    <a asp-action="@nameof(IsaacController.ChangeMod)" asp-route-id="@Model.Id">Change Mod</a>
+</p>
+
+
+<hr/>
 <p><a asp-controller="@IsaacController.Controllername" asp-area="Admin" asp-action="@nameof(IsaacController.Index)">Back to overview</a></p>

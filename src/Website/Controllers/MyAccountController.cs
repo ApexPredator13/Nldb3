@@ -433,9 +433,9 @@ namespace Website.Controllers
         public ViewResult ChangeEmailRequestSent() => View();
 
         [HttpGet]
-        public async Task<RedirectToActionResult> ChangeEmailConfirmation([FromQuery] string? newEmail, [FromQuery] string? token)
+        public async Task<RedirectToActionResult> ChangeEmailConfirmation([FromQuery] string? newEmail, [FromQuery] string? code)
         {
-            if (string.IsNullOrEmpty(newEmail) || string.IsNullOrEmpty(token))
+            if (string.IsNullOrEmpty(newEmail) || string.IsNullOrEmpty(code))
             {
                 return RedirectToAction(nameof(EmailChangeFailed));
             }
@@ -443,11 +443,11 @@ namespace Website.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user is null)
             {
-                var returnUrl = Url.Action(nameof(ChangeEmailConfirmation), new { newEmail, token });
+                var returnUrl = Url.Action(nameof(ChangeEmailConfirmation), new { newEmail, code });
                 return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername, new { returnUrl });
             }
 
-            var result = await _userManager.ChangeEmailAsync(user, newEmail, token);
+            var result = await _userManager.ChangeEmailAsync(user, newEmail, code);
             if (!result.Succeeded)
             {
                 return RedirectToAction(nameof(EmailChangeFailed));

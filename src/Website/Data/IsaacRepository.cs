@@ -290,15 +290,21 @@ namespace Website.Data
             }
         }
 
-        public async Task<List<DateTime>> GetEncounteredIsaacResourceTimestamps(string isaacResourceId, int resourceNumber)
+        public async Task<List<DateTime>> GetEncounteredIsaacResourceTimestamps(string isaacResourceId, int resourceNumber, GameplayEventType? eventType = null)
         {
             var result = new List<DateTime>();
 
             string resourceNumberString = resourceNumber is 1 ? "resource_one" : "resource_two";
+            string eventTypeFragment = eventType.HasValue ? "AND event_type = @EventType" : string.Empty;
 
             using var c = await _connector.Connect();
-            using var q = new NpgsqlCommand($"SELECT v.published FROM gameplay_events g LEFT JOIN videos v ON v.id = g.video WHERE g.{resourceNumberString} = @Id ORDER BY v.published ASC;", c);
+            using var q = new NpgsqlCommand($"SELECT v.published FROM gameplay_events g LEFT JOIN videos v ON v.id = g.video WHERE g.{resourceNumberString} = @Id {eventTypeFragment} ORDER BY v.published ASC;", c);
             q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, isaacResourceId);
+            if (eventType.HasValue)
+            {
+                q.Parameters.AddWithValue("@EventType", NpgsqlDbType.Integer, (int)eventType.Value);
+            }
+
             using var r = await q.ExecuteReaderAsync();
             if (r.HasRows)
             {
@@ -1121,5 +1127,23 @@ namespace Website.Data
                 ResourceType.ItemSource => 2,
                 _ => 1
             };
+
+        public async Task<int> UpdateColor(ChangeColor changeColor)
+        {
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand("UPDATE isaac_resources SET color = @Color WHERE id = @Id;", c);
+            q.Parameters.AddWithValue("@Color", NpgsqlDbType.Text, changeColor.Color);
+            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, changeColor.ResourceId);
+            return await q.ExecuteNonQueryAsync();
+        }
+
+        public async Task<int> UpdateMod(ChangeMod changeMod)
+        {
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand("UPDATE isaac_resources SET mod = @ModId WHERE id = @ResourceId;", c);
+            q.Parameters.AddWithValue("@ModId", NpgsqlDbType.Integer, changeMod.ModId ?? (object)DBNull.Value);
+            q.Parameters.AddWithValue("@ResourceId", NpgsqlDbType.Text, changeMod.ResourceId);
+            return await q.ExecuteNonQueryAsync();
+        }
     }
 }

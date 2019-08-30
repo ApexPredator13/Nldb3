@@ -105,10 +105,17 @@ namespace Website.Areas.Api.Controllers
         public async Task<ActionResult<StatsPageResult>> Dataset([FromRoute] string id, [FromQuery] IsaacResourceSearchOptions searchOptions)
         {
             var resource = await _isaacRepository.GetResourceById(id, false);
-
+            
             if (resource is null)
             {
                 return NotFound();
+            }
+
+            GameplayEventType? eventType = null;
+
+            if (resource.ResourceType == ResourceType.Transformation)
+            {
+                eventType = GameplayEventType.TransformationComplete;
             }
 
             var result = new StatsPageResult();
@@ -118,7 +125,7 @@ namespace Website.Areas.Api.Controllers
             // history
             if (availableStats.Contains(AvailableStats.History))
             {
-                var dates = await _isaacRepository.GetEncounteredIsaacResourceTimestamps(id, resourceNumber);
+                var dates = await _isaacRepository.GetEncounteredIsaacResourceTimestamps(id, resourceNumber, eventType);
                 result.History = await _barGraphCreator.ThroughoutTheLetsPlay(resource.Name, dates, searchOptions);
             }
 

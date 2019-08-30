@@ -12,61 +12,86 @@
     <p>@( (string)message )</p>
 }
 
-<section>
+<section class="myaccount-grid">
     <h3>Password, E-Mail & Username</h3>
 
     @if (Model.HasEmail)
     {
-        <p>
+        <div>
+            ICON
+        </div>
+        <div>
             <a asp-controller="@MyAccountController.Controllername" asp-action="@nameof(MyAccountController.ChangeEmail)">Change my e-mail address</a>
-        </p>
+        </div>
     }
     @if (Model.HasEmail && !Model.EmailIsConfirmed)
     {
-        <p>
+        <div>
+            ICON
+        </div>
+        <div>
             <a asp-controller="@MyAccountController.Controllername" asp-action="@nameof(MyAccountController.ConfirmEmailAgain)">Confirm e-mail address</a>
-        </p>
+        </div>
     }
     @if (Model.HasPassword)
     {
-        <p>
+        <div>
+            ICON
+        </div>
+        <div>
             <a asp-controller="@MyAccountController.Controllername" asp-action="@nameof(MyAccountController.ChangePassword)">Change password</a>
-        </p>
+        </div>
     }
     @if (!Model.HasEmail && !Model.HasPassword)
     {
-        <p>
-            <a asp-controller="@MyAccountController.Controllername" asp-action="@nameof(MyAccountController.AddNormalLogin)">Add regular E-Mail / Password login to my account</a>
-        </p>
+        <partial name="_IconAtPartial" />
+        <div>
+            <a style="display: inline-block" asp-controller="@MyAccountController.Controllername" asp-action="@nameof(MyAccountController.AddNormalLogin)" class="l">Add regular E-Mail / Password login to my account</a>
+        </div>
     }
     
-    <p>
+    <partial name="_IconUsernamePartial" />
+    <div>
         <a asp-controller="@MyAccountController.Controllername" asp-action="@nameof(MyAccountController.ChangeUsername)">Change username</a>
-    </p>
+    </div>
 </section>
 
-<section>
+<section class="myaccount-grid">
     <h3>External Logins</h3>
 
-    <p>
+    <div>
+        ICON
+    </div>
+    <div>
         <a asp-controller="@MyAccountController.Controllername" asp-action="@nameof(MyAccountController.ExternalLogins)">View / add external logins</a>
-    </p>
+    </div>
 </section>
 
-<section>
+<section class="myaccount-grid">
     <h3>Personal Data</h3>
 
     <p>By downloading your personal data you can review what information this website has stored about you!</p>
+    <p></p>
 
-    <form method="post" asp-controller="@MyAccountController.Controllername" asp-action="@nameof(MyAccountController.DownloadMyData)">
-        <button type="submit">Download my data</button>
-    </form>
+    <div>
+        ICON
+    </div>
+    <div>
+        <form method="post" asp-controller="@MyAccountController.Controllername" asp-action="@nameof(MyAccountController.DownloadMyData)">
+            <button type="submit">Download my data</button>
+        </form>
+    </div>
+    
 </section>
 
-<section>
+<section class="myaccount-grid" id="danger-zone">
     <h3>Danger Zone</h3>
-    <p>
+
+    <div>
+        ICON
+    </div>
+    <div>
         <a asp-controller="@MyAccountController.Controllername" asp-action="@nameof(MyAccountController.DeleteAccount)">Delete my account</a>
-    </p>
+    </div>
 </section>
 

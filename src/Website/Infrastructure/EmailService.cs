@@ -64,7 +64,7 @@ namespace Website.Infrastructure
             MimeMessage mail = new MimeMessage();
 
             mail.From.Add(new MailboxAddress("The Northernlion Database", "northernliondb@gmail.com"));
-            mail.To.Add(new MailboxAddress(string.Empty, email));
+            mail.To.Add(new MailboxAddress(string.Empty, email.Trim()));
             mail.Subject = subject;
 
             var builder = new BodyBuilder

@@ -26,6 +26,7 @@
 }
 .upscale {
     -webkit-transform: scale(2);
+    image-rendering: pixelated;
     image-rendering: crisp-edges;
     margin: 15px auto !important;
 }

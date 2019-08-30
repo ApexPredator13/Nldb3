@@ -9,25 +9,38 @@
 
 @Html.ValidationSummary()
 
+
+<p class="orange">
+    WARNING! Deleting your account cannot be reversed! Don't do this until you are sure about it.
+</p>
 <form method="post">
-    @if (userHasPassword)
-    {
-        <div>
-            <label asp-for="Password"></label>
-            <input asp-for="Password" type="password" data-required />
-            <div class="error-message"></div>
+    <section class="myaccount-grid">
+        @if (userHasPassword)
+        {
+            <div>
+                <label asp-for="Password"></label>
+            </div>
+            <div>
+                <input asp-for="Password" type="password" data-required />
+                <div class="error-message"></div>
+            </div>
+        }
+        else
+        {
+            <div>
+                <label asp-for="UserNameOrEmail"></label>
+            </div>
+            <div>
+                <input asp-for="UserNameOrEmail" type="text" data-required />
+                <div class="error-message"></div>
+            </div>
+        }
+        <div class="width-two">
+            <button type="submit">Delete my account</button>
         </div>
-    }
-    else
-    {
-        <div>
-            <label asp-for="UserNameOrEmail"></label>
-            <input asp-for="UserNameOrEmail" type="text" data-required />
-            <div class="error-message"></div>
-        </div>
-    }
-    <button type="submit">Delete my account</button>
+    </section>
 </form>
+
 
 @section Scripts {
     <script src="~/js/dist/validation.min.js"></script>

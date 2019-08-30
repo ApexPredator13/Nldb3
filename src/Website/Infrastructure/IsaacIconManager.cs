@@ -155,7 +155,7 @@ namespace Website.Infrastructure
         public void RemoveTransparentBorder(Image<Rgba32> icon)
         {
             // if whole image is transparent, just continue
-            var everythingIsTransparent = true;
+            var colorWasFound = false;
 
             for (int y = 0; y < icon.Height; y++)
             {
@@ -164,18 +164,18 @@ namespace Website.Infrastructure
                     var pixel = icon[x, y];
                     if (pixel.A > 0)
                     {
-                        everythingIsTransparent = false;
+                        colorWasFound = true;
                         break;
                     }
                 }
 
-                if (everythingIsTransparent)
+                if (colorWasFound)
                 {
                     break;
                 }
             }
 
-            if (everythingIsTransparent)
+            if (!colorWasFound)
             {
                 return;
             }

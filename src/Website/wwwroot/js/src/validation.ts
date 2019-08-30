@@ -5,9 +5,14 @@ const emailRegex = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]
 const inputElementTypeWhitelist: Array<string | null> = ["text", "password", "color", "number"];
 
 const applyErrormessage = (inputElement: HTMLInputElement | HTMLTextAreaElement, message: string | null): void => {
-    const errorMessageContainer = inputElement.nextElementSibling;
-    if (errorMessageContainer) {
-        errorMessageContainer.textContent = message;
+    debugger;
+    const errorMessageDiv = inputElement.nextElementSibling;
+    if (!errorMessageDiv) {
+        return;
+    }
+
+    if (errorMessageDiv && errorMessageDiv instanceof HTMLDivElement) {
+        errorMessageDiv.innerText = message ? message : '';
     }
 }
 

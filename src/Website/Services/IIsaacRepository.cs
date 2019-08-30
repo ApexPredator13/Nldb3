@@ -23,6 +23,8 @@ namespace Website.Services
         Task<bool> HasTags(string resourceId, params Effect[] RequiredTags);
         Task<int> UpdateName(string id, string newName);
         Task<int> UpdateId(string oldId, string newId);
+        Task<int> UpdateColor(ChangeColor changeColor);
+        Task<int> UpdateMod(ChangeMod changeMod);
         Task<bool> CoordinatesAreTaken(int x, int y, int h, int w);
         Task<int> UpdateIconCoordinates(string resourceId, int x, int y, int w, int h);
         Task<int> UpdateExistsIn(string id, ExistsIn newExistsIn);
@@ -32,7 +34,7 @@ namespace Website.Services
         Task<List<PlayedCharacter>> GetPlayedCharactersForVideo(string videoId, int? submissionId = null);
         Task<List<SubmittedEpisode>> GetSubmittedEpisodesForVideo(string videoId, int? submissionId = null);
         Task<int> AddTag(string id, Effect tag);
-        Task<List<DateTime>> GetEncounteredIsaacResourceTimestamps(string isaacResourceId, int resourceNumber);
+        Task<List<DateTime>> GetEncounteredIsaacResourceTimestamps(string isaacResourceId, int resourceNumber, GameplayEventType? eventType = null);
         Task<string?> GetResourceNameFromId(string id);
         Task<ResourceType> GetResourceTypeFromId(string id);
         Task<List<(int amount, IsaacResource foundAt)>> GetFoundAtRanking(string videoId);
