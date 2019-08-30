@@ -195,7 +195,7 @@ namespace Website.Controllers
         [AllowAnonymous]
         public ViewResult AccountWasDeleted() => View();
 
-        [HttpPost]
+        [HttpGet]
         public async Task<ActionResult> DownloadMyData()
         {
             var user = await _userManager.GetUserAsync(User);

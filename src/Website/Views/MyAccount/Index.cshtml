@@ -17,27 +17,21 @@
 
     @if (Model.HasEmail)
     {
-        <div>
-            ICON
-        </div>
+        <partial name="_IconAtPartial" />
         <div>
             <a asp-controller="@MyAccountController.Controllername" asp-action="@nameof(MyAccountController.ChangeEmail)">Change my e-mail address</a>
         </div>
     }
     @if (Model.HasEmail && !Model.EmailIsConfirmed)
     {
-        <div>
-            ICON
-        </div>
+        <partial name="_IconCheckPartial" />
         <div>
             <a asp-controller="@MyAccountController.Controllername" asp-action="@nameof(MyAccountController.ConfirmEmailAgain)">Confirm e-mail address</a>
         </div>
     }
     @if (Model.HasPassword)
     {
-        <div>
-            ICON
-        </div>
+        <partial name="_IconLockPartial" />
         <div>
             <a asp-controller="@MyAccountController.Controllername" asp-action="@nameof(MyAccountController.ChangePassword)">Change password</a>
         </div>
@@ -59,9 +53,7 @@
 <section class="myaccount-grid">
     <h3>External Logins</h3>
 
-    <div>
-        ICON
-    </div>
+    <partial name="_IconExternalLoginPartial" />
     <div>
         <a asp-controller="@MyAccountController.Controllername" asp-action="@nameof(MyAccountController.ExternalLogins)">View / add external logins</a>
     </div>
@@ -73,13 +65,11 @@
     <p>By downloading your personal data you can review what information this website has stored about you!</p>
     <p></p>
 
+    <partial name="_IconHeartPartial" />
     <div>
-        ICON
-    </div>
-    <div>
-        <form method="post" asp-controller="@MyAccountController.Controllername" asp-action="@nameof(MyAccountController.DownloadMyData)">
-            <button type="submit">Download my data</button>
-        </form>
+        <a asp-controller="@MyAccountController.Controllername" asp-action="@nameof(MyAccountController.DownloadMyData)">
+           Download my Data
+        </a>
     </div>
     
 </section>
@@ -87,9 +77,7 @@
 <section class="myaccount-grid" id="danger-zone">
     <h3>Danger Zone</h3>
 
-    <div>
-        ICON
-    </div>
+    <partial name="_IconDangerPartial" />
     <div>
         <a asp-controller="@MyAccountController.Controllername" asp-action="@nameof(MyAccountController.DeleteAccount)">Delete my account</a>
     </div>

@@ -1,7 +1,7 @@
 ﻿.myaccount-grid {
     display: grid;
-    grid-template-columns: 0.6fr 1fr;
-    grid-row-gap: 0.4rem;
+    grid-template-columns: 0.5fr 1fr;
+    grid-row-gap: 0.7rem;
     align-items: center;
     width: 95%;
     max-width: 500px;

@@ -9,24 +9,35 @@
 @Html.ValidationSummary()
 
 <form method="post">
-    <div>
-        <label asp-for="Email"></label>
-        <input type="text" asp-for="Email" />
-        <div class="error-message"></div>
-    </div>
-    <div>
-        <label asp-for="Password"></label>
-        <input type="password" asp-for="Password" />
-        <div class="error-message"></div>
-    </div>
-    <div>
-        <label asp-for="ConfirmPassword"></label>
-        <input type="password" asp-for="ConfirmPassword" />
-        <div class="error-message"></div>
-    </div>
-    <div>
-        <button type="submit">Add Email / Password Login</button>
-    </div>
+    <section class="myaccount-grid">
+        <div>
+            <label asp-for="Email"></label>
+        </div>
+        <div>
+            <input type="text" asp-for="Email" />
+            <div class="error-message"></div>
+        </div>
+
+        <div>
+            <label asp-for="Password"></label>
+        </div>
+        <div>
+            <input type="password" asp-for="Password" />
+            <div class="error-message"></div>
+        </div>
+
+        <div>
+            <label asp-for="ConfirmPassword"></label>
+        </div>
+        <div>
+            <input type="password" asp-for="ConfirmPassword" />
+            <div class="error-message"></div>
+        </div>
+
+        <div class="width-two">
+            <button type="submit">Add Email / Password Login</button>
+        </div>
+    </section>
 </form>
 
 
