@@ -66,11 +66,11 @@
     <PackageReference Include="AspNet.Security.OAuth.Twitch" Version="3.0.0-preview-0858" />
     <PackageReference Include="AspNet.Security.OpenId.Steam" Version="2.1.0" />
     <PackageReference Include="BundlerMinifier.Core" Version="2.9.406" />
-    <PackageReference Include="Google.Apis.YouTube.v3" Version="1.40.3.1663" />
+    <PackageReference Include="Google.Apis.YouTube.v3" Version="1.40.3.1699" />
     <PackageReference Include="Hangfire.AspNetCore" Version="1.7.6" />
     <PackageReference Include="Hangfire.Core" Version="1.7.6" />
-    <PackageReference Include="Hangfire.PostgreSql" Version="1.6.2" />
-    <PackageReference Include="MailKit" Version="2.2.0" />
+    <PackageReference Include="Hangfire.PostgreSql" Version="1.6.3" />
+    <PackageReference Include="MailKit" Version="2.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Facebook" Version="3.0.0-preview8.19405.7" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="3.0.0-preview8.19405.7" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Twitter" Version="3.0.0-preview8.19405.7" />
@@ -84,7 +84,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="3.0.0-preview8.19405.4" />
-    <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="3.6.1-rc">
+    <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="3.6.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

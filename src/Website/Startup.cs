@@ -17,6 +17,7 @@ using Hangfire;
 using Hangfire.PostgreSql;
 using Hangfire.Dashboard;
 using System.Linq;
+using System.Security.Claims;
 
 namespace Website
 {
@@ -93,15 +94,12 @@ namespace Website
                 .AddDefaultTokenProviders()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
-            services.AddAuthorization(options =>
+            services.AddAuthentication(options =>
             {
-                options.AddPolicy("admin", policy =>
-                {
-                    policy.RequireClaim("admin");
-                });
-            });
-
-            services.AddAuthentication()
+                options.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
+                options.DefaultChallengeScheme = IdentityConstants.ApplicationScheme;
+                options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+            })
                 .AddFacebook(options =>
                 {
                     options.AppId = Config["FacebookAppId"];
@@ -126,16 +124,30 @@ namespace Website
                     options.ClientId = _env.IsDevelopment() ? Config["TwitchClientId_Development"] : Config["TwitchClientId_Production"];
                     options.ClientSecret = _env.IsDevelopment() ? Config["TwitchClientSecret_Development"] : Config["TwitchClientSecret_Production"];
                 })
-                .AddCookie();
+                .AddCookie(options =>
+                {
+                    options.LoginPath = "/Account/Login";
+                    options.AccessDeniedPath = "/Account/AccessDenied";
+                    options.LogoutPath = "/Account/Logout";
+                });
 
             services.AddMvc()
                 .AddRazorRuntimeCompilation()   // necessary during .net core 3 preview only? maybe safe to remove this line later
                 .AddNewtonsoftJson();
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("admin", policy =>
+                {
+                    policy.RequireClaim(ClaimTypes.Role, "admin");
+                });
+            });
         }
 
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+
             app.Use((context, next) =>
             {
                 var csp = new StringValues(
@@ -145,7 +157,7 @@ namespace Website
                     "font-src 'self' fonts.gstatic.com; " +
                     "img-src 'self' https://i.ytimg.com; " +
                     "block-all-mixed-content; " +
-                    (env.IsDevelopment() 
+                    (env.IsDevelopment()
                         ? "script-src 'self' 'unsafe-eval' 'unsafe-inline' www.youtube.com s.ytimg.com; "
                         : "script-src 'self' www.youtube.com; s.ytimg.com;")
                     );
@@ -167,11 +179,8 @@ namespace Website
             }
 
             app.UseCookiePolicy();
-
-            app.UseAuthorization();
-            app.UseAuthentication();
-
             app.UseHttpsRedirection();
+
             app.UseStaticFiles();
 
             app.UseHangfireDashboard("/hangfire", new DashboardOptions()
@@ -181,8 +190,12 @@ namespace Website
                     new HangfireAuthorizationFilter()
                 }
             });
-            
+
             app.UseRouting();
+
+            app.UseAuthentication();
+            app.UseAuthorization();
+
             app.UseEndpoints(endpoints =>
             {
                 // video page
@@ -202,6 +215,7 @@ namespace Website
                 endpoints.MapControllerRoute("general_resource", "{id}", new { Controller = Controllers.ResourceController.Controllername, Action = nameof(Controllers.ResourceController.Index) });
                 endpoints.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
             });
+
 
             app.CreateRequiredUserAccountsIfMissing();
 

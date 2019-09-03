@@ -7,13 +7,13 @@
                             <span class="orange"><strong>@User.Identity.Name</strong></span>
             </p>
             <p>
-                <a asp-controller="@AccountController.Controllername" asp-action="@nameof(AccountController.Logout)">Logout</a> | <a asp-controller="@MyAccountController.Controllername" asp-action="@nameof(MyAccountController.Index)">My Account</a>
+                <a asp-controller="@AccountController.Controllername" asp-action="@nameof(AccountController.Logout)" asp-area="">Logout</a> | <a asp-controller="@MyAccountController.Controllername" asp-action="@nameof(MyAccountController.Index)" asp-area="">My Account</a>
             </p>
         }
         else
         {
             <p>
-                <a asp-controller="@AccountController.Controllername" asp-action="@nameof(AccountController.Login)">Login / Register</a>
+                <a asp-controller="@AccountController.Controllername" asp-action="@nameof(AccountController.Login)" asp-area="">Login / Register</a>
             </p>
         }
     </div>

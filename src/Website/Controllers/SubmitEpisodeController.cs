@@ -11,6 +11,7 @@ using Website.Services;
 
 namespace Website.Controllers
 {
+    [Authorize]
     public class SubmitEpisodeController : Controller
     {
         public const string Controllername = "SubmitEpisode";

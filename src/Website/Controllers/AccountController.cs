@@ -423,5 +423,8 @@ namespace Website.Controllers
             await _signInManager.SignInAsync(user, false);
             return RedirectToAction(nameof(MyAccountController.RegistrationComplete), MyAccountController.Controllername);
         }
+
+        [HttpGet]
+        public ViewResult AccessDenied() => View();
     }
 }
