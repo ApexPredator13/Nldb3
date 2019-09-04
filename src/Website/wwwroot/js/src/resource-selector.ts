@@ -1,6 +1,6 @@
 ﻿import { IsaacResource } from './interfaces/isaac-resource';
-import { fillTableCells } from './lib/dom-operations';
 import { convertGameModeToString, convertExistsInToString } from './lib/enum-converters';
+import { fillTableCells } from './lib/dom-operations';
 
 declare const admin_mode: boolean;
 

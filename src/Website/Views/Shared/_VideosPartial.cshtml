@@ -39,47 +39,4 @@
     }
 </div>
 
-<table id="video-table">
-    <thead>
-        <tr id="video-table-head">
-            <th data-sort-by="@((int)VideoOrderBy.Title)" class="hand">Title</th>
-            <th data-sort-by="@((int)VideoOrderBy.Duration)" class="hand">Duration</th>
-            <th data-sort-by="@((int)VideoOrderBy.Published)" class="hand">Releasedate (m/d/y) ⇓</th>
-            <th>Submit</th>
-            <th data-sort-by="@((int)VideoOrderBy.Likes)" class="hand">Likes</th>
-            <th data-sort-by="@((int)VideoOrderBy.Dislikes)" class="hand">Dislikes</th>
-            <th data-sort-by="@((int)VideoOrderBy.LikeDislikeRatio)" class="hand">Ratio</th>
-            <th data-sort-by="@((int)VideoOrderBy.ViewCount)" class="hand">Views</th>
-            <th data-sort-by="@((int)VideoOrderBy.FavoriteCount)" class="hand">Favourites</th>
-            <th data-sort-by="@((int)VideoOrderBy.CommentCount)" class="hand">Comments</th>
-            <th>HD</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var v in Model.Videos)
-        {
-            <tr>
-                <td>
-                    @if (v.SubmissionCount > 0)
-                    {
-                        <a asp-controller="@VideoController.Controllername" asp-route-id="@v.Id">@v.Title</a>
-                    }
-                    else
-                    {
-                        <span class="gray">@v.Title</span>
-                    }
-                </td>
-                <td>@v.Duration</td>
-                <td>@v.Published</td>
-                <td><a asp-controller="@SubmitEpisodeController.Controllername" asp-action="@nameof(SubmitEpisodeController.Index)" asp-route-id="@v.Id">Submit</a></td>
-                <td>@v.Likes</td>
-                <td>@v.Dislikes</td>
-                <td>@v.LikeDislikeRatio</td>
-                <td>@v.ViewCount</td>
-                <td>@v.FavoriteCount</td>
-                <td>@v.CommentCount</td>
-                <td>@v.IsHD</td>
-            </tr>
-        }
-    </tbody>
-</table>
+<table id="video-table"></table>

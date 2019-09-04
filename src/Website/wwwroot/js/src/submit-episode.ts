@@ -88,12 +88,12 @@ class SubmitEpisodePageHandler {
             { id: 'other', name: 'Other Consumable', x: 315, y: 0, w: 35, h: 35 } as IsaacResource
         ]);
         this.loadedIsaacResources.set('game-modes', [
-            { id: '1', name: 'Normal Game', x: 0, y: 0, w: 30, h: 30 } as IsaacResource,
-            { id: '3', name: 'Greed Mode!', x: 0, y: 0, w: 30, h: 30 } as IsaacResource,
-            { id: '5', name: 'A Special Challenge', x: 0, y: 0, w: 30, h: 30 } as IsaacResource,
-            { id: '9', name: 'Community-Requested Challenge', x: 0, y: 0, w: 30, h: 30 } as IsaacResource,
-            { id: '6', name: 'A Special Seed', x: 0, y: 0, w: 30, h: 30 } as IsaacResource,
-            { id: '7', name: 'Something else', x: 0, y: 0, w: 30, h: 30 } as IsaacResource
+            { id: '1', name: 'Normal Game', x: 840, y: 0, w: 35, h: 35 } as IsaacResource,
+            { id: '3', name: 'Greed Mode!', x: 875, y: 0, w: 35, h: 35 } as IsaacResource,
+            { id: '5', name: 'A Special Challenge', x: 910, y: 0, w: 35, h: 35 } as IsaacResource,
+            { id: '9', name: 'Community-Requested Challenge', x: 980, y: 0, w: 35, h: 35 } as IsaacResource,
+            { id: '6', name: 'A Special Seed', x: 945, y: 0, w: 35, h: 35 } as IsaacResource,
+            { id: '7', name: 'Something else', x: 1015, y: 0, w: 35, h: 35 } as IsaacResource
         ]);
         this.loadedIsaacResources.set('no-starting-items', [
             { id: 'none', name: 'No, continue!', x: 700, y: 0, w: 35, h: 35 } as IsaacResource,
@@ -102,32 +102,32 @@ class SubmitEpisodePageHandler {
             { id: 'none', name: 'No, continue!', x: 665, y: 0, w: 35, h: 35 } as IsaacResource,
         ]);
         this.loadedIsaacResources.set('more-starting-items', [
-            { id: 'yes', name: 'Yes, there were more!', x: 0, y: 0, w: 30, h: 30 } as IsaacResource,
-            { id: 'no', name: 'No, that was it!', x: 665, y: 0, w: 35, h: 35 } as IsaacResource
+            { id: 'yes', name: 'Yes, there were more!', x: 595, y: 0, w: 30, h: 30 } as IsaacResource,
+            { id: 'no', name: 'No, that was it!', x: 700, y: 0, w: 35, h: 35 } as IsaacResource
         ]);
         this.loadedIsaacResources.set('more-starting-trinkets', [
-            { id: 'yes', name: 'Yes, there was another trinket!', x: 0, y: 0, w: 30, h: 30 } as IsaacResource,
+            { id: 'yes', name: 'Yes, there was another trinket!', x: 280, y: 0, w: 30, h: 30 } as IsaacResource,
             { id: 'no', name: 'No, that was it!', x: 665, y: 0, w: 35, h: 35 } as IsaacResource
         ]);
         this.loadedIsaacResources.set('common-bosses', []);
         this.loadedIsaacResources.set('common-floors', []);
         this.loadedIsaacResources.set('confirm-dead', [
-            { id: 'yes', name: 'Yes, NL died!', x: 0, y: 0, w: 30, h: 30 } as IsaacResource,
-            { id: 'no', name: 'No, CANCEL!', x: 0, y: 0, w: 30, h: 30 } as IsaacResource
+            { id: 'yes', name: 'Yes, NL died!', x: 1050, y: 0, w: 35, h: 30 } as IsaacResource,
+            { id: 'no', name: 'No, CANCEL!', x: 1085, y: 0, w: 35, h: 30 } as IsaacResource
         ]);
         this.loadedIsaacResources.set('another-run', [
-            { id: 'run', name: 'Yes, another normal run!', x: 0, y: 0, w: 30, h: 30 } as IsaacResource,
-            { id: 'victory-lap', name: 'Yes, a victory lap!', x: 0, y: 0, w: 30, h: 30 } as IsaacResource,
-            { id: 'end', name: 'No, the episode ended here!', x: 0, y: 0, w: 30, h: 30 } as IsaacResource
+            { id: 'run', name: 'Yes, another run!', x: 1120, y: 0, w: 35, h: 35 } as IsaacResource,
+            { id: 'victory-lap', name: 'Yes, a victory lap!', x: 1120, y: 0, w: 35, h: 35 } as IsaacResource,
+            { id: 'end', name: 'No, the episode ended here!', x: 1050, y: 0, w: 35, h: 35 } as IsaacResource
         ]);
         this.loadedIsaacResources.set('submit-run', [
-            { id: 'submit-episode', name: 'Submit Episode!', x: 0, y: 0, w: 30, h: 30 } as IsaacResource
+            { id: 'submit-episode', name: 'Submit Episode!', x: 1050, y: 0, w: 30, h: 30 } as IsaacResource
         ]);
         this.loadedIsaacResources.set('submit-failed', [
-            { id: 'submit-episode', name: 'Submit Episode!', x: 0, y: 0, w: 30, h: 30 } as IsaacResource
+            { id: 'submit-episode', name: 'Submit Episode!', x: 1120, y: 0, w: 30, h: 30 } as IsaacResource
         ]);
         this.loadedIsaacResources.set('run-submitted', [
-            { id: 'run-submitted', name: 'View Results!', x: 0, y: 0, w: 30, h: 30 } as IsaacResource
+            { id: 'run-submitted', name: 'View Results!', x: 735, y: 0, w: 30, h: 30 } as IsaacResource
         ]);
         this.loadedIsaacResources.set('did-black-rune-absorb', [
             { id: 'no', name: 'It didn\'t absorb abything, move on!', x: 0, y: 0, w: 30, h: 30 } as IsaacResource
@@ -245,7 +245,7 @@ class SubmitEpisodePageHandler {
         this.setHeader('How did Northernlion play the game?');
         const data = this.getIsaacResources('game-modes', '');
 
-        const gameModeBoxes = new Boxes(this.uiContainer, data, true);
+        const gameModeBoxes = new Boxes(this.uiContainer, data, true, '/img/gameplay_events.png');
 
         const sub = gameModeBoxes.elementWasSelected.subscribe(selectedGameMode => {
             this.unsubscribe(sub);
@@ -373,7 +373,7 @@ class SubmitEpisodePageHandler {
         const data = this.getIsaacResources('more-starting-trinkets', '');
         // 'none'
 
-        const boxes = new Boxes(this.uiContainer, data, true);
+        const boxes = new Boxes(this.uiContainer, data, true, '/img/gameplay_events.png');
 
         const sub = boxes.elementWasSelected.subscribe(result => {
             this.unsubscribe(sub);
@@ -534,13 +534,16 @@ class SubmitEpisodePageHandler {
 
         this.setHeader(`Please Confirm: Northernlion was killed by: ${this.selectedEnemy}`);
         const dead = this.getIsaacResources('confirm-dead', '');
-        const boxes = new Boxes(this.uiContainer, dead, true);
+        const boxes = new Boxes(this.uiContainer, dead, true, '/img/gameplay_events.png');
 
         const sub = boxes.elementWasSelected.subscribe(choice => {
             this.unsubscribe(sub);
             this.removeEventListeners(boxes);
 
-            if (choice === 'true' && this.selectedEnemy) {
+            console.log('choice is', choice);
+            console.log('selected enemy is', this.selectedEnemy);
+
+            if (choice === 'yes' && this.selectedEnemy) {
                 this.historyManager.AddGameplayEvent(this.selectedEnemy, GameplayEventType.CharacterDied, 1)
                 this.renderDidNlDoAnotherRun();
             } else {
@@ -552,7 +555,7 @@ class SubmitEpisodePageHandler {
     private renderDidNlDoAnotherRun(): void {
         this.setHeader('The run ended. Did NL do another run?');
         const choices = this.getIsaacResources('another-run', '');
-        const boxes = new Boxes(this.uiContainer, choices, true);
+        const boxes = new Boxes(this.uiContainer, choices, true, '/img/gameplay_events.png');
         const sub = boxes.elementWasSelected.subscribe(choice => {
             this.unsubscribe(sub);
             this.removeEventListeners(boxes);
@@ -677,9 +680,9 @@ class SubmitEpisodePageHandler {
 
     private renderSubmitEpisode(): void {
         this.setHeader('Thank you very much for contributing! Please Click this button to submit the episode:');
-        const choice = this.getIsaacResources('submit-episode', '');
+        const choice = this.getIsaacResources('submit-run', '');
 
-        const boxes = new Boxes(this.uiContainer, choice, true);
+        const boxes = new Boxes(this.uiContainer, choice, true, '/img/gameplay_events.png');
 
         const sub = boxes.elementWasSelected.subscribe(choice => {
             this.unsubscribe(sub);
@@ -714,7 +717,7 @@ class SubmitEpisodePageHandler {
         this.setHeader('Episode Submitted! Click the button below to see the results!');
         const choice = this.getIsaacResources('run-submitted', '');
 
-        const boxes = new Boxes(this.uiContainer, choice, true);
+        const boxes = new Boxes(this.uiContainer, choice, true, '/img/gameplay_events.png');
 
         const sub = boxes.elementWasSelected.subscribe(choice => {
             this.unsubscribe(sub);
@@ -729,7 +732,7 @@ class SubmitEpisodePageHandler {
         this.setHeader(`The episode could not be saved correctly. :( Error message: ${this.submitEpisodeErrormessage}`);
         const choice = this.getIsaacResources('submit-episode', '');
 
-        const boxes = new Boxes(this.uiContainer, choice, true);
+        const boxes = new Boxes(this.uiContainer, choice, true, '/img/gameplay_events.png');
 
         const sub = boxes.elementWasSelected.subscribe(choice => {
             this.unsubscribe(sub);

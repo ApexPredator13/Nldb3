@@ -23,7 +23,8 @@
 }
 
 .nav-section {
-    border-bottom: 1px dashed rgba(255,255,255,0.2);
+    border-bottom: 2px dashed rgba(255,255,255,0.2);
+    padding: 0.5rem 0;
 }
 
 .nav-section:first-of-type p {

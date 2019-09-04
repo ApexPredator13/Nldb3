@@ -1,0 +1,19 @@
+﻿@{ 
+    ViewData["Title"] = "Downloads";
+}
+
+<h1>Downloads</h1>
+<hr/>
+
+<h3>SQL Dump of the Database</h3>
+
+<p class="orange">Note: Don't download this unless you know how to operate a SQL database.</p>
+
+<p>
+    This is a direct SQL-Dump of everything that is stored here (All data related to users is removed).<br />
+    The Northernlion Database uses PostgreSQL to store data, and the dump is created with help of the pg_dump tool.<br/>
+    The dump will be recreated once an hour.
+</p>
+<a asp-controller="@DownloadsController.Controllername" asp-action="@nameof(DownloadsController.DownloadFile)" asp-area="">
+    Download SQL Dump
+</a>
