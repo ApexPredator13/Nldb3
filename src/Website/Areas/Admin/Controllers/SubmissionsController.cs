@@ -18,6 +18,31 @@ namespace Website.Areas.Admin.Controllers
             _isaacRepository = isaacRepository;
         }
 
+        [HttpGet]
         public ViewResult Index() => View();
+
+        [HttpGet]
+        public async Task<ViewResult> ViewSubmissions([FromRoute] string id)
+        {
+            var submissions = await _isaacRepository.GetSubmittedEpisodesForVideo(id);
+            return View(submissions);
+        }
+
+        [HttpGet("[area]/EditSubmission/{videoId}/{id}")]
+        public async Task<ViewResult> EditSubmission([FromRoute] string videoId, [FromRoute] int id)
+        {
+            var submission = await _isaacRepository.GetSubmittedEpisodesForVideo(videoId, id);
+            return View(submission);
+        }
+
+        [HttpGet("[area]/DeleteSubmission/{videoId}/{id}")]
+        public ViewResult DeleteSubmission([FromRoute] string videoId, [FromRoute] int id) => View((videoId, id));
+
+        [HttpPost]
+        public async Task<RedirectToActionResult> ConfirmDeleteSubmission([FromForm] int id, [FromForm] string videoId)
+        {
+            await _isaacRepository.DeleteSubmission(id);
+            return RedirectToAction(nameof(ViewSubmissions), new { id = videoId });
+        }
     }
 }

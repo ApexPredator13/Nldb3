@@ -11,6 +11,7 @@ interface VideosComponentCellCreator {
 }
 
 class VideosComponent {
+    private tableId: string;
     private isaacResource: string | undefined = undefined;
     private currentPage = 1;
     private amount = 50;
@@ -21,8 +22,9 @@ class VideosComponent {
     private asc = false;
     private cellCreators: Array<VideosComponentCellCreator>;
 
-    constructor(...cellCreators: Array<VideosComponentCellCreator>) {
+    constructor(tableId: string, ...cellCreators: Array<VideosComponentCellCreator>) {
         this.cellCreators = cellCreators;
+        this.tableId = tableId;
         this.isaacResource = (window as any).isaac_resource as string | undefined;
 
         this.CreateTableHead();
@@ -56,7 +58,7 @@ class VideosComponent {
         this.CreateVideoRequest().then(requestObject => {
             this.currentPage = requestObject.Page;
 
-            const table = document.getElementById('video-table');
+            const table = document.getElementById(this.tableId);
             if (!table) {
                 return;
             }
@@ -175,7 +177,7 @@ class VideosComponent {
     };
 
     private CreateTableHead(): void {
-        const table = document.getElementById('video-table');
+        const table = document.getElementById(this.tableId);
         if (table && table instanceof HTMLTableElement) {
             const thead = table.createTHead();
             thead.id = 'video-table-head';

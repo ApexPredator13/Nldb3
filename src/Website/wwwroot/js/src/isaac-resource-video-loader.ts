@@ -37,6 +37,7 @@ let td = (innerHtml?: string) => {
         cellCreator: (video: Video) => td(video.duration.toString(10)),
         sortByOnClick: VideoOrderBy.Duration
     }
+
     const createPublishedCell: VideosComponentCellCreator = {
         cellHeader: 'Releasedate (m/d/y) ⇓',
         cellCreator: (video: Video) => td(video.published),
@@ -97,6 +98,7 @@ let td = (innerHtml?: string) => {
     };
 
     new VideosComponent(
+        'video-table',
         createTitleCell,
         createVideoDurationCell,
         createPublishedCell,

@@ -333,7 +333,7 @@ namespace Website.Controllers
             var callbackUrl = Url.Action(nameof(ResetPassword), Controllername, new { code }, Request.Scheme);
 
             var emailMessage = _emailSender.GenerateResetPasswordEmail(model.Email ?? string.Empty, callbackUrl);
-            await _emailSender.SendEmailAsync(model.Email, "The Northernlion Database - Password Reset", emailMessage);
+            await _emailSender.SendEmailAsync(model.Email ?? string.Empty, "The Northernlion Database - Password Reset", emailMessage);
 
             return RedirectToAction(nameof(ForgotPasswordEmailSent));
         }

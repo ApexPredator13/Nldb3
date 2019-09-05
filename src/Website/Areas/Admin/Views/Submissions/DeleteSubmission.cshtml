@@ -1,0 +1,17 @@
+﻿@model (string, int)
+
+@{ 
+    ViewData["Title"] = "Confirm Delete";
+}
+
+<h3>Delete Submission with ID @Model.Item2.ToString()?</h3>
+<hr />
+<form method="post" asp-area="Admin" asp-controller="@SubmissionsController.Controllername" asp-action="@nameof(SubmissionsController.ConfirmDeleteSubmission)">
+    <input type="hidden" name="id" value="@Model.Item2" />
+    <input type="hidden" name="videoId" value="@Model.Item1" />
+    <button type="submit" class="btn-red">Yes, Delete!</button>
+</form>
+
+<p>
+    <a asp-area="Admin" asp-controller="@SubmissionsController.Controllername" asp-action="@nameof(SubmissionsController.ViewSubmissions)">Back to submissions</a>
+</p>

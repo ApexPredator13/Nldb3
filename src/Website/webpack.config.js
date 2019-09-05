@@ -14,7 +14,8 @@ module.exports = {
         resource_overview: './wwwroot/js/src/resource-overview.ts',
         video_quotes: './wwwroot/js/src/video-quotes.ts',
         quotes: './wwwroot/js/src/quotes.ts',
-        frontpage: './wwwroot/js/src/frontpage.ts'
+        frontpage: './wwwroot/js/src/frontpage.ts',
+        edit_submissions_video_loader: './wwwroot/js/src/edit-submissions-video-loader'
     },
     output: {
         path: path.resolve(__dirname, 'wwwroot', 'js', 'dist'),

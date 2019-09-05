@@ -45,5 +45,6 @@ namespace Website.Services
         List<AvailableStats> GetAvailableStats(IsaacResource resource);
         int GetResourceNumber(IsaacResource resource);
         int GetResourceNumber(ResourceType resourceType);
+        Task<int> DeleteSubmission(int submissionId);
     }
 }

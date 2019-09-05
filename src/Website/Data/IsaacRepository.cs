@@ -421,13 +421,15 @@ namespace Website.Data
                 while (r.Read())
                 {
                     int i = 0;
-                    var e = new SubmittedEpisode();
-                    e.Id = r.GetInt32(i++);
-                    e.SubmissionType = (SubmissionType)r.GetInt32(i++);
-                    e.Latest = r.GetBoolean(i++);
-                    e.PlayedCharacters = new List<PlayedCharacter>();
-                    e.Video = videoId;
-                    e.UserName = r.IsDBNull(i++) ? "[unknown]" : r.GetString(i - 1);
+                    var e = new SubmittedEpisode
+                    {
+                        Id = r.GetInt32(i++),
+                        SubmissionType = (SubmissionType)r.GetInt32(i++),
+                        Latest = r.GetBoolean(i++),
+                        PlayedCharacters = new List<PlayedCharacter>(),
+                        Video = videoId,
+                        UserName = r.IsDBNull(i++) ? "[unknown]" : r.GetString(i - 1)
+                    };
                     result.Add(e);
                 }
             }
@@ -463,24 +465,27 @@ namespace Website.Data
                 while (r.Read())
                 {
                     int i = 0;
-                    var playedCharacter = new PlayedCharacter();
-                    playedCharacter.Id = r.GetInt32(i++);
-                    playedCharacter.Action = r.GetInt32(i++);
-                    playedCharacter.RunNumber = r.GetInt32(i++);
-                    playedCharacter.Submission = r.GetInt32(i++);
-                    playedCharacter.Seed = r.IsDBNull(i++) ? null : r.GetString(i - 1);
-                    playedCharacter.GameCharacter = new IsaacResource();
-                    playedCharacter.GameCharacter.Id = r.GetString(i++);
-                    playedCharacter.GameCharacter.Name = r.GetString(i++);
-                    playedCharacter.GameCharacter.ResourceType = (ResourceType)r.GetInt32(i++);
-                    playedCharacter.GameCharacter.ExistsIn = (ExistsIn)r.GetInt32(i++);
-                    playedCharacter.GameCharacter.CssCoordinates = (NpgsqlBox)r[i++];
-                    playedCharacter.GameCharacter.GameMode = (GameMode)r.GetInt32(i++);
-                    playedCharacter.GameCharacter.Color = r.GetString(i++);
-                    playedCharacter.GameCharacter.DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1);
-                    playedCharacter.GameCharacter.Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1);
-                    playedCharacter.GameCharacter.Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Effect)x).ToList();
-                    
+                    var playedCharacter = new PlayedCharacter
+                    {
+                        Id = r.GetInt32(i++),
+                        Action = r.GetInt32(i++),
+                        RunNumber = r.GetInt32(i++),
+                        Submission = r.GetInt32(i++),
+                        Seed = r.IsDBNull(i++) ? null : r.GetString(i - 1),
+                        GameCharacter = new IsaacResource()
+                        {
+                            Id = r.GetString(i++),
+                            Name = r.GetString(i++),
+                            ResourceType = (ResourceType)r.GetInt32(i++),
+                            ExistsIn = (ExistsIn)r.GetInt32(i++),
+                            CssCoordinates = (NpgsqlBox)r[i++],
+                            GameMode = (GameMode)r.GetInt32(i++),
+                            Color = r.GetString(i++),
+                            DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
+                            Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
+                            Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Effect)x).ToList(),
+                        }
+                    };
 
                     if (!r.IsDBNull(i))
                     {
@@ -1030,6 +1035,15 @@ namespace Website.Data
             if (model.ValidUntil.HasValue) q.Parameters.AddWithValue("@VU", NpgsqlDbType.TimestampTz, model.ValidUntil ?? (object)DBNull.Value);
 
             return Convert.ToInt32(await q.ExecuteScalarAsync());
+        }
+
+        public async Task<int> DeleteSubmission(int submissionId)
+        {
+            var commandText = "DELETE FROM video_submissions WHERE id = @Id;";
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand(commandText, c);
+            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Integer, submissionId);
+            return await q.ExecuteNonQueryAsync();
         }
 
         public async Task<bool> HasTags(string resourceId, params Effect[] effects)
