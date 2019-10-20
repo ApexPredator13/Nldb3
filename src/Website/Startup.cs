@@ -51,13 +51,13 @@ namespace Website
             services.AddTransient<IMigrateOldDatabase, MigrateOldDatabase>();
             services.AddTransient<IIsaacIconManager, IsaacIconManager>();
 
-            services.AddScoped<IIsaacRepository, IsaacRepository>();
-            services.AddScoped<IModRepository, ModRepository>();
-            services.AddScoped<IVideoRepository, VideoRepository>();
-            services.AddScoped<IQuoteRepository, QuoteRepository>();
-            services.AddScoped<IEmailService, EmailService>();
-            services.AddScoped<IBarGraphCreator, BarGraphCreator>();
-            services.AddScoped<IDiscussionTopicsRepository, DiscussionTopicsRepository>();
+            services.AddTransient<IIsaacRepository, IsaacRepository>();
+            services.AddTransient<IModRepository, ModRepository>();
+            services.AddTransient<IVideoRepository, VideoRepository>();
+            services.AddTransient<IQuoteRepository, QuoteRepository>();
+            services.AddTransient<IEmailService, EmailService>();
+            services.AddTransient<IBarGraphCreator, BarGraphCreator>();
+            services.AddTransient<IDiscussionTopicsRepository, DiscussionTopicsRepository>();
 
             // hangfire
             services.AddHangfire(config => config
