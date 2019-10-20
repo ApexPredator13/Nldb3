@@ -199,8 +199,8 @@ namespace Website
             app.UseEndpoints(endpoints =>
             {
                 // video page
-                endpoints.MapControllerRoute("video", "/Video/{id}", new { Controller = Controllers.VideoController.Controllername, Action = nameof(Controllers.VideoController.Index) });
-                endpoints.MapControllerRoute("submitVideo", "/SubmitEpisode/{id}", new { Controller = Controllers.SubmitEpisodeController.Controllername, Action = nameof(Controllers.SubmitEpisodeController.Index) });
+                endpoints.MapControllerRoute("video", "/Video/{id}", new { Area = string.Empty, Controller = Controllers.VideoController.Controllername, Action = nameof(Controllers.VideoController.Index) });
+                endpoints.MapControllerRoute("submitVideo", "/SubmitEpisode/{id}", new { Area = string.Empty, Controller = Controllers.SubmitEpisodeController.Controllername, Action = nameof(Controllers.SubmitEpisodeController.Index) });
 
                 // default route for all areas
                 endpoints.MapControllerRoute("area", "{area:exists}/{controller=Home}/{action=Index}/{id?}");
@@ -208,19 +208,18 @@ namespace Website
                 // isaac resource overview pages
                 foreach (var overviewPageId in Controllers.ResourceController.OverviewPageNames.Keys)
                 {
-                    endpoints.MapControllerRoute(overviewPageId, $"/{overviewPageId}", new { Controller = Controllers.ResourceController.Controllername, Action = nameof(Controllers.ResourceController.Overview), Id = overviewPageId });
+                    endpoints.MapControllerRoute(overviewPageId, $"/{overviewPageId}", new { Area = string.Empty, Controller = Controllers.ResourceController.Controllername, Action = nameof(Controllers.ResourceController.Overview), Id = overviewPageId });
                 }
 
                 // catchall for arbitrary isaac resource
-                endpoints.MapControllerRoute("general_resource", "{id}", new { Controller = Controllers.ResourceController.Controllername, Action = nameof(Controllers.ResourceController.Index) });
+                endpoints.MapControllerRoute("general_resource", "{id}", new { Area = string.Empty, Controller = Controllers.ResourceController.Controllername, Action = nameof(Controllers.ResourceController.Index) });
                 endpoints.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
             });
 
 
             app.CreateRequiredUserAccountsIfMissing();
 
-            //app.ResetDatabaseInDevMode();
-            //BackgroundJob.Enqueue<IMigrateOldDatabase>(migrator => migrator.MigrateEverything());
+            //BackgroundJob.Enqueue<IMigrateOldDatabase>(migrator => migrator.MigrateUsersQuotesVideosAndRuns());
 
             RecurringJob.AddOrUpdate<ISqlDumper>(dumper => dumper.Dump(), Cron.Hourly());
         }

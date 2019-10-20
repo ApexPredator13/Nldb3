@@ -30,6 +30,7 @@ let filterOnInput = function (this: SearchBox) {
 
     for (let line of this.lines) {
         if (line[0].indexOf(searchLower) === -1) {
+            console.log('adding display-none');
             addClassIfNotExists(line[1], 'display-none');
         } else {
             removeClassIfExists(line[1], 'display-none');
@@ -124,8 +125,8 @@ export class SearchBox {
 
             text.innerText = displayName;
 
-            line.appendChild(image);
             line.appendChild(text);
+            line.appendChild(image);
 
             let keyName = elements[i].name.toLowerCase();
             if (elements[i].resource_type === 11) {

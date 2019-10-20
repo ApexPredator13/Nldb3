@@ -43,7 +43,7 @@ a:hover {
     display: normal;
 }
 .display-none {
-    display: none;
+    display: none !important;
 }
 .display-table-cell {
     display: table-cell;

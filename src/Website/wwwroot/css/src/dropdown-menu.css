@@ -47,13 +47,19 @@
 .dd-line {
     text-align: left;
     cursor: pointer;
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: center;
 }
 .dd-line:hover {
     background-color: rgba(255,255,255,0.1);
 }
 .dd-image, .dd-text {
-    display: inline-block;
-    vertical-align: middle;
+    display: block;
+}
+.dd-text {
+    text-overflow: ellipsis;
 }
 .selected {
     background-color: rgba(255,255,255,0.1);

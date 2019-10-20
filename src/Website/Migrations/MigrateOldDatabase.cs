@@ -69,6 +69,14 @@ namespace Website.Migrations
             await MigrateRuns();
         }
 
+        public async Task MigrateUsersQuotesVideosAndRuns()
+        {
+            MigrateUsers();
+            await MigrateVideos();
+            await MigrateQuotes();
+            await MigrateRuns();
+        }
+
         public void MigrateUsers()
         {
             if (_userManager.Users.Count() > 2)
@@ -1108,44 +1116,48 @@ namespace Website.Migrations
                             {
                                 while (r.Read())
                                 {
-                                    // absorbed item with VOID
-                                    if (r.GetString(1) == "AbsorbedItem")
+                                    var itemName = r.GetString(0);
+                                    var itemSource = r.GetString(1);
+
+                                    if (itemName == "DTwelveAfterbirth")
                                     {
-                                        var e = new SubmittedGameplayEvent()
-                                        {
-                                            RelatedResource1 = r.GetString(0),
-                                            RelatedResource2 = "TheVoid",
-                                            EventType = GameplayEventType.AbsorbedItem,
-                                            Player = r.GetInt32(2)
-                                        };
-                                        submission.PlayedCharacters.Last().PlayedFloors.Last().GameplayEvents.Add(e);
+                                        itemName = "DTwelve";
                                     }
-                                    // character rerolls
-                                    else if (r.GetString(1) == "CharacterReroll")
+
+                                    var e = new SubmittedGameplayEvent()
                                     {
-                                        if (r.GetString(0) == "Adult")
+                                        RelatedResource1 = itemName,
+                                        RelatedResource2 = itemSource,
+                                        EventType = GameplayEventType.ItemCollected,
+                                        Player = r.GetInt32(2)
+                                    };
+
+                                    // handle all different cases the items had until now
+
+                                    // absorbed item with VOID
+                                    if (itemSource == "AbsorbedItem")
+                                    {
+                                        e.RelatedResource2 = "TheVoid";
+                                        e.EventType = GameplayEventType.AbsorbedItem;
+                                    }
+
+                                    // handle character rerolls seperately
+                                    else if (itemSource == "CharacterReroll")
+                                    {
+                                        // ignore adult, will be inferred from pill usage from now on
+                                        if (itemName == "Adult")
                                         {
                                             continue;
                                         }
 
-                                        var e = new SubmittedGameplayEvent()
-                                        {
-                                            EventType = GameplayEventType.CharacterReroll,
-                                            RelatedResource1 = r.GetString(0),
-                                            Player = r.GetInt32(2)
-                                        };
+                                        e.EventType = GameplayEventType.CharacterReroll;
+                                        e.RelatedResource2 = null;
                                     }
+
                                     // normal item pickup
                                     else
                                     {
-                                        var e = new SubmittedGameplayEvent()
-                                        {
-                                            RelatedResource1 = r.GetString(0),
-                                            RelatedResource2 = r.GetString(1),
-                                            EventType = GameplayEventType.ItemCollected,
-                                            Player = r.GetInt32(2)
-                                        };
-
+                                        // manually handle name conflict in items and item sources
                                         if (e.RelatedResource2 == "PandorasBox") e.RelatedResource2 = "PandorasBoxItemSource";
                                         if (e.RelatedResource2 == "GBBug") e.RelatedResource2 = "GBBugItemSource";
                                         if (e.RelatedResource2 == "DWhatever") e.RelatedResource2 = "DWhateverItemSource";
@@ -1161,9 +1173,9 @@ namespace Website.Migrations
                                         if (e.RelatedResource2 == "Diplopia") e.RelatedResource2 = "DiplopiaItemSource";
                                         if (e.RelatedResource2 == "Hornfel") e.RelatedResource2 = "HornfelItemSource";
                                         if (e.RelatedResource2 == "LostSoul") e.RelatedResource2 = "LostSoulItemSource";
-
-                                        submission.PlayedCharacters.Last().PlayedFloors.Last().GameplayEvents.Add(e);
                                     }
+
+                                    submission.PlayedCharacters.Last().PlayedFloors.Last().GameplayEvents.Add(e);
                                 }
                             }
                         }
@@ -1178,6 +1190,12 @@ namespace Website.Migrations
                             {
                                 while (r.Read())
                                 {
+                                    // skipped boss no longer exists
+                                    if (r.GetString(0) == "SkippedBoss")
+                                    {
+                                        continue;
+                                    }
+
                                     var e = new SubmittedGameplayEvent() { RelatedResource1 = r.GetString(0), EventType = GameplayEventType.Bossfight };
 
                                     if (e.RelatedResource1 == "Isaac") e.RelatedResource1 = "IsaacBoss";
@@ -1186,6 +1204,11 @@ namespace Website.Migrations
                                     if (e.RelatedResource1 == "Gemini") e.RelatedResource1 = "GeminiBoss";
                                     if (e.RelatedResource1 == "Steven") e.RelatedResource1 = "StevenBoss";
                                     if (e.RelatedResource1 == "LittleHorn") e.RelatedResource1 = "LittleHornBoss";
+
+                                    // collapse old duplicate entries
+                                    if (e.RelatedResource1 == "DukeOfFliesAndMonstro") e.RelatedResource1 = "MonstroAndDukeOfFlies";
+                                    if (e.RelatedResource1 == "FistulaAndPeep") e.RelatedResource1 = "PeepAndFistula";
+                                    if (e.RelatedResource1 == "LokiAndLittleHorn") e.RelatedResource1 = "LittleHornAndLoki";
 
                                     submission.PlayedCharacters.Last().PlayedFloors.Last().GameplayEvents.Add(e);
                                 }
@@ -1207,7 +1230,12 @@ namespace Website.Migrations
                             if (r.HasRows)
                             {
                                 r.Read();
-                                e.RelatedResource1 = r.GetString(0);
+                                var deathName = r.GetString(0);
+                                if (deathName == "SpikeChest")
+                                {
+                                    deathName = "Mimic";
+                                }
+                                e.RelatedResource1 = deathName;
                             }
 
                             if (e.RelatedResource1 == "MissingDeath" || e.RelatedResource1 == "Missing Death")

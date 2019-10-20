@@ -48,7 +48,7 @@ namespace WebsiteTests.Controllers
             var iconManager = new Mock<IIsaacIconManager>();
             var modRepository = new Mock<IModRepository>();
 
-            var controller = new IsaacController(repo.Object, iconManager.Object, modRepository.Object);
+            using var controller = new IsaacController(repo.Object, iconManager.Object, modRepository.Object);
 
             // act
             var result = await controller.ChangeName("x") as ViewResult;
@@ -67,7 +67,7 @@ namespace WebsiteTests.Controllers
             var iconManager = new Mock<IIsaacIconManager>();
             var modRepository = new Mock<IModRepository>();
 
-            var controller = new IsaacController(repo.Object, iconManager.Object, modRepository.Object);
+            using var controller = new IsaacController(repo.Object, iconManager.Object, modRepository.Object);
             controller.ModelState.AddModelError("some", "error");
 
             // act
@@ -152,7 +152,7 @@ namespace WebsiteTests.Controllers
             repo.Setup(x => x.GetResourceById(It.IsAny<string>(), It.IsAny<bool>())).ReturnsAsync(new IsaacResource());
             var iconManager = new Mock<IIsaacIconManager>();
             var modRepository = new Mock<IModRepository>();
-            var controller = new IsaacController(repo.Object, iconManager.Object, modRepository.Object);
+            using var controller = new IsaacController(repo.Object, iconManager.Object, modRepository.Object);
 
             // act
             var result = await controller.ChangeId("x") as ViewResult;
@@ -171,7 +171,7 @@ namespace WebsiteTests.Controllers
             var iconManager = new Mock<IIsaacIconManager>();
             var modRepository = new Mock<IModRepository>();
 
-            var controller = new IsaacController(repo.Object, iconManager.Object, modRepository.Object);
+            using var controller = new IsaacController(repo.Object, iconManager.Object, modRepository.Object);
             controller.ModelState.AddModelError("some", "error");
 
             // act
@@ -237,7 +237,7 @@ namespace WebsiteTests.Controllers
             modRepository.Setup(x => x.GetAllMods()).ReturnsAsync(new List<Mod>());
             var iconManager = new Mock<IIsaacIconManager>();
 
-            var controller = new IsaacController(repo.Object, iconManager.Object, modRepository.Object);
+            using var controller = new IsaacController(repo.Object, iconManager.Object, modRepository.Object);
 
             // act
             var result = await controller.Create() as ViewResult;
@@ -259,7 +259,7 @@ namespace WebsiteTests.Controllers
             modRepository.Setup(x => x.GetAllMods()).ReturnsAsync(new List<Mod>());
             var iconManager = new Mock<IIsaacIconManager>();
 
-            var controller = new IsaacController(repo.Object, iconManager.Object, modRepository.Object);
+            using var controller = new IsaacController(repo.Object, iconManager.Object, modRepository.Object);
             controller.ModelState.AddModelError("some", "error");
 
             // act
@@ -273,7 +273,7 @@ namespace WebsiteTests.Controllers
             modRepository.Verify(x => x.GetAllMods(), Times.Once);
             iconManager.Verify(x => x.GetPostedImageSize(It.IsAny<IFormFile>()), Times.Never);
             iconManager.Verify(x => x.FindEmptySquare(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
-            iconManager.Verify(x => x.EmbedIcon(It.IsAny<IFormFile>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+            iconManager.Verify(x => x.EmbedIcon(It.IsAny<IFormFile>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
         }
 
         [Theory(DisplayName = "Create [POST] redirects to details page after creating"), AutoDataMoq]
@@ -287,7 +287,7 @@ namespace WebsiteTests.Controllers
             var iconManager = new Mock<IIsaacIconManager>();
             iconManager.Setup(x => x.GetPostedImageSize(It.IsAny<IFormFile>())).ReturnsAsync((1, 1));
             iconManager.Setup(x => x.FindEmptySquare(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync((1, 1));
-            iconManager.Setup(x => x.EmbedIcon(It.IsAny<IFormFile>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>())).Verifiable();
+            iconManager.Setup(x => x.EmbedIcon(It.IsAny<IFormFile>(), It.IsAny<int>(), It.IsAny<int>())).Verifiable();
 
             var controller = new IsaacController(repo.Object, iconManager.Object, modRepository.Object);
 
@@ -301,7 +301,7 @@ namespace WebsiteTests.Controllers
             modRepository.Verify(x => x.GetAllMods(), Times.Never);
             iconManager.Verify(x => x.GetPostedImageSize(It.IsAny<IFormFile>()), Times.Once);
             iconManager.Verify(x => x.FindEmptySquare(It.IsAny<int>(), It.IsAny<int>()), Times.Once);
-            iconManager.Verify(x => x.EmbedIcon(It.IsAny<IFormFile>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()), Times.Once);
+            iconManager.Verify(x => x.EmbedIcon(It.IsAny<IFormFile>(), It.IsAny<int>(), It.IsAny<int>()), Times.Once);
             repo.Verify(x => x.SaveResource(It.IsAny<CreateIsaacResource>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()), Times.Once);
         }
 
@@ -313,7 +313,7 @@ namespace WebsiteTests.Controllers
             var modRepository = new Mock<IModRepository>();
             var iconManager = new Mock<IIsaacIconManager>();
 
-            var controller = new IsaacController(repo.Object, iconManager.Object, modRepository.Object);
+            using var controller = new IsaacController(repo.Object, iconManager.Object, modRepository.Object);
             controller.ModelState.AddModelError("some", "error");
 
             // act
@@ -326,7 +326,7 @@ namespace WebsiteTests.Controllers
 
             iconManager.Verify(x => x.GetPostedImageSize(It.IsAny<IFormFile>()), Times.Never);
             iconManager.Verify(x => x.FindEmptySquare(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
-            iconManager.Verify(x => x.EmbedIcon(It.IsAny<IFormFile>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+            iconManager.Verify(x => x.EmbedIcon(It.IsAny<IFormFile>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
         }
 
 
@@ -352,7 +352,7 @@ namespace WebsiteTests.Controllers
             repo.Verify(x => x.GetResourceById(It.IsAny<string>(), It.IsAny<bool>()), Times.Once);
             iconManager.Verify(x => x.GetPostedImageSize(It.IsAny<IFormFile>()), Times.Never);
             iconManager.Verify(x => x.FindEmptySquare(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
-            iconManager.Verify(x => x.EmbedIcon(It.IsAny<IFormFile>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+            iconManager.Verify(x => x.EmbedIcon(It.IsAny<IFormFile>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
         }
 
         [Theory(DisplayName = "ChangeIcon [POST] redirects back to details page after updating"), AutoDataMoq]
@@ -366,7 +366,7 @@ namespace WebsiteTests.Controllers
             var iconManager = new Mock<IIsaacIconManager>();
             iconManager.Setup(x => x.GetPostedImageSize(It.IsAny<IFormFile>())).ReturnsAsync((1, 1));
             iconManager.Setup(x => x.FindEmptySquare(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync((1, 1));
-            iconManager.Setup(x => x.EmbedIcon(It.IsAny<IFormFile>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>())).Verifiable();
+            iconManager.Setup(x => x.EmbedIcon(It.IsAny<IFormFile>(), It.IsAny<int>(), It.IsAny<int>())).Verifiable();
 
             var controller = new IsaacController(repo.Object, iconManager.Object, modRepository.Object);
 
@@ -381,7 +381,7 @@ namespace WebsiteTests.Controllers
             repo.Verify(x => x.UpdateIconCoordinates(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()), Times.Once);
             iconManager.Verify(x => x.GetPostedImageSize(It.IsAny<IFormFile>()), Times.Once);
             iconManager.Verify(x => x.FindEmptySquare(It.IsAny<int>(), It.IsAny<int>()), Times.Once);
-            iconManager.Verify(x => x.EmbedIcon(It.IsAny<IFormFile>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()), Times.Once);
+            iconManager.Verify(x => x.EmbedIcon(It.IsAny<IFormFile>(), It.IsAny<int>(), It.IsAny<int>()), Times.Once);
         }
 
         [Theory(DisplayName = "ChangeExistsIn [POST] redisplays view if modelstate is invalid"), AutoData]
@@ -392,7 +392,7 @@ namespace WebsiteTests.Controllers
             var modRepository = new Mock<IModRepository>();
             var iconManager = new Mock<IIsaacIconManager>();
 
-            var controller = new IsaacController(repo.Object, iconManager.Object, modRepository.Object);
+            using var controller = new IsaacController(repo.Object, iconManager.Object, modRepository.Object);
             controller.ModelState.AddModelError("some", "error");
 
             // act
@@ -457,7 +457,7 @@ namespace WebsiteTests.Controllers
             var modRepository = new Mock<IModRepository>();
             var iconManager = new Mock<IIsaacIconManager>();
 
-            var controller = new IsaacController(repo.Object, iconManager.Object, modRepository.Object);
+            using var controller = new IsaacController(repo.Object, iconManager.Object, modRepository.Object);
             controller.ModelState.AddModelError("some", "error");
 
             // act

@@ -177,7 +177,7 @@ namespace WebsiteTests.Infrastructure
                 var postedFile = new FormFile(fs, 0, fs.Length, "icon", "icon.png");
 
                 // act
-                iconManager.EmbedIcon(postedFile, 0, 30, 30, 30);
+                iconManager.EmbedIcon(postedFile, 0, 30);
             }
 
             // assert - compare top and lower half of the images

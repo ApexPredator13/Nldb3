@@ -7,6 +7,7 @@ using Website.Services;
 
 namespace Website.Areas.Admin.Controllers
 {
+    [Area("admin")]
     public class SubmissionsController : Controller
     {
         public const string Controllername = "Submissions";
@@ -28,14 +29,14 @@ namespace Website.Areas.Admin.Controllers
             return View(submissions);
         }
 
-        [HttpGet("[area]/EditSubmission/{videoId}/{id}")]
+        [HttpGet("EditSubmission/{videoId}/{id}")]
         public async Task<ViewResult> EditSubmission([FromRoute] string videoId, [FromRoute] int id)
         {
             var submission = await _isaacRepository.GetSubmittedEpisodesForVideo(videoId, id);
             return View(submission);
         }
 
-        [HttpGet("[area]/DeleteSubmission/{videoId}/{id}")]
+        [HttpGet("DeleteSubmission/{videoId}/{id}")]
         public ViewResult DeleteSubmission([FromRoute] string videoId, [FromRoute] int id) => View((videoId, id));
 
         [HttpPost]
