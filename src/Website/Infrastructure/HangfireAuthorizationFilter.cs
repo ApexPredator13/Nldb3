@@ -9,7 +9,8 @@ namespace Website.Infrastructure
     {
         public bool Authorize([NotNull] DashboardContext context)
         {
-            var user = context.GetHttpContext().User;
+            var httpContext = context.GetHttpContext();
+            var user = httpContext.User;
 
             if (user.Claims.Any(x => x.Type == ClaimTypes.Role && x.Value == "admin"))
             {

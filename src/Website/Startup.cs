@@ -18,6 +18,7 @@ using Hangfire.PostgreSql;
 using Hangfire.Dashboard;
 using System.Linq;
 using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace Website
 {
@@ -147,6 +148,12 @@ namespace Website
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.UseCors(x =>
+            {
+                x.AllowAnyOrigin();
+                x.AllowAnyHeader();
+                x.AllowAnyMethod();
+            });
 
             app.Use((context, next) =>
             {
@@ -183,6 +190,11 @@ namespace Website
 
             app.UseStaticFiles();
 
+            app.UseRouting();
+
+            app.UseAuthentication();
+            app.UseAuthorization();
+
             app.UseHangfireDashboard("/hangfire", new DashboardOptions()
             {
                 Authorization = new List<IDashboardAuthorizationFilter>()
@@ -190,11 +202,6 @@ namespace Website
                     new HangfireAuthorizationFilter()
                 }
             });
-
-            app.UseRouting();
-
-            app.UseAuthentication();
-            app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
@@ -222,6 +229,8 @@ namespace Website
             //BackgroundJob.Enqueue<IMigrateOldDatabase>(migrator => migrator.MigrateUsersQuotesVideosAndRuns());
 
             RecurringJob.AddOrUpdate<ISqlDumper>(dumper => dumper.Dump(), Cron.Hourly());
+            RecurringJob.AddOrUpdate<IVideoRepository>(repo => repo.GetVideosThatNeedYoutubeUpdate(3, true), Cron.Minutely);
         }
     }
 }
+

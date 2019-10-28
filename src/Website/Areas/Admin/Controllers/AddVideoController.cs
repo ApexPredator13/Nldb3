@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Google.Apis.YouTube.v3.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Website.Areas.Admin.ViewModels;
 using Website.Services;
@@ -35,7 +37,7 @@ namespace Website.Areas.Admin.Controllers
             {
                 if (await _videoRepository.VideoExists(data.Id))
                 {
-                    await _videoRepository.UpdateVideo(data);
+                    await _videoRepository.UpdateVideosWithYoutubeData(new List<Video>() { data });
                 }
                 else
                 {

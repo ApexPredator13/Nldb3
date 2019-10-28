@@ -53,13 +53,20 @@ class SubmitEpisodePageHandler {
                         this.renderWasTheFloorCursed();
                         break;
                     case ResourceType.Floor:
-                        this.renderWhatFloorAreWeOn();
+                        console.log('removed floor', removedItem);
+                        console.log('removed floor is last floor?', historyManager.IsLastFloor(removedItem.FloorIndex));
+                        if (historyManager.IsLastFloor(removedItem.FloorIndex)) {
+                            this.renderWhatFloorAreWeOn();
+                        }
                         break;
                     case ResourceType.Character:
-                        this.renderWhatCharacterGotPlayed();
+                        if (historyManager.IsLastCharacter(removedItem.CharacterIndex)) {
+                            this.renderWhatCharacterGotPlayed();
+                        }
                         break;
                 }
             }
+            historyManager.RefreshCurrentValues();
         });
 
         // set default values
@@ -79,7 +86,9 @@ class SubmitEpisodePageHandler {
             { id: 'trinket', name: 'Trinket Taken', x: 280, y: 0, w: 35, h: 35 } as IsaacResource,
             { id: 'reroll', name: 'Character Reroll', x: 385, y: 0, w: 35, h: 35 } as IsaacResource,
             { id: 'absorbed_item', name: 'Sucked Up Item', x: 350, y: 0, w: 35, h: 35 } as IsaacResource,
-            { id: 'enemy', name: 'Northernlion DIED', x: 35, y: 0, w: 35, h: 35 } as IsaacResource
+            { id: 'enemy', name: 'Northernlion DIED', x: 35, y: 0, w: 35, h: 35 } as IsaacResource,
+            { id: 'won', name: 'Northernlion WON', x: 1155, y: 0, w: 35, h: 35 } as IsaacResource,
+            { id: 'down_to_the_next_floor', name: 'Down to the next floor!', x: 105, y: 0, w: 35, h: 35 } as IsaacResource
         ]);
         this.loadedIsaacResources.set('used', [
             { id: 'pill', name: 'Pill', x: 175, y: 0, w: 35, h: 35 } as IsaacResource,
@@ -113,6 +122,10 @@ class SubmitEpisodePageHandler {
         this.loadedIsaacResources.set('common-floors', []);
         this.loadedIsaacResources.set('confirm-dead', [
             { id: 'yes', name: 'Yes, NL died!', x: 1050, y: 0, w: 35, h: 30 } as IsaacResource,
+            { id: 'no', name: 'No, CANCEL!', x: 1085, y: 0, w: 35, h: 30 } as IsaacResource
+        ]);
+        this.loadedIsaacResources.set('confirm-won', [
+            { id: 'yes', name: 'Yes, NL won the run!', x: 1050, y: 0, w: 35, h: 30 } as IsaacResource,
             { id: 'no', name: 'No, CANCEL!', x: 1085, y: 0, w: 35, h: 30 } as IsaacResource
         ]);
         this.loadedIsaacResources.set('another-run', [
@@ -221,6 +234,12 @@ class SubmitEpisodePageHandler {
                     break;
                 case 'other':
                     this.renderOtherConsumable();
+                    break;
+                case 'down_to_the_next_floor':
+                    this.renderWhatFloorAreWeOn();
+                    break;
+                case 'won':
+                    this.renderConfirmWon();
                     break;
             }
         });
@@ -501,7 +520,7 @@ class SubmitEpisodePageHandler {
 
     private renderWhichItemWasTouched(): void {
         this.setHeader('Which item was touched?');
-        const items = this.getIsaacResources('items', '/api/resources/?ResourceType=6');
+        const items = this.getIsaacResources('spacebar_items', '/api/resources/?ResourceType=6&RequiredTags=140');
 
         const searchBox = new SearchBox(this.uiContainer, items, true);
 
@@ -540,11 +559,25 @@ class SubmitEpisodePageHandler {
             this.unsubscribe(sub);
             this.removeEventListeners(boxes);
 
-            console.log('choice is', choice);
-            console.log('selected enemy is', this.selectedEnemy);
-
             if (choice === 'yes' && this.selectedEnemy) {
                 this.historyManager.AddGameplayEvent(this.selectedEnemy, GameplayEventType.CharacterDied, 1)
+                this.renderDidNlDoAnotherRun();
+            } else {
+                this.renderMainMenu();
+            }
+        });
+    }
+
+    private renderConfirmWon(): void {
+        this.setHeader(`Please Confirm: Northernlion won the run?`);
+        const won = this.getIsaacResources('confirm-won', '');
+        const boxes = new Boxes(this.uiContainer, won, true, '/img/gameplay_events.png');
+
+        const sub = boxes.elementWasSelected.subscribe(choice => {
+            this.unsubscribe(sub);
+            this.removeEventListeners(boxes);
+
+            if (choice === 'yes') {
                 this.renderDidNlDoAnotherRun();
             } else {
                 this.renderMainMenu();
@@ -695,6 +728,7 @@ class SubmitEpisodePageHandler {
 
     private renderCurrentlySubmitting(): void {
         this.setHeader('Saving episode, please wait...');
+        this.uiContainer.innerHTML = '';
         this.historyManager.Submit().then(response => {
             if (response.ok) {
                 this.renderEpisodeSubmitted();

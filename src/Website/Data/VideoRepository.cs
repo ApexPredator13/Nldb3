@@ -15,6 +15,7 @@ using Microsoft.Extensions.Configuration;
 using System.Xml;
 using Website.Models.Database;
 using Website.Models;
+using Microsoft.Extensions.Logging;
 
 namespace Website.Data
 {
@@ -25,14 +26,55 @@ namespace Website.Data
         private readonly IIsaacRepository _isaacRepository;
         private readonly IConfiguration _config;
         private readonly IFormatProvider _formatProvider;
+        private readonly ILogger<VideoRepository> _logger;
 
-        public VideoRepository(IDbConnector connector, IModRepository modRepository, IIsaacRepository isaacRepository, IConfiguration config)
+        public VideoRepository(IDbConnector connector, IModRepository modRepository, IIsaacRepository isaacRepository, IConfiguration config, ILogger<VideoRepository> logger)
         {
             _connector = connector;
             _modRepository = modRepository;
             _isaacRepository = isaacRepository;
             _config = config;
             _formatProvider = new System.Globalization.CultureInfo("en-US");
+            _logger = logger;
+        }
+
+        public async Task UpdateVideo(params string[] id)
+        {
+            var videoData = await GetYoutubeVideoData(id);
+            if (videoData?.Items != null && videoData.Items.Count > 0)
+            {
+                await UpdateVideosWithYoutubeData(videoData.Items);
+            }
+        }
+
+        public async Task<List<string>> GetVideosThatNeedYoutubeUpdate(int amount, bool updateVideosAfterwards = false)
+        {
+            _logger.LogInformation($"Getting videos that need youtube update: {amount.ToString()}, update right afterwards: {updateVideosAfterwards.ToString()}");
+
+            var result = new List<string>();
+            var commandText = "SELECT id FROM videos ORDER BY last_updated ASC NULLS FIRST LIMIT @Amount;";
+            using var connection = await _connector.Connect();
+            using var command = new NpgsqlCommand(commandText, connection);
+            command.Parameters.AddWithValue("@Amount", NpgsqlDbType.Integer, amount);
+            using var r = await command.ExecuteReaderAsync();
+
+            if (!r.HasRows)
+            {
+                return result;
+            }
+            while (r.Read())
+            {
+                result.Add(r.GetString(0));
+            }
+
+            _logger.LogInformation($"videos that need update: { string.Join(", ", result.ToArray()) }");
+
+            if (updateVideosAfterwards)
+            {
+                await UpdateVideo(result.ToArray());
+            }
+
+            return result;
         }
 
         private bool RequireWhere(IsaacSearchOptions request)
@@ -231,32 +273,41 @@ namespace Website.Data
             await q.ExecuteNonQueryAsync();
         }
 
-        public async Task<int> UpdateVideo(Video updatedVideo)
+        public async Task<int> UpdateVideosWithYoutubeData(IList<Video> updatedVideos)
         {
-            string commandText =
+            int result = 0;
+
+            foreach(var updatedVideo in updatedVideos)
+            {
+                _logger.LogInformation($"updating video {updatedVideo.Id ?? "no id found"}: {updatedVideo.Snippet.Title ?? "no title found"}");
+
+                string commandText =
                 "UPDATE videos SET title = @Title, published = @Pub, Duration = @Dur, " +
                     "likes = @Likes, dislikes = @Dislikes, view_count = @ViewCount, favorite_count = @Fav, " +
-                    "comment_count = @CC, tags = @Tags, is_3d = @Is3D, is_hd = @IsHD, cc = @Cap " +
+                    "comment_count = @CC, tags = @Tags, is_3d = @Is3D, is_hd = @IsHD, cc = @Cap, last_updated = LOCALTIMESTAMP " +
                 "WHERE id = @Id;";
 
-            using var c = await _connector.Connect();
-            using var q = new NpgsqlCommand(commandText, c);
+                using var c = await _connector.Connect();
+                using var q = new NpgsqlCommand(commandText, c);
 
-            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, updatedVideo.Id);
-            q.Parameters.AddWithValue("@Title", NpgsqlDbType.Text, updatedVideo.Snippet.Title);
-            q.Parameters.AddWithValue("@Pub", NpgsqlDbType.TimestampTz, updatedVideo.Snippet.PublishedAt ?? (object)DBNull.Value);
-            q.Parameters.AddWithValue("@Dur", NpgsqlDbType.Integer, (int)(XmlConvert.ToTimeSpan(updatedVideo.ContentDetails.Duration).TotalSeconds));
-            q.Parameters.AddWithValue("@Likes", NpgsqlDbType.Integer, updatedVideo.Statistics.LikeCount.HasValue ? (int)updatedVideo.Statistics.LikeCount.Value : (object)DBNull.Value);
-            q.Parameters.AddWithValue("@Dislikes", NpgsqlDbType.Integer, updatedVideo.Statistics.DislikeCount.HasValue ? (int)updatedVideo.Statistics.DislikeCount : (object)DBNull.Value);
-            q.Parameters.AddWithValue("@ViewCount", NpgsqlDbType.Integer, updatedVideo.Statistics.ViewCount.HasValue ? (int)updatedVideo.Statistics.ViewCount.Value : (object)DBNull.Value);
-            q.Parameters.AddWithValue("@Fav", NpgsqlDbType.Integer, updatedVideo.Statistics.FavoriteCount.HasValue ? (int)updatedVideo.Statistics.FavoriteCount.Value : (object)DBNull.Value);
-            q.Parameters.AddWithValue("@CC", NpgsqlDbType.Integer, updatedVideo.Statistics.CommentCount.HasValue ? (int)updatedVideo.Statistics.CommentCount.Value : (object)DBNull.Value);
-            q.Parameters.AddWithValue("@Tags", NpgsqlDbType.Array | NpgsqlDbType.Text, updatedVideo.Snippet.Tags != null && updatedVideo.Snippet.Tags.Count > 0 ? updatedVideo.Snippet.Tags : (object)DBNull.Value);
-            q.Parameters.AddWithValue("@Is3D", NpgsqlDbType.Boolean, updatedVideo.ContentDetails.Dimension.ToLower() == "3d");
-            q.Parameters.AddWithValue("@IsHD", NpgsqlDbType.Boolean, updatedVideo.ContentDetails.Definition.ToLower() == "hd");
-            q.Parameters.AddWithValue("@Cap", NpgsqlDbType.Boolean, updatedVideo.ContentDetails.Caption.ToLower() == "true");
+                q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, updatedVideo.Id);
+                q.Parameters.AddWithValue("@Title", NpgsqlDbType.Text, updatedVideo.Snippet.Title);
+                q.Parameters.AddWithValue("@Pub", NpgsqlDbType.TimestampTz, updatedVideo.Snippet.PublishedAt ?? (object)DBNull.Value);
+                q.Parameters.AddWithValue("@Dur", NpgsqlDbType.Integer, (int)(XmlConvert.ToTimeSpan(updatedVideo.ContentDetails.Duration).TotalSeconds));
+                q.Parameters.AddWithValue("@Likes", NpgsqlDbType.Integer, updatedVideo.Statistics.LikeCount.HasValue ? (int)updatedVideo.Statistics.LikeCount.Value : (object)DBNull.Value);
+                q.Parameters.AddWithValue("@Dislikes", NpgsqlDbType.Integer, updatedVideo.Statistics.DislikeCount.HasValue ? (int)updatedVideo.Statistics.DislikeCount : (object)DBNull.Value);
+                q.Parameters.AddWithValue("@ViewCount", NpgsqlDbType.Integer, updatedVideo.Statistics.ViewCount.HasValue ? (int)updatedVideo.Statistics.ViewCount.Value : (object)DBNull.Value);
+                q.Parameters.AddWithValue("@Fav", NpgsqlDbType.Integer, updatedVideo.Statistics.FavoriteCount.HasValue ? (int)updatedVideo.Statistics.FavoriteCount.Value : (object)DBNull.Value);
+                q.Parameters.AddWithValue("@CC", NpgsqlDbType.Integer, updatedVideo.Statistics.CommentCount.HasValue ? (int)updatedVideo.Statistics.CommentCount.Value : (object)DBNull.Value);
+                q.Parameters.AddWithValue("@Tags", NpgsqlDbType.Array | NpgsqlDbType.Text, updatedVideo.Snippet.Tags != null && updatedVideo.Snippet.Tags.Count > 0 ? updatedVideo.Snippet.Tags : (object)DBNull.Value);
+                q.Parameters.AddWithValue("@Is3D", NpgsqlDbType.Boolean, updatedVideo.ContentDetails.Dimension.ToLower() == "3d");
+                q.Parameters.AddWithValue("@IsHD", NpgsqlDbType.Boolean, updatedVideo.ContentDetails.Definition.ToLower() == "hd");
+                q.Parameters.AddWithValue("@Cap", NpgsqlDbType.Boolean, updatedVideo.ContentDetails.Caption.ToLower() == "true");
 
-            return await q.ExecuteNonQueryAsync();
+                result += await q.ExecuteNonQueryAsync();
+            }
+
+            return result;
         }
 
         public async Task SubmitLostEpisode(string videoId, string userId)
@@ -361,17 +412,16 @@ namespace Website.Data
                     var floor = character.PlayedFloors[i];
 
                     // get floor duration
-                    if (floor.Duration is null)
+                    if (!floor.Duration.HasValue)
                     {
-                        // last one is null, subtract lengt so far from video length
+                        // last one is null, subtract length of other floors from video length
                         floor.Duration = (await GetVideoLength(episode.VideoId) ?? 0) - cumulativeVideoLength;
                     }
                     else
                     {
-                        cumulativeVideoLength += floor.Duration.Value;
+                        cumulativeVideoLength += floor.Duration ?? 0;
                     }
 
-                    cumulativeVideoLength += floor.Duration ?? 0;
                     var isLastFloorOfTheRun = i == character.PlayedFloors.Count - 1;
 
                     currentFloorNumber++;
@@ -553,7 +603,7 @@ namespace Website.Data
                         {
                             Id = r.GetString(i++),
                             Title = r.GetString(i++),
-                            Published = r.GetDateTime(i++).ToString("F", _formatProvider),
+                            Published = r.GetDateTime(i++).ToString("MM/dd/yyyy hh:mm tt", _formatProvider),
                             Duration = TimeSpan.FromSeconds(r.GetInt32(i++)),
                             RequiresUpdate = r.GetBoolean(i++),
                             Likes = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
@@ -661,7 +711,7 @@ namespace Website.Data
                 "SELECT" +
                     " v.id, v.title, v.published, v.duration, v.needs_update, v.likes, v.dislikes," +
                     " v.view_count, v.favorite_count, v.comment_count, v.tags, v.is_3d, v.is_hd, v.cc," +
-                    " (v.likes::numeric / v.dislikes::numeric) AS like_dislike_ratio," +
+                    " ((100::numeric * v.dislikes::numeric) / (v.likes::numeric +  v.dislikes::numeric)) AS like_dislike_ratio," +
                     " COUNT(s.id) AS submission_count");
 
             // FROM
@@ -759,7 +809,7 @@ namespace Website.Data
                     {
                         Id = r.GetString(i++),
                         Title = r.GetString(i++),
-                        Published = r.GetDateTime(i++).ToString("F", _formatProvider),
+                        Published = r.GetDateTime(i++).ToString("MM/dd/yyyy hh:mm tt", _formatProvider),
                         Duration = TimeSpan.FromSeconds(r.GetInt32(i++)),
                         RequiresUpdate = r.GetBoolean(i++),
                         Likes = r.IsDBNull(i++) ? (int?)null : r.GetInt32(i - 1),
@@ -767,7 +817,7 @@ namespace Website.Data
                         ViewCount = r.IsDBNull(i++) ? (int?)null : r.GetInt32(i - 1),
                         FavoriteCount = r.IsDBNull(i++) ? (int?)null : r.GetInt32(i - 1),
                         CommentCount = r.IsDBNull(i++) ? (int?)null : r.GetInt32(i - 1),
-                        Tags = r.IsDBNull(i++) ? new List<string>() : ((string[])r[i++]).ToList(),
+                        Tags = r.IsDBNull(i++) ? new List<string>() : ((string[])r[i - 1]).ToList(),
                         Is3D = r.IsDBNull(i++) ? false : r.GetBoolean(i - 1),
                         IsHD = r.IsDBNull(i++) ? false : r.GetBoolean(i - 1),
                         HasCaption = r.IsDBNull(i++) ? false : r.GetBoolean(i - 1),

@@ -48,6 +48,31 @@ export class EpisodeHistoryManager {
         });
     }
 
+    IsLastFloor(index: number | undefined): boolean {
+        if (index === undefined) {
+            return false;
+        }
+        const lastCharacter = this.episode.PlayedCharacters[this.episode.PlayedCharacters.length - 1];
+        const numberOfFloors = lastCharacter.PlayedFloors.length;
+        if (index === numberOfFloors) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    IsLastCharacter(index: number | undefined): boolean {
+        if (index === undefined) {
+            return false;
+        }
+        const lastCharacter = this.episode.PlayedCharacters.length;
+        if (index === lastCharacter) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     CharacterIsOnFirstFloor(): boolean {
         if (!this.episode.PlayedCharacters || this.episode.PlayedCharacters.length === 0) {
             return false;
@@ -127,6 +152,15 @@ export class EpisodeHistoryManager {
 
     ChangeCurrentPlayer(currentPlayer: 1 | 2) {
         this.currentPlayer = currentPlayer;
+    }
+
+    RefreshCurrentValues(): void {
+        console.log('previous character', this.currentCharacter);
+        console.log('previous floor', this.currentFloor);
+        this.currentCharacter = this.episode.PlayedCharacters.length - 1;
+        this.currentFloor = this.episode.PlayedCharacters[this.currentCharacter].PlayedFloors.length - 1;
+        console.log('current character', this.currentCharacter);
+        console.log('current floor', this.currentFloor);
     }
 
     AddGameplayEvent(id: string, gameplayEvent: GameplayEventType, resourceNumber: 1 | 2 | 3) {

@@ -651,7 +651,7 @@ namespace WebsiteTests.Repositories
             update.ContentDetails.Duration = "PT1H34M";
 
             // act
-            int updateChanges = await videoRepo.UpdateVideo(update);
+            int updateChanges = await videoRepo.UpdateVideoWithYoutubeData(update);
             var updatedVideo = await videoRepo.GetVideoById(video.Id);
 
             // assert

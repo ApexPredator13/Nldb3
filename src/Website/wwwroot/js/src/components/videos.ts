@@ -6,8 +6,10 @@ import { VideoOrderBy } from '../enums/video-order-by';
 
 interface VideosComponentCellCreator {
     cellHeader: string,
+    cellHeaderTitle?: string,
     cellCreator: (video: Video) => HTMLTableCellElement
-    sortByOnClick?: VideoOrderBy
+    sortByOnClick?: VideoOrderBy,
+    title?: string
 }
 
 class VideosComponent {
@@ -186,6 +188,9 @@ class VideosComponent {
             for (const cellCreator of this.cellCreators) {
                 const th = document.createElement('th');
                 th.innerText = cellCreator.cellHeader;
+                if (cellCreator.cellHeaderTitle) {
+                    th.title = cellCreator.cellHeaderTitle
+                }
                 if (cellCreator.sortByOnClick !== undefined) {
                     th.setAttribute('data-sort-by', cellCreator.sortByOnClick.toString(10));
                     th.classList.add('hand');

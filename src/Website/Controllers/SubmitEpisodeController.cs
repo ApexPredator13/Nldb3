@@ -16,24 +16,28 @@ namespace Website.Controllers
     {
         public const string Controllername = "SubmitEpisode";
 
-        private readonly IIsaacRepository _isaacRepository;
         private readonly IVideoRepository _videoRepository;
         private readonly UserManager<IdentityUser> _userManager;
 
-        public SubmitEpisodeController(IIsaacRepository isaacRepository, IVideoRepository videoRepository, UserManager<IdentityUser> userManager)
+        public SubmitEpisodeController(IVideoRepository videoRepository, UserManager<IdentityUser> userManager)
         {
-            _isaacRepository = isaacRepository;
             _videoRepository = videoRepository;
             _userManager = userManager;
         }
 
         [HttpGet]
-        public async Task<ViewResult> Index(string id)
+        public async Task<ActionResult> Index(string id)
         {
+            var video = await _videoRepository.GetVideoById(id);
+            if (video is null)
+            {
+                return BadRequest();
+            }
+
+            await _videoRepository.UpdateVideo(id);
+
             ViewData["Id"] = id;
-            var request = new GetResource() { ResourceType = ResourceType.Unspecified };
-            var items = await _isaacRepository.GetResources(request);
-            return View(items);
+            return View();
         }
 
         [HttpPost, Authorize]

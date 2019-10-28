@@ -65,7 +65,7 @@ namespace Website.Controllers
 
                     if (videoExists)
                     {
-                        await _videoRepository.UpdateVideo(youtubeApiResult.Items[0]);
+                        await _videoRepository.UpdateVideosWithYoutubeData(new List<Video>() { youtubeApiResult.Items[0] });
                     }
                     else
                     {

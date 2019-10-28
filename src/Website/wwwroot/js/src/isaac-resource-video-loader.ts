@@ -10,6 +10,19 @@ let td = (innerHtml?: string) => {
     return cell;
 }
 
+// returns number as string, with thousands seperator
+let printNumber = (num: number | undefined | null, decimals: null | 1 | 2 = null): string | undefined => {
+    if (num) {
+        if (decimals) {
+            return num.toFixed(decimals).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        } else {
+            return num.toString(10).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+    } else {
+        return undefined;
+    }
+}
+
 (() => {
     const createTitleCell: VideosComponentCellCreator = {
         cellHeader: 'Title',
@@ -34,13 +47,21 @@ let td = (innerHtml?: string) => {
 
     const createVideoDurationCell: VideosComponentCellCreator = {
         cellHeader: 'Duration',
-        cellCreator: (video: Video) => td(video.duration.toString(10)),
+        cellCreator: (video: Video) => {
+            const cell = td(video.duration.toString(10));
+            cell.classList.add('r', 'mono');
+            return cell;
+        },
         sortByOnClick: VideoOrderBy.Duration
     }
 
     const createPublishedCell: VideosComponentCellCreator = {
         cellHeader: 'Releasedate (m/d/y) ⇓',
-        cellCreator: (video: Video) => td(video.published),
+        cellCreator: (video: Video) => {
+            const cell = td(video.published);
+            cell.classList.add('r', 'mono');
+            return cell;
+        },
         sortByOnClick: VideoOrderBy.Published
     }
 
@@ -52,49 +73,72 @@ let td = (innerHtml?: string) => {
             link.innerText = 'Submit';
             link.href = `/SubmitEpisode/${video.id}`;
             cell.appendChild(link);
+            cell.classList.add('r');
             return cell;
         }
     }
 
     const createLikesCell: VideosComponentCellCreator = {
-        cellHeader: 'Likes',
-        cellCreator: (video: Video) => td(video.likes ? video.likes.toString(10) : undefined),
+        cellHeader: '👍',
+        cellHeaderTitle: 'Number of Likes',
+        cellCreator: (video: Video) => {
+            const cell = td(printNumber(video.likes));
+            cell.classList.add('r', 'mono');
+            return cell;
+        },
         sortByOnClick: VideoOrderBy.Likes
     }
 
     const createDislikesCell: VideosComponentCellCreator = {
-        cellHeader: 'Dislikes',
-        cellCreator: (video: Video) => td(video.dislikes ? video.dislikes.toString(10) : undefined),
+        cellHeader: '👎',
+        cellHeaderTitle: 'Number of Dislikes',
+        cellCreator: (video: Video) => {
+            const cell = td(printNumber(video.dislikes));
+            cell.classList.add('r', 'mono');
+            return cell;
+        },
         sortByOnClick: VideoOrderBy.Dislikes
     };
 
     const createLikeDislikeRatioCell: VideosComponentCellCreator = {
-        cellHeader: 'Ratio',
-        cellCreator: (video: Video) => td(video.ratio ? video.ratio.toFixed(2) : undefined),
+        cellHeader: '👎%',
+        cellHeaderTitle: 'Dislikes in %',
+        cellCreator: (video: Video) => {
+            const cell = td(printNumber(video.ratio, 2));
+            cell.classList.add('r', 'mono');
+            return cell;
+        },
         sortByOnClick: VideoOrderBy.LikeDislikeRatio
     };
 
     const createViewcountCell: VideosComponentCellCreator = {
         cellHeader: 'Views',
-        cellCreator: (video: Video) => td(video.view_count ? video.view_count.toString(10) : undefined),
+        cellCreator: (video: Video) => {
+            const cell = td(printNumber(video.view_count));
+            cell.classList.add('r', 'mono');
+            return cell;
+        },
         sortByOnClick: VideoOrderBy.ViewCount
     };
 
-    const createFavoriteCountCell: VideosComponentCellCreator = {
-        cellHeader: 'Favorites',
-        cellCreator: (video: Video) => td(video.favorite_count ? video.favorite_count.toString(10) : undefined),
-        sortByOnClick: VideoOrderBy.FavoriteCount
-    };
-
     const createCommentCountCell: VideosComponentCellCreator = {
-        cellHeader: 'Comments',
-        cellCreator: (video: Video) => td(video.comment_count ? video.comment_count.toString(10) : undefined),
-        sortByOnClick: VideoOrderBy.CommentCount
+        cellHeader: 'Comm',
+        cellCreator: (video: Video) => {
+            const cell = td(printNumber(video.comment_count));
+            cell.classList.add('r', 'mono');
+            return cell;
+        },
+        sortByOnClick: VideoOrderBy.CommentCount,
+        cellHeaderTitle: 'Number of Comments'
     };
 
     const createIsHdCell: VideosComponentCellCreator = {
-        cellHeader: 'Comments',
-        cellCreator: (video: Video) => td(video.is_hd ? 'Yes' : 'No')
+        cellHeader: 'HD',
+        cellCreator: (video: Video) => {
+            const cell = td(video.is_hd ? '✔' : '✘');
+            cell.classList.add(video.is_hd ? 'green' : 'orange', 'r');
+            return cell;
+        }
     };
 
     new VideosComponent(
@@ -102,14 +146,13 @@ let td = (innerHtml?: string) => {
         createTitleCell,
         createVideoDurationCell,
         createPublishedCell,
-        createSubmitLink,
         createLikesCell,
         createDislikesCell,
         createLikeDislikeRatioCell,
         createViewcountCell,
-        createFavoriteCountCell,
         createCommentCountCell,
-        createIsHdCell
+        createIsHdCell,
+        createSubmitLink
     );
 })();
 

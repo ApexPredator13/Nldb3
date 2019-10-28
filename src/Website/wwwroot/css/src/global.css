@@ -112,3 +112,6 @@ hr {
     border-top: 2px dashed rgba(255,255,255,0.2);
     background-color: transparent;
 }
+.mono {
+    font-family: "Courier New", Courier, monospace;
+}

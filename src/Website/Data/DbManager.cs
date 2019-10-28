@@ -168,7 +168,8 @@ namespace Website.Data
                     "tags TEXT[], " +
                     "is_3d BOOLEAN, " +
                     "is_hd BOOLEAN, " +
-                    "cc BOOLEAN" +
+                    "cc BOOLEAN, " +
+                    "last_updated TIMESTAMP DEFAULT NULL" +
                 "); " +
 
                 "CREATE INDEX video_title_index ON videos (title); " +

@@ -57,7 +57,7 @@ namespace WebsiteTests.Controllers
             repo.Verify(x => x.VideoExists(It.IsAny<string>()), Times.Once);
             repo.Verify(x => x.SaveVideo(It.IsAny<Video>()), Times.Once);
             repo.Verify(x => x.SetThumbnails(It.IsAny<ThumbnailDetails>(), It.IsAny<string>()), Times.Once);
-            repo.Verify(x => x.UpdateVideo(It.IsAny<Video>()), Times.Never);
+            repo.Verify(x => x.UpdateVideoWithYoutubeData(It.IsAny<Video>()), Times.Never);
         }
 
         [Theory(DisplayName = "Index [POST] updates video if it exist already"), AutoData]
@@ -67,7 +67,7 @@ namespace WebsiteTests.Controllers
             var repo = new Mock<IVideoRepository>();
             repo.Setup(x => x.GetYoutubeVideoData(It.IsAny<string[]>())).ReturnsAsync(new VideoListResponse() { Items = new List<Video>() { new Video { Id = "some ID", Snippet = new VideoSnippet() { Thumbnails = new ThumbnailDetails() } } } });
             repo.Setup(x => x.VideoExists(It.IsAny<string>())).ReturnsAsync(true);
-            repo.Setup(x => x.UpdateVideo(It.IsAny<Video>())).ReturnsAsync(1);
+            repo.Setup(x => x.UpdateVideoWithYoutubeData(It.IsAny<Video>())).ReturnsAsync(1);
             repo.Setup(x => x.SetThumbnails(It.IsAny<ThumbnailDetails>(), It.IsAny<string>())).ReturnsAsync(1);
             var controller = new AddVideosController(repo.Object);
 
@@ -80,7 +80,7 @@ namespace WebsiteTests.Controllers
 
             repo.Verify(x => x.GetYoutubeVideoData(It.IsAny<string[]>()), Times.Once);
             repo.Verify(x => x.VideoExists(It.IsAny<string>()), Times.Once);
-            repo.Verify(x => x.UpdateVideo(It.IsAny<Video>()), Times.Once);
+            repo.Verify(x => x.UpdateVideoWithYoutubeData(It.IsAny<Video>()), Times.Once);
             repo.Verify(x => x.SetThumbnails(It.IsAny<ThumbnailDetails>(), It.IsAny<string>()), Times.Once);
             repo.Verify(x => x.SaveVideo(It.IsAny<Video>()), Times.Never);
         }
