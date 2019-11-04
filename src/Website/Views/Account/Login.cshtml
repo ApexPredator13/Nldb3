@@ -37,7 +37,7 @@
 </form>
 
 <div>
-    <a asp-controller="@AccountController.Controllername" asp-action="@nameof(AccountController.Register)">Create a new account</a><br/>
+    <a asp-controller="@AccountController.Controllername" asp-action="@nameof(AccountController.Register)" asp-route-returnUrl="@returnUrl">Create a new account</a><br/>
     <a asp-controller="@AccountController.Controllername" asp-action="@nameof(AccountController.ForgotPassword)">Forgot Password</a>
 </div>
 

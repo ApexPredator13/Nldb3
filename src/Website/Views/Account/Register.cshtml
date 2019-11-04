@@ -1,5 +1,6 @@
 ﻿@{ 
     ViewData["Title"] = "New Account";
+    string returnUrl = (string)ViewData["returnUrl"];
 }
 
 @model RegisterModel
@@ -8,7 +9,7 @@
 
 @Html.ValidationSummary()
 
-<form method="post">
+<form method="post" asp-route-returnUrl="@returnUrl">
     <div>
         <label asp-for="Username"></label>
         <input type="text" asp-for="Username" data-required />

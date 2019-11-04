@@ -1,18 +1,42 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using IdentityServer4.EntityFramework.DbContexts;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Website.Data;
 using Website.Services;
 
 namespace Website.Infrastructure
 {
     public static class ApplicationBuilderExtensions
     {
+        public static void ApplyEntityFrameworkDatabaseMigrations(this IApplicationBuilder app)
+        {
+            using var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope();
+
+            var applicationDbContext = serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var applicationDbContextMigrator = applicationDbContext.GetInfrastructure().GetService<IMigrator>();
+            applicationDbContextMigrator.Migrate();
+
+            var configurationDbContext = serviceScope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
+            var configurationDbContextMigrator = configurationDbContext.GetInfrastructure().GetService<IMigrator>();
+            configurationDbContextMigrator.Migrate();
+
+            var persistedGrantDbContext = serviceScope.ServiceProvider.GetRequiredService<PersistedGrantDbContext>();
+            var persistedGrantDbContextMigrator = persistedGrantDbContext.GetInfrastructure().GetService<IMigrator>();
+            persistedGrantDbContextMigrator.Migrate();
+        }
+
         public static void CreateRequiredUserAccountsIfMissing(this IApplicationBuilder app)
         {
             using var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope();
+
+            // migrate identityserver 
+
             var userManager = serviceScope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
             var config = serviceScope.ServiceProvider.GetRequiredService<IConfiguration>();
 

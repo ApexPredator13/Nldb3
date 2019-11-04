@@ -2,9 +2,13 @@
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using IdentityServer4;
+using IdentityServer4.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Website.Infrastructure;
 using Website.Models.Account;
 using Website.Services;
 
@@ -17,72 +21,78 @@ namespace Website.Controllers
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly IEmailService _emailSender;
+        private readonly IIdentityServerInteractionService _identityServerInteractionService;
+        private readonly IPersistedGrantService _persistedGrantService;
+        private readonly IConfiguration _config;
 
-        public AccountController(SignInManager<IdentityUser> signInManager, UserManager<IdentityUser> userManager, IEmailService emailSender)
+        public AccountController(
+            SignInManager<IdentityUser> signInManager,
+            UserManager<IdentityUser> userManager,
+            IEmailService emailSender,
+            IIdentityServerInteractionService iis,
+            IPersistedGrantService persistedGrantService,
+            IConfiguration config)
         {
             _signInManager = signInManager;
             _userManager = userManager;
             _emailSender = emailSender;
+            _identityServerInteractionService = iis;
+            _persistedGrantService = persistedGrantService;
+            _config = config;
         }
 
         [HttpGet]
-        public RedirectToActionResult Index()
+        public async Task<ActionResult> Login([FromQuery] string returnUrl)
         {
+            // if user is logged in already, redirect him to his profile page
             if (User.Identity.IsAuthenticated)
             {
                 return RedirectToAction(nameof(MyAccountController.Index), MyAccountController.Controllername);
             }
-            else
-            {
-                return RedirectToAction(nameof(Login));
-            }
-        }
 
-        [HttpGet]
-        public async Task<ActionResult> Login([FromQuery] string? returnUrl = null)
-        {
+            // get data for view
             ViewData["externalLogins"] = await _signInManager.GetExternalAuthenticationSchemesAsync();
             ViewData["returnUrl"] = returnUrl;
-            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
 
-            if (User.Identity.IsAuthenticated)
-            {
-                if (returnUrl != null)
-                {
-                    return LocalRedirect(returnUrl);
-                }
-                else
-                {
-                    return RedirectToAction(nameof(MyAccountController.Index), MyAccountController.Controllername);
-                }
-            }
-            else
-            {
-                return View(new LoginModel());
-            }
+            // clear external cookie
+            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+            await HttpContext.SignOutAsync(IdentityServerConstants.ExternalCookieAuthenticationScheme);
+
+            return View(new LoginModel());
         }
 
         [HttpPost]
-        public async Task<ActionResult> Login([FromForm] LoginModel model, [FromQuery] string? returnUrl = null)
+        public async Task<ActionResult> Login([FromForm] LoginModel model, [FromQuery] string returnUrl)
         {
+            // local function to prepare view data
             async Task FillViewData()
             {
                 ViewData["externalLogins"] = await _signInManager.GetExternalAuthenticationSchemesAsync();
                 ViewData["returnUrl"] = returnUrl;
             }
 
+            // check user input
             if (!ModelState.IsValid)
             {
                 await FillViewData();
                 return View(model);
             }
 
+            // check returnUrl - if it's invalid just throw the user back to the main page to provide a clean start
+            if (!_identityServerInteractionService.IsValidReturnUrl(returnUrl))
+            {
+                return LocalRedirect("/");
+            }
+
+            // find user
             IdentityUser? user = await _userManager.FindByEmailAsync(model.EmailOrUsername);
 
             if (user is null)
             {
                 user = await _userManager.FindByNameAsync(model.EmailOrUsername);
             }
+
+            // if user doesn't exist, redisplay view
             if (user is null)
             {
                 await FillViewData();
@@ -90,12 +100,16 @@ namespace Website.Controllers
                 return View(model);
             }
 
+            // if he exists, attempty sign-in
             var result = await _signInManager.PasswordSignInAsync(user.UserName, model.Password, model.RememberMe, false);
 
+            // success
             if (result.Succeeded)
             {
-                return LocalRedirect(returnUrl ?? Url.Action(nameof(HomeController.Index), HomeController.Controllername));
+                return Redirect(returnUrl);
             }
+
+            // too many failed login attempts
             if (result.IsLockedOut)
             {
                 await FillViewData();
@@ -103,22 +117,16 @@ namespace Website.Controllers
                 return View(model);
             }
 
+            // something else went wrong...
             await FillViewData();
             ModelState.AddModelError("", "Login failed, please try again.");
             return View(model);
         }
 
         [HttpGet]
-        public ViewResult ConfirmEmailFailed()
-        {
-            ViewData["returnUrl"] = Url.Action(nameof(MyAccountController.ConfirmEmailAgain), MyAccountController.Controllername);
-            return View();
-        }
-
-        [HttpGet]
         public async Task<ActionResult> ConfirmEmail([FromQuery] string? userId, [FromQuery] string? code)
         {
-            if (String.IsNullOrEmpty(userId) || String.IsNullOrEmpty(code))
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(code))
             {
                 return RedirectToAction(nameof(ConfirmEmailFailed));
             }
@@ -140,30 +148,40 @@ namespace Website.Controllers
             return View();
         }
 
+        [HttpGet]
+        public ViewResult ConfirmEmailFailed()
+        {
+            ViewData["returnUrl"] = Url.Action(nameof(MyAccountController.ConfirmEmailAgain), MyAccountController.Controllername);
+            return View();
+        }
 
         [HttpGet]
-        public ChallengeResult ExternalLogin([FromQuery] string provider, [FromQuery] string? returnUrl = null)
+        public ChallengeResult ExternalLogin([FromQuery] string provider, [FromQuery] string returnUrl)
         {
-            if (String.IsNullOrEmpty(returnUrl))
-            {
-                returnUrl = Url.Action(nameof(HomeController.Index), HomeController.Controllername);
-            }
-            
             var redirectUrl = Url.Action(nameof(ExternalLoginCallback), new { returnUrl });
             var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
             return new ChallengeResult(provider, properties);
         }
 
         [HttpGet]
-        public ViewResult Logout([FromQuery] string? returnUrl = null) 
-            => View(new LogoutModel { ReturnUrl = returnUrl });
+        public ViewResult Logout() => View();
 
         [HttpPost]
-        public async Task<LocalRedirectResult> Logout([FromForm] LogoutModel model)
+        public async Task<RedirectToActionResult> Logout([FromQuery] string? returnUrl = null)
         {
-            model.ReturnUrl ??= Url.Action(nameof(HomeController.Index), HomeController.Controllername);
-            await _signInManager.SignOutAsync();
-            return LocalRedirect(model.ReturnUrl);
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user != null)
+            {
+                var clients = IdentityserverResources.Clients(_config);
+                foreach (var client in clients)
+                {
+                    await _persistedGrantService.RemoveAllGrantsAsync(user.Id, client.ClientId);
+                }
+            }
+
+            await HttpContext.SignOutAsync();
+            return RedirectToAction(nameof(HomeController.Index), HomeController.Controllername);
         }
 
         private string GetExternalLoginUsername(ExternalLoginInfo info)
@@ -197,16 +215,12 @@ namespace Website.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult> ExternalLoginCallback(string? returnUrl = null, string? remoteError = null)
+        public async Task<ActionResult> ExternalLoginCallback(string returnUrl, string? remoteError = null)
         {
-            if (remoteError != null)
+            // show error page if something went wrong or is missing
+            if (remoteError != null || !_identityServerInteractionService.IsValidReturnUrl(returnUrl))
             {
                 return RedirectToAction(nameof(ExternalLoginFailed));
-            }
-
-            if (String.IsNullOrEmpty(returnUrl))
-            {
-                returnUrl = Url.Action(nameof(HomeController.Index), HomeController.Controllername);
             }
 
             var info = await _signInManager.GetExternalLoginInfoAsync();
@@ -215,24 +229,31 @@ namespace Website.Controllers
                 return RedirectToAction(nameof(ExternalLoginFailed));
             }
 
+            // get username from claims, pre-fill the username field on the next page
             string existingUsername = GetExternalLoginUsername(info);
             ViewData["ExistingUsername"] = existingUsername;
 
+            // sign user in
             var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, false, true);
+
 
             // user was here before
             if (result.Succeeded)
             {
-                return LocalRedirect(returnUrl);
+                // clear external cookie and redirect
+                await HttpContext.SignOutAsync(IdentityServerConstants.ExternalCookieAuthenticationScheme);
+                return Redirect(returnUrl);
             }
 
             // user was here before, but login failed too many times
             else if (result.IsLockedOut)
             {
+                // clear external cookie and redirect to error page
+                await HttpContext.SignOutAsync(IdentityServerConstants.ExternalCookieAuthenticationScheme);
                 return RedirectToAction(nameof(ExternalLoginFailed), new { error = "Login failed too many times, please wait a minute before trying again." });
             }
 
-            // user was never here before, ask him to choose a username
+            // user was never here before, ask him to choose a username - don't clear external cookie in this case!
             else
             {
                 ViewData["returnUrl"] = returnUrl;
@@ -241,7 +262,7 @@ namespace Website.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> ExternalLoginCallback([FromForm] ExternalLoginCallbackModel model, [FromQuery] string? returnUrl = null)
+        public async Task<ActionResult> ExternalLoginCallback([FromForm] ExternalLoginCallbackModel model, [FromQuery] string returnUrl)
         {
             if (!ModelState.IsValid)
             {
@@ -249,9 +270,9 @@ namespace Website.Controllers
                 return View(model);
             }
 
-            if (string.IsNullOrEmpty(returnUrl))
+            if (!_identityServerInteractionService.IsValidReturnUrl(returnUrl))
             {
-                returnUrl = Url.Action(nameof(HomeController.Index), HomeController.Controllername);
+                return RedirectToAction(nameof(ExternalLoginFailed));
             }
 
             var info = await _signInManager.GetExternalLoginInfoAsync();
@@ -269,7 +290,7 @@ namespace Website.Controllers
             {
                 foreach (var error in result.Errors)
                 {
-                    ModelState.AddModelError(String.Empty, error.Description);
+                    ModelState.AddModelError(string.Empty, error.Description);
                 }
                 ViewData["returnUrl"] = returnUrl;
                 return View(model);
@@ -285,7 +306,7 @@ namespace Website.Controllers
                     await _userManager.DeleteAsync(newUser);
                     foreach (var error in result.Errors)
                     {
-                        ModelState.AddModelError(String.Empty, error.Description);
+                        ModelState.AddModelError(string.Empty, error.Description);
                     }
                 }
                 catch { }
@@ -296,9 +317,11 @@ namespace Website.Controllers
                 return View(model);
             }
 
+            // sign user in and clear external cookie.
             await _signInManager.SignInAsync(newUser, false);
+            await HttpContext.SignOutAsync(IdentityServerConstants.ExternalCookieAuthenticationScheme);
 
-            return LocalRedirect(returnUrl);
+            return Redirect(returnUrl);
         }
 
         [HttpGet]
@@ -388,16 +411,27 @@ namespace Website.Controllers
         public ViewResult PasswordResetSucceeded() => View();
 
         [HttpGet]
-        public ViewResult Register() => View(new RegisterModel());
+        public ViewResult Register([FromQuery] string returnUrl)
+        {
+            ViewData["returnUrl"] = returnUrl;
+            return View(new RegisterModel());
+        }
 
         [HttpPost]
-        public async Task<ActionResult> Register([FromForm] RegisterModel model)
+        public async Task<ActionResult> Register([FromForm] RegisterModel model, [FromQuery] string returnUrl)
         {
+            // check user input and returnUrl
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
 
+            if (!_identityServerInteractionService.IsValidReturnUrl(returnUrl))
+            {
+                return RedirectToAction(nameof(HomeController.Index), HomeController.Controllername);
+            }
+
+            // create the new user
             var user = new IdentityUser(model.Username)
             {
                 Email = model.Email
@@ -405,6 +439,7 @@ namespace Website.Controllers
 
             var result = await _userManager.CreateAsync(user, model.Password);
 
+            // if something went wrong, redisplay register form
             if (!result.Succeeded)
             {
                 foreach (var error in result.Errors)
@@ -414,14 +449,16 @@ namespace Website.Controllers
                 return View(model);
             }
 
+            // otherwise send email confirmation link
             var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             var userId = user.Id;
             var callbackUrl = Url.Action(nameof(ConfirmEmail), Controllername, new { code, userId }, Request.Scheme);
             var emailMessage = _emailSender.GenerateConfirmEmailAddressEmail(model.Email, callbackUrl);
             await _emailSender.SendEmailAsync(model.Email, "The Northernlion Database - Your new account", emailMessage);
 
+            // ...and log the user in right away
             await _signInManager.SignInAsync(user, false);
-            return RedirectToAction(nameof(MyAccountController.RegistrationComplete), MyAccountController.Controllername);
+            return Redirect(returnUrl);
         }
 
         [HttpGet]

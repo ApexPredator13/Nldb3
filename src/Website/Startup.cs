@@ -19,6 +19,11 @@ using Hangfire.Dashboard;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using System.IO;
+using System.Security.Cryptography.X509Certificates;
+using IdentityServer4;
+using IdentityServer4.EntityFramework;
+using System.Reflection;
 
 namespace Website
 {
@@ -73,7 +78,8 @@ namespace Website
             services.AddHangfireServer();
 
             // entity framework
-            services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(Config.GetConnectionString("DefaultConnection")));
+            var dbContextConnectionString = Config.GetConnectionString("DefaultConnection");
+            services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(dbContextConnectionString));
 
             // identity
             services.AddIdentity<IdentityUser, IdentityRole>(options =>
@@ -95,12 +101,8 @@ namespace Website
                 .AddDefaultTokenProviders()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
-            services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
-                options.DefaultChallengeScheme = IdentityConstants.ApplicationScheme;
-                options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
-            })
+
+            services.AddAuthentication()
                 .AddFacebook(options =>
                 {
                     options.AppId = Config["FacebookAppId"];
@@ -124,12 +126,6 @@ namespace Website
                 {
                     options.ClientId = _env.IsDevelopment() ? Config["TwitchClientId_Development"] : Config["TwitchClientId_Production"];
                     options.ClientSecret = _env.IsDevelopment() ? Config["TwitchClientSecret_Development"] : Config["TwitchClientSecret_Production"];
-                })
-                .AddCookie(options =>
-                {
-                    options.LoginPath = "/Account/Login";
-                    options.AccessDeniedPath = "/Account/AccessDenied";
-                    options.LogoutPath = "/Account/Logout";
                 });
 
             services.AddMvc()
@@ -143,6 +139,47 @@ namespace Website
                     policy.RequireClaim(ClaimTypes.Role, "admin");
                 });
             });
+
+            var certPath = Path.Combine(_env.ContentRootPath, "nldb.pfx");
+            var cert = new X509Certificate2(certPath, Config["CertificatePassword"]);
+            if (cert is null)
+            {
+                throw new Exception("no signing certificate found");
+            }
+
+            var migrationsAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
+            services.AddIdentityServer(config =>
+            {
+                config.IssuerUri = "https://www.northernlion-db.com";
+                config.UserInteraction.LoginUrl = "/Account/Login";
+                config.UserInteraction.LogoutUrl = "/Account/Logout";
+                config.UserInteraction.ErrorUrl = "/Error";
+            })
+                .AddSigningCredential(cert)
+                .AddAspNetIdentity<IdentityUser>()
+                .AddConfigurationStore(config =>
+                {
+                    config.DefaultSchema = "identity";
+                    config.ConfigureDbContext = builder =>
+                    {
+                        builder.UseNpgsql(dbContextConnectionString, npgsqlOptions =>
+                        {
+                            npgsqlOptions.MigrationsAssembly(migrationsAssembly);
+                        });
+                    };
+                })
+                .AddOperationalStore(config =>
+                {
+                    config.DefaultSchema = "identity";
+                    config.EnableTokenCleanup = true;
+                    config.ConfigureDbContext = builder =>
+                    {
+                        builder.UseNpgsql(dbContextConnectionString, npgsqlOptions =>
+                        {
+                            npgsqlOptions.MigrationsAssembly(migrationsAssembly);
+                        });
+                    };
+                });
         }
 
 
@@ -192,7 +229,7 @@ namespace Website
 
             app.UseRouting();
 
-            app.UseAuthentication();
+            app.UseIdentityServer();
             app.UseAuthorization();
 
             app.UseHangfireDashboard("/hangfire", new DashboardOptions()
@@ -223,13 +260,13 @@ namespace Website
                 endpoints.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
             });
 
-
+            app.ApplyEntityFrameworkDatabaseMigrations();
             app.CreateRequiredUserAccountsIfMissing();
 
             //BackgroundJob.Enqueue<IMigrateOldDatabase>(migrator => migrator.MigrateUsersQuotesVideosAndRuns());
 
             RecurringJob.AddOrUpdate<ISqlDumper>(dumper => dumper.Dump(), Cron.Hourly());
-            RecurringJob.AddOrUpdate<IVideoRepository>(repo => repo.GetVideosThatNeedYoutubeUpdate(3, true), Cron.Minutely);
+            RecurringJob.AddOrUpdate<IVideoRepository>(repo => repo.GetVideosThatNeedYoutubeUpdate(1, true), Cron.Minutely);
         }
     }
 }
