@@ -181,7 +181,9 @@ namespace Website.Controllers
             }
 
             await HttpContext.SignOutAsync();
-            return RedirectToAction(nameof(HomeController.Index), HomeController.Controllername);
+            await _signInManager.SignOutAsync();
+
+            return RedirectToAction(nameof(HomeController.Index), HomeController.Controllername, "logout");
         }
 
         private string GetExternalLoginUsername(ExternalLoginInfo info)

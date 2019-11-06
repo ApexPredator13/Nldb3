@@ -27,18 +27,25 @@ namespace Website.Infrastructure
                 {
                     ClientId = "local-javascript-app",
                     AllowAccessTokensViaBrowser = true,
-                    ClientSecrets = { new Secret(config["IdentityserverClientSecret"]) },
-                    AllowedGrantTypes = GrantTypes.Implicit,
+                    RequireClientSecret = false,
+                    AllowedGrantTypes = GrantTypes.Code,
                     AllowedScopes = { IdentityServerConstants.StandardScopes.OpenId, IdentityServerConstants.StandardScopes.Profile, IdentityServerConstants.StandardScopes.OfflineAccess },
                     AccessTokenType = AccessTokenType.Reference,
+                    AccessTokenLifetime = 900,
                     AllowOfflineAccess = true,
                     AlwaysSendClientClaims = true,
                     Enabled = true,
                     ClientName = "Local Javascript App",
-                    AllowedCorsOrigins = { "https://www.northernlion-db.com", "https://northernlion-db.com", "https://localhost:5005" },
-                    RedirectUris = { "https://www.northernlion-db.com", "https://northernlion-db.com", "https://localhost:5005" },
+                    AllowedCorsOrigins = { 
+                        "https://www.northernlion-db.com", "https://northernlion-db.com", "https://localhost:5005"
+                    },
+                    RedirectUris = { 
+                        "https://www.northernlion-db.com", "https://northernlion-db.com", "https://localhost:5005",
+                        "https://www.northernlion-db.com/SilentSignin", "https://northernlion-db.com/SilentSignin", "https://localhost:5005/SilentSignin" 
+                    },
                     PostLogoutRedirectUris = { "https://www.northernlion-db.com", "https://northernlion-db.com", "https://localhost:5005" },
-                    RequireConsent = false
+                    RequireConsent = false,
+                    RequirePkce = true
                 }
             };
         }

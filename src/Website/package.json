@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "chart.js": "^2.8.0",
+    "oidc-client": "^1.9.1",
     "rxjs": "^6.5.2"
   }
 }

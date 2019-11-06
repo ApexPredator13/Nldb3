@@ -64,6 +64,11 @@ module.exports = {
                     test: /[\\/]Framework[\\/]/,
                     name: 'framework',
                     reuseExistingChunk: false
+                },
+                vendor: {
+                    test: /[\\/]node_modules[\\/]/,
+                    name: 'vendor',
+                    reuseExistingChunk: false
                 }
             }
         }

@@ -1,4 +1,7 @@
 ﻿import { render, Component } from './renderer';
+import { NavigationComponent } from '../Pages/Layout/navigation';
+import { MainComponent } from '../Pages/Layout/main';
+import * as Oidc from 'oidc-client';
 
 interface PageData {
     AppendTo: string,
@@ -28,12 +31,22 @@ const registerPage = (name: string, data: PageData) => {
 
 const initRouter = () => {
     if (!(window as any).routerInit) {
-        console.log('initializing router. existing pages: ', getPages());
+
+        Oidc.Log.logger = console;
+
+        // render layout
+        const navigation = render(new NavigationComponent());
+        const main = render(new MainComponent());
+
+        if (main && navigation) {
+            document.body.appendChild(navigation);
+            document.body.appendChild(main);
+        }
+
         // delay enough so that initial popstate event that some browsers trigger on load will be skipped
         setTimeout(() => {
             window.addEventListener('popstate', () => {
                 const url = getCurrentRoute();
-                console.log('go to route: ', url);
                 goToRouteWithUrl(url, false, true);
             });
         }, 100);
@@ -52,7 +65,6 @@ const goToRouteWithName = (routeName: string, push = true, forceRender = false) 
     const pages = getPages();
     for (const page of pages) {
         if (page[0] === routeName) {
-            console.log('go to route with name', page);
             goToRouteWithUrl(page[1].Url, push, forceRender);
             return;
         }
@@ -75,7 +87,6 @@ const goToRouteWithUrl = (route: string, push = true, forceRender = false) => {
     // don't re-render the same url, except it's forced
     const currentRoute = getCurrentRoute();
     if (currentRoute === route && !forceRender) {
-        console.info('skipping route');
         return;
     }
 

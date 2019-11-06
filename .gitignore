@@ -9,6 +9,10 @@
 # temporary database diagram
 /src/Website/wwwroot/img/database_diagram.png
 
+# temporary copy of js file
+/src/Website/wwwroot/js/oidc-client.min.js
+/src/Website/wwwroot/js/oidc-client.js
+
 # sql dump of the database
 /src/Website/wwwroot/dump/*
 

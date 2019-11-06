@@ -40,14 +40,17 @@
     </environment>
 </head>
 <body>
+    @*
     @if (showNavigation)
     {
         <partial name="_NavigationPartial" />
     }
     <main role="main" class="@mainTagWidthClass" id="main-container">
-        @RenderBody()
-    </main>
 
+    </main>
+    *@
+
+    @RenderBody()
     @RenderSection("Scripts", required: false)
 </body>
 </html>

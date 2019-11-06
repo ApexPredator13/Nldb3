@@ -87,7 +87,6 @@ const render: renderFunction = elementOrComponent => {
 
     // queue up the async part of the component if it has one
     if ((elementOrComponent as Component).AE) {
-        console.warn('async part found: ', (elementOrComponent as Component).AE);
         const component = elementOrComponent as Component;
         if (component.AE) {
             component.AE.then(e => {

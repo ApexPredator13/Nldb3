@@ -196,7 +196,7 @@ namespace Website
             {
                 var csp = new StringValues(
                     "default-src 'self'; " +
-                    "frame-src https://www.youtube.com; " +
+                    "frame-src 'self' https://www.youtube.com; " +
                     "style-src 'self' 'unsafe-inline' fonts.googleapis.com; " +
                     "font-src 'self' fonts.gstatic.com; " +
                     "img-src 'self' https://i.ytimg.com; " +
@@ -242,6 +242,9 @@ namespace Website
 
             app.UseEndpoints(endpoints =>
             {
+                // silent signin
+                endpoints.MapControllerRoute("silent_signin", "/SilentSignin", new { controller = Controllers.HomeController.Controllername, action = nameof(Controllers.HomeController.SilentSignin) });
+
                 // video page
                 endpoints.MapControllerRoute("video", "/Video/{id}", new { Area = string.Empty, Controller = Controllers.VideoController.Controllername, Action = nameof(Controllers.VideoController.Index) });
                 endpoints.MapControllerRoute("submitVideo", "/SubmitEpisode/{id}", new { Area = string.Empty, Controller = Controllers.SubmitEpisodeController.Controllername, Action = nameof(Controllers.SubmitEpisodeController.Index) });
@@ -257,10 +260,14 @@ namespace Website
 
                 // catchall for arbitrary isaac resource
                 endpoints.MapControllerRoute("general_resource", "{id}", new { Area = string.Empty, Controller = Controllers.ResourceController.Controllername, Action = nameof(Controllers.ResourceController.Index) });
+                
+                
+                
                 endpoints.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
             });
 
             app.ApplyEntityFrameworkDatabaseMigrations();
+            app.CreateIdentityserverEntriesIfNecessary(true);
             app.CreateRequiredUserAccountsIfMissing();
 
             //BackgroundJob.Enqueue<IMigrateOldDatabase>(migrator => migrator.MigrateUsersQuotesVideosAndRuns());
