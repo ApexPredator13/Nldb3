@@ -47,6 +47,7 @@ export class DownloadsComponent implements Component {
 
 
 (() => {
+    console.log('registering page downloads');
     DownloadsComponent.RegisterPage();
     initRouter();
 })();

@@ -1,4 +1,4 @@
-﻿import { Component, FrameworkElement, Attribute } from "../Framework/renderer";
+﻿import { Component, FrameworkElement, Attribute, AsyncComponentPart } from "../Framework/renderer";
 import { TopicComponent } from "../Components/Home/Topic";
 import { Frontpage } from "../Models/frontpage";
 import { get } from "../Framework/http";
@@ -8,15 +8,15 @@ import { StatImageComponent, StatTextComponent, StatsHeaderComponent } from "../
 import { registerPage, PageData, initRouter } from "../Framework/router";
 
 export class HomeComponent implements Component {
-    AEI = 'below-fold-content';
     E: FrameworkElement;
-    AE: Promise<FrameworkElement>;
+    A: Array<AsyncComponentPart>;
 
     constructor() {
-        this.E = this.AboveTheFoldContent();
-        this.AE = this.BelowTheFoldContent();
+        const asyncContainerId = 'below-fold-content';
+        this.E = this.AboveTheFoldContent(asyncContainerId);
+        this.A = [{ P: this.BelowTheFoldContent(), I: asyncContainerId }];
     }
-
+    
     static RegisterPage() {
         const page: PageData = {
             AppendTo: 'main-container',
@@ -28,7 +28,7 @@ export class HomeComponent implements Component {
         registerPage('home', page);
     }
 
-    private AboveTheFoldContent(): FrameworkElement {
+    private AboveTheFoldContent(asyncContainerId: string): FrameworkElement {
 
         const topic1 = new TopicComponent('episodes', "-100");
         const topic2 = new TopicComponent('items', "-241");
@@ -81,13 +81,13 @@ export class HomeComponent implements Component {
                 },
                 {
                     e: ['div', 'loading page...'],
-                    a: [[Attribute.Id, this.AEI]]
+                    a: [[Attribute.Id, asyncContainerId]]
                 }
             ]
         }
     }
 
-    private async BelowTheFoldContent() {
+    private async BelowTheFoldContent(): Promise<FrameworkElement> {
 
         const [topUsers, data] = await Promise.all([
             get<Array<FrontpageTopUser>>('/api/frontpage/top-users'),

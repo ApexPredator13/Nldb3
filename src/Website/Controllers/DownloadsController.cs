@@ -1,10 +1,6 @@
 ﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Website.Controllers
 {
@@ -20,9 +16,6 @@ namespace Website.Controllers
         }
 
         [HttpGet]
-        public ViewResult Index() => View();
-
-        [HttpGet]
         public FileResult DownloadFile()
         {
             var sqlDumpPath = Path.Combine(_env.WebRootPath, "dump", "nldb_dump.sql");
@@ -30,3 +23,5 @@ namespace Website.Controllers
         }
     }
 }
+
+

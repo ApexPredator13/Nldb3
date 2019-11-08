@@ -245,24 +245,24 @@ namespace Website
                 // silent signin
                 endpoints.MapControllerRoute("silent_signin", "/SilentSignin", new { controller = Controllers.HomeController.Controllername, action = nameof(Controllers.HomeController.SilentSignin) });
 
-                // video page
-                endpoints.MapControllerRoute("video", "/Video/{id}", new { Area = string.Empty, Controller = Controllers.VideoController.Controllername, Action = nameof(Controllers.VideoController.Index) });
-                endpoints.MapControllerRoute("submitVideo", "/SubmitEpisode/{id}", new { Area = string.Empty, Controller = Controllers.SubmitEpisodeController.Controllername, Action = nameof(Controllers.SubmitEpisodeController.Index) });
+                //// video page
+                //endpoints.MapControllerRoute("video", "/Video/{id}", new { Area = string.Empty, Controller = Controllers.VideoController.Controllername, Action = nameof(Controllers.VideoController.Index) });
+                //endpoints.MapControllerRoute("submitVideo", "/SubmitEpisode/{id}", new { Area = string.Empty, Controller = Controllers.SubmitEpisodeController.Controllername, Action = nameof(Controllers.SubmitEpisodeController.Index) });
 
-                // default route for all areas
-                endpoints.MapControllerRoute("area", "{area:exists}/{controller=Home}/{action=Index}/{id?}");
+                //// default route for all areas
+                //endpoints.MapControllerRoute("area", "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 
-                // isaac resource overview pages
-                foreach (var overviewPageId in Controllers.ResourceController.OverviewPageNames.Keys)
-                {
-                    endpoints.MapControllerRoute(overviewPageId, $"/{overviewPageId}", new { Area = string.Empty, Controller = Controllers.ResourceController.Controllername, Action = nameof(Controllers.ResourceController.Overview), Id = overviewPageId });
-                }
+                //// isaac resource overview pages
+                //foreach (var overviewPageId in Controllers.ResourceController.OverviewPageNames.Keys)
+                //{
+                //    endpoints.MapControllerRoute(overviewPageId, $"/{overviewPageId}", new { Area = string.Empty, Controller = Controllers.ResourceController.Controllername, Action = nameof(Controllers.ResourceController.Overview), Id = overviewPageId });
+                //}
 
-                // catchall for arbitrary isaac resource
-                endpoints.MapControllerRoute("general_resource", "{id}", new { Area = string.Empty, Controller = Controllers.ResourceController.Controllername, Action = nameof(Controllers.ResourceController.Index) });
-                
-                
-                
+                //// catchall for arbitrary isaac resource
+                //endpoints.MapControllerRoute("general_resource", "{id}", new { Area = string.Empty, Controller = Controllers.ResourceController.Controllername, Action = nameof(Controllers.ResourceController.Index) });
+
+
+                endpoints.MapControllerRoute("downloads", "/Downloads", new { controller = Controllers.HomeController.Controllername, action = nameof(Controllers.HomeController.Index) });
                 endpoints.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
             });
 

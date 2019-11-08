@@ -1,19 +1,17 @@
-﻿import { Component, FrameworkElement, Attribute, EventType } from "../../Framework/renderer";
+﻿import { Component, FrameworkElement, Attribute, EventType, AsyncComponentPart } from "../../Framework/renderer";
 import { IsaacResource } from "../../../wwwroot/js/src/interfaces/isaac-resource";
 import { get } from "../../Framework/http";
 
 export class SearchboxComponent implements Component {
 
     E: FrameworkElement;
-    AE: Promise<FrameworkElement> | undefined;
-    AEI: string;
+    A: Array<AsyncComponentPart> | undefined;
 
     private subscribers: Array<(id: string) => any>;
     private displayResourceType: boolean
 
     constructor(data: string | Array<IsaacResource>, someSearchboxId: number, displayResourceType: boolean) {
-        this.AEI = someSearchboxId.toString(10);
-        this.E = this.CreateFrameworkElement(data);
+        this.E = this.CreateFrameworkElement(data, someSearchboxId);
         this.subscribers = new Array<(id: string) => any>();
         this.displayResourceType = displayResourceType;
     }
@@ -44,10 +42,10 @@ export class SearchboxComponent implements Component {
         }
     }
 
-    private CreateFrameworkElement(data: string | Array<IsaacResource>): FrameworkElement {
+    private CreateFrameworkElement(data: string | Array<IsaacResource>, id: number): FrameworkElement {
         const isAsync = typeof data === 'string';
         const initialSearchboxContent: FrameworkElement = isAsync ? { e: ['span', 'loading resources...'] } : this.CreateResourceLines(data as Array<IsaacResource>);
-        
+
         const e: FrameworkElement = {
             e: ['div'],
             a: [[Attribute.Class, 'dd-container']],
@@ -65,7 +63,7 @@ export class SearchboxComponent implements Component {
                 },
                 {
                     e: ['div'],
-                    a: [[Attribute.Id, this.AEI]],
+                    a: [[Attribute.Id, id.toString(10)]],
                     c: [initialSearchboxContent]
                 }
             ],
@@ -73,10 +71,14 @@ export class SearchboxComponent implements Component {
         };
 
         if (isAsync) {
-            this.AE = get<Array<IsaacResource>>(data as string).then(resources => {
+            const asyncComponent = get<Array<IsaacResource>>(data as string).then(resources => {
                 const lines = this.CreateResourceLines(resources);
                 return lines;
             });
+            this.A = [{
+                P: asyncComponent,
+                I: id.toString(10)
+            }];
         }
 
         return e;

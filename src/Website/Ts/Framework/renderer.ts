@@ -18,11 +18,19 @@ interface Component {
     /** Element */
     E: FrameworkElement
 
-    /** Async Element */
-    AE?: Promise<FrameworkElement>
+    /** Async Elements */
+    A?: Array<AsyncComponentPart>
+}
 
-    /** Container ID for async element */
-    AEI?: string
+interface AsyncComponentPart {
+    /** Async Element */
+    P: Promise<FrameworkElement>
+
+    /** Element ID the element will be rendered into after it's created */
+    I: string
+
+    /** Append to element or replace content? */
+    A?: boolean
 }
 
 enum Attribute {
@@ -34,13 +42,17 @@ enum Attribute {
     Target,
     Title,
     Type,
-    DataLowercaseName
+    Value,
+    DataLowercaseName,
+    Selected,
+    Placeholder
 }
 
 enum EventType {
     Click = 1,
     MouseEnter,
-    Input
+    Input,
+    Change
 }
 
 const translateAttribute = (attribute: Attribute) => {
@@ -62,7 +74,13 @@ const translateAttribute = (attribute: Attribute) => {
         case Attribute.DataId:
             return 'data-id';
         case Attribute.DataLowercaseName:
-            return 'data-n'
+            return 'data-n';
+        case Attribute.Value:
+            return 'value';
+        case Attribute.Selected:
+            return 'selected';
+        case Attribute.Placeholder:
+            return 'placeholder';
         default:
             return '';
     }
@@ -75,7 +93,9 @@ const translateEventType = (eventType: EventType) => {
         case EventType.MouseEnter:
             return 'mouseenter';
         case EventType.Input:
-            return 'input'
+            return 'input';
+        case EventType.Change:
+            return 'change';
         default:
             return '';
     }
@@ -85,17 +105,28 @@ const translateEventType = (eventType: EventType) => {
 
 const render: renderFunction = elementOrComponent => {
 
-    // queue up the async part of the component if it has one
-    if ((elementOrComponent as Component).AE) {
-        const component = elementOrComponent as Component;
-        if (component.AE) {
-            component.AE.then(e => {
+    // queue up the async parts of the component if it has any
+    const component = elementOrComponent as Component;
+    if (component.A) {
+        for (let i = 0; i < component.A.length; ++i) {
+            console.log('async part detected!   ', component.A[i].I, component.A[i].P);
+            const promise = component.A[i].P;
+            const parentId = component.A[i].I;
+            const append = component.A[i].A;
+
+            promise.then(e => {
+                console.log('rendering async part...');
                 const html = render(e);
-                if (html && component.AEI) {
-                    const elementContainer = document.getElementById(component.AEI);
-                    if (elementContainer) {
-                        elementContainer.innerHTML = '';
-                        elementContainer.appendChild(html);
+                if (html) {
+                    const parentElement = document.getElementById(parentId);
+                    if (parentElement) {
+                        console.log('appending async part to parent', parentElement);
+                        if (!append) {
+                            parentElement.innerHTML = '';
+                        }
+                        parentElement.appendChild(html);
+                    } else {
+                        console.error('parent with id not found: ', parentId);
                     }
                 }
             });
@@ -147,6 +178,7 @@ const render: renderFunction = elementOrComponent => {
 
 export {
     FrameworkElement,
+    AsyncComponentPart,
     Attribute,
     Component,
     EventType,

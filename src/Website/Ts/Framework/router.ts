@@ -22,10 +22,10 @@ const getPages = () => {
 const registerPage = (name: string, data: PageData) => {
     const pages = getPages();
     if (!pages.has(name)) {
-        //console.info('registering page: ', name);
+        console.info('registering page: ', name);
         pages.set(name, data);
     } else {
-        //console.info('page already exists: ', name);
+        console.info('page already exists: ', name);
     }
 }
 
@@ -35,7 +35,10 @@ const initRouter = () => {
         Oidc.Log.logger = console;
 
         // render layout
+        console.log('rendering navigation');
         const navigation = render(new NavigationComponent());
+
+        console.log('rendering main');
         const main = render(new MainComponent());
 
         if (main && navigation) {
@@ -61,11 +64,11 @@ const initRouter = () => {
     (window as any).routerInit = true;
 };
 
-const goToRouteWithName = (routeName: string, push = true, forceRender = false) => {
+const goToRouteWithName = (routeName: string, push = true, forceRender = false, scrollToTop = true) => {
     const pages = getPages();
     for (const page of pages) {
         if (page[0] === routeName) {
-            goToRouteWithUrl(page[1].Url, push, forceRender);
+            goToRouteWithUrl(page[1].Url, push, forceRender, scrollToTop);
             return;
         }
     }
@@ -81,7 +84,7 @@ const getRouteNameFromUrl = (route: string): string | null => {
     return null;
 }
 
-const goToRouteWithUrl = (route: string, push = true, forceRender = false) => {
+const goToRouteWithUrl = (route: string, push = true, forceRender = false, scrollToTop = true) => {
     const pages = getPages();
 
     // don't re-render the same url, except it's forced
@@ -106,6 +109,9 @@ const goToRouteWithUrl = (route: string, push = true, forceRender = false) => {
                     document.title = typeof page.Title === 'string' ? page.Title : page.Title();
                     parent.innerHTML = '';
                     parent.appendChild(renderedPage);
+                    if (scrollToTop) {
+                        window.scrollTo(0, 0);
+                    }
                     if (push) {
                         history.pushState(undefined, '', route);
                     }
