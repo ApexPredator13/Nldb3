@@ -15,6 +15,27 @@
     case "/downloads":
         <script src="~/js/dist/downloads.min.js"></script>
         break;
+    case "/episodes":
+        <script src="~/js/dist/episodes.min.js"></script>
+        break;
+    case "/items":
+    case "/bosses":
+    case "/characters":
+    case "/itemsources":
+    case "/floors":
+    case "/transformations":
+    case "/characterrerolls":
+    case "/curses":
+    case "/pills":
+    case "/runes":
+    case "/tarotcards":
+    case "/trinkets":
+    case "/otherconsumables":
+        <script src="~/js/dist/resource_overview.min.js"></script>
+        break;
+    case string s when s.StartsWith("/episode"):
+        <script src="~/js/dist/episode.min.js"></script>
+        break;
     default:
         <script src="~/js/dist/home.min.js"></script>
         break;

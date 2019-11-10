@@ -29,5 +29,20 @@ namespace Website.Areas.Api.Controllers
 
             return await _videoRepository.GetVideos(request);
         }
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<NldbVideo>> GetVideo([FromRoute] string id)
+        {
+            var video = await _videoRepository.GetCompleteEpisode(id);
+            
+            if (video is null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                return video;
+            }
+        }
     }
 }

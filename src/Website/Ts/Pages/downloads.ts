@@ -1,7 +1,7 @@
 ﻿import { Component, FrameworkElement, Attribute } from "../Framework/renderer";
 import { PageData, registerPage, initRouter } from "../Framework/router";
 
-export class DownloadsComponent implements Component {
+export class DownloadsPage implements Component {
     E: FrameworkElement;
 
     constructor() {
@@ -36,9 +36,9 @@ export class DownloadsComponent implements Component {
     static RegisterPage() {
         const page: PageData = {
             AppendTo: 'main-container',
-            Component: DownloadsComponent,
+            Component: DownloadsPage,
             Title: 'Welcome to the Northernlion Database',
-            Url: '/downloads'
+            Urls: ['/Downloads']
         }
 
         registerPage('downloads', page);
@@ -47,8 +47,7 @@ export class DownloadsComponent implements Component {
 
 
 (() => {
-    console.log('registering page downloads');
-    DownloadsComponent.RegisterPage();
+    DownloadsPage.RegisterPage();
     initRouter();
 })();
 

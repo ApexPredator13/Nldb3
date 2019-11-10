@@ -6,8 +6,9 @@ import { FrontpageTopUser } from "../Models/frontpage-top-user";
 import { RankNameComponent, RankImageComponent } from "../Components/Home/Rank";
 import { StatImageComponent, StatTextComponent, StatsHeaderComponent } from "../Components/Home/Stat";
 import { registerPage, PageData, initRouter } from "../Framework/router";
+import { ResourceType } from "../Enums/resource-type";
 
-export class HomeComponent implements Component {
+export class HomePage implements Component {
     E: FrameworkElement;
     A: Array<AsyncComponentPart>;
 
@@ -20,9 +21,9 @@ export class HomeComponent implements Component {
     static RegisterPage() {
         const page: PageData = {
             AppendTo: 'main-container',
-            Component: HomeComponent,
+            Component: HomePage,
             Title: 'Welcome to the Northernlion Database',
-            Url: '/'
+            Urls: ['/']
         }
 
         registerPage('home', page);
@@ -30,15 +31,15 @@ export class HomeComponent implements Component {
 
     private AboveTheFoldContent(asyncContainerId: string): FrameworkElement {
 
-        const topic1 = new TopicComponent('episodes', "-100");
-        const topic2 = new TopicComponent('items', "-241");
-        const topic3 = new TopicComponent('quotes', "-382");
-        const topic4 = new TopicComponent('sources', "-523");
-        const topic5 = new TopicComponent('bosses', "-664");
-        const topic6 = new TopicComponent('characters', "-805");
-        const topic7 = new TopicComponent('floors', "-946");
-        const topic8 = new TopicComponent('rng', "-1369");
-        const topic9 = new TopicComponent('transformations', "-1228");
+        const topic1 = new TopicComponent('Isaac Episodes', "-100", '/Episodes');
+        const topic2 = new TopicComponent('Items', "-241", '/Items', ResourceType.Item);
+        const topic3 = new TopicComponent('Quotes', "-382", '/');
+        const topic4 = new TopicComponent('Item Sources', "-523", '/ItemSources', ResourceType.ItemSource);
+        const topic5 = new TopicComponent('Bossfights', "-664", '/Bosses', ResourceType.Boss);
+        const topic6 = new TopicComponent('Characters', "-805", '/Characters', ResourceType.Character);
+        const topic7 = new TopicComponent('Floors', "-946", '/Floors', ResourceType.Floor);
+        const topic8 = new TopicComponent('Random Episode Generator', "-1369", '/');
+        const topic9 = new TopicComponent('Transformations', "-1228", '/Transformations', ResourceType.Transformation);
 
         return {
             e: ['div'],
@@ -191,7 +192,7 @@ export class HomeComponent implements Component {
 }
 
 (() => {
-    HomeComponent.RegisterPage();
+    HomePage.RegisterPage();
     initRouter();
 })();
 

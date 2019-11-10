@@ -40,34 +40,25 @@ const getUser = async (): Promise<User | null> => {
 
     try {
         if (window.location.href.indexOf('?code=') !== -1) {
-            console.log('(authentication) checking redirect callback...');
             user = await userManager.signinRedirectCallback()
             if (user) {
-                console.warn('(authentication) user found in redirect callback');
                 removeHashAndQuerystring();
                 return user;
             }
         }
 
-        console.log('(authentication) checking session state...');
         user = await userManager.getUser();
         if (user) {
-            console.warn('(authentication) user found in session storage');
             return user;
         }
 
-
-        console.log('(authentication) checking silent signin...');
         user = await userManager.signinSilent();
         if (user === null) {
-            console.warn('(authentication) user not found, deleting user.');
             await userManager.removeUser();
         }
 
-        console.warn('(authentication) user found in silent signin');
         return user;
-    } catch(e) {
-        console.error('(authentication) get user failed!', e)
+    } catch {
         return null;
     }
 }

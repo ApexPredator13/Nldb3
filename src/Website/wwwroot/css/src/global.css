@@ -19,6 +19,7 @@ body {
     align-items: stretch;
     overflow: no-content;
     min-height: 100%;
+    position: relative;
 }
 a, a:visited, a:active {
     color: white;
@@ -114,4 +115,7 @@ hr {
 }
 .mono {
     font-family: "Courier New", Courier, monospace;
+}
+.u {
+    text-decoration: underline;
 }

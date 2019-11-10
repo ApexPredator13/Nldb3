@@ -2,12 +2,53 @@
 import { NavigationComponent } from '../Pages/Layout/navigation';
 import { MainComponent } from '../Pages/Layout/main';
 import * as Oidc from 'oidc-client';
+import { registerPopupEvent } from './custom-events';
 
 interface PageData {
     AppendTo: string,
     Component: new() => Component,
     Title: string | (() => string),
-    Url: string
+    Urls: Array<string>,
+    Data?: any
+}
+
+const setPageData = (pageName: string, data: any) => {
+    const pages = getPages();
+    if (pages.has(pageName)) {
+        const page = pages.get(pageName);
+        if (page) {
+            console.log('setting page data for page', pageName, data);
+            page.Data = data;
+        }
+    }
+}
+
+const appendRouteFragment = (fragment: string) => {
+    if (!fragment.startsWith('/')) {
+        fragment = `/${fragment}`;
+    }
+    history.replaceState(undefined, document.title, `${window.location.href}${fragment}`);
+}
+
+const routeEndsWith = (fragment: string) => {
+    if (window.location.href.endsWith(fragment)) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+const getPageData = () => {
+    const currentRoute = getCurrentRouteUrl();
+    console.log('current route: ', currentRoute);
+    const pages = getPages();
+    for (const page of pages) {
+        for (const url of page[1].Urls) {
+            if (url === currentRoute) {
+                return page[1].Data;
+            }
+        }
+    }
 }
 
 const getPages = () => {
@@ -29,16 +70,20 @@ const registerPage = (name: string, data: PageData) => {
     }
 }
 
+const setTitle = (title: string) => {
+    document.title = title;
+}
+
 const initRouter = () => {
     if (!(window as any).routerInit) {
 
+        // misc stuff
         Oidc.Log.logger = console;
+        registerPopupEvent();
 
         // render layout
-        console.log('rendering navigation');
         const navigation = render(new NavigationComponent());
 
-        console.log('rendering main');
         const main = render(new MainComponent());
 
         if (main && navigation) {
@@ -49,7 +94,7 @@ const initRouter = () => {
         // delay enough so that initial popstate event that some browsers trigger on load will be skipped
         setTimeout(() => {
             window.addEventListener('popstate', () => {
-                const url = getCurrentRoute();
+                const url = getCurrentRouteUrl();
                 goToRouteWithUrl(url, false, true);
             });
         }, 100);
@@ -64,69 +109,89 @@ const initRouter = () => {
     (window as any).routerInit = true;
 };
 
-const goToRouteWithName = (routeName: string, push = true, forceRender = false, scrollToTop = true) => {
+type findRouteResult = {
+    exactMatch?: string,
+    approximateMatch: Array<string>
+}
+
+const getRegisteredRouteNameFromRegisteredUrl = (route: string, pages: Map<string, PageData>): findRouteResult => {
+    const result: findRouteResult = {
+        exactMatch: undefined,
+        approximateMatch: new Array<string>()
+    };
+
+    for (const page of pages) {
+        for (const url of page[1].Urls) {
+            if (url.toLowerCase() === route.toLowerCase()) {
+                result.exactMatch = page[0];
+                return result;
+            } else if (url !== '/' && route.toLowerCase().startsWith(url.toLowerCase())) {
+                result.approximateMatch.push(page[0]);
+            }
+        }
+    }
+
+    return result;
+}
+
+const goToRouteWithName = (routeName: string, push = true, forceRender = false, scrollToTop = true, urlIndex = 0) => {
     const pages = getPages();
     for (const page of pages) {
         if (page[0] === routeName) {
-            goToRouteWithUrl(page[1].Url, push, forceRender, scrollToTop);
+            goToRouteWithUrl(page[1].Urls[urlIndex], push, forceRender, scrollToTop);
             return;
         }
     }
 }
 
-const getRouteNameFromUrl = (route: string): string | null => {
-    const pages = getPages();
-    for (const page of pages) {
-        if (page[1].Url === route) {
-            return page[0];
-        }
-    }
-    return null;
-}
 
 const goToRouteWithUrl = (route: string, push = true, forceRender = false, scrollToTop = true) => {
     const pages = getPages();
 
     // don't re-render the same url, except it's forced
-    const currentRoute = getCurrentRoute();
+    const currentRoute = getCurrentRouteUrl();
     if (currentRoute === route && !forceRender) {
         return;
     }
 
-    const routeName = getRouteNameFromUrl(route);
+    const foundRoutes = getRegisteredRouteNameFromRegisteredUrl(route, pages);
+    if (!foundRoutes.exactMatch && foundRoutes.approximateMatch.length === 0) {
+        console.warn('route ' + route + ' was not found');
+        return;
+    }
 
     // render new page
-    if (routeName && pages.has(routeName)) {
-        const page = pages.get(routeName);
-        if (page) {
-            const parent = document.getElementById(page.AppendTo);
-            if (parent) {
+    const pageName = foundRoutes.exactMatch ? foundRoutes.exactMatch : foundRoutes.approximateMatch[0];
+    const page = pages.get(pageName);
 
-                const component = new page.Component();
+    if (!page) {
+        console.warn('page was found by getRegisteredRouteNameFromRegisteredUrl, but not in the registered pages map!');
+        return;
+    }
 
-                const renderedPage = render(component);
-                if (renderedPage) {
-                    document.title = typeof page.Title === 'string' ? page.Title : page.Title();
-                    parent.innerHTML = '';
-                    parent.appendChild(renderedPage);
-                    if (scrollToTop) {
-                        window.scrollTo(0, 0);
-                    }
-                    if (push) {
-                        history.pushState(undefined, '', route);
-                    }
-                }
-            }
-        } else {
-            console.log('page ' + routeName + ' not found');
+    const parent = document.getElementById(page.AppendTo);
+    if (parent) {
+
+        if (push) {
+            history.pushState(undefined, '', route);
         }
-    } else {
-        console.log('route name ' + routeName + ' does not exist', pages);
+
+        const component = new page.Component();
+        const renderedPage = render(component);
+
+        if (renderedPage) {
+            document.title = typeof page.Title === 'string' ? page.Title : page.Title();
+            parent.innerHTML = '';
+            parent.appendChild(renderedPage);
+            if (scrollToTop) {
+                window.scrollTo(0, 0);
+            }
+        }
     }
 };
 
 // TODO: base url in production mode
-const getCurrentRoute = () => {
+const getCurrentRouteUrl = () => {
     const url = window.location.href;
     const baseUrlLength = 'https://localhost:5005'.length;
     if (url.length <= baseUrlLength) {
@@ -143,6 +208,11 @@ export {
     goToRouteWithName,
     initRouter,
     registerPage,
+    setPageData,
+    getPageData,
+    setTitle,
+    appendRouteFragment,
+    routeEndsWith
 }
 
 

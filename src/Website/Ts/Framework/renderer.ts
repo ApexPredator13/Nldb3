@@ -24,7 +24,7 @@ interface Component {
 
 interface AsyncComponentPart {
     /** Async Element */
-    P: Promise<FrameworkElement>
+    P: Promise<FrameworkElement | Component>
 
     /** Element ID the element will be rendered into after it's created */
     I: string
@@ -45,14 +45,17 @@ enum Attribute {
     Value,
     DataLowercaseName,
     Selected,
-    Placeholder
+    Placeholder,
+    Colspan
 }
 
 enum EventType {
     Click = 1,
     MouseEnter,
+    MouseLeave,
     Input,
-    Change
+    Change,
+    Custom_ShowPopup
 }
 
 const translateAttribute = (attribute: Attribute) => {
@@ -81,6 +84,8 @@ const translateAttribute = (attribute: Attribute) => {
             return 'selected';
         case Attribute.Placeholder:
             return 'placeholder';
+        case Attribute.Colspan:
+            return 'colspan';
         default:
             return '';
     }
@@ -96,6 +101,10 @@ const translateEventType = (eventType: EventType) => {
             return 'input';
         case EventType.Change:
             return 'change';
+        case EventType.Custom_ShowPopup:
+            return 'showPopup';
+        case EventType.MouseLeave:
+            return 'mouseleave';
         default:
             return '';
     }
@@ -109,18 +118,15 @@ const render: renderFunction = elementOrComponent => {
     const component = elementOrComponent as Component;
     if (component.A) {
         for (let i = 0; i < component.A.length; ++i) {
-            console.log('async part detected!   ', component.A[i].I, component.A[i].P);
             const promise = component.A[i].P;
             const parentId = component.A[i].I;
             const append = component.A[i].A;
 
             promise.then(e => {
-                console.log('rendering async part...');
                 const html = render(e);
                 if (html) {
                     const parentElement = document.getElementById(parentId);
                     if (parentElement) {
-                        console.log('appending async part to parent', parentElement);
                         if (!append) {
                             parentElement.innerHTML = '';
                         }

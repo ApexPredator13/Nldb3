@@ -3,7 +3,7 @@ import { Option } from '../../Components/General/option';
 import { get } from "../../Framework/http";
 import { VideoResult } from "../../Models/video-result";
 import { ResourceType } from "../../Enums/resource-type";
-import { goToRouteWithName } from "../../Framework/router";
+import { goToRouteWithName, setPageData, goToRouteWithUrl } from "../../Framework/router";
 import { VideoOrderBy } from "../../Enums/video-order-by";
 
 export class VideosComponent implements Component {
@@ -151,7 +151,7 @@ export class VideosComponent implements Component {
                                             e: ['th', 'HD'],
                                         },
                                         {
-                                            e: ['th', '']
+                                            e: ['th']
                                         }
                                     ]
                                 }
@@ -305,8 +305,10 @@ export class VideosComponent implements Component {
                 const video = videoResult.videos[i];
                 const clickEvent = (e: Event) => {
                     e.preventDefault();
+                    console.log('clicked title.', video);
                     if (video.submission_count > 0) {
-                        goToRouteWithName('/video');
+                        setPageData('episode', { title: video.title, id: video.id });
+                        goToRouteWithUrl('/Episode');
                     }
                 }
 
@@ -356,8 +358,9 @@ export class VideosComponent implements Component {
                         a: [[Attribute.Class, 'r ' + (video.is_hd ? 'green' : 'orange')]]
                     },
                     {
-                        e: ['a', 'Submit'],
-                        v: [[EventType.Click, e => { e.preventDefault(); goToRouteWithName('submit'); }]]
+                        e: ['td', 'Submit'],
+                        v: [[EventType.Click, e => { e.preventDefault(); goToRouteWithName('submit'); }]],
+                        a: [[Attribute.Class, 'hand u']]
                     }
                 ]
 

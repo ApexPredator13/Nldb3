@@ -1,17 +1,26 @@
 ﻿import { Component, FrameworkElement, Attribute, EventType } from "../../Framework/renderer";
-import { goToRouteWithUrl } from "../../Framework/router";
+import { setPageData, goToRouteWithUrl } from "../../Framework/router";
 
 export class NavSectionComponent implements Component {
 
     E: FrameworkElement;
 
-    constructor(px: number, href: string, text: string) {
+    constructor(px: number, url: string, text: string, pageData?: any) {
         const iconStyle = `background: url('/img/gameplay_events.png') -${px}px 0 transparent`;
+
+        const clickEvent = (e: Event) => {
+            e.preventDefault();
+            if (pageData) {
+                setPageData('resource-overview', pageData);
+            }
+
+            goToRouteWithUrl(url);
+        }
 
         this.E = {
             e: ['a'],
-            a: [[Attribute.Href, href], [Attribute.Class, 'nav-point']],
-            v: [[EventType.Click, e => { e.preventDefault(); goToRouteWithUrl(href.toLowerCase()); }]],
+            a: [[Attribute.Href, url], [Attribute.Class, 'nav-point']],
+            v: [[EventType.Click, clickEvent]],
             c: [
                 {
                     e: ['div'],

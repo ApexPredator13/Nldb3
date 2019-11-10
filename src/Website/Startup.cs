@@ -261,9 +261,7 @@ namespace Website
                 //// catchall for arbitrary isaac resource
                 //endpoints.MapControllerRoute("general_resource", "{id}", new { Area = string.Empty, Controller = Controllers.ResourceController.Controllername, Action = nameof(Controllers.ResourceController.Index) });
 
-
-                endpoints.MapControllerRoute("downloads", "/Downloads", new { controller = Controllers.HomeController.Controllername, action = nameof(Controllers.HomeController.Index) });
-                endpoints.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
+                endpoints.MapControllerRoute("default", "{*url}", new { controller = Controllers.HomeController.Controllername, action = nameof(Controllers.HomeController.Index) } );
             });
 
             app.ApplyEntityFrameworkDatabaseMigrations();

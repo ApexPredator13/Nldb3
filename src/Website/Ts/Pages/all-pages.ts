@@ -1,9 +1,15 @@
-﻿import { HomeComponent } from "./home";
-import { DownloadsComponent } from "./downloads";
+﻿import { HomePage } from "./home";
+import { DownloadsPage } from "./downloads";
+import { EpisodesPage } from "./episodes";
+import { ResourceOverviewPage } from "./resource-overview";
+import { EpisodePage } from "./episode";
 
 (() => {
     document.addEventListener('DOMContentLoaded', () => {
-        HomeComponent.RegisterPage();
-        DownloadsComponent.RegisterPage();
+        HomePage.RegisterPage();
+        DownloadsPage.RegisterPage();
+        EpisodesPage.RegisterPage();
+        ResourceOverviewPage.RegisterPage();
+        EpisodePage.RegisterPage();
     });
 })();

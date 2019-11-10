@@ -1,5 +1,5 @@
 ﻿export enum ResourceType {
-    Unspecified = 0,
+    Unspecified,
     Boss,
     Character,
     Curse,
@@ -13,5 +13,6 @@
     Enemy,
     Transformation,
     Trinket,
-    CharacterReroll
+    CharacterReroll,
+    OtherConsumable
 }

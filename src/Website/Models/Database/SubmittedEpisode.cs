@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.Linq;
 using Website.Models.Database.Enums;
 
@@ -6,12 +7,25 @@ namespace Website.Models.Database
 {
     public class SubmittedEpisode
     {
+        [JsonProperty("id")]
         public int Id { get; set; } = 0;
+
+        [JsonProperty("video_id")]
         public string Video { get; set; } = string.Empty;
+
+        [JsonProperty("submission_type")]
         public SubmissionType SubmissionType { get; set; } = SubmissionType.New;
+
+        [JsonProperty("latest")]
         public bool Latest { get; set; } = false;
+
+        [JsonProperty("played_characters")]
         public List<PlayedCharacter> PlayedCharacters { get; set; } = new List<PlayedCharacter>();
+
+        [JsonProperty("username")]
         public string UserName { get; set; } = string.Empty;
+        
+        [JsonProperty("is_two_player")]
         public bool IsTwoPlayerMode
         {
             get {

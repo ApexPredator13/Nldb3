@@ -1,9 +1,11 @@
 ﻿table {
     margin: 1rem auto;
     border-collapse: collapse;
+    background-color: rgba(255,255,255,0.1);
+    border-radius: 0.5rem;
 }
 td, th {
-    padding-right: 0.5rem;
+    padding: 0.2rem 0.7rem;
 }
 td {
     text-align: left;

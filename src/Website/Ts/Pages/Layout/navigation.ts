@@ -1,6 +1,7 @@
 ﻿import { Component, FrameworkElement, Attribute, EventType, AsyncComponentPart } from "../../Framework/renderer";
 import { getUser, signin } from "../../Framework/authentication";
 import { NavSectionComponent } from "../../Components/Navigation/nav-section";
+import { ResourceType } from "../../Enums/resource-type";
 
 export class NavigationComponent implements Component {
     E: FrameworkElement;
@@ -37,21 +38,21 @@ export class NavigationComponent implements Component {
                         {
                             e: ['h3', 'Learn more about...']
                         },
-                        new NavSectionComponent(630, '/Videos', 'Episodes'),
-                        new NavSectionComponent(70, '/Items', 'Collected Items'),
-                        new NavSectionComponent(140, '/Bosses', 'Bossfights'),
-                        new NavSectionComponent(455, '/Characters', 'Played Characters'),
-                        new NavSectionComponent(420, '/ItemSources', 'Item Sources'),
+                        new NavSectionComponent(630, '/Episodes', 'Episodes'),
+                        new NavSectionComponent(70,  '/Items', 'Collected Items', ResourceType.Item),
+                        new NavSectionComponent(140, '/Bosses', 'Bossfights', ResourceType.Boss),
+                        new NavSectionComponent(455, '/Characters', 'Played Characters', ResourceType.Character),
+                        new NavSectionComponent(420, '/ItemSources', 'Item Sources', ResourceType.ItemSource),
                         new NavSectionComponent(490, '/Quotes', 'Quotes'),
-                        new NavSectionComponent(105, '/Floors', 'Floors'),
-                        new NavSectionComponent(525, '/Transformations', 'Transformations'),
-                        new NavSectionComponent(385, '/CharacterRerolls', 'Character Rerolls'),
-                        new NavSectionComponent(560, '/Curses', 'Curses'),
-                        new NavSectionComponent(175, '/Pills', 'Swallowed Pills'),
-                        new NavSectionComponent(245, '/Runes', 'Used Runes'),
-                        new NavSectionComponent(210, '/TarotCards', 'Tarot Cards'),
-                        new NavSectionComponent(280, '/Trinkets', 'Collectged Trinkets'),
-                        new NavSectionComponent(315, '/OtherConsumables', 'Other Consumables')
+                        new NavSectionComponent(105, '/Floors', 'Floors', ResourceType.Floor),
+                        new NavSectionComponent(525, '/Transformations', 'Transformations', ResourceType.Transformation),
+                        new NavSectionComponent(385, '/CharacterRerolls', 'Character Rerolls', ResourceType.CharacterReroll),
+                        new NavSectionComponent(560, '/Curses', 'Curses', ResourceType.Curse),
+                        new NavSectionComponent(175, '/Pills', 'Swallowed Pills', ResourceType.Pill),
+                        new NavSectionComponent(245, '/Runes', 'Used Runes', ResourceType.Rune),
+                        new NavSectionComponent(210, '/TarotCards', 'Tarot Cards', ResourceType.TarotCard),
+                        new NavSectionComponent(280, '/Trinkets', 'Collected Trinkets', ResourceType.Trinket),
+                        new NavSectionComponent(315, '/OtherConsumables', 'Other Consumables', ResourceType.OtherConsumable)
                     ]
                 },
                 {

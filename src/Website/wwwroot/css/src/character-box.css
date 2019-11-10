@@ -24,9 +24,3 @@
 .box:hover {
     background-color: rgba(255,255,255,0.3);
 }
-.upscale {
-    -webkit-transform: scale(2);
-    image-rendering: pixelated;
-    image-rendering: crisp-edges;
-    margin: 15px auto !important;
-}
