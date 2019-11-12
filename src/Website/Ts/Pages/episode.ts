@@ -4,6 +4,8 @@ import { get } from "../Framework/http";
 import { Video } from "../Models/video";
 import { EventsTableComponent } from "../Components/Video/events-table";
 import { getLastCharactersOfUrl } from "../Framework/browser";
+import { VideoStats } from "../Components/Video/video-stats";
+import { Timeline } from "../Components/Video/timeline";
 
 export class EpisodePage implements Component {
     E: FrameworkElement;
@@ -50,7 +52,15 @@ export class EpisodePage implements Component {
                         {
                             e: ['h3', 'Gameplay-Events in chronological order']
                         },
-                        new EventsTableComponent(this.videoData, 0)
+                        new EventsTableComponent(this.videoData, 0),
+                        {
+                            e: ['h3', 'Timeline']
+                        },
+                        new Timeline(this.videoData, 0),
+                        {
+                            e: ['h3', 'Video Statistics compared to record episodes / an average episode']
+                        },
+                        new VideoStats(this.videoData)
                     ]
                 }
             ]

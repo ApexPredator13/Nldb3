@@ -1,7 +1,7 @@
 ﻿import { Component, FrameworkElement, Attribute, EventType } from "../../Framework/renderer";
 import { setPageData, goToRouteWithUrl } from "../../Framework/router";
 
-export class NavSectionComponent implements Component {
+export class NavSection implements Component {
 
     E: FrameworkElement;
 

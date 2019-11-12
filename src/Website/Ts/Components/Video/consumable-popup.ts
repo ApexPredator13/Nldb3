@@ -1,7 +1,7 @@
 ﻿import { Component, FrameworkElement, Attribute } from "../../Framework/renderer";
 import { GameplayEvent } from "../../Models/gameplay-event";
 import { GameplayEventType } from "../../Enums/gameplay-event-type";
-import { IsaacImageComponent } from "../General/isaac-image";
+import { IsaacImage } from "../General/isaac-image";
 
 export class ConsumablePopup implements Component {
     E: FrameworkElement;
@@ -51,7 +51,7 @@ export class ConsumablePopup implements Component {
 
         this.E = {
             e: ['div'],
-            a: [[Attribute.Class, 'popup c']],
+            a: [[Attribute.Class, 'popup c downscale']],
             c: [
                 {
                     e: ['h3', header]
@@ -59,7 +59,7 @@ export class ConsumablePopup implements Component {
                 {
                     e: ['hr']
                 },
-                new IsaacImageComponent({ event: event, resourceToUse: 1 }, false),
+                new IsaacImage(event, 1, undefined, false),
                 {
                     e: ['br']
                 },
@@ -71,3 +71,4 @@ export class ConsumablePopup implements Component {
         }
     }
 }
+

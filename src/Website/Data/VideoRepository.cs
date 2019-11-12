@@ -574,6 +574,42 @@ namespace Website.Data
             await q.ExecuteNonQueryAsync();
         }
 
+        public async Task<MaxVideoStats> GetMaxVideoStats()
+        {
+            MaxVideoStats result = new MaxVideoStats();
+
+            var query = 
+                "SELECT " +
+                    "MAX(view_count), " +
+                    "MAX(likes), " +
+                    "MAX(comment_count), " +
+                    "MAX(dislikes), " +
+                    "(AVG(view_count))::REAL, " +
+                    "(AVG(likes))::REAL, " +
+                    "(AVG(comment_count))::REAL, " +
+                    "(AVG(dislikes))::REAL " +
+                "FROM videos;";
+
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand(query, c);
+            using var r = await q.ExecuteReaderAsync();
+
+            if (r.HasRows)
+            {
+                r.Read();
+                result.MaxViews = r.IsDBNull(0) ? 0 : r.GetInt32(0);
+                result.MaxLikes = r.IsDBNull(1) ? 0 : r.GetInt32(1);
+                result.MaxComments = r.IsDBNull(2) ? 0 : r.GetInt32(2);
+                result.MaxDislikes = r.IsDBNull(3) ? 0 : r.GetInt32(3);
+                result.AverageViews = r.IsDBNull(4) ? 0.0f : r.GetFloat(4);
+                result.AverageLikes = r.IsDBNull(5) ? 0.0f : r.GetFloat(5);
+                result.AverageComments = r.IsDBNull(6) ? 0.0f : r.GetFloat(6);
+                result.AverageDislikes = r.IsDBNull(7) ? 0.0f : r.GetFloat(7);
+            }
+
+            return result;
+        }
+
         public async Task<NldbVideo?> GetVideoById(string videoId)
         {
             NldbVideo? result = null;

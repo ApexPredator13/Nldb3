@@ -17,7 +17,7 @@ const getUserManager = (): UserManager => {
         monitorSession: true,
         checkSessionInterval: 10,
         response_type: 'code',
-        scope: 'openid profile',
+        scope: 'openid profile role',
         loadUserInfo: true,
         post_logout_redirect_uri: baseUrlOfThisWebsite,
         revokeAccessTokenOnSignout: true
@@ -73,8 +73,24 @@ const signout = () => {
     userManager.signoutRedirect();
 }
 
+const isAdmin = (user: User) => {
+    const roleClaimName = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role';
+    if (user.profile[roleClaimName] === 'admin') {
+        return true;
+    }
+    return false;
+}
+
+const loadAdminPages = () => {
+    const script = document.createElement('script');
+    script.src = '/js/dist/all_admin_pages.min.js';
+    document.head.appendChild(script);
+}
+
 export {
     getUser,
     signin,
-    signout
+    signout,
+    isAdmin,
+    loadAdminPages
 }

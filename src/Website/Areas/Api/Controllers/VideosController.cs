@@ -1,7 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Website.Models;
 using Website.Models.Database;
@@ -44,5 +41,13 @@ namespace Website.Areas.Api.Controllers
                 return video;
             }
         }
+
+        [HttpGet("max")]
+        public async Task<MaxVideoStats> GetMaxVideoStats()
+        {
+            return await _videoRepository.GetMaxVideoStats();
+        }
     }
 }
+
+

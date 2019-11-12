@@ -5,7 +5,7 @@ export interface Video {
     id: string,
     title: string,
     published: string,
-    duration: number,
+    duration: string,
     thumbnails: Array<Thumbnail>,
     requires_update: boolean,
     likes: number | null,

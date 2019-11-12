@@ -1,0 +1,40 @@
+﻿.popup {
+    position: absolute;
+    top: 30px;
+    right: 0;
+    background-color: #212121;
+    border: 0.1rem solid white;
+    padding: 0.25rem;
+    border-radius: 0.3rem;
+    display: none;
+    overflow: visible;
+    width: auto;
+    height: auto;
+    white-space: nowrap;
+    z-index: inherit;
+}
+
+.popup-container:hover > .popup {
+    display: inline-block;
+}
+
+.popup h3 {
+    margin: 0.5rem;
+}
+
+.popup-container {
+    overflow: visible;
+    position: relative;
+}
+
+.upscale {
+    -webkit-transform: scale(2);
+    transform: scale(2);
+}
+
+.downscale {
+    font-size: 0.5rem;
+}
+.downscale hr {
+    border-top: 1px dashed rgba(255,255,255,0.2);
+}

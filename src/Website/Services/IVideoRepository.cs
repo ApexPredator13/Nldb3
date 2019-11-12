@@ -29,5 +29,6 @@ namespace Website.Services
         Task<DateTime> GetMostRecentVideoReleaseDate();
         Task<DateTime> GetFirstVideoReleaseDate();
         Task<List<string>> GetVideosThatNeedYoutubeUpdate(int amount, bool updateVideosAfterwards = false);
+        Task<MaxVideoStats> GetMaxVideoStats();
     }
 }

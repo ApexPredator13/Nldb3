@@ -20,14 +20,25 @@ async function get<T>(url: string, authorized: boolean = false): Promise<T> {
     return request<T>(url, { method: 'GET', headers: headers });
 }
 
-async function post<T>(url: string, authorized: boolean = false): Promise<T> {
+async function post<T>(url: string, body?: FormData, authorized: boolean = false): Promise<T> {
     const headers = authorized ? await createAuthHeader() : undefined;
-    return request<T>(url, { method: 'POST', headers: headers });
+    return request<T>(url, { method: 'POST', headers: headers, body: body });
 }
 
+async function getResponse(url: string, authorized: boolean = false): Promise<Response> {
+    const headers = authorized ? await createAuthHeader() : undefined;
+    return await fetch(url, { method: 'GET', headers: headers });
+}
+
+async function postResponse(url: string, body?: FormData, authorized: boolean = false): Promise<Response> {
+    const headers = authorized ? await createAuthHeader() : undefined;
+    return await fetch(url, { method: 'POST', headers: headers, body: body });
+}
 
 export {
     get,
-    post
+    post,
+    getResponse,
+    postResponse
 }
 

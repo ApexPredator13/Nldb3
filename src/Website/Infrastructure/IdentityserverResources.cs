@@ -3,6 +3,7 @@ using IdentityServer4.Models;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
+using System.Security.Claims;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -15,7 +16,8 @@ namespace Website.Infrastructure
             return new List<IdentityResource>()
             {
                 new IdentityResources.OpenId(),
-                new IdentityResources.Profile()
+                new IdentityResources.Profile(),
+                new IdentityResource("role", "Role", new List<string>() { ClaimTypes.Role })
             };
         }
 
@@ -29,11 +31,11 @@ namespace Website.Infrastructure
                     AllowAccessTokensViaBrowser = true,
                     RequireClientSecret = false,
                     AllowedGrantTypes = GrantTypes.Code,
-                    AllowedScopes = { IdentityServerConstants.StandardScopes.OpenId, IdentityServerConstants.StandardScopes.Profile, IdentityServerConstants.StandardScopes.OfflineAccess },
+                    AllowedScopes = { IdentityServerConstants.StandardScopes.OpenId, IdentityServerConstants.StandardScopes.Profile, "role" },
                     AccessTokenType = AccessTokenType.Reference,
                     AccessTokenLifetime = 900,
                     AllowOfflineAccess = true,
-                    AlwaysSendClientClaims = true,
+                    AlwaysIncludeUserClaimsInIdToken = true,
                     Enabled = true,
                     ClientName = "Local Javascript App",
                     AllowedCorsOrigins = { 

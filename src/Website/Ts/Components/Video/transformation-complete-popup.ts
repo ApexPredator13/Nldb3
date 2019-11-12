@@ -1,6 +1,6 @@
 ﻿import { Component, FrameworkElement, Attribute } from "../../Framework/renderer";
 import { GameplayEvent } from "../../Models/gameplay-event";
-import { IsaacImageComponent } from "../General/isaac-image";
+import { IsaacImage } from "../General/isaac-image";
 
 export class TransformationCompletePopup implements Component {
     E: FrameworkElement;
@@ -9,7 +9,7 @@ export class TransformationCompletePopup implements Component {
         if (event.r1 && event.r2) {
             this.E = {
                 e: ['div'],
-                a: [[Attribute.Class, 'popup c']],
+                a: [[Attribute.Class, 'popup c downscale']],
                 c: [
                     {
                         e: ['h3', 'Transformation Complete!']
@@ -17,7 +17,7 @@ export class TransformationCompletePopup implements Component {
                     {
                         e: ['hr']
                     },
-                    new IsaacImageComponent({ event: event, resourceToUse: 2 }, false),
+                    new IsaacImage(event, 2, undefined, false),
                     {
                         e: ['br']
                     },

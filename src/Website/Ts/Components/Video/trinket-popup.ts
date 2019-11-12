@@ -1,6 +1,6 @@
 ﻿import { Component, FrameworkElement, Attribute } from "../../Framework/renderer";
 import { GameplayEvent } from "../../Models/gameplay-event";
-import { IsaacImageComponent } from "../General/isaac-image";
+import { IsaacImage } from "../General/isaac-image";
 
 export class TrinketPopup implements Component {
     E: FrameworkElement;
@@ -35,7 +35,7 @@ export class TrinketPopup implements Component {
 
         this.E = {
             e: ['div'],
-            a: [[Attribute.Class, 'popup c']],
+            a: [[Attribute.Class, 'popup c downscale']],
             c: [
                 {
                     e: ['h3', 'A new trinket was used from here on out!']
@@ -43,7 +43,7 @@ export class TrinketPopup implements Component {
                 {
                     e: ['hr']
                 },
-                new IsaacImageComponent({ event: event, resourceToUse: 1 }, false),
+                new IsaacImage(event, 1, undefined, false),
                 {
                     e: ['br']
                 },

@@ -1,4 +1,11 @@
-﻿type renderFunction = (element: FrameworkElement | Component) => HTMLElement | null;
+﻿import { setZIndex, getFormValue, addClassIfNotExists, searchParentsForTag } from "./browser";
+import { popupEventData } from "./popup";
+import { goToRouteWithUrl } from "./router";
+import { postResponse } from "./http";
+import { removeClassIfExists } from "../../wwwroot/js/src/lib/dom-operations";
+import { ValidationPopup } from "../Components/General/validation-popup";
+
+type renderFunction = (element: FrameworkElement | Component) => HTMLElement | null;
 
 interface FrameworkElement {
     /** tag name */
@@ -20,6 +27,189 @@ interface Component {
 
     /** Async Elements */
     A?: Array<AsyncComponentPart>
+}
+
+class ComponentWithPopup {
+    CreatePopupForElement(element: FrameworkElement, component: Component) {
+        if (!element.v) {
+            element.v = new Array<[EventType, EventListener]>();
+        }
+
+        const mouseEnter = (e: Event) => {
+            const eventData: popupEventData = {
+                event: e,
+                popup: component
+            };
+
+            setZIndex(e, 10000);
+            const event: CustomEvent<popupEventData> = new CustomEvent('showPopup', { detail: eventData });
+            window.dispatchEvent(event);
+        };
+
+        const mouseLeave = (e: Event) => {
+            setZIndex(e, null);
+        }
+
+        element.v.push([EventType.MouseEnter, mouseEnter], [EventType.MouseLeave, mouseLeave]);
+    }
+}
+
+class ComponentWithForm {
+    private form: HTMLFormElement | undefined;
+
+    HandleSubmit(e: Event, postUrl: string, authorized: boolean, successUrl: string) {
+        e.preventDefault();
+        const target = e.target;
+        if (target && target instanceof HTMLFormElement) {
+            const formButtons = target.getElementsByTagName('button');
+            for (let i = 0; i < formButtons.length; ++i) {
+                formButtons[i].disabled = true;
+            }
+
+            const formData = getFormValue(e);
+            if (formData) {
+                postResponse(postUrl, formData, authorized)
+                    .then(() => goToRouteWithUrl(successUrl))
+                    .catch((e: Response) => {
+                        // todo: show error in fullscreen modal
+                        e.text().then(message => console.error(message));
+                    })
+                    .finally(() => {
+                        for (let i = 0; i < formButtons.length; ++i) {
+                            formButtons[i].disabled = false;
+                        }
+                    });
+            }
+        }
+    }
+
+    // gets all form elements and validates them
+    // will be called at every 'input' event and returns if the form is valid or not
+    ValidateForm(e: Event): boolean {
+        this.MarkAsTouched(e);
+        const form = this.GetFormTag(e);
+
+        if (!form) {
+            return false;
+        }
+
+        const inputElements = form.getElementsByTagName('input');
+        const selectElements = form.getElementsByTagName('select');
+        const textareaElements = form.getElementsByTagName('textarea');
+
+        const allElements = [...Array.from(inputElements), ...Array.from(selectElements), ...Array.from(textareaElements)];
+
+        const testResults = new Array<boolean>();
+
+        for (const element of allElements) {
+            testResults.push(
+                this.TestRequired(element),
+                this.TestMinlength(element)
+            );
+        }
+
+        if (testResults.some(result => result === false)) {
+            this.DisableSubmitButton(form);
+            return false;
+        } else {
+            this.EnableSubmitButton(form);
+            return true;
+        }
+    }
+
+    private DisableSubmitButton(form: HTMLFormElement) {
+        const buttons = form.getElementsByTagName('button');
+        for (let i = 0; i < buttons.length; ++i) {
+            buttons[i].disabled = true;
+        }
+    }
+
+    private EnableSubmitButton(form: HTMLFormElement) {
+        const buttons = form.getElementsByTagName('button');
+        for (let i = 0; i < buttons.length; ++i) {
+            buttons[i].disabled = false;
+        }
+    }
+
+    private MarkAsTouched(e: Event) {
+        const target = e.target;
+        if (target && (target instanceof HTMLInputElement || target instanceof HTMLSelectElement || target instanceof HTMLTextAreaElement) && !target.hasAttribute('touched')) {
+            target.setAttribute('touched', 'true');
+        }
+    }
+
+    private TestRequired(element: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement) {
+        if (element.required && !element.value) {
+            const errorAttributeName = htmlAttributeNameOf(Attribute.RequiredErrorMessage);
+            const error = element.getAttribute(errorAttributeName);
+            this.ShowError(element, error);
+            return false;
+        }
+
+        this.RemoveError(element);
+        return true;
+    }
+
+    private TestMinlength(element: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement) {
+        if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) {
+            const minlengthAttributeName = htmlAttributeNameOf(Attribute.MinLength);
+            const minLength = Number(element.getAttribute(minlengthAttributeName));
+            if (minLength && element.value.length < minLength) {
+                const errorAttributeName = htmlAttributeNameOf(Attribute.MinLengthErrorMessage);
+                const error = element.getAttribute(errorAttributeName);
+                this.ShowError(element, error);
+                return false;
+            }
+        }
+
+        this.RemoveError(element);
+        return true;
+    }
+
+    // takes an event or form element and recursively scans upwards until a form element is found
+    private GetFormTag(eventOrElement?: HTMLElement | Event): HTMLFormElement | undefined {
+        if (this.form) {
+            return this.form;
+        }
+        if (!eventOrElement) {
+            return undefined;
+        }
+
+        const tag = searchParentsForTag<HTMLFormElement>(eventOrElement, 'form');
+
+        if (tag) {
+            this.form = tag;
+        }
+
+        return tag;
+    }
+
+    private ShowError(e: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement, message: string | null) {
+        if (e.hasAttribute('touched')) {
+            const parent = e.parentElement;
+            if (parent && message) {
+                addClassIfNotExists(parent, 'popup-container');
+                this.RemoveError(e);
+                const popup = new ValidationPopup(message, e);
+                const popupHtml = render(popup);
+                if (popupHtml) {
+                    addClassIfNotExists(e, 'invalid');
+                    parent.appendChild(popupHtml);
+                }
+            }
+        }
+    }
+
+    private RemoveError(e: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement) {
+        removeClassIfExists(e, 'invalid');
+        const parent = e.parentElement;
+        if (parent) {
+            const popups = parent.getElementsByClassName('popup');
+            for (let i = 0; i < popups.length; ++i) {
+                parent.removeChild(popups[i]);
+            }
+        }
+    }
 }
 
 interface AsyncComponentPart {
@@ -46,7 +236,16 @@ enum Attribute {
     DataLowercaseName,
     Selected,
     Placeholder,
-    Colspan
+    Colspan,
+    Width,
+    Height,
+    Method,
+    Name,
+    Disabled,
+    Required,
+    RequiredErrorMessage,
+    MinLength,
+    MinLengthErrorMessage
 }
 
 enum EventType {
@@ -55,10 +254,11 @@ enum EventType {
     MouseLeave,
     Input,
     Change,
-    Custom_ShowPopup
+    Custom_ShowPopup,
+    Submit
 }
 
-const translateAttribute = (attribute: Attribute) => {
+const htmlAttributeNameOf = (attribute: Attribute) => {
     switch (attribute) {
         case Attribute.Style:
             return 'style';
@@ -86,6 +286,24 @@ const translateAttribute = (attribute: Attribute) => {
             return 'placeholder';
         case Attribute.Colspan:
             return 'colspan';
+        case Attribute.Width:
+            return 'width';
+        case Attribute.Height:
+            return 'height';
+        case Attribute.Method:
+            return 'method';
+        case Attribute.Name:
+            return 'name';
+        case Attribute.Disabled:
+            return 'disabled';
+        case Attribute.Required:
+            return 'required';
+        case Attribute.RequiredErrorMessage:
+            return 'required-error';
+        case Attribute.MinLength:
+            return 'minlength';
+        case Attribute.MinLengthErrorMessage:
+            return 'minlength-error';
         default:
             return '';
     }
@@ -105,6 +323,8 @@ const translateEventType = (eventType: EventType) => {
             return 'showPopup';
         case EventType.MouseLeave:
             return 'mouseleave';
+        case EventType.Submit:
+            return 'submit';
         default:
             return '';
     }
@@ -158,7 +378,7 @@ const render: renderFunction = elementOrComponent => {
                 const key = attribute[0];
                 const value = attribute[1];
                 if (key && value) {
-                    finishedElement.setAttribute(translateAttribute(key), value);
+                    finishedElement.setAttribute(htmlAttributeNameOf(key), value);
                 }
             }
         }
@@ -187,6 +407,8 @@ export {
     AsyncComponentPart,
     Attribute,
     Component,
+    ComponentWithPopup,
+    ComponentWithForm,
     EventType,
     render
 }

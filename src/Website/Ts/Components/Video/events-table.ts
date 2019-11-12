@@ -1,7 +1,7 @@
 ﻿import { Component, FrameworkElement, AsyncComponentPart, Attribute } from "../../Framework/renderer";
 import { SubmittedEpisode } from "../../Models/submitted-episode";
 import { GameplayEventType } from "../../Enums/gameplay-event-type";
-import { IsaacImageComponent, imageComponentInit } from "../General/isaac-image";
+import { IsaacImage } from "../General/isaac-image";
 import { ItemsourcePopup } from "./itemsource-popup";
 import { TransformationProgressPopup } from "./transformation-progress-popup";
 import { TransformationCompletePopup } from "./transformation-complete-popup";
@@ -94,10 +94,9 @@ export class EventsTableComponent implements Component {
             for (const floor of character.played_floors) {
 
                 // create item icons and popups
-                console.log('two player mode');
                 const itemsAndPopups = this.CreateItemsAndPopupsForFloor(floor, e.is_two_player);
-                const transformationProgress = this.CreateTransformationProgress(floor, e.is_two_player);
-                const transformationComplete = this.CreateTransformationComplete(floor, e.is_two_player);
+                const transformationProgress = this.CreateTransformationProgress(floor);
+                const transformationComplete = this.CreateTransformationComplete(floor);
                 const consumables = this.CreateConsumablesProgress(floor, e.is_two_player);
                 const trinkets = this.CreateTrinketProgress(floor, e.is_two_player);
                     
@@ -148,15 +147,7 @@ export class EventsTableComponent implements Component {
 
         for (const event of floor.events) {
             if (event.event_type === GameplayEventType.ItemCollected || event.event_type === GameplayEventType.ItemTouched) {
-                const init: imageComponentInit = {
-                    event: event,
-                    resourceToUse: 1,
-                    popup: {
-                        component: ItemsourcePopup,
-                        twoPlayerMode: twoPlayerMode
-                    }
-                };
-                itemsAndPopups.push(new IsaacImageComponent(init));
+                itemsAndPopups.push(new IsaacImage(event, 1, new ItemsourcePopup(event, twoPlayerMode)));
             }
         }
 
@@ -164,20 +155,12 @@ export class EventsTableComponent implements Component {
     }
 
 
-    private CreateTransformationProgress(floor: PlayedFloor, twoPlayerMode: boolean): Array<Component> {
+    private CreateTransformationProgress(floor: PlayedFloor): Array<Component> {
         const transformationProgress = new Array<Component>();
 
         for (const event of floor.events) {
             if (event.event_type === GameplayEventType.TransformationProgress && event.r2 && typeof (event.r3) === 'number') {
-                const init: imageComponentInit = {
-                    event: event,
-                    resourceToUse: 1,
-                    popup: {
-                        component: TransformationProgressPopup,
-                        twoPlayerMode: twoPlayerMode
-                    }
-                };
-                transformationProgress.push(new IsaacImageComponent(init));
+                transformationProgress.push(new IsaacImage(event, 1, new TransformationProgressPopup(event)));
             }
         }
 
@@ -185,20 +168,12 @@ export class EventsTableComponent implements Component {
     }
 
 
-    private CreateTransformationComplete(floor: PlayedFloor, twoPlayerMode: boolean): Array<Component> {
+    private CreateTransformationComplete(floor: PlayedFloor): Array<Component> {
         const transformationComplete = new Array<Component>();
 
         for (const event of floor.events) {
             if (event.event_type === GameplayEventType.TransformationComplete && event.r2) {
-                const init: imageComponentInit = {
-                    event: event,
-                    resourceToUse: 2,
-                    popup: {
-                        component: TransformationCompletePopup,
-                        twoPlayerMode: twoPlayerMode
-                    }
-                };
-                transformationComplete.push(new IsaacImageComponent(init));
+                transformationComplete.push(new IsaacImage(event, 2, new TransformationCompletePopup(event)));
             }
         }
 
@@ -213,15 +188,7 @@ export class EventsTableComponent implements Component {
                 || event.event_type === GameplayEventType.Pill
                 || event.event_type === GameplayEventType.Rune
                 || event.event_type === GameplayEventType.TarotCard) {
-                const init: imageComponentInit = {
-                    event: event,
-                    resourceToUse: 1,
-                    popup: {
-                        component: ConsumablePopup,
-                        twoPlayerMode: twoPlayerMode
-                    }
-                };
-                consumables.push(new IsaacImageComponent(init));
+                consumables.push(new IsaacImage(event, 1, new ConsumablePopup(event, twoPlayerMode)));
             }
         }
 
@@ -233,15 +200,7 @@ export class EventsTableComponent implements Component {
 
         for (const event of floor.events) {
             if (event.event_type === GameplayEventType.Trinket) {
-                const init: imageComponentInit = {
-                    event: event,
-                    resourceToUse: 1,
-                    popup: {
-                        component: TrinketPopup,
-                        twoPlayerMode: twoPlayerMode
-                    }
-                };
-                trinkets.push(new IsaacImageComponent(init));
+                trinkets.push(new IsaacImage(event, 1, new TrinketPopup(event, twoPlayerMode)));
             }
         }
 

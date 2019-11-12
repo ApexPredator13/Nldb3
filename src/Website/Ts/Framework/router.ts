@@ -1,8 +1,7 @@
 ﻿import { render, Component } from './renderer';
 import { NavigationComponent } from '../Pages/Layout/navigation';
 import { MainComponent } from '../Pages/Layout/main';
-import * as Oidc from 'oidc-client';
-import { registerPopupEvent } from './custom-events';
+import { registerPopupEvent } from './popup';
 
 interface PageData {
     AppendTo: string,
@@ -77,8 +76,7 @@ const setTitle = (title: string) => {
 const initRouter = () => {
     if (!(window as any).routerInit) {
 
-        // misc stuff
-        Oidc.Log.logger = console;
+        // register custom events
         registerPopupEvent();
 
         // render layout

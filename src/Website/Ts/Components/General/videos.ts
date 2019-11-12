@@ -326,7 +326,7 @@ export class VideosComponent implements Component {
                         ]
                     },
                     {
-                        e: ['td', video.duration ? video.duration.toString(10) : ''],
+                        e: ['td', video.duration ? video.duration : ''],
                         a: [rMono]
                     },
                     {

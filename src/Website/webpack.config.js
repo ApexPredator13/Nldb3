@@ -22,6 +22,7 @@ module.exports = {
 
         // new and glorious:
         all_remaining_pages: './Ts/Pages/all-pages.ts',
+        all_admin_pages: './Ts/Pages/Admin/all-admin-pages.ts',
         home: './Ts/Pages/home.ts',
         downloads: './Ts/Pages/downloads.ts',
         episodes: './Ts/Pages/episodes.ts',

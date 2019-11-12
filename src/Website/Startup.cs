@@ -24,6 +24,7 @@ using System.Security.Cryptography.X509Certificates;
 using IdentityServer4;
 using IdentityServer4.EntityFramework;
 using System.Reflection;
+using IdentityServer4.Services;
 
 namespace Website
 {
@@ -100,7 +101,6 @@ namespace Website
             })
                 .AddDefaultTokenProviders()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
-
 
             services.AddAuthentication()
                 .AddFacebook(options =>
@@ -261,7 +261,9 @@ namespace Website
                 //// catchall for arbitrary isaac resource
                 //endpoints.MapControllerRoute("general_resource", "{id}", new { Area = string.Empty, Controller = Controllers.ResourceController.Controllername, Action = nameof(Controllers.ResourceController.Index) });
 
-                endpoints.MapControllerRoute("default", "{*url}", new { controller = Controllers.HomeController.Controllername, action = nameof(Controllers.HomeController.Index) } );
+                endpoints.MapControllerRoute("defaultArea", "{area:exists}/{controller=home}/{action=index}/{id?}");
+                endpoints.MapControllerRoute("default", "{controller=home}/{action=index}/{id?}");
+                endpoints.MapControllerRoute("catchall", "{*url}", new { controller = Controllers.HomeController.Controllername, action = nameof(Controllers.HomeController.Index) } );
             });
 
             app.ApplyEntityFrameworkDatabaseMigrations();

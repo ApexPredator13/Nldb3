@@ -1,25 +1,17 @@
-﻿import { Component, FrameworkElement, Attribute, EventType } from "../../Framework/renderer";
-import { popupEventData } from "../../Framework/custom-events";
+﻿import { FrameworkElement, Attribute, ComponentWithPopup, Component } from "../../Framework/renderer";
 import { GameplayEvent } from "../../Models/gameplay-event";
 
-type imageComponentInit = {
-    event: GameplayEvent,
-    resourceToUse: 1 | 2,
-    popup?: {
-        twoPlayerMode: boolean,
-        component: new (event: GameplayEvent, twoPlayerMode: boolean) => Component,
-    }
-}
-
-class IsaacImageComponent implements Component {
+class IsaacImage extends ComponentWithPopup implements Component {
     E: FrameworkElement;
 
-    constructor(init: imageComponentInit, upscale: boolean = true) {
-        const { event, popup, resourceToUse } = init;
+    constructor(gameplayEvent: GameplayEvent, resourceToUse: 1 | 2, popupComponent?: Component, upscale: boolean = true) {
+        super();
 
-        const resource = resourceToUse === 1 ? event.r1 : event.r2;
+        const resource = resourceToUse === 1 ? gameplayEvent.r1 : gameplayEvent.r2;
         if (!resource) {
-            this.E = { e: ['div'] };
+            this.E = {
+                e: ['div']
+            };
             return;
         }
 
@@ -30,44 +22,20 @@ class IsaacImageComponent implements Component {
         const p = upscale ? ` margin: ${(Math.floor(resource.h / 2) + 2).toString(10)}px ${(Math.floor(resource.w / 2) + 2).toString(10)}px` : '';
         const style = `background: url('/img/isaac.png') ${x} ${y} transparent; width: ${w}px; height: ${h}px;${p}`;
 
-        const mouseEnterEvent = (e: Event) => {
-            if (popup && e.target && e.target instanceof HTMLDivElement) {
-                const { component, twoPlayerMode } = popup;
-
-                const eventData: popupEventData = {
-                    event: e,
-                    popup: new component(event, twoPlayerMode)
-                };
-
-                const eventInit: CustomEventInit<popupEventData> = {
-                    detail: eventData,
-                    bubbles: false
-                };
-
-                const customEvent = new CustomEvent<popupEventData>('showPopup', eventInit);
-                e.target.style.zIndex = "10000";
-                window.dispatchEvent(customEvent);
-            }
-        };
-
-        const mouseLeaveEvent = (e: Event) => {
-            if (popup) {
-                const target = e.target;
-                if (target && e.target instanceof HTMLDivElement) {
-                    e.target.style.zIndex = null;
-                }
-            }
-        };
-
-        this.E = {
+        const imageElement: FrameworkElement = {
             e: ['div'],
-            a: [[Attribute.Class, 'iri' + (upscale ? ' upscale-no-margin' : '')], [Attribute.Style, style]],
-            v: [[EventType.MouseEnter, mouseEnterEvent], [EventType.MouseLeave, mouseLeaveEvent]]
+            a: [[Attribute.Class, 'iri popup-container' + (upscale ? ' upscale' : '')], [Attribute.Style, style]],
         };
+
+        this.E = imageElement;
+
+        if (popupComponent) {
+            super.CreatePopupForElement(imageElement, popupComponent);
+        }
     }
 }
 
 export {
-    imageComponentInit,
-    IsaacImageComponent
+    IsaacImage
 }
+
