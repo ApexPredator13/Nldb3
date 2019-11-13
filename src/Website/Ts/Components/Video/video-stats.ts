@@ -1,4 +1,4 @@
-﻿import { Component, FrameworkElement, Attribute } from "../../Framework/renderer";
+﻿import { Component, FrameworkElement, A } from "../../Framework/renderer";
 import { get } from "../../Framework/http";
 import { Video } from "../../Models/video";
 import { MaxVideoStats } from "../../Models/max-video-stats";
@@ -10,14 +10,14 @@ export class VideoStats implements Component {
     constructor(video: Promise<Video>) {
         this.E = {
             e: ['div'],
-            a: [[Attribute.Id, 'global-stats']],
+            a: [[A.Id, 'global-stats']],
             c: [
                 {
                     e: ['div'],
                     c: [
                         {
                             e: ['canvas'],
-                            a: [[Attribute.Id, 'likes'], [Attribute.Height, '300']]
+                            a: [[A.Id, 'likes'], [A.Height, '300']]
                         }
                     ]
                 },
@@ -26,7 +26,7 @@ export class VideoStats implements Component {
                     c: [
                         {
                             e: ['canvas'],
-                            a: [[Attribute.Id, 'likes-avg'], [Attribute.Height, '300']]
+                            a: [[A.Id, 'likes-avg'], [A.Height, '300']]
                         }
                     ]
                 },
@@ -35,7 +35,7 @@ export class VideoStats implements Component {
                     c: [
                         {
                             e: ['canvas'],
-                            a: [[Attribute.Id, 'dislikes'], [Attribute.Height, '300']]
+                            a: [[A.Id, 'dislikes'], [A.Height, '300']]
                         }
                     ]
                 },
@@ -44,7 +44,7 @@ export class VideoStats implements Component {
                     c: [
                         {
                             e: ['canvas'],
-                            a: [[Attribute.Id, 'dislikes-avg'], [Attribute.Height, '300']]
+                            a: [[A.Id, 'dislikes-avg'], [A.Height, '300']]
                         }
                     ]
                 },
@@ -53,7 +53,7 @@ export class VideoStats implements Component {
                     c: [
                         {
                             e: ['canvas'],
-                            a: [[Attribute.Id, 'views'], [Attribute.Height, '300']]
+                            a: [[A.Id, 'views'], [A.Height, '300']]
                         }
                     ]
                 },
@@ -62,7 +62,7 @@ export class VideoStats implements Component {
                     c: [
                         {
                             e: ['canvas'],
-                            a: [[Attribute.Id, 'views-avg'], [Attribute.Height, '300']]
+                            a: [[A.Id, 'views-avg'], [A.Height, '300']]
                         }
                     ]
                 },
@@ -71,7 +71,7 @@ export class VideoStats implements Component {
                     c: [
                         {
                             e: ['canvas'],
-                            a: [[Attribute.Id, 'comments'], [Attribute.Height, '300']]
+                            a: [[A.Id, 'comments'], [A.Height, '300']]
                         }
                     ]
                 },
@@ -80,7 +80,7 @@ export class VideoStats implements Component {
                     c: [
                         {
                             e: ['canvas'],
-                            a: [[Attribute.Id, 'comments-avg'], [Attribute.Height, '300']]
+                            a: [[A.Id, 'comments-avg'], [A.Height, '300']]
                         }
                     ]
                 }

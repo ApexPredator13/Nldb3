@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Website.Areas.Admin.ViewModels;
+using Website.Models.Admin;
 using Website.Models.Database;
 using Website.Services;
 
@@ -76,11 +77,11 @@ namespace Website.Areas.Admin.Controllers
             }
 
             await _modRepository.RemoveModUrl(model.LinkId);
-            return RedirectToAction(nameof(Mod), new { model.ModId });
+            return RedirectToAction(nameof(Mod), new { a = 1 });
         }
 
         [HttpPost]
-        public async Task<ActionResult> DeleteMod([FromForm] DeleteMod model)
+        public async Task<ActionResult> DeleteMod([FromForm] Models.Admin.DeleteMod model)
         {
             if (!ModelState.IsValid)
             {

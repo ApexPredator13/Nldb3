@@ -1,6 +1,6 @@
 ﻿import { setZIndex, getFormValue, addClassIfNotExists, searchParentsForTag } from "./browser";
 import { popupEventData } from "./popup";
-import { goToRouteWithUrl } from "./router";
+import { goToRouteWithUrl, setPageData, getRegisteredRouteNameFromRegisteredUrl, getPages } from "./router";
 import { postResponse } from "./http";
 import { removeClassIfExists } from "../../wwwroot/js/src/lib/dom-operations";
 import { ValidationPopup } from "../Components/General/validation-popup";
@@ -15,7 +15,7 @@ interface FrameworkElement {
     c?: Array<FrameworkElement | Component>
 
     /** attributes */
-    a?: Array<[Attribute, string] | null>
+    a?: Array<[A, string] | null>
 
     /** event listeners */
     v?: Array<[EventType, EventListener]>
@@ -57,10 +57,13 @@ class ComponentWithPopup {
 class ComponentWithForm {
     private form: HTMLFormElement | undefined;
 
-    HandleSubmit(e: Event, postUrl: string, authorized: boolean, successUrl: string) {
+    HandleSubmit(e: Event, postUrl: string, authorized: boolean, successUrl: string, pageData?: any) {
         e.preventDefault();
+
+        const formIsValid = this.ValidateForm(e);
+
         const target = e.target;
-        if (target && target instanceof HTMLFormElement) {
+        if (formIsValid && target && target instanceof HTMLFormElement) {
             const formButtons = target.getElementsByTagName('button');
             for (let i = 0; i < formButtons.length; ++i) {
                 formButtons[i].disabled = true;
@@ -69,7 +72,21 @@ class ComponentWithForm {
             const formData = getFormValue(e);
             if (formData) {
                 postResponse(postUrl, formData, authorized)
-                    .then(() => goToRouteWithUrl(successUrl))
+                    .then(() => {
+                        // set page data if necessary
+                        if (pageData) {
+                            const foundPageNames = getRegisteredRouteNameFromRegisteredUrl(successUrl, getPages());
+                            if (foundPageNames.exactMatch) {
+                                setPageData(foundPageNames.exactMatch, pageData);
+                            } else if (foundPageNames.approximateMatch) {
+                                for (const name of foundPageNames.approximateMatch) {
+                                    setPageData(name, pageData);
+                                }
+                            }
+                            
+                        }
+                        goToRouteWithUrl(successUrl);
+                    })
                     .catch((e: Response) => {
                         // todo: show error in fullscreen modal
                         e.text().then(message => console.error(message));
@@ -104,7 +121,8 @@ class ComponentWithForm {
         for (const element of allElements) {
             testResults.push(
                 this.TestRequired(element),
-                this.TestMinlength(element)
+                this.TestMinlength(element),
+                this.TestMaxLength(element)
             );
         }
 
@@ -118,6 +136,7 @@ class ComponentWithForm {
     }
 
     private DisableSubmitButton(form: HTMLFormElement) {
+        console.warn('disabling submit buttons');
         const buttons = form.getElementsByTagName('button');
         for (let i = 0; i < buttons.length; ++i) {
             buttons[i].disabled = true;
@@ -125,6 +144,7 @@ class ComponentWithForm {
     }
 
     private EnableSubmitButton(form: HTMLFormElement) {
+        console.warn('enabling submit buttons');
         const buttons = form.getElementsByTagName('button');
         for (let i = 0; i < buttons.length; ++i) {
             buttons[i].disabled = false;
@@ -140,9 +160,10 @@ class ComponentWithForm {
 
     private TestRequired(element: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement) {
         if (element.required && !element.value) {
-            const errorAttributeName = htmlAttributeNameOf(Attribute.RequiredErrorMessage);
+            const errorAttributeName = htmlAttributeNameOf(A.RequiredErrorMessage);
             const error = element.getAttribute(errorAttributeName);
             this.ShowError(element, error);
+            console.warn('required');
             return false;
         }
 
@@ -152,17 +173,33 @@ class ComponentWithForm {
 
     private TestMinlength(element: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement) {
         if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) {
-            const minlengthAttributeName = htmlAttributeNameOf(Attribute.MinLength);
+            const minlengthAttributeName = htmlAttributeNameOf(A.MinLength);
             const minLength = Number(element.getAttribute(minlengthAttributeName));
             if (minLength && element.value.length < minLength) {
-                const errorAttributeName = htmlAttributeNameOf(Attribute.MinLengthErrorMessage);
+                const errorAttributeName = htmlAttributeNameOf(A.MinLengthErrorMessage);
                 const error = element.getAttribute(errorAttributeName);
                 this.ShowError(element, error);
+                console.warn('too short');
                 return false;
             }
         }
 
         this.RemoveError(element);
+        return true;
+    }
+
+    private TestMaxLength(element: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement) {
+        if (element instanceof HTMLTextAreaElement || element instanceof HTMLInputElement) {
+            const maxlengthAttributeName = htmlAttributeNameOf(A.MaxLength);
+            const maxLength = Number(element.getAttribute(maxlengthAttributeName));
+            if (maxLength && element.value.length > maxLength) {
+                const errorAttributeName = htmlAttributeNameOf(A.MaxLengthErrorMessage);
+                const error = element.getAttribute(errorAttributeName);
+                this.ShowError(element, error);
+                console.warn('too long');
+                return false;
+            }
+        }
         return true;
     }
 
@@ -223,7 +260,7 @@ interface AsyncComponentPart {
     A?: boolean
 }
 
-enum Attribute {
+enum A {
     Id = 1,
     Class,
     DataId,
@@ -245,7 +282,10 @@ enum Attribute {
     Required,
     RequiredErrorMessage,
     MinLength,
-    MinLengthErrorMessage
+    MinLengthErrorMessage,
+    MaxLength,
+    MaxLengthErrorMessage,
+    Enctype
 }
 
 enum EventType {
@@ -258,52 +298,58 @@ enum EventType {
     Submit
 }
 
-const htmlAttributeNameOf = (attribute: Attribute) => {
+const htmlAttributeNameOf = (attribute: A) => {
     switch (attribute) {
-        case Attribute.Style:
+        case A.Style:
             return 'style';
-        case Attribute.Class:
+        case A.Class:
             return 'class';
-        case Attribute.Id:
+        case A.Id:
             return 'id';
-        case Attribute.Href:
+        case A.Href:
             return 'href';
-        case Attribute.Target:
+        case A.Target:
             return 'target';
-        case Attribute.Title:
+        case A.Title:
             return 'title';
-        case Attribute.Type:
+        case A.Type:
             return 'type';
-        case Attribute.DataId:
+        case A.DataId:
             return 'data-id';
-        case Attribute.DataLowercaseName:
+        case A.DataLowercaseName:
             return 'data-n';
-        case Attribute.Value:
+        case A.Value:
             return 'value';
-        case Attribute.Selected:
+        case A.Selected:
             return 'selected';
-        case Attribute.Placeholder:
+        case A.Placeholder:
             return 'placeholder';
-        case Attribute.Colspan:
+        case A.Colspan:
             return 'colspan';
-        case Attribute.Width:
+        case A.Width:
             return 'width';
-        case Attribute.Height:
+        case A.Height:
             return 'height';
-        case Attribute.Method:
+        case A.Method:
             return 'method';
-        case Attribute.Name:
+        case A.Name:
             return 'name';
-        case Attribute.Disabled:
+        case A.Disabled:
             return 'disabled';
-        case Attribute.Required:
+        case A.Required:
             return 'required';
-        case Attribute.RequiredErrorMessage:
+        case A.RequiredErrorMessage:
             return 'required-error';
-        case Attribute.MinLength:
+        case A.MinLength:
             return 'minlength';
-        case Attribute.MinLengthErrorMessage:
+        case A.MinLengthErrorMessage:
             return 'minlength-error';
+        case A.Enctype:
+            return 'enctype';
+        case A.MaxLength:
+            return 'maxlength';
+        case A.MaxLengthErrorMessage:
+            return 'maxlength-error';
         default:
             return '';
     }
@@ -405,11 +451,12 @@ const render: renderFunction = elementOrComponent => {
 export {
     FrameworkElement,
     AsyncComponentPart,
-    Attribute,
+    A,
     Component,
     ComponentWithPopup,
     ComponentWithForm,
     EventType,
-    render
+    render,
+    htmlAttributeNameOf
 }
 

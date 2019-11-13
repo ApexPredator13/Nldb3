@@ -1,4 +1,4 @@
-﻿import { FrameworkElement, Attribute, ComponentWithPopup, Component } from "../../Framework/renderer";
+﻿import { FrameworkElement, A, ComponentWithPopup, Component } from "../../Framework/renderer";
 import { GameplayEvent } from "../../Models/gameplay-event";
 
 class IsaacImage extends ComponentWithPopup implements Component {
@@ -24,7 +24,7 @@ class IsaacImage extends ComponentWithPopup implements Component {
 
         const imageElement: FrameworkElement = {
             e: ['div'],
-            a: [[Attribute.Class, 'iri popup-container' + (upscale ? ' upscale' : '')], [Attribute.Style, style]],
+            a: [[A.Class, 'iri popup-container' + (upscale ? ' upscale' : '')], [A.Style, style]],
         };
 
         this.E = imageElement;

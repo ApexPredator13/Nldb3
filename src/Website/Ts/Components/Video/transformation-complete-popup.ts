@@ -1,4 +1,4 @@
-﻿import { Component, FrameworkElement, Attribute } from "../../Framework/renderer";
+﻿import { Component, FrameworkElement, A } from "../../Framework/renderer";
 import { GameplayEvent } from "../../Models/gameplay-event";
 import { IsaacImage } from "../General/isaac-image";
 
@@ -9,7 +9,7 @@ export class TransformationCompletePopup implements Component {
         if (event.r1 && event.r2) {
             this.E = {
                 e: ['div'],
-                a: [[Attribute.Class, 'popup c downscale']],
+                a: [[A.Class, 'popup c downscale']],
                 c: [
                     {
                         e: ['h3', 'Transformation Complete!']

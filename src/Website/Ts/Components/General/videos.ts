@@ -1,4 +1,4 @@
-﻿import { Component, FrameworkElement, Attribute, AsyncComponentPart, EventType, render } from "../../Framework/renderer";
+﻿import { Component, FrameworkElement, A, AsyncComponentPart, EventType, render } from "../../Framework/renderer";
 import { Option } from '../../Components/General/option';
 import { get } from "../../Framework/http";
 import { VideoResult } from "../../Models/video-result";
@@ -74,7 +74,7 @@ export class VideosComponent implements Component {
                             c: [
                                 {
                                     e: ['select'],
-                                    a: [[Attribute.Id, 'items-per-page']],
+                                    a: [[A.Id, 'items-per-page']],
                                     c: [
                                         new Option('50', '50', true),
                                         new Option('100', '100'),
@@ -85,7 +85,7 @@ export class VideosComponent implements Component {
                                 },
                                 {
                                     e: ['input'],
-                                    a: [[Attribute.Type, 'text'], [Attribute.Id, 'search'], [Attribute.Placeholder, 'search...']],
+                                    a: [[A.Type, 'text'], [A.Id, 'search'], [A.Placeholder, 'search...']],
                                     v: [[EventType.Input, inputEvent]]
                                 }
                             ]
@@ -94,15 +94,15 @@ export class VideosComponent implements Component {
                 },
                 {
                     e: ['div'],
-                    a: [[Attribute.Id, this.paginationId]],
+                    a: [[A.Id, this.paginationId]],
                 },
                 {
                     e: ['table'],
-                    a: [[Attribute.Id, this.videoTableId]],
+                    a: [[A.Id, this.videoTableId]],
                     c: [
                         {
                             e: ['thead'],
-                            a: [[Attribute.Id, 'video-table-head']],
+                            a: [[A.Id, 'video-table-head']],
                             c: [
                                 {
                                     e: ['tr'],
@@ -110,42 +110,42 @@ export class VideosComponent implements Component {
                                         {
                                             e: ['th', 'Title'],
                                             v: [[EventType.Click, () => { this.orderBy = VideoOrderBy.Title; this.ReloadVideos(true); this.lastOrderedBy = VideoOrderBy.Title; }]],
-                                            a: [[Attribute.Class, 'hand'], [Attribute.DataId, VideoOrderBy.Title.toString(10)]]
+                                            a: [[A.Class, 'hand'], [A.DataId, VideoOrderBy.Title.toString(10)]]
                                         },
                                         {
                                             e: ['th', 'Duration'],
                                             v: [[EventType.Click, () => { this.orderBy = VideoOrderBy.Duration; this.ReloadVideos(true); this.lastOrderedBy = VideoOrderBy.Duration; }]],
-                                            a: [[Attribute.Class, 'hand'], [Attribute.DataId, VideoOrderBy.Duration.toString(10)]]
+                                            a: [[A.Class, 'hand'], [A.DataId, VideoOrderBy.Duration.toString(10)]]
                                         },
                                         {
                                             e: ['th', 'Release Date ⇓'],
                                             v: [[EventType.Click, () => { this.orderBy = VideoOrderBy.Published; this.ReloadVideos(true); this.lastOrderedBy = VideoOrderBy.Published; }]],
-                                            a: [[Attribute.Class, 'hand'], [Attribute.DataId, VideoOrderBy.Published.toString(10)]]
+                                            a: [[A.Class, 'hand'], [A.DataId, VideoOrderBy.Published.toString(10)]]
                                         },
                                         {
                                             e: ['th', '👍'],
                                             v: [[EventType.Click, () => { this.orderBy = VideoOrderBy.Likes, this.ReloadVideos(true); this.lastOrderedBy = VideoOrderBy.Likes; }]],
-                                            a: [[Attribute.Class, 'hand'], [Attribute.DataId, VideoOrderBy.Likes.toString(10)], [Attribute.Title, 'Likes']]
+                                            a: [[A.Class, 'hand'], [A.DataId, VideoOrderBy.Likes.toString(10)], [A.Title, 'Likes']]
                                         },
                                         {
                                             e: ['th', '👎'],
                                             v: [[EventType.Click, () => { this.orderBy = VideoOrderBy.Dislikes, this.ReloadVideos(true), this.lastOrderedBy = VideoOrderBy.Dislikes; }]],
-                                            a: [[Attribute.Class, 'hand'], [Attribute.DataId, VideoOrderBy.Dislikes.toString(10)], [Attribute.Title, 'Dislikes']]
+                                            a: [[A.Class, 'hand'], [A.DataId, VideoOrderBy.Dislikes.toString(10)], [A.Title, 'Dislikes']]
                                         },
                                         {
                                             e: ['th', '👎%'],
                                             v: [[EventType.Click, () => { this.orderBy = VideoOrderBy.LikeDislikeRatio, this.ReloadVideos(true), this.lastOrderedBy = VideoOrderBy.LikeDislikeRatio; }]],
-                                            a: [[Attribute.Class, 'hand'], [Attribute.DataId, VideoOrderBy.LikeDislikeRatio.toString(10)], [Attribute.Title, 'Dislikes in %']]
+                                            a: [[A.Class, 'hand'], [A.DataId, VideoOrderBy.LikeDislikeRatio.toString(10)], [A.Title, 'Dislikes in %']]
                                         },
                                         {
                                             e: ['th', 'Views'],
                                             v: [[EventType.Click, () => { this.orderBy = VideoOrderBy.ViewCount, this.ReloadVideos(true), this.lastOrderedBy = VideoOrderBy.ViewCount; }]],
-                                            a: [[Attribute.Class, 'hand'], [Attribute.DataId, VideoOrderBy.ViewCount.toString(10)], [Attribute.Title, 'View Count']]
+                                            a: [[A.Class, 'hand'], [A.DataId, VideoOrderBy.ViewCount.toString(10)], [A.Title, 'View Count']]
                                         },
                                         {
                                             e: ['th', 'Comm'],
                                             v: [[EventType.Click, () => { this.orderBy = VideoOrderBy.CommentCount, this.ReloadVideos(true), this.lastOrderedBy = VideoOrderBy.CommentCount; }]],
-                                            a: [[Attribute.Class, 'hand'], [Attribute.DataId, VideoOrderBy.CommentCount.toString(10)], [Attribute.Title, 'Comment Count']]
+                                            a: [[A.Class, 'hand'], [A.DataId, VideoOrderBy.CommentCount.toString(10)], [A.Title, 'Comment Count']]
                                         },
                                         {
                                             e: ['th', 'HD'],
@@ -281,7 +281,7 @@ export class VideosComponent implements Component {
 
                 paginationElements.push({
                     e: ['a', pageCounter.toString(10)],
-                    a: [this.currentPage === pageCounter ? [Attribute.Class, 'active-page'] : null],
+                    a: [this.currentPage === pageCounter ? [A.Class, 'active-page'] : null],
                     v: [[EventType.Click, clickEvent]]
                 });
                 ++pageCounter;
@@ -312,7 +312,7 @@ export class VideosComponent implements Component {
                     }
                 }
 
-                const rMono: [Attribute, string] = [Attribute.Class, 'r mono'];
+                const rMono: [A, string] = [A.Class, 'r mono'];
 
                 const cells: Array<FrameworkElement> = [
                     {
@@ -321,7 +321,7 @@ export class VideosComponent implements Component {
                             {
                                 e: ['a', video.title],
                                 v: [[EventType.Click, clickEvent]],
-                                a: [video.submission_count > 0 ? [Attribute.Class, 'hand'] : [Attribute.Class, 'gray']]
+                                a: [video.submission_count > 0 ? [A.Class, 'hand'] : [A.Class, 'gray']]
                             }
                         ]
                     },
@@ -355,12 +355,12 @@ export class VideosComponent implements Component {
                     },
                     {
                         e: ['td', video.is_hd ? '✔' : '✘'],
-                        a: [[Attribute.Class, 'r ' + (video.is_hd ? 'green' : 'orange')]]
+                        a: [[A.Class, 'r ' + (video.is_hd ? 'green' : 'orange')]]
                     },
                     {
                         e: ['td', 'Submit'],
                         v: [[EventType.Click, e => { e.preventDefault(); goToRouteWithName('submit'); }]],
-                        a: [[Attribute.Class, 'hand u']]
+                        a: [[A.Class, 'hand u']]
                     }
                 ]
 
@@ -372,7 +372,7 @@ export class VideosComponent implements Component {
             const tbody: FrameworkElement = {
                 e: ['tbody'],
                 c: videos,
-                a: [[Attribute.Id, this.videoTableBodyId]]
+                a: [[A.Id, this.videoTableBodyId]]
             }
 
             return tbody;

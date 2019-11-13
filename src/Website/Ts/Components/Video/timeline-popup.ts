@@ -1,4 +1,4 @@
-﻿import { Component, FrameworkElement, Attribute } from "../../Framework/renderer";
+﻿import { Component, FrameworkElement, A } from "../../Framework/renderer";
 import { GameplayEvent } from "../../Models/gameplay-event";
 import { PlayedFloor } from "../../Models/played-floor";
 import { GameplayEventType } from "../../Enums/gameplay-event-type";
@@ -97,7 +97,7 @@ export class TimelinePopup implements Component {
 
         this.E = {
             e: ['div'],
-            a: [[Attribute.Class, 'popup c'], [Attribute.Style, 'top: 40px']],
+            a: [[A.Class, 'popup c'], [A.Style, 'top: 40px']],
             c: [
                 {
                     e: ['h4', floor.floor.name]

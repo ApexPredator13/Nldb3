@@ -1,4 +1,4 @@
-﻿import { Component, FrameworkElement, AsyncComponentPart, Attribute } from "../Framework/renderer";
+﻿import { Component, FrameworkElement, AsyncComponentPart, A } from "../Framework/renderer";
 import { getPageData, initRouter, PageData, registerPage, setTitle, appendRouteFragment, routeEndsWith } from "../Framework/router";
 import { get } from "../Framework/http";
 import { Video } from "../Models/video";
@@ -20,7 +20,7 @@ export class EpisodePage implements Component {
     constructor() {
 
         // get page data from URL if it doesn't exist
-        const pageData = getPageData();
+        const pageData = getPageData<{id: string, title: string}>();
         if (pageData) {
             this.videoId = pageData.id;
             setTitle(pageData.title);
@@ -43,11 +43,11 @@ export class EpisodePage implements Component {
             c: [
                 {
                     e: ['div'],
-                    a: [[Attribute.Id, this.headerContainerId]]
+                    a: [[A.Id, this.headerContainerId]]
                 },
                 {
                     e: ['div'],
-                    a: [[Attribute.Id, this.videoEventsTableId]],
+                    a: [[A.Id, this.videoEventsTableId]],
                     c: [
                         {
                             e: ['h3', 'Gameplay-Events in chronological order']

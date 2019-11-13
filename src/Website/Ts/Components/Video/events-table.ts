@@ -1,4 +1,4 @@
-﻿import { Component, FrameworkElement, AsyncComponentPart, Attribute } from "../../Framework/renderer";
+﻿import { Component, FrameworkElement, AsyncComponentPart, A } from "../../Framework/renderer";
 import { SubmittedEpisode } from "../../Models/submitted-episode";
 import { GameplayEventType } from "../../Enums/gameplay-event-type";
 import { IsaacImage } from "../General/isaac-image";
@@ -20,7 +20,7 @@ export class EventsTableComponent implements Component {
     constructor(private video: Promise<Video>, private episodeIndex: number) {
         this.E = {
             e: ['div'],
-            a: [[Attribute.Id, this.containerId], [Attribute.Class, 'video-page-box']]
+            a: [[A.Id, this.containerId], [A.Class, 'video-page-box']]
         };
 
         this.A = [
@@ -60,7 +60,7 @@ export class EventsTableComponent implements Component {
                                         },
                                         {
                                             e: ['th', 'Transformation'],
-                                            a: [[Attribute.Colspan, '2']]
+                                            a: [[A.Colspan, '2']]
                                         }
                                     ]
                                 }
@@ -110,27 +110,27 @@ export class EventsTableComponent implements Component {
                         },
                         {
                             e: ['td'],
-                            a: [[Attribute.Style, positionRelative]],
+                            a: [[A.Style, positionRelative]],
                             c: itemsAndPopups
                         },
                         {
                             e: ['td'],
-                            a: [[Attribute.Style, positionRelative]],
+                            a: [[A.Style, positionRelative]],
                             c: consumables
                         },
                         {
                             e: ['td'],
-                            a: [[Attribute.Style, positionRelative]],
+                            a: [[A.Style, positionRelative]],
                             c: trinkets
                         },
                         {
                             e: ['td'],
-                            a: [[Attribute.Style, positionRelative]],
+                            a: [[A.Style, positionRelative]],
                             c: transformationProgress
                         },
                         {
                             e: ['td'],
-                            a: [[Attribute.Style, positionRelative]],
+                            a: [[A.Style, positionRelative]],
                             c: transformationComplete
                         }
                     ]
@@ -214,7 +214,7 @@ export class EventsTableComponent implements Component {
             c: [
                 {
                     e: ['td', character.seed ? `Run ${character.run_number} (Seed: ${character.seed})` : `Run ${character.run_number}`],
-                    a: [[Attribute.Colspan, '6']]
+                    a: [[A.Colspan, '6']]
                 }
             ]
         };

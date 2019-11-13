@@ -1,4 +1,4 @@
-﻿import { Component, FrameworkElement, Attribute } from "../../Framework/renderer";
+﻿import { Component, FrameworkElement, A } from "../../Framework/renderer";
 
 class StatImageComponent implements Component {
 
@@ -7,7 +7,7 @@ class StatImageComponent implements Component {
     constructor(xOffset: string, yOffset: string) {
         this.E = {
             e: ['div'],
-            a: [[Attribute.Class, 'fp-right'], [Attribute.Style, `background: url('/img/frontpage.png') ${xOffset}px ${yOffset}px transparent; width: 50px; height: 50px`]]
+            a: [[A.Class, 'fp-right'], [A.Style, `background: url('/img/frontpage.png') ${xOffset}px ${yOffset}px transparent; width: 50px; height: 50px`]]
         }
     }
 }
@@ -19,7 +19,7 @@ class StatTextComponent implements Component {
     constructor(text: string) {
         this.E = {
             e: ['div', text],
-            a: [[Attribute.Class, 'fp-left l']]
+            a: [[A.Class, 'fp-left l']]
         };
     }
 }
@@ -31,7 +31,7 @@ class StatsHeaderComponent implements Component {
     constructor(text: string) {
         this.E = {
             e: ['div'],
-            a: [[Attribute.Class, 'fp-stats-header']],
+            a: [[A.Class, 'fp-stats-header']],
             c: [
                 {
                     e: ['h3', text]

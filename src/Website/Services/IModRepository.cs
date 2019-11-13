@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Website.Areas.Admin.ViewModels;
+using Website.Models.Admin;
 using Website.Models.Database;
 using Website.Models.SubmitEpisode;
 

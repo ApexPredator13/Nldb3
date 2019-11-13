@@ -23,14 +23,28 @@ function getFormValue(e: Event): FormData | null {
     return new FormData(target);
 }
 
-const addClassIfNotExists = (e: HTMLElement, className: string) => {
-    if (!e.classList.contains(className)) {
+const hide = (...elements: Array<HTMLElement | null>) => {
+    for (const e of elements) {
+        removeClassIfExists(e, 'display-normal');
+        addClassIfNotExists(e, 'display-none');
+    }
+}
+
+const show = (...elements: Array<HTMLElement | null>) => {
+    for (const e of elements) {
+        removeClassIfExists(e, 'display-none');
+        addClassIfNotExists(e, 'display-normal');
+    }
+}
+
+const addClassIfNotExists = (e: HTMLElement | null, className: string) => {
+    if (e &&!e.classList.contains(className)) {
         e.classList.add(className);
     }
 }
 
-const removeClassIfExists = (e: HTMLElement, className: string) => {
-    if (e.classList.contains(className)) {
+const removeClassIfExists = (e: HTMLElement | null, className: string) => {
+    if (e &&e.classList.contains(className)) {
         e.classList.remove(className);
     }
 }
@@ -72,6 +86,8 @@ export {
     addClassIfNotExists,
     removeClassIfExists,
     getFormValue,
-    searchParentsForTag
+    searchParentsForTag,
+    hide,
+    show
 }
 

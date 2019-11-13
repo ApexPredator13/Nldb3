@@ -1,4 +1,4 @@
-﻿import { Component, FrameworkElement, Attribute } from "../Framework/renderer";
+﻿import { Component, FrameworkElement, A } from "../Framework/renderer";
 import { PageData, registerPage, initRouter } from "../Framework/router";
 
 export class DownloadsPage implements Component {
@@ -13,7 +13,7 @@ export class DownloadsPage implements Component {
                 { e: ['h3', 'SQL dump of the Database'] },
                 {
                     e: ['p', "Note: Don't download this unless you know how to operate a SQL database."],
-                    a: [[Attribute.Class, 'orange']]
+                    a: [[A.Class, 'orange']]
                 },
                 {
                     e: ['p'],
@@ -27,7 +27,7 @@ export class DownloadsPage implements Component {
                 },
                 {
                     e: ['a', 'Download SQL Dump'],
-                    a: [[Attribute.Href, '/Downloads/DownloadFile']]
+                    a: [[A.Href, '/Downloads/DownloadFile']]
                 }
             ]
         }

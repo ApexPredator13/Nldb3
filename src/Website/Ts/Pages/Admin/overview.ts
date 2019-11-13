@@ -1,4 +1,4 @@
-﻿import { Component, FrameworkElement, Attribute, EventType } from "../../Framework/renderer";
+﻿import { Component, FrameworkElement, A, EventType } from "../../Framework/renderer";
 import { PageData, registerPage, goToRouteWithUrl } from "../../Framework/router";
 
 export class AdminOverview implements Component {
@@ -32,7 +32,7 @@ export class AdminOverview implements Component {
                     c: [
                         {
                             e: ['a', 'Manage Mods'],
-                            a: [[Attribute.Href, '/Admin/Mods']],
+                            a: [[A.Href, '/Admin/Mods']],
                             v: [[EventType.Click, clickModsLink]]
                         }
                     ]
@@ -42,7 +42,7 @@ export class AdminOverview implements Component {
                     c: [
                         {
                             e: ['a', 'Manage Isaac Content'],
-                            a: [[Attribute.Href, '/Admin/Isaac']],
+                            a: [[A.Href, '/Admin/Isaac']],
                             v: [[EventType.Click, clickIsaacContentLink]]
                         }
                     ]
@@ -52,7 +52,7 @@ export class AdminOverview implements Component {
                     c: [
                         {
                             e: ['a', 'Manually Add/Update Videos'],
-                            a: [[Attribute.Href, '/Admin/AddVideos']],
+                            a: [[A.Href, '/Admin/AddVideos']],
                             v: [[EventType.Click, clickAddVideoLink]]
                         }
                     ]

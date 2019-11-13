@@ -10,6 +10,7 @@ using Website.Services;
 
 namespace Website.Controllers
 {
+    [ApiController, Route("Api/Resources")]
     public class ResourceController : Controller
     {
         public const string Controllername = "Resource";
@@ -45,23 +46,29 @@ namespace Website.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult> Index([FromRoute] string id, IsaacSearchOptions searchOptions)
+        public async Task<List<IsaacResource>> GetResources([FromQuery] GetResource searchOptions)
         {
-            searchOptions.ResourceId = id;
-            var resource = await _isaacRepository.GetResourceById(id, true);
-            if (!(resource is null))
-            {
-                var availableResources = _isaacRepository.GetAvailableStats(resource);
-                searchOptions.ResourceType = resource.ResourceType;
-                var videos = await _videoRepository.GetVideos(searchOptions);
-                videos.Header = $"Videos where '{resource.Name}' appears";
-                return View(new InitialResourceViewModel(resource, videos, availableResources));
-            }
-            else
-            {
-                return NotFound();
-            }
+            return await _isaacRepository.GetResources(searchOptions);
         }
+
+        //[HttpGet]
+        //public async Task<ActionResult> Index([FromRoute] string id, IsaacSearchOptions searchOptions)
+        //{
+        //    searchOptions.ResourceId = id;
+        //    var resource = await _isaacRepository.GetResourceById(id, true);
+        //    if (!(resource is null))
+        //    {
+        //        var availableResources = _isaacRepository.GetAvailableStats(resource);
+        //        searchOptions.ResourceType = resource.ResourceType;
+        //        var videos = await _videoRepository.GetVideos(searchOptions);
+        //        videos.Header = $"Videos where '{resource.Name}' appears";
+        //        return View(new InitialResourceViewModel(resource, videos, availableResources));
+        //    }
+        //    else
+        //    {
+        //        return NotFound();
+        //    }
+        //}
 
         [HttpGet]
         public async Task<ViewResult> Overview([FromRoute] string id)

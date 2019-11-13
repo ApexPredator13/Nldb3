@@ -1,4 +1,4 @@
-﻿import { Component, FrameworkElement, Attribute, EventType } from "../../Framework/renderer";
+﻿import { Component, FrameworkElement, A, EventType } from "../../Framework/renderer";
 import { setPageData, goToRouteWithUrl } from "../../Framework/router";
 
 export class NavSection implements Component {
@@ -19,12 +19,12 @@ export class NavSection implements Component {
 
         this.E = {
             e: ['a'],
-            a: [[Attribute.Href, url], [Attribute.Class, 'nav-point']],
+            a: [[A.Href, url], [A.Class, 'nav-point']],
             v: [[EventType.Click, clickEvent]],
             c: [
                 {
                     e: ['div'],
-                    a: [[Attribute.Class, 'nav-icon'], [Attribute.Style, iconStyle]]
+                    a: [[A.Class, 'nav-icon'], [A.Style, iconStyle]]
                 },
                 {
                     e: ['span', text],

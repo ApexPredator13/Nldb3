@@ -1,4 +1,4 @@
-﻿import { Component, FrameworkElement, Attribute, EventType, AsyncComponentPart } from "../../Framework/renderer";
+﻿import { Component, FrameworkElement, A, EventType, AsyncComponentPart } from "../../Framework/renderer";
 import { getUser, signin, isAdmin, loadAdminPages } from "../../Framework/authentication";
 import { NavSection } from "../../Components/Navigation/nav-section";
 import { ResourceType } from "../../Enums/resource-type";
@@ -14,11 +14,11 @@ export class NavigationComponent implements Component {
 
         this.E = {
             e: ['nav'],
-            a: [[Attribute.Class, 'w20'], [Attribute.Id, 'nav']],
+            a: [[A.Class, 'w20'], [A.Id, 'nav']],
             c: [
                 {
                     e: ['div'],
-                    a: [[Attribute.Class, `${navSectionClass} l`], [Attribute.Id, authContainerId]],
+                    a: [[A.Class, `${navSectionClass} l`], [A.Id, authContainerId]],
                     c: [
                         {
                             e: ['p', 'Checking login state...']
@@ -27,14 +27,14 @@ export class NavigationComponent implements Component {
                 },
                 {
                     e: ['div'],
-                    a: [[Attribute.Class, navSectionClass]],
+                    a: [[A.Class, navSectionClass]],
                     c: [
                         new NavSection(770, '/', 'Front Page')
                     ]
                 },
                 {
                     e: ['div'],
-                    a: [[Attribute.Class, navSectionClass]],
+                    a: [[A.Class, navSectionClass]],
                     c: [
                         {
                             e: ['h3', 'Learn more about...']
@@ -58,7 +58,7 @@ export class NavigationComponent implements Component {
                 },
                 {
                     e: ['div'],
-                    a: [[Attribute.Class, navSectionClass]],
+                    a: [[A.Class, navSectionClass]],
                     c: [
                         new NavSection(805, '/Downloads', 'Downloads')
                     ]
@@ -91,7 +91,7 @@ export class NavigationComponent implements Component {
             const userProfileLinks = new Array<FrameworkElement>();
             userProfileLinks.push({
                 e: ['a', 'Logout'],
-                a: [[Attribute.Href, '/Account/Logout']]
+                a: [[A.Href, '/Account/Logout']]
             });
 
             if (isAdmin(user)) {
@@ -100,7 +100,7 @@ export class NavigationComponent implements Component {
                     e: ['br']
                 }, {
                     e: ['a', 'Admin-Area'],
-                    a: [[Attribute.Href, '/Admin/Overview']],
+                    a: [[A.Href, '/Admin/Overview']],
                     v: [[EventType.Click, e => { e.preventDefault(); goToRouteWithUrl('/Admin/Overview'); }]]
                 });
             }
@@ -110,7 +110,7 @@ export class NavigationComponent implements Component {
                 c: [
                     {
                         e: ['span'],
-                        a: [[Attribute.Class, 'orange']],
+                        a: [[A.Class, 'orange']],
                         c: [
                             {
                                 e: ['strong', `${user.profile.name}`]

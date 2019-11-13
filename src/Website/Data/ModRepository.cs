@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Website.Areas.Admin.ViewModels;
+using Website.Models.Admin;
 using Website.Models.Database;
 using Website.Models.Database.Enums;
 using Website.Models.SubmitEpisode;
@@ -35,7 +36,7 @@ namespace Website.Data
             var result = new List<Mod>();
 
             using var c = await _connector.Connect();
-            using var q = new NpgsqlCommand("SELECT m.id, m.name, u.id, u.url, u.name FROM mods m LEFT JOIN mod_url u ON u.mod = m.id;", c);
+            using var q = new NpgsqlCommand("SELECT m.id, m.name, u.id, u.url, u.name FROM mods m LEFT JOIN mod_url u ON u.mod = m.id ORDER BY m.id DESC;", c);
             using var r = await q.ExecuteReaderAsync();
 
             if (r.HasRows)

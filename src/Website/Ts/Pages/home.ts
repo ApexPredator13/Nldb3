@@ -1,4 +1,4 @@
-﻿import { Component, FrameworkElement, Attribute, AsyncComponentPart } from "../Framework/renderer";
+﻿import { Component, FrameworkElement, A, AsyncComponentPart } from "../Framework/renderer";
 import { TopicComponent } from "../Components/Home/Topic";
 import { Frontpage } from "../Models/frontpage";
 import { get } from "../Framework/http";
@@ -49,11 +49,11 @@ export class HomePage implements Component {
                 { e: ['hr'] },
                 {
                     e: ['div'],
-                    a: [[Attribute.Id, 'topics']],
+                    a: [[A.Id, 'topics']],
                     c: [
                         {
                             e: ['div'],
-                            a: [[Attribute.Class, 'topics-row']],
+                            a: [[A.Class, 'topics-row']],
                             c: [
                                 topic1.E,
                                 topic2.E,
@@ -62,7 +62,7 @@ export class HomePage implements Component {
                         },
                         {
                             e: ['div'],
-                            a: [[Attribute.Class, 'topics-row']],
+                            a: [[A.Class, 'topics-row']],
                             c: [
                                 topic4.E,
                                 topic5.E,
@@ -71,7 +71,7 @@ export class HomePage implements Component {
                         },
                         {
                             e: ['div'],
-                            a: [[Attribute.Class, 'topics-row']],
+                            a: [[A.Class, 'topics-row']],
                             c: [
                                 topic7.E,
                                 topic8.E,
@@ -82,7 +82,7 @@ export class HomePage implements Component {
                 },
                 {
                     e: ['div', 'loading page...'],
-                    a: [[Attribute.Id, asyncContainerId]]
+                    a: [[A.Id, asyncContainerId]]
                 }
             ]
         }
@@ -105,11 +105,11 @@ export class HomePage implements Component {
             c: [
                 {
                     e: ['div'],
-                    a: [[Attribute.Id, 'top-contributors-container']],
+                    a: [[A.Id, 'top-contributors-container']],
                     c: [
                         {
                             e: ['div'],
-                            a: [[Attribute.Class, 'fp-contributors-header']],
+                            a: [[A.Class, 'fp-contributors-header']],
                             c: [
                                 {
                                     e: ['h3', 'Big thanks to our top contributors!!']
@@ -124,7 +124,7 @@ export class HomePage implements Component {
                         new RankNameComponent(topUsers[2], 3),
                         {
                             e: ['div'],
-                            a: [[Attribute.Class, 'fp-contributors-header']],
+                            a: [[A.Class, 'fp-contributors-header']],
                             c: [
                                 {
                                     e: ['h3', '...and all the other major contributors!']
@@ -133,11 +133,11 @@ export class HomePage implements Component {
                         },
                         {
                             e: ['div'],
-                            a: [[Attribute.Style, 'padding: 0 20%; background-color: transparent; font-size: 1.1rem; border-top: none'], [Attribute.Class, 'fp-contributors-header']],
+                            a: [[A.Style, 'padding: 0 20%; background-color: transparent; font-size: 1.1rem; border-top: none'], [A.Class, 'fp-contributors-header']],
                             c: [
                                 {
                                     e: ['p'],
-                                    a: [[Attribute.Style, 'padding-top: 0'], [Attribute.Id, 'major-contributors']],
+                                    a: [[A.Style, 'padding-top: 0'], [A.Id, 'major-contributors']],
                                     c: restUsers
                                 }
                             ]
@@ -146,7 +146,7 @@ export class HomePage implements Component {
                 },
                 {
                     e: ['div'],
-                    a: [[Attribute.Id, 'fp-stats-container']],
+                    a: [[A.Id, 'fp-stats-container']],
                     c: [
                         new StatsHeaderComponent(`So far, ${data.video_count.toString(10)} videos have been added to the database. In those videos, Northernlion...`),
                         new StatImageComponent('0', '-1510'),
@@ -183,7 +183,7 @@ export class HomePage implements Component {
                 },
                 {
                     e: ['div'],
-                    a: [[Attribute.Style, 'width: 100%; height: 300px']]
+                    a: [[A.Style, 'width: 100%; height: 300px']]
                 }
             ]
         }

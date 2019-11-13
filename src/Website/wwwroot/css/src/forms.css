@@ -50,6 +50,15 @@ button:focus {
     border-color: darkgreen;
 }
 
+.btn-orange {
+    background-color: yellow;
+    border-color: gold;
+}
+
+.btn-orange:hover {
+    border-color: darkgoldenrod;
+}
+
 .btn-red {
     background-color: orange;
     border-color: orangered;

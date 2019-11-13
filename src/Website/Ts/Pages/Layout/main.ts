@@ -1,4 +1,4 @@
-﻿import { Component, FrameworkElement, Attribute } from "../../Framework/renderer";
+﻿import { Component, FrameworkElement, A } from "../../Framework/renderer";
 
 export class MainComponent implements Component {
     E: FrameworkElement;
@@ -6,7 +6,7 @@ export class MainComponent implements Component {
     constructor() {
         this.E = {
             e: ['main'],
-            a: [[Attribute.Class, 'w80'], [Attribute.Id, 'main-container']]
+            a: [[A.Class, 'w80'], [A.Id, 'main-container']]
         }
     }
 }

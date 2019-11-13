@@ -65,8 +65,8 @@ const removeClassIfExists = (e: Element, className: string) => {
     }
 }
 
-const addClassIfNotExists = (e: Element, className: string) => {
-    if (!e.classList.contains(className)) {
+const addClassIfNotExists = (e: Element | null, className: string) => {
+    if (e && !e.classList.contains(className)) {
         e.classList.add(className);
     }
 }

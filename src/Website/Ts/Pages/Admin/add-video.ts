@@ -1,5 +1,6 @@
-﻿import { Component, FrameworkElement, Attribute, ComponentWithForm, EventType } from "../../Framework/renderer";
+﻿import { Component, FrameworkElement, A, ComponentWithForm, EventType } from "../../Framework/renderer";
 import { PageData, registerPage } from "../../Framework/router";
+import { BackToOverviewLinks } from "../../Components/Admin/back-to-overview-links";
 
 export class AddVideo extends ComponentWithForm implements Component {
     E: FrameworkElement
@@ -18,12 +19,12 @@ export class AddVideo extends ComponentWithForm implements Component {
                 },
                 {
                     e: ['p'],
-                    a: [[Attribute.Id, 'errors']]
+                    a: [[A.Id, 'errors']]
                 },
                 {
                     e: ['form'],
-                    a: [[Attribute.Method, 'post'], [Attribute.Name, 'VideoIds']],
-                    v: [[EventType.Submit, e => super.HandleSubmit(e, '/Admin/save_or_update_videos', true, '')]],
+                    a: [[A.Method, 'post']],
+                    v: [[EventType.Submit, e => super.HandleSubmit(e, '/Admin/save_or_update_videos', true, '/Admin/VideosSaved', (document.getElementById('video-ids-textarea') as HTMLTextAreaElement).value)]],
                     c: [
                         {
                             e: ['div'],
@@ -34,11 +35,13 @@ export class AddVideo extends ComponentWithForm implements Component {
                                 {
                                     e: ['textarea'],
                                     a: [
-                                        [Attribute.Placeholder, 'enter video ids, seperated by a comma \',\''],
-                                        [Attribute.Required, 'true'],
-                                        [Attribute.RequiredErrorMessage, 'This field is required'],
-                                        [Attribute.MinLength, '11'],
-                                        [Attribute.MinLengthErrorMessage, 'Must be at least 11 characters long']
+                                        [A.Placeholder, 'enter video ids, seperated by a comma \',\''],
+                                        [A.Required, 'true'],
+                                        [A.RequiredErrorMessage, 'This field is required'],
+                                        [A.MinLength, '11'],
+                                        [A.MinLengthErrorMessage, 'Must be at least 11 characters long'],
+                                        [A.Name, 'VideoIds'],
+                                        [A.Id, 'video-ids-textarea']
                                     ],
                                     v: [[EventType.Input, e => super.ValidateForm(e)]]
                                 }
@@ -49,12 +52,13 @@ export class AddVideo extends ComponentWithForm implements Component {
                             c: [
                                 {
                                     e: ['button', 'Save/Update videos'],
-                                    a: [[Attribute.Type, 'submit'], [Attribute.Disabled, 'true']]
+                                    a: [[A.Type, 'submit'], [A.Disabled, 'true']]
                                 }
                             ]
                         }
                     ]
-                }
+                },
+                new BackToOverviewLinks()
             ]
         }
     }

@@ -1,4 +1,4 @@
-﻿import { Component, FrameworkElement, Attribute } from "../../Framework/renderer";
+﻿import { Component, FrameworkElement, A } from "../../Framework/renderer";
 
 export class ValidationPopup implements Component {
     E: FrameworkElement;
@@ -18,7 +18,7 @@ export class ValidationPopup implements Component {
 
         this.E = {
             e: ['div'],
-            a: [[Attribute.Class, 'popup'], [Attribute.Style, `top: -80px; left: ${Math.floor(-distanceToLeft)}px; right: auto`]],
+            a: [[A.Class, 'popup'], [A.Style, `top: -80px; left: ${Math.floor(-distanceToLeft)}px; right: auto`]],
             c: [
                 {
                     e: ['p', message]

@@ -1,4 +1,4 @@
-﻿import { Component, FrameworkElement, Attribute } from "../../Framework/renderer";
+﻿import { Component, FrameworkElement, A } from "../../Framework/renderer";
 import { GameplayEvent } from "../../Models/gameplay-event";
 import { IsaacImage } from "../General/isaac-image";
 
@@ -29,7 +29,7 @@ export class ItemsourcePopup implements Component {
                         },
                         {
                             e: ['span'],
-                            a: [[Attribute.Class, event.player === 1 ? 'player-one' : 'player-two']],
+                            a: [[A.Class, event.player === 1 ? 'player-one' : 'player-two']],
                             c: [
                                 {
                                     e: ['strong', `Player ${event.player ? event.player.toString(10) : ''}`]
@@ -42,7 +42,7 @@ export class ItemsourcePopup implements Component {
 
             this.E = {
                 e: ['div'],
-                a: [[Attribute.Class, 'popup c downscale']],
+                a: [[A.Class, 'popup c downscale']],
                 c: [
                     {
                         e: ['h3', 'Item Collected']

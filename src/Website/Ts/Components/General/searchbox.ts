@@ -1,4 +1,4 @@
-﻿import { Component, FrameworkElement, Attribute, EventType, AsyncComponentPart } from "../../Framework/renderer";
+﻿import { Component, FrameworkElement, A, EventType, AsyncComponentPart } from "../../Framework/renderer";
 import { IsaacResource } from "../../../wwwroot/js/src/interfaces/isaac-resource";
 import { get } from "../../Framework/http";
 
@@ -48,22 +48,22 @@ export class SearchboxComponent implements Component {
 
         const e: FrameworkElement = {
             e: ['div'],
-            a: [[Attribute.Class, 'dd-container']],
+            a: [[A.Class, 'dd-container']],
             c: [
                 {
                     e: ['div'],
-                    a: [[Attribute.Class, 'dd-search']],
+                    a: [[A.Class, 'dd-search']],
                     c: [
                         {
                             e: ['input'],
-                            a: [[Attribute.Type, 'text'], [Attribute.Class, 'dd-searchbox']],
+                            a: [[A.Type, 'text'], [A.Class, 'dd-searchbox']],
                             v: [[EventType.Input, e => this.Filter(e)]]
                         }
                     ]
                 },
                 {
                     e: ['div'],
-                    a: [[Attribute.Id, id.toString(10)]],
+                    a: [[A.Id, id.toString(10)]],
                     c: [initialSearchboxContent]
                 }
             ],
@@ -144,15 +144,15 @@ export class SearchboxComponent implements Component {
 
             lines.push({
                 e: ['div'],
-                a: [[Attribute.Class, 'dd-line'], [Attribute.DataId, data[i].id], [Attribute.Title, data[i].name], [Attribute.DataLowercaseName, data[i].name.toLowerCase()]],
+                a: [[A.Class, 'dd-line'], [A.DataId, data[i].id], [A.Title, data[i].name], [A.DataLowercaseName, data[i].name.toLowerCase()]],
                 c: [
                     {
                         e: ['div', displayName],
-                        a: [[Attribute.Class, 'dd-text']]
+                        a: [[A.Class, 'dd-text']]
                     },
                     {
                         e: ['div'],
-                        a: [[Attribute.Class, 'dd-image'], [Attribute.Style, style]]
+                        a: [[A.Class, 'dd-image'], [A.Style, style]]
                     }
                 ],
                 v: [[EventType.Click, e => this.Emit(e)]]
@@ -161,7 +161,7 @@ export class SearchboxComponent implements Component {
 
         const searchboxLinesContainer: FrameworkElement = {
             e: ['div'],
-            a: [[Attribute.Class, 'dd-dropdown']],
+            a: [[A.Class, 'dd-dropdown']],
             c: lines
         }
 

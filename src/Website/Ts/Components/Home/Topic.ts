@@ -1,4 +1,4 @@
-﻿import { Component, Attribute, FrameworkElement, EventType } from "../../Framework/renderer";
+﻿import { Component, A, FrameworkElement, EventType } from "../../Framework/renderer";
 import { goToRouteWithUrl, setPageData } from "../../Framework/router";
 
 export class TopicComponent implements Component {
@@ -15,11 +15,11 @@ export class TopicComponent implements Component {
 
         this.E = {
             e: ['div'],
-            a: [[Attribute.Class, 'topic']],
+            a: [[A.Class, 'topic']],
             c: [
                 {
                     e: ['div'],
-                    a: [[Attribute.Style, `background: url('/img/frontpage.png') 0px ${yOffset}px transparent`]]
+                    a: [[A.Style, `background: url('/img/frontpage.png') 0px ${yOffset}px transparent`]]
                 },
                 { e: ['p', title] }
             ],

@@ -22,6 +22,20 @@ const setPageData = (pageName: string, data: any) => {
     }
 }
 
+const setUrlData = (url: string, data: any) => {
+    const pages = getPages();
+    const foundName = getRegisteredRouteNameFromRegisteredUrl(url, pages);
+    if (foundName) {
+        if (foundName.exactMatch) {
+            setPageData(foundName.exactMatch, data);
+        } else if (foundName.approximateMatch) {
+            for (const approximateMatch in foundName.approximateMatch) {
+                setPageData(approximateMatch, data);
+            }
+        }
+    }
+}
+
 const appendRouteFragment = (fragment: string) => {
     if (!fragment.startsWith('/')) {
         fragment = `/${fragment}`;
@@ -37,17 +51,19 @@ const routeEndsWith = (fragment: string) => {
     }
 }
 
-const getPageData = () => {
+function getPageData<T>(): T | undefined {
     const currentRoute = getCurrentRouteUrl();
     console.log('current route: ', currentRoute);
     const pages = getPages();
     for (const page of pages) {
-        for (const url of page[1].Urls) {
-            if (url === currentRoute) {
-                return page[1].Data;
-            }
+        const findRouteResult = getRegisteredRouteNameFromRegisteredUrl(page[0], pages);
+        console.log('result for ' + currentRoute, findRouteResult);
+        if (findRouteResult.exactMatch || (findRouteResult.approximateMatch && findRouteResult.approximateMatch.length > 0)) {
+            return page[1].Data;
         }
     }
+
+    return undefined;
 }
 
 const getPages = () => {
@@ -210,7 +226,10 @@ export {
     getPageData,
     setTitle,
     appendRouteFragment,
-    routeEndsWith
+    routeEndsWith,
+    getRegisteredRouteNameFromRegisteredUrl,
+    getPages,
+    setUrlData
 }
 
 

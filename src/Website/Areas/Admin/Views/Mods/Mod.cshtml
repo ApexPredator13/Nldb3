@@ -40,7 +40,7 @@ else
                             <button>Delete Link</button>
                         </td>
                         <td class="display-none">
-                            @{ var deleteModel = new DeleteModLink { ModId = Model.Id, LinkId = link.Id }; }
+                            @{ var deleteModel = new Website.Models.Admin.DeleteModLink { LinkId = link.Id }; }
                             <partial name="_DeleteModLinkFormPartial" model="deleteModel" />
                         </td>
                     </tr>

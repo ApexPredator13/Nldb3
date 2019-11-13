@@ -1,4 +1,4 @@
-﻿import { FrameworkElement, AsyncComponentPart, Attribute, ComponentWithPopup, Component } from "../../Framework/renderer";
+﻿import { FrameworkElement, AsyncComponentPart, A, ComponentWithPopup, Component } from "../../Framework/renderer";
 import { Video } from "../../Models/video";
 import { TimelinePopup } from "./timeline-popup";
 
@@ -11,7 +11,7 @@ export class Timeline extends ComponentWithPopup implements Component {
 
         const element: FrameworkElement = {
             e: ['div'],
-            a: [[Attribute.Id, 'timeline-container']]
+            a: [[A.Id, 'timeline-container']]
         };
 
         this.E = element;
@@ -38,7 +38,7 @@ export class Timeline extends ComponentWithPopup implements Component {
 
                     const floorElement: FrameworkElement = {
                         e: ['div'],
-                        a: [[Attribute.Style, `background-color: ${floor.floor.color}; width: ${percentage}%`], [Attribute.Class, 'floor-progress r']]
+                        a: [[A.Style, `background-color: ${floor.floor.color}; width: ${percentage}%`], [A.Class, 'floor-progress r']]
                     }
 
                     super.CreatePopupForElement(floorElement, new TimelinePopup(floor, submission.played_characters[floor.run_number - 1]))
@@ -48,7 +48,7 @@ export class Timeline extends ComponentWithPopup implements Component {
 
                 const element: FrameworkElement = {
                     e: ['div'],
-                    a: [[Attribute.Style, 'width: 100%;']],
+                    a: [[A.Style, 'width: 100%;']],
                     c: floorElements
                 };
 
