@@ -1,20 +1,17 @@
 ﻿import { Component, FrameworkElement, AsyncComponentPart, A } from "../../Framework/renderer";
-import { PageData, registerPage, getPageData } from "../../Framework/router";
-import { ResourceType } from "../../../wwwroot/js/src/enums/resource-type";
+import { PageData, registerPage } from "../../Framework/router";
 import { get } from "../../Framework/http";
-import { IsaacResource } from "../../../wwwroot/js/src/interfaces/isaac-resource";
+import { IsaacResource } from "../../Models/isaac-resource";
+import { ResourceType } from "../../Enums/resource-type";
 
-export class Resources implements Component {
+export class ResourcesPage implements Component {
     E: FrameworkElement;
     A: Array<AsyncComponentPart>
 
     private resourceType = ResourceType.Item;
 
-    constructor() {
-        const data = getPageData<ResourceType>();
-        if (typeof(data) === 'number') {
-            this.resourceType = data;
-        }
+    constructor(parameters: Array<string>) {
+        this.resourceType = Number(parameters[0]) as ResourceType;
 
         this.E = {
             e: ['div', 'loading resources...'],
@@ -44,14 +41,12 @@ export class Resources implements Component {
 
 
     static RegisterPage() {
-        const pageData: PageData = {
-            AppendTo: 'main-container',
-            Component: Resources,
-            Data: ResourceType.Item,
+        const page: PageData = {
+            Component: ResourcesPage,
             Title: 'Resources',
-            Urls: ['/Admin/Resources']
+            Url: ['Admin', 'Resources', '{type}']
         };
-        registerPage('resources', pageData);
+        registerPage(page);
     }
 }
 

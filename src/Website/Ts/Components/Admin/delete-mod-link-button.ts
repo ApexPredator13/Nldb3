@@ -1,6 +1,7 @@
 ﻿import { ComponentWithForm, Component, FrameworkElement, A, EventType } from "../../Framework/renderer";
 import { ModUrl } from "../../Models/mod-url";
 import { show, hide } from "../../Framework/browser";
+import { AdminLink } from "../../Pages/Admin/_admin-link-creator";
 
 export class DeleteModLinkButton extends ComponentWithForm implements Component {
     E: FrameworkElement;
@@ -25,7 +26,7 @@ export class DeleteModLinkButton extends ComponentWithForm implements Component 
             c: [
                 {
                     e: ['form'],
-                    v: [[EventType.Submit, e => super.HandleSubmit(e, '/Admin/delete_mod_link', true, '/Admin/ModLinkDeleted', link.link_text)]],
+                    v: [[EventType.Submit, e => super.HandleSubmit(e, '/Admin/delete_mod_link', true, AdminLink.ModLinkDeleted(link.link_text))]],
                     c: [
                         {
                             e: ['input'],

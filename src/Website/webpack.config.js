@@ -21,8 +21,8 @@ module.exports = {
         */
 
         // new and glorious:
-        all_remaining_pages: './Ts/Pages/all-pages.ts',
-        all_admin_pages: './Ts/Pages/Admin/all-admin-pages.ts',
+        all_remaining_pages: './Ts/Pages/_all-pages.ts',
+        all_admin_pages: './Ts/Pages/Admin/_all-admin-pages.ts',
         home: './Ts/Pages/home.ts',
         downloads: './Ts/Pages/downloads.ts',
         episodes: './Ts/Pages/episodes.ts',
@@ -64,16 +64,16 @@ module.exports = {
             chunks: 'all',
             cacheGroups: {
                 default: false,
-                framework: {
-                    test: /[\\/]Framework[\\/]/,
-                    name: 'framework',
-                    reuseExistingChunk: false
-                },
                 vendor: {
                     test: /[\\/]node_modules[\\/]/,
                     name: 'vendor',
                     reuseExistingChunk: false
-                }
+                },
+                framework: {
+                    test: /([\\/]Framework[\\/])/,
+                    name: 'framework',
+                    reuseExistingChunk: false
+                },
             }
         }
     },

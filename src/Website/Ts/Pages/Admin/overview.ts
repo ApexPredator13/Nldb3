@@ -1,21 +1,23 @@
 ﻿import { Component, FrameworkElement, A, EventType } from "../../Framework/renderer";
-import { PageData, registerPage, goToRouteWithUrl } from "../../Framework/router";
+import { PageData, registerPage, navigate } from "../../Framework/router";
+import { AdminLink } from "./_admin-link-creator";
+import { ResourceType } from "../../Enums/resource-type";
 
-export class AdminOverview implements Component {
+export class AdminOverviewPage implements Component {
     E: FrameworkElement
 
     constructor() {
         const clickModsLink = (e: Event) => {
             e.preventDefault();
-            goToRouteWithUrl('/Admin/Mods');
+            navigate(AdminLink.Mods());
         }
         const clickIsaacContentLink = (e: Event) => {
             e.preventDefault();
-            goToRouteWithUrl('/Admin/Isaac/');
+            navigate(AdminLink.ResourceOverview(ResourceType.Item));
         }
         const clickAddVideoLink = (e: Event) => {
             e.preventDefault();
-            goToRouteWithUrl('/Admin/AddVideos');
+            navigate(AdminLink.AddVideos());
         }
 
         this.E = {
@@ -32,7 +34,7 @@ export class AdminOverview implements Component {
                     c: [
                         {
                             e: ['a', 'Manage Mods'],
-                            a: [[A.Href, '/Admin/Mods']],
+                            a: [[A.Href, AdminLink.Mods()]],
                             v: [[EventType.Click, clickModsLink]]
                         }
                     ]
@@ -42,7 +44,7 @@ export class AdminOverview implements Component {
                     c: [
                         {
                             e: ['a', 'Manage Isaac Content'],
-                            a: [[A.Href, '/Admin/Isaac']],
+                            a: [[A.Href, AdminLink.ResourceOverview(ResourceType.Item)]],
                             v: [[EventType.Click, clickIsaacContentLink]]
                         }
                     ]
@@ -52,7 +54,7 @@ export class AdminOverview implements Component {
                     c: [
                         {
                             e: ['a', 'Manually Add/Update Videos'],
-                            a: [[A.Href, '/Admin/AddVideos']],
+                            a: [[A.Href, AdminLink.AddVideos()]],
                             v: [[EventType.Click, clickAddVideoLink]]
                         }
                     ]
@@ -63,11 +65,10 @@ export class AdminOverview implements Component {
 
     static RegisterPage() {
         const data: PageData = {
-            AppendTo: 'main-container',
-            Component: AdminOverview,
+            Component: AdminOverviewPage,
             Title: 'Admin Overview',
-            Urls: ['/Admin/Overview']
+            Url: ['Admin', 'Overview']
         }
-        registerPage('admin-overview', data)
+        registerPage(data)
     }
 }

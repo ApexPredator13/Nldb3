@@ -1,4 +1,4 @@
-﻿import { getUser } from "./authentication";
+﻿import { getUser } from "./Customizable/authentication";
 
 async function createAuthHeader(): Promise<Headers | undefined> {
     const user = await getUser();

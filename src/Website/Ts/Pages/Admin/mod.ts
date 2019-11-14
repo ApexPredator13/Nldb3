@@ -1,9 +1,10 @@
 ﻿import { Component, FrameworkElement, AsyncComponentPart, A, EventType } from "../../Framework/renderer";
-import { PageData, registerPage, getPageData, goToRouteWithUrl, setUrlData } from "../../Framework/router";
+import { PageData, registerPage, navigate } from "../../Framework/router";
 import { get } from "../../Framework/http";
 import { Mod } from "../../Models/mod";
 import { ModUrl } from "../../Models/mod-url";
 import { DeleteModLinkButton } from "../../Components/Admin/delete-mod-link-button";
+import { AdminLink } from "./_admin-link-creator";
 
 export class ModPage implements Component {
     E: FrameworkElement;
@@ -11,8 +12,8 @@ export class ModPage implements Component {
 
     private modId: number | undefined;
 
-    constructor() {
-        const modId = getPageData<number>();
+    constructor(parameters: Array<string>) {
+        const modId = Number(parameters[0]);
         console.log('page data', modId);
         if (typeof (modId) === 'number') {
             this.modId = modId;
@@ -32,11 +33,12 @@ export class ModPage implements Component {
         const part: AsyncComponentPart = {
             I: 'mod-container',
             P: this.modId ? get<Mod>(`/Api/Mods/${this.modId}`).then(mod => {
-                const clickEvent = (e: Event) => {
+
+                const clickAddLinkEvent = (e: Event) => {
                     e.preventDefault();
-                    const url = `/Admin/CreateLink/${this.modId}`;
-                    setUrlData(url, this.modId)
-                    goToRouteWithUrl(url);
+                    if (typeof (this.modId) === 'number') {
+                        navigate(AdminLink.CreateLink(this.modId));
+                    }
                 };
 
                 return {
@@ -53,8 +55,8 @@ export class ModPage implements Component {
                             c: [
                                 {
                                     e: ['a'],
-                                    a: [[A.Href, `/Admin/CreateLink/${this.modId}`]],
-                                    v: [[EventType.Click, clickEvent]]
+                                    a: [this.modId ? [A.Href, AdminLink.CreateLink(this.modId)] : null],
+                                    v: [[EventType.Click, clickAddLinkEvent]]
                                 }
                             ]
                         },
@@ -133,12 +135,11 @@ export class ModPage implements Component {
     }
 
     static RegisterPage() {
-        const data: PageData = {
-            AppendTo: 'main-container',
+        const page: PageData = {
             Component: ModPage,
             Title: 'Mod Overview',
-            Urls: ['/Admin/Mod']
+            Url: ['Admin', 'Mod', '{id}']
         };
-        registerPage('mod', data);
+        registerPage(page);
     }
 }

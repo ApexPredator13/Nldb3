@@ -35,13 +35,12 @@ export class DownloadsPage implements Component {
 
     static RegisterPage() {
         const page: PageData = {
-            AppendTo: 'main-container',
             Component: DownloadsPage,
             Title: 'Welcome to the Northernlion Database',
-            Urls: ['/Downloads']
+            Url: ['Downloads']
         }
 
-        registerPage('downloads', page);
+        registerPage(page);
     }
 }
 

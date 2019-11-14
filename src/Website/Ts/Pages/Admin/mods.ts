@@ -1,17 +1,18 @@
 ﻿import { Component, FrameworkElement, A, EventType, AsyncComponentPart } from "../../Framework/renderer";
-import { PageData, registerPage, goToRouteWithUrl, setPageData } from "../../Framework/router";
+import { PageData, registerPage, navigate } from "../../Framework/router";
 import { get } from "../../Framework/http";
 import { Mod } from "../../Models/mod";
 import { DeleteModButton } from "../../Components/Admin/delete-mod-button";
+import { AdminLink } from "./_admin-link-creator";
 
-export class Mods implements Component {
+export class ModsPage implements Component {
     E: FrameworkElement;
     A: Array<AsyncComponentPart>;
 
     constructor() {
         const clickCreateMod = (e: Event) => {
             e.preventDefault();
-            goToRouteWithUrl('/Admin/CreateMod');
+            navigate(AdminLink.CreateMod());
         }
 
         const asyncContainerId = 'mods-list';
@@ -28,7 +29,7 @@ export class Mods implements Component {
                     c: [
                         {
                             e: ['a', 'Create a new Mod'],
-                            a: [[A.Href, '/Admin/CreateMod']],
+                            a: [[A.Href, AdminLink.CreateMod()]],
                             v: [[EventType.Click, clickCreateMod]]
                         }
                     ]
@@ -61,9 +62,18 @@ export class Mods implements Component {
         for (const mod of mods) {
             const modClickEvent = (e: Event) => {
                 e.preventDefault();
-                setPageData('/Admin/Mod', mod.id);
-                goToRouteWithUrl(`/Admin/Mod/${mod.id}`);
+                if (mod.id) {
+                    navigate(AdminLink.Mod(mod.id));
+                }
             };
+
+            let linkText = '0 Links';
+            if (mod.links && mod.links.length === 1) {
+                linkText = '1 Link';
+            } else if (mod.links && mod.links.length > 1) {
+                linkText = `${mod.links.length} links`
+            }
+            
 
             lines.push({
                 e: ['tr'],
@@ -76,13 +86,13 @@ export class Mods implements Component {
                         c: [
                             {
                                 e: ['a', mod.name],
-                                a: [[A.Href, `/Admin/Mod/${mod.id}`]],
+                                a: [mod.id ? [A.Href, AdminLink.Mod(mod.id)] : null],
                                 v: [[EventType.Click, modClickEvent]]
                             }
                         ]
                     },
                     {
-                        e: ['td', mod.links ? `${mod.links.length.toString(10)} Links` : '0 Links']
+                        e: ['td', linkText]
                     },
                     {
                         e: ['td'],
@@ -125,11 +135,10 @@ export class Mods implements Component {
 
     static RegisterPage() {
         const page: PageData = {
-            AppendTo: 'main-container',
-            Component: Mods,
+            Component: ModsPage,
             Title: 'Mods',
-            Urls: ['/Admin/Mods']
+            Url: ['Admin', 'Mods']
         };
-        registerPage('mods', page);
+        registerPage(page);
     }
 }

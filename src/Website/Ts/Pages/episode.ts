@@ -1,9 +1,8 @@
 ﻿import { Component, FrameworkElement, AsyncComponentPart, A } from "../Framework/renderer";
-import { getPageData, initRouter, PageData, registerPage, setTitle, appendRouteFragment, routeEndsWith } from "../Framework/router";
+import { initRouter, PageData, registerPage, setTitle, PageType, extractParametersFromRoute } from "../Framework/router";
 import { get } from "../Framework/http";
 import { Video } from "../Models/video";
 import { EventsTableComponent } from "../Components/Video/events-table";
-import { getLastCharactersOfUrl } from "../Framework/browser";
 import { VideoStats } from "../Components/Video/video-stats";
 import { Timeline } from "../Components/Video/timeline";
 
@@ -17,20 +16,13 @@ export class EpisodePage implements Component {
     private headerContainerId = 'video-title';
     private videoEventsTableId = 'video-events-table';
 
-    constructor() {
-
-        // get page data from URL if it doesn't exist
-        const pageData = getPageData<{id: string, title: string}>();
-        if (pageData) {
-            this.videoId = pageData.id;
-            setTitle(pageData.title);
-        } else {
-            this.videoId = getLastCharactersOfUrl(11);
+    constructor(parameters: Array<string>) {
+        console.log('PARAMETERS', parameters);
+        if (!parameters || parameters.length === 0) {
+            parameters = extractParametersFromRoute(1);
         }
 
-        if (!routeEndsWith(this.videoId)) {
-            appendRouteFragment(this.videoId);
-        }
+        this.videoId = parameters[0];
 
         // load video
         this.videoData = get<Video>(`/api/videos/${this.videoId}`);
@@ -82,12 +74,12 @@ export class EpisodePage implements Component {
 
     static RegisterPage(): void {
         const pageData: PageData = {
-            AppendTo: 'main-container',
             Component: EpisodePage,
-            Title: '',
-            Urls: ['/Episode']
+            Title: 'Loading Episode...',
+            Url: ['{id}'],
+            specificPageType: PageType.Episode
         }
-        registerPage('episode', pageData);
+        registerPage(pageData);
     }
 }
 

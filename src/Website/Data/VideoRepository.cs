@@ -179,7 +179,7 @@ namespace Website.Data
         public async Task<bool> VideoExists(string videoId)
         {
             using var c = await _connector.Connect();
-            using var q = new NpgsqlCommand("SELECT 1 FROM videos WHERE id = @Id;", c);
+            using var q = new NpgsqlCommand("SELECT id FROM videos WHERE id = @Id;", c);
             q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, videoId);
             using var r = await q.ExecuteReaderAsync();
             return r.HasRows;

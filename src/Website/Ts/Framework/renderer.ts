@@ -1,6 +1,6 @@
 ﻿import { setZIndex, getFormValue, addClassIfNotExists, searchParentsForTag } from "./browser";
 import { popupEventData } from "./popup";
-import { goToRouteWithUrl, setPageData, getRegisteredRouteNameFromRegisteredUrl, getPages } from "./router";
+import { navigate } from "./router";
 import { postResponse } from "./http";
 import { removeClassIfExists } from "../../wwwroot/js/src/lib/dom-operations";
 import { ValidationPopup } from "../Components/General/validation-popup";
@@ -57,7 +57,7 @@ class ComponentWithPopup {
 class ComponentWithForm {
     private form: HTMLFormElement | undefined;
 
-    HandleSubmit(e: Event, postUrl: string, authorized: boolean, successUrl: string, pageData?: any) {
+    HandleSubmit(e: Event, postUrl: string, authorized: boolean, successUrl: string) {
         e.preventDefault();
 
         const formIsValid = this.ValidateForm(e);
@@ -73,19 +73,7 @@ class ComponentWithForm {
             if (formData) {
                 postResponse(postUrl, formData, authorized)
                     .then(() => {
-                        // set page data if necessary
-                        if (pageData) {
-                            const foundPageNames = getRegisteredRouteNameFromRegisteredUrl(successUrl, getPages());
-                            if (foundPageNames.exactMatch) {
-                                setPageData(foundPageNames.exactMatch, pageData);
-                            } else if (foundPageNames.approximateMatch) {
-                                for (const name of foundPageNames.approximateMatch) {
-                                    setPageData(name, pageData);
-                                }
-                            }
-                            
-                        }
-                        goToRouteWithUrl(successUrl);
+                        navigate(successUrl);
                     })
                     .catch((e: Response) => {
                         // todo: show error in fullscreen modal

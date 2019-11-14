@@ -1018,6 +1018,15 @@ namespace Website.Data
         }
 
 
+        public async Task<bool> ResourceExists(string resourceId)
+        {
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand("SELECT id FROM isaac_resources WHERE id = @Id;", c);
+            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, resourceId);
+            using var r = await q.ExecuteReaderAsync();
+            return r.HasRows;
+        }
+
         public async Task<int> MakeTransformative(MakeIsaacResourceTransformative model)
         {
             string query =

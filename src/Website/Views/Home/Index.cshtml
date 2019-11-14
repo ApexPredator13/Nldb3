@@ -1,13 +1,17 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
-    var path = Context.Request.Path.Value.ToLower();
+    var path = Context.Request.Path.Value;
+    var pathLowercase = path.ToLower();
 }
+
+@inject Website.Services.IVideoRepository _videoRepository
+@inject Website.Services.IIsaacRepository _isaacRepository
 
 <script src="~/js/dist/runtime.min.js"></script>
 <script src="~/js/dist/vendor.min.js"></script>
 <script src="~/js/dist/framework.min.js"></script>
 
-@switch (path)
+@switch (pathLowercase)
 {
     case "/":
         <script src="~/js/dist/home.min.js"></script>
@@ -33,9 +37,18 @@
     case "/otherconsumables":
         <script src="~/js/dist/resource_overview.min.js"></script>
         break;
-    case string s when s.StartsWith("/episode"):
+
+    @* check if video ID was requested: 11 characters + leading slash *@
+    case string potentialVideoId when potentialVideoId.Length == 12 && await _videoRepository.VideoExists(path.Substring(1)):
         <script src="~/js/dist/episode.min.js"></script>
         break;
+
+    @* check if a isaac resource was requested *@
+    case string isaacResource when await _isaacRepository.ResourceExists(path.Substring(1)):
+        <script src="~/js/dist/home.min.js"></script>
+        break;
+
+    @* if nothing was found, just return 'Home' *@
     default:
         <script src="~/js/dist/home.min.js"></script>
         break;
@@ -43,3 +56,5 @@
 
 
 <script src="~/js/dist/all_remaining_pages.min.js"></script>
+
+

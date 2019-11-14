@@ -1,29 +1,28 @@
 ﻿import { Component, FrameworkElement, A, EventType } from "../../Framework/renderer";
-import { getPageData, PageData, registerPage, goToRouteWithUrl } from "../../Framework/router";
+import { PageData, registerPage, navigate } from "../../Framework/router";
+import { AdminLink } from "./_admin-link-creator";
 
 export class ModDeleted implements Component {
     E: FrameworkElement;
 
-    constructor() {
-        const modName = getPageData();
-
+    constructor(parameters: Array<string>) {
         const backToMods = (e: Event) => {
             e.preventDefault();
-            goToRouteWithUrl('/Admin/Mods');
+            navigate(AdminLink.Mods());
         }
 
         this.E = {
             e: ['div'],
             c: [
                 {
-                    e: ['p', `Mod with name ${modName} was deleted.`]
+                    e: ['p', `Mod with name ${parameters[0]} was deleted.`]
                 },
                 {
                     e: ['p'],
                     c: [
                         {
                             e: ['a', 'Back to Mods'],
-                            a: [[A.Href, '/Admin/Mods']],
+                            a: [[A.Href, AdminLink.Mods()]],
                             v: [[EventType.Click, backToMods]]
                         }
                     ]
@@ -34,12 +33,11 @@ export class ModDeleted implements Component {
 
     static RegisterPage() {
         const data: PageData = {
-            Urls: ['/Admin/ModDeleted'],
-            AppendTo: 'main-container',
+            Url: ['Admin', 'ModDeleted'],
             Component: ModDeleted,
             Title: 'Mod Deleted'
         };
-        registerPage('mod-deleted', data);
+        registerPage(data);
     }
 }
 

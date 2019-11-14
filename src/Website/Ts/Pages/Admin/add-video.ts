@@ -1,8 +1,9 @@
 ﻿import { Component, FrameworkElement, A, ComponentWithForm, EventType } from "../../Framework/renderer";
 import { PageData, registerPage } from "../../Framework/router";
 import { BackToOverviewLinks } from "../../Components/Admin/back-to-overview-links";
+import { AdminLink } from "./_admin-link-creator";
 
-export class AddVideo extends ComponentWithForm implements Component {
+export class AddVideoPage extends ComponentWithForm implements Component {
     E: FrameworkElement
 
     constructor() {
@@ -24,7 +25,7 @@ export class AddVideo extends ComponentWithForm implements Component {
                 {
                     e: ['form'],
                     a: [[A.Method, 'post']],
-                    v: [[EventType.Submit, e => super.HandleSubmit(e, '/Admin/save_or_update_videos', true, '/Admin/VideosSaved', (document.getElementById('video-ids-textarea') as HTMLTextAreaElement).value)]],
+                    v: [[EventType.Submit, e => super.HandleSubmit(e, '/Admin/save_or_update_videos', true, AdminLink.VideosSaved((document.getElementById('video-ids-textarea') as HTMLTextAreaElement).value))]],
                     c: [
                         {
                             e: ['div'],
@@ -64,13 +65,12 @@ export class AddVideo extends ComponentWithForm implements Component {
     }
 
     static RegisterPage() {
-        const data: PageData = {
-            AppendTo: 'main-container',
-            Component: AddVideo,
+        const page: PageData = {
+            Component: AddVideoPage,
             Title: 'Add or update videos',
-            Urls: ['/Admin/AddVideo']
+            Url: ['Admin', 'AddVideo']
         }
-        registerPage('add-or-update-video', data);
+        registerPage(page);
     }
 }
 

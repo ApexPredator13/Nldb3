@@ -1,12 +1,12 @@
 ﻿import { Component, FrameworkElement } from "../../Framework/renderer";
 import { BackToOverviewLinks } from "../../Components/Admin/back-to-overview-links";
-import { PageData, registerPage, getPageData } from "../../Framework/router";
+import { PageData, registerPage } from "../../Framework/router";
 
-export class VideosSaved implements Component {
+export class VideosSavedPage implements Component {
     E: FrameworkElement;
 
-    constructor() {
-        const data = getPageData();
+    constructor(parameters: Array<string>) {
+        const videoIds = parameters[0];
         this.E = {
             e: ['div'],
             c: [
@@ -14,7 +14,7 @@ export class VideosSaved implements Component {
                     e: ['p', 'The videos have been saved successfully.']
                 },
                 {
-                    e: ['p', 'Processed videos: ' + (data && typeof(data) === 'string' ? data : 'no data found')]
+                    e: ['p', `Processed videos: ${videoIds}`]
                 },
                 new BackToOverviewLinks()
             ]
@@ -22,13 +22,12 @@ export class VideosSaved implements Component {
     }
 
     static RegisterPage() {
-        const data: PageData = {
-            AppendTo: 'main-container',
-            Component: VideosSaved,
+        const page: PageData = {
+            Component: VideosSavedPage,
             Title: 'Videos Saved!',
-            Urls: ['/Admin/VideosSaved']
+            Url: ['Admin', 'VideosSaved', '{videoIds}']
         }
-        registerPage('videos-saved', data);
+        registerPage(page);
     }
 }
 

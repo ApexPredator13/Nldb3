@@ -3,8 +3,9 @@ import { Option } from '../../Components/General/option';
 import { get } from "../../Framework/http";
 import { VideoResult } from "../../Models/video-result";
 import { ResourceType } from "../../Enums/resource-type";
-import { goToRouteWithName, setPageData, goToRouteWithUrl } from "../../Framework/router";
+import { navigate, PageType } from "../../Framework/router";
 import { VideoOrderBy } from "../../Enums/video-order-by";
+import { Link } from "../../Pages/_link-creator";
 
 export class VideosComponent implements Component {
 
@@ -307,8 +308,7 @@ export class VideosComponent implements Component {
                     e.preventDefault();
                     console.log('clicked title.', video);
                     if (video.submission_count > 0) {
-                        setPageData('episode', { title: video.title, id: video.id });
-                        goToRouteWithUrl('/Episode');
+                        navigate(Link.Episode(video.id), PageType.Episode);
                     }
                 }
 
@@ -359,7 +359,7 @@ export class VideosComponent implements Component {
                     },
                     {
                         e: ['td', 'Submit'],
-                        v: [[EventType.Click, e => { e.preventDefault(); goToRouteWithName('submit'); }]],
+                        v: [[EventType.Click, e => { e.preventDefault(); navigate('submit'); }]],
                         a: [[A.Class, 'hand u']]
                     }
                 ]

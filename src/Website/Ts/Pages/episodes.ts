@@ -11,15 +11,18 @@ export class EpisodesPage implements Component {
         }
     }
 
+    static Link() {
+        return 'Episodes';
+    }
+
     static RegisterPage(): void {
         const page: PageData = {
-            AppendTo: 'main-container',
             Component: EpisodesPage,
             Title: 'Isaac Episodes',
-            Urls: ['/Episodes']
+            Url: ['Episodes']
         };
 
-        registerPage('episodes', page);
+        registerPage(page);
     }
 }
 

@@ -10,11 +10,9 @@ const registerPopupEvent = () => {
     if (!(window as any).popupEventSet) {
         console.log('registering popup event...');
         window.addEventListener("showPopup", ((e: CustomEvent<popupEventData>) => {
-            console.log('showing popup!');
             const data = e.detail;
             const target = data.event.target;
             if (!target || !(target instanceof HTMLElement)) {
-                console.warn('invalid target!');
                 return;
             }
 
@@ -22,12 +20,10 @@ const registerPopupEvent = () => {
 
             // skip if popup exists already
             if (target.innerHTML) {
-                console.warn('popup already exists!');
                 return;
             }
 
             // render popup
-            console.log('rendering popup');
             const html = render(data.popup);
 
             if (html) {

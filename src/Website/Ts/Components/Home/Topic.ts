@@ -1,16 +1,13 @@
 ﻿import { Component, A, FrameworkElement, EventType } from "../../Framework/renderer";
-import { goToRouteWithUrl, setPageData } from "../../Framework/router";
+import { navigate } from "../../Framework/router";
 
 export class TopicComponent implements Component {
 
     E: FrameworkElement;
 
-    constructor(title: string, yOffset: string, url: string, pageData?: any) {
+    constructor(title: string, yOffset: string, url: string) {
         const clickEvent = () => {
-            if (pageData) {
-                setPageData('resource-overview', pageData);
-            }
-            goToRouteWithUrl(url);
+            navigate(url);
         };
 
         this.E = {

@@ -6,6 +6,7 @@ import { FrontpageTopUser } from "../Models/frontpage-top-user";
 import { RankNameComponent, RankImageComponent } from "../Components/Home/Rank";
 import { StatImageComponent, StatTextComponent, StatsHeaderComponent } from "../Components/Home/Stat";
 import { registerPage, PageData, initRouter } from "../Framework/router";
+import { Link } from "./_link-creator";
 import { ResourceType } from "../Enums/resource-type";
 
 export class HomePage implements Component {
@@ -18,28 +19,18 @@ export class HomePage implements Component {
         this.A = [{ P: this.BelowTheFoldContent(), I: asyncContainerId }];
     }
     
-    static RegisterPage() {
-        const page: PageData = {
-            AppendTo: 'main-container',
-            Component: HomePage,
-            Title: 'Welcome to the Northernlion Database',
-            Urls: ['/']
-        }
-
-        registerPage('home', page);
-    }
-
+    
     private AboveTheFoldContent(asyncContainerId: string): FrameworkElement {
 
-        const topic1 = new TopicComponent('Isaac Episodes', "-100", '/Episodes');
-        const topic2 = new TopicComponent('Items', "-241", '/Items', ResourceType.Item);
+        const topic1 = new TopicComponent('Isaac Episodes', "-100", Link.Episodes());
+        const topic2 = new TopicComponent('Items', "-241", Link.ResourceOverview(ResourceType.Item));
         const topic3 = new TopicComponent('Quotes', "-382", '/');
-        const topic4 = new TopicComponent('Item Sources', "-523", '/ItemSources', ResourceType.ItemSource);
-        const topic5 = new TopicComponent('Bossfights', "-664", '/Bosses', ResourceType.Boss);
-        const topic6 = new TopicComponent('Characters', "-805", '/Characters', ResourceType.Character);
-        const topic7 = new TopicComponent('Floors', "-946", '/Floors', ResourceType.Floor);
+        const topic4 = new TopicComponent('Item Sources', "-523", Link.ResourceOverview(ResourceType.ItemSource));
+        const topic5 = new TopicComponent('Bossfights', "-664", Link.ResourceOverview(ResourceType.Boss));
+        const topic6 = new TopicComponent('Characters', "-805", Link.ResourceOverview(ResourceType.Character));
+        const topic7 = new TopicComponent('Floors', "-946", Link.ResourceOverview(ResourceType.Floor));
         const topic8 = new TopicComponent('Random Episode Generator', "-1369", '/');
-        const topic9 = new TopicComponent('Transformations', "-1228", '/Transformations', ResourceType.Transformation);
+        const topic9 = new TopicComponent('Transformations', "-1228", Link.ResourceOverview(ResourceType.Transformation));
 
         return {
             e: ['div'],
@@ -188,6 +179,21 @@ export class HomePage implements Component {
             ]
         }
         return belowFoldContent;
+    }
+
+
+    static Link() {
+        return '';
+    }
+
+    static RegisterPage() {
+        const page: PageData = {
+            Component: HomePage,
+            Title: 'Welcome to the Northernlion Database',
+            Url: ['']
+        }
+
+        registerPage(page);
     }
 }
 

@@ -1,8 +1,10 @@
-﻿import { Component, FrameworkElement, A, EventType, AsyncComponentPart } from "../../Framework/renderer";
-import { getUser, signin, isAdmin, loadAdminPages } from "../../Framework/authentication";
-import { NavSection } from "../../Components/Navigation/nav-section";
-import { ResourceType } from "../../Enums/resource-type";
-import { goToRouteWithUrl } from "../../Framework/router";
+﻿import { Component, FrameworkElement, A, EventType, AsyncComponentPart } from "../../renderer";
+import { getUser, signin, isAdmin, loadAdminPages } from "../authentication";
+import { NavSection } from "../../../Components/Navigation/nav-section";
+import { navigate } from "../../router";
+import { Link } from "../../../Pages/_link-creator";
+import { ResourceType } from "../../../Enums/resource-type";
+import { removeClassIfExists } from "../../browser";
 
 export class NavigationComponent implements Component {
     E: FrameworkElement;
@@ -29,7 +31,7 @@ export class NavigationComponent implements Component {
                     e: ['div'],
                     a: [[A.Class, navSectionClass]],
                     c: [
-                        new NavSection(770, '/', 'Front Page')
+                        new NavSection(770, Link.Home(), 'Front Page')
                     ]
                 },
                 {
@@ -39,28 +41,28 @@ export class NavigationComponent implements Component {
                         {
                             e: ['h3', 'Learn more about...']
                         },
-                        new NavSection(630, '/Episodes', 'Episodes'),
-                        new NavSection(70,  '/Items', 'Collected Items', ResourceType.Item),
-                        new NavSection(140, '/Bosses', 'Bossfights', ResourceType.Boss),
-                        new NavSection(455, '/Characters', 'Played Characters', ResourceType.Character),
-                        new NavSection(420, '/ItemSources', 'Item Sources', ResourceType.ItemSource),
+                        new NavSection(630, Link.Episodes(), 'Episodes'),
+                        new NavSection(70, Link.ResourceOverview(ResourceType.Item), 'Collected Items'),
+                        new NavSection(140, Link.ResourceOverview(ResourceType.Boss), 'Bossfights'),
+                        new NavSection(455, Link.ResourceOverview(ResourceType.Character), 'Played Characters'),
+                        new NavSection(420, Link.ResourceOverview(ResourceType.ItemSource), 'Item Sources'),
                         new NavSection(490, '/Quotes', 'Quotes'),
-                        new NavSection(105, '/Floors', 'Floors', ResourceType.Floor),
-                        new NavSection(525, '/Transformations', 'Transformations', ResourceType.Transformation),
-                        new NavSection(385, '/CharacterRerolls', 'Character Rerolls', ResourceType.CharacterReroll),
-                        new NavSection(560, '/Curses', 'Curses', ResourceType.Curse),
-                        new NavSection(175, '/Pills', 'Swallowed Pills', ResourceType.Pill),
-                        new NavSection(245, '/Runes', 'Used Runes', ResourceType.Rune),
-                        new NavSection(210, '/TarotCards', 'Tarot Cards', ResourceType.TarotCard),
-                        new NavSection(280, '/Trinkets', 'Collected Trinkets', ResourceType.Trinket),
-                        new NavSection(315, '/OtherConsumables', 'Other Consumables', ResourceType.OtherConsumable)
+                        new NavSection(105, Link.ResourceOverview(ResourceType.Floor), 'Floors'),
+                        new NavSection(525, Link.ResourceOverview(ResourceType.Transformation), 'Transformations'),
+                        new NavSection(385, Link.ResourceOverview(ResourceType.CharacterReroll), 'Character Rerolls'),
+                        new NavSection(560, Link.ResourceOverview(ResourceType.Curse), 'Curses'),
+                        new NavSection(175, Link.ResourceOverview(ResourceType.Pill), 'Swallowed Pills'),
+                        new NavSection(245, Link.ResourceOverview(ResourceType.Rune), 'Used Runes'),
+                        new NavSection(210, Link.ResourceOverview(ResourceType.TarotCard), 'Tarot Cards'),
+                        new NavSection(280, Link.ResourceOverview(ResourceType.Trinket), 'Collected Trinkets'),
+                        new NavSection(315, Link.ResourceOverview(ResourceType.OtherConsumable), 'Other Consumables')
                     ]
                 },
                 {
                     e: ['div'],
                     a: [[A.Class, navSectionClass]],
                     c: [
-                        new NavSection(805, '/Downloads', 'Downloads')
+                        new NavSection(805, Link.Downloads(), 'Downloads')
                     ]
                 }
             ]
@@ -95,14 +97,20 @@ export class NavigationComponent implements Component {
             });
 
             if (isAdmin(user)) {
-                loadAdminPages();
-                userProfileLinks.push({
-                    e: ['br']
-                }, {
-                    e: ['a', 'Admin-Area'],
-                    a: [[A.Href, '/Admin/Overview']],
-                    v: [[EventType.Click, e => { e.preventDefault(); goToRouteWithUrl('/Admin/Overview'); }]]
-                });
+                loadAdminPages().then(() => {
+                    const link = document.getElementById('admin-link');
+                    removeClassIfExists(link, 'display-none');
+                })
+                userProfileLinks.push(
+                    {
+                        e: ['br']
+                    },
+                    {
+                        e: ['a', 'Admin-Area'],
+                        a: [[A.Href, '/Admin/Overview'], [A.Id, 'admin-link'], [A.Class, 'display-none']],
+                        v: [[EventType.Click, e => { e.preventDefault(); navigate('/Admin/Overview'); }]]
+                    }
+                );
             }
 
             const element: FrameworkElement = {

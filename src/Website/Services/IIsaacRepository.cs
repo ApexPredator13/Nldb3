@@ -46,5 +46,6 @@ namespace Website.Services
         int GetResourceNumber(IsaacResource resource);
         int GetResourceNumber(ResourceType resourceType);
         Task<int> DeleteSubmission(int submissionId);
+        Task<bool> ResourceExists(string resourceId);
     }
 }

@@ -1,12 +1,12 @@
 ﻿import { Component, FrameworkElement } from "../../Framework/renderer";
-import { getPageData, PageData, registerPage } from "../../Framework/router";
+import { PageData, registerPage } from "../../Framework/router";
 import { BackToOverviewLinks } from "../../Components/Admin/back-to-overview-links";
 
-export class ModLinkDeleted implements Component {
+export class ModLinkDeletedPage implements Component {
     E: FrameworkElement;
 
-    constructor() {
-        const linkDisplayName = getPageData<string>();
+    constructor(parameters: Array<string>) {
+        const linkDisplayName = parameters[0];
 
         this.E = {
             e: ['div'],
@@ -21,12 +21,11 @@ export class ModLinkDeleted implements Component {
 
     static RegisterPage() {
         const data: PageData = {
-            AppendTo: 'main-container',
-            Component: ModLinkDeleted,
+            Component: ModLinkDeletedPage,
             Title: 'Link Deleted',
-            Urls: ['/Admin/ModLinkDeleted']
+            Url: ['Admin', 'ModLinkDeleted', '{name}']
         }
-        registerPage('mod-link-deleted', data);
+        registerPage(data);
     }
 }
 

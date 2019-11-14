@@ -1,46 +1,19 @@
 ﻿import { render, Component } from './renderer';
-import { NavigationComponent } from '../Pages/Layout/navigation';
-import { MainComponent } from '../Pages/Layout/main';
+import { NavigationComponent } from './Customizable/Layout/navigation';
+import { MainComponent } from './Customizable/Layout/main';
 import { registerPopupEvent } from './popup';
 
+enum PageType {
+    Episode = 1,
+    IsaacResource
+}
+
 interface PageData {
-    AppendTo: string,
-    Component: new() => Component,
+    AppendTo?: string,
+    Component: new(routeParameters: Array<string>) => Component,
     Title: string | (() => string),
-    Urls: Array<string>,
-    Data?: any
-}
-
-const setPageData = (pageName: string, data: any) => {
-    const pages = getPages();
-    if (pages.has(pageName)) {
-        const page = pages.get(pageName);
-        if (page) {
-            console.log('setting page data for page', pageName, data);
-            page.Data = data;
-        }
-    }
-}
-
-const setUrlData = (url: string, data: any) => {
-    const pages = getPages();
-    const foundName = getRegisteredRouteNameFromRegisteredUrl(url, pages);
-    if (foundName) {
-        if (foundName.exactMatch) {
-            setPageData(foundName.exactMatch, data);
-        } else if (foundName.approximateMatch) {
-            for (const approximateMatch in foundName.approximateMatch) {
-                setPageData(approximateMatch, data);
-            }
-        }
-    }
-}
-
-const appendRouteFragment = (fragment: string) => {
-    if (!fragment.startsWith('/')) {
-        fragment = `/${fragment}`;
-    }
-    history.replaceState(undefined, document.title, `${window.location.href}${fragment}`);
+    Url: Array<string>,
+    specificPageType?: PageType
 }
 
 const routeEndsWith = (fragment: string) => {
@@ -51,37 +24,34 @@ const routeEndsWith = (fragment: string) => {
     }
 }
 
-function getPageData<T>(): T | undefined {
-    const currentRoute = getCurrentRouteUrl();
-    console.log('current route: ', currentRoute);
-    const pages = getPages();
-    for (const page of pages) {
-        const findRouteResult = getRegisteredRouteNameFromRegisteredUrl(page[0], pages);
-        console.log('result for ' + currentRoute, findRouteResult);
-        if (findRouteResult.exactMatch || (findRouteResult.approximateMatch && findRouteResult.approximateMatch.length > 0)) {
-            return page[1].Data;
-        }
+const extractParametersFromRoute = (amount: number): Array<string> => {
+    const route = getCurrentRoute();
+    const routeParts = route.split('/');
+    if (routeParts.length < amount) {
+        return new Array<string>();
     }
-
-    return undefined;
+    const parameters = routeParts.reverse().splice(0, amount);
+    console.log(parameters);
+    return parameters;
 }
 
 const getPages = () => {
     if (!(window as any).pages) {
-        (window as any).pages = new Map<string, PageData>();
+        (window as any).pages = new Array<PageData>();
     }
 
-    const pages = (window as any).pages as Map<string, PageData>;
+    const pages = (window as any).pages as Array<PageData>;
     return pages;
 }
 
-const registerPage = (name: string, data: PageData) => {
+const registerPage = (pageData: PageData) => {
     const pages = getPages();
-    if (!pages.has(name)) {
-        console.info('registering page: ', name);
-        pages.set(name, data);
+    const pageExists = pages.some(page => JSON.stringify(page.Url) === JSON.stringify(pageData.Url))
+    if (!pageExists) {
+        console.info('registering page: ', pageData.Url.join('/'));
+        pages.push(pageData);
     } else {
-        console.info('page already exists: ', name);
+        console.info('page already exists: ', pageData.Url.join('/'));
     }
 }
 
@@ -97,7 +67,6 @@ const initRouter = () => {
 
         // render layout
         const navigation = render(new NavigationComponent());
-
         const main = render(new MainComponent());
 
         if (main && navigation) {
@@ -108,89 +77,144 @@ const initRouter = () => {
         // delay enough so that initial popstate event that some browsers trigger on load will be skipped
         setTimeout(() => {
             window.addEventListener('popstate', () => {
-                const url = getCurrentRouteUrl();
-                goToRouteWithUrl(url, false, true);
+                const currentRoute = getCurrentRoute();
+                const page = getRequestedPageFromRoute(getCurrentRoute());
+                navigate(currentRoute, page.page ? page.page.specificPageType : undefined, false, true);
             });
         }, 100);
 
         // load initial page, only one should exist at the start
-        const pages = getPages();
-        for (const page of pages) {
-            goToRouteWithName(page[0], false, true);
-            break;
-        }
+        const currentRoute = getCurrentRoute();
+        const page = getRequestedPageFromRoute(getCurrentRoute());
+        navigate(currentRoute, page.page ? page.page.specificPageType : undefined, false, true);
     }
     (window as any).routerInit = true;
 };
 
-type findRouteResult = {
-    exactMatch?: string,
-    approximateMatch: Array<string>
+type findPageResult = {
+    page?: PageData,
+    parameters?: Array<string>,
+    found: boolean
 }
 
-const getRegisteredRouteNameFromRegisteredUrl = (route: string, pages: Map<string, PageData>): findRouteResult => {
-    const result: findRouteResult = {
-        exactMatch: undefined,
-        approximateMatch: new Array<string>()
+
+const getRequestedPageFromRoute = (route: string, specificPageType?: PageType): findPageResult => {
+    console.log('finding page for route:', route);
+    if (specificPageType) {
+        console.log('...with specific page type:', specificPageType);
+    }
+    const result: findPageResult = {
+        found: false
     };
 
+    // split route into fragments
+    const pages = getPages();
+    const routeFragments = route.split('/');
+    const parameters = new Array<string>();
+
+    // check every page until one is found
     for (const page of pages) {
-        for (const url of page[1].Urls) {
-            if (url.toLowerCase() === route.toLowerCase()) {
-                result.exactMatch = page[0];
-                return result;
-            } else if (url !== '/' && route.toLowerCase().startsWith(url.toLowerCase())) {
-                result.approximateMatch.push(page[0]);
+
+        // route fragment amount doesn't match? done. check next page
+        if (page.Url.length !== routeFragments.length) {
+            continue;
+        }
+
+        // forced page type doesn't match? done. check next page
+        if (page.specificPageType) {
+            if (!specificPageType || (specificPageType !== page.specificPageType)) {
+                continue;
             }
+        }
+
+        // check if all route fragments of the page are valid
+        let isValid = true;
+        for (let i = 0; i < routeFragments.length; ++i) {
+            const routeFragment = routeFragments[i];
+            const pageRouteFragment = page.Url[i];
+
+            // fragment is route parameter? ok! save it and check next fragment!
+            if (pageRouteFragment.startsWith('{')) {
+                console.log('parameter detected in route!', routeFragment);
+                parameters.push(routeFragment);
+                continue;
+            }
+
+            // fragment is part of Possibility1|Possibility2|Possibility3 ? ok! check next fragment!
+            if (pageRouteFragment.indexOf('|') !== -1) {
+                const validPageUrls = pageRouteFragment.split('|');
+                console.log('valid page urls:', validPageUrls);
+
+                let match = false;
+                for (const validPageUrl of validPageUrls) {
+                    if (routeFragment.toLowerCase() === validPageUrl.toLowerCase()) {
+                        match = true;
+                        break;
+                    }
+                }
+
+                // if we have a match, ok! check next fragment!
+                if (match) {
+                    continue;
+                }
+            }
+
+            // fragment has same name? ok! check next fragment!
+            if (routeFragment.toLowerCase() === pageRouteFragment.toLowerCase()) {
+                continue;
+            }
+
+            // in any other case, this page is invalid
+            isValid = false;
+            break;
+        }
+
+        // if the page is valid, return it
+        if (isValid) {
+            result.page = page;
+            result.parameters = parameters;
+            result.found = true;
+            break;
+        } else {
+            console.warn('page invalid!', page);
         }
     }
 
     return result;
 }
 
-const goToRouteWithName = (routeName: string, push = true, forceRender = false, scrollToTop = true, urlIndex = 0) => {
-    const pages = getPages();
-    for (const page of pages) {
-        if (page[0] === routeName) {
-            goToRouteWithUrl(page[1].Urls[urlIndex], push, forceRender, scrollToTop);
-            return;
-        }
+
+const navigate = (requestedRoute: string, specificPageType: PageType | undefined = undefined, push = true, forceRender = false, scrollToTop = true) => {
+    if (requestedRoute.startsWith('/')) {
+        requestedRoute = requestedRoute.substring(1);
     }
-}
 
+    const { found, page, parameters } = getRequestedPageFromRoute(requestedRoute, specificPageType);
+    console.log('PAGE DETAILS');
+    console.log('found', found);
+    console.log('page', page);
+    console.log('parameters', parameters);
 
-const goToRouteWithUrl = (route: string, push = true, forceRender = false, scrollToTop = true) => {
-    const pages = getPages();
+    const currentRoute = getCurrentRoute();
 
-    // don't re-render the same url, except it's forced
-    const currentRoute = getCurrentRouteUrl();
-    if (currentRoute === route && !forceRender) {
+    if (!found || !page || !parameters) {
         return;
     }
 
-    const foundRoutes = getRegisteredRouteNameFromRegisteredUrl(route, pages);
-    if (!foundRoutes.exactMatch && foundRoutes.approximateMatch.length === 0) {
-        console.warn('route ' + route + ' was not found');
+    // don't re-render the same url, except it's forced
+    if (currentRoute === requestedRoute && !forceRender) {
         return;
     }
 
     // render new page
-    const pageName = foundRoutes.exactMatch ? foundRoutes.exactMatch : foundRoutes.approximateMatch[0];
-    const page = pages.get(pageName);
-
-    if (!page) {
-        console.warn('page was found by getRegisteredRouteNameFromRegisteredUrl, but not in the registered pages map!');
-        return;
-    }
-
-    const parent = document.getElementById(page.AppendTo);
+    const parent = document.getElementById(page.AppendTo ? page.AppendTo : 'main-container');
     if (parent) {
 
         if (push) {
-            history.pushState(undefined, '', route);
+            history.pushState(undefined, '', requestedRoute);
         }
 
-        const component = new page.Component();
+        const component = new page.Component(parameters);
         const renderedPage = render(component);
 
         if (renderedPage) {
@@ -205,7 +229,7 @@ const goToRouteWithUrl = (route: string, push = true, forceRender = false, scrol
 };
 
 // TODO: base url in production mode
-const getCurrentRouteUrl = () => {
+const getCurrentRoute = () => {
     const url = window.location.href;
     const baseUrlLength = 'https://localhost:5005'.length;
     if (url.length <= baseUrlLength) {
@@ -218,18 +242,15 @@ const getCurrentRouteUrl = () => {
 
 export {
     PageData,
-    goToRouteWithUrl,
-    goToRouteWithName,
+    PageType,
+    navigate,
     initRouter,
     registerPage,
-    setPageData,
-    getPageData,
     setTitle,
-    appendRouteFragment,
     routeEndsWith,
-    getRegisteredRouteNameFromRegisteredUrl,
     getPages,
-    setUrlData
+    getCurrentRoute,
+    extractParametersFromRoute
 }
 
 

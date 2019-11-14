@@ -1,5 +1,6 @@
 ﻿import { Component, FrameworkElement, A, EventType } from "../../Framework/renderer";
-import { goToRouteWithUrl } from "../../Framework/router";
+import { navigate } from "../../Framework/router";
+import { AdminLink } from "../../Pages/Admin/_admin-link-creator";
 
 export class BackToOverviewLinks implements Component {
     E: FrameworkElement;
@@ -7,7 +8,7 @@ export class BackToOverviewLinks implements Component {
     constructor() {
         const backToOverviewClick = (e: Event) => {
             e.preventDefault();
-            goToRouteWithUrl('/Admin/Overview');
+            navigate(AdminLink.AdminOverview());
         };
 
         this.E = {
@@ -18,7 +19,7 @@ export class BackToOverviewLinks implements Component {
                     c: [
                         {
                             e: ['a', '← Back to Overview'],
-                            a: [[A.Href, '/Admin/Overview']],
+                            a: [[A.Href, AdminLink.AdminOverview()]],
                             v: [[EventType.Click, backToOverviewClick]]
                         }
                     ]
@@ -27,3 +28,4 @@ export class BackToOverviewLinks implements Component {
         }
     }
 }
+

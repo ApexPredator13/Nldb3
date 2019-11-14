@@ -1,5 +1,5 @@
 ﻿import { User, UserManager, UserManagerSettings } from 'oidc-client';
-import { removeHashAndQuerystring, getHashFromUrl } from './browser';
+import { removeHashAndQuerystring, getHashFromUrl } from '../browser';
 
 const getUserManager = (): UserManager => {
     if ((window as any).userManager) {
@@ -81,10 +81,13 @@ const isAdmin = (user: User) => {
     return false;
 }
 
-const loadAdminPages = () => {
-    const script = document.createElement('script');
-    script.src = '/js/dist/all_admin_pages.min.js';
-    document.head.appendChild(script);
+const loadAdminPages = (): Promise<unknown> => {
+    return new Promise(resolve => {
+        const script = document.createElement('script');
+        script.src = '/js/dist/all_admin_pages.min.js';
+        document.head.appendChild(script);
+        script.onload = () => resolve();
+    });
 }
 
 export {

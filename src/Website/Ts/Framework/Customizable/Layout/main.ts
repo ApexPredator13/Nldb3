@@ -1,4 +1,4 @@
-﻿import { Component, FrameworkElement, A } from "../../Framework/renderer";
+﻿import { Component, FrameworkElement, A } from "../../renderer";
 
 export class MainComponent implements Component {
     E: FrameworkElement;
