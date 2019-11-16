@@ -7,6 +7,8 @@ import { ModDeleted } from "./mod-deleted";
 import { ResourcesPage } from "./resources";
 import { ModPage } from "./mod";
 import { ModLinkDeletedPage } from "./mod-link-deleted";
+import { CreateModLinkPage } from "./create-mod-link";
+import { EditResource } from "./edit-resource";
 
 (() => {
     AdminOverviewPage.RegisterPage();
@@ -18,5 +20,7 @@ import { ModLinkDeletedPage } from "./mod-link-deleted";
     ResourcesPage.RegisterPage();
     ModPage.RegisterPage();
     ModLinkDeletedPage.RegisterPage();
+    CreateModLinkPage.RegisterPage();
+    EditResource.RegisterPage();
 })();
 

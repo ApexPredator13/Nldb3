@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 
-namespace Website.Areas.Admin.ViewModels
+namespace Website.Models.Admin
 {
     public class ChangeIcon
     {

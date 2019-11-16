@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Website.Areas.Admin.ViewModels
+namespace Website.Models.Admin
 {
     public class CreateModLink
     {

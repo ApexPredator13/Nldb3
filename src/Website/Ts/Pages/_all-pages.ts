@@ -3,6 +3,7 @@ import { DownloadsPage } from "./downloads";
 import { EpisodesPage } from "./episodes";
 import { ResourceOverviewPage } from "./resource-overview";
 import { EpisodePage } from "./episode";
+import { Redirect } from "./redirect";
 
 (() => {
     document.addEventListener('DOMContentLoaded', () => {
@@ -11,5 +12,6 @@ import { EpisodePage } from "./episode";
         EpisodesPage.RegisterPage();
         ResourceOverviewPage.RegisterPage();
         EpisodePage.RegisterPage();
+        Redirect.RegisterPage();
     });
 })();

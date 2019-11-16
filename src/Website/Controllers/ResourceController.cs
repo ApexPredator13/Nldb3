@@ -51,6 +51,12 @@ namespace Website.Controllers
             return await _isaacRepository.GetResources(searchOptions);
         }
 
+        [HttpGet("{id}")]
+        public async Task<IsaacResource?> GetResource(string id, bool includeMod = false)
+        {
+            return await _isaacRepository.GetResourceById(id, includeMod);
+        }
+
         //[HttpGet]
         //public async Task<ActionResult> Index([FromRoute] string id, IsaacSearchOptions searchOptions)
         //{
@@ -70,34 +76,34 @@ namespace Website.Controllers
         //    }
         //}
 
-        [HttpGet]
-        public async Task<ViewResult> Overview([FromRoute] string id)
-        {
-            var getResourcesOptions = new GetResource()
-            {
-                IncludeMod = true,
-                OrderBy1 = ResourceOrderBy.Name,
-                ResourceType = OverviewPageNames[id.ToLower()]
-            };
+        //[HttpGet("Overview")]
+        //public async Task<ViewResult> Overview([FromRoute] string id)
+        //{
+        //    var getResourcesOptions = new GetResource()
+        //    {
+        //        IncludeMod = true,
+        //        OrderBy1 = ResourceOrderBy.Name,
+        //        ResourceType = OverviewPageNames[id.ToLower()]
+        //    };
 
-            var resources = await _isaacRepository.GetResources(getResourcesOptions);
+        //    var resources = await _isaacRepository.GetResources(getResourcesOptions);
 
-            var sortedResources = new Dictionary<string, List<IsaacResource>>();
+        //    var sortedResources = new Dictionary<string, List<IsaacResource>>();
 
-            foreach (var resource in resources)
-            {
-                var firstChar = resource.Name[0];
-                var key = char.IsLetter(firstChar) ? firstChar.ToString() : "Other";
+        //    foreach (var resource in resources)
+        //    {
+        //        var firstChar = resource.Name[0];
+        //        var key = char.IsLetter(firstChar) ? firstChar.ToString() : "Other";
 
-                if (!sortedResources.ContainsKey(key))
-                {
-                    sortedResources.Add(key, new List<IsaacResource>());
-                }
-                sortedResources[key].Add(resource);
-            }
+        //        if (!sortedResources.ContainsKey(key))
+        //        {
+        //            sortedResources.Add(key, new List<IsaacResource>());
+        //        }
+        //        sortedResources[key].Add(resource);
+        //    }
 
-            return View(getResourcesOptions.ResourceType);
-        }
+        //    return View(getResourcesOptions.ResourceType);
+        //}
     }
 }
 

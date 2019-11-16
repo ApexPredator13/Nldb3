@@ -5,6 +5,7 @@ import { Mod } from "../../Models/mod";
 import { ModUrl } from "../../Models/mod-url";
 import { DeleteModLinkButton } from "../../Components/Admin/delete-mod-link-button";
 import { AdminLink } from "./_admin-link-creator";
+import { BackToOverviewLinks } from "../../Components/Admin/back-to-overview-links";
 
 export class ModPage implements Component {
     E: FrameworkElement;
@@ -20,8 +21,15 @@ export class ModPage implements Component {
         }
 
         this.E = {
-            e: ['div', 'loading mod...'],
-            a: [[A.Id, 'mod-container']]
+            e: ['div'],
+            c: [
+                {
+                    e: ['div', 'loading mod...'],
+                    a: [[A.Id, 'mod-container']]
+                },
+                new BackToOverviewLinks()
+            ]
+            
         }
 
         this.A = this.LoadMod();
@@ -37,7 +45,7 @@ export class ModPage implements Component {
                 const clickAddLinkEvent = (e: Event) => {
                     e.preventDefault();
                     if (typeof (this.modId) === 'number') {
-                        navigate(AdminLink.CreateLink(this.modId));
+                        navigate(AdminLink.CreateModLink(this.modId));
                     }
                 };
 
@@ -51,11 +59,54 @@ export class ModPage implements Component {
                             e: ['hr']
                         },
                         {
+                            e: ['table'],
+                            c: [
+                                {
+                                    e: ['thead'],
+                                    c: [
+                                        {
+                                            e: ['tr'],
+                                            c: [
+                                                {
+                                                    e: ['th', 'Id']
+                                                },
+                                                {
+                                                    e: ['th', 'Name']
+                                                },
+                                                {
+                                                    e: ['th', '# Links']
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    e: ['tbody'],
+                                    c: [
+                                        {
+                                            e: ['tr'],
+                                            c: [
+                                                {
+                                                    e: ['td', mod.id ? mod.id.toString(10) : 'unknown id']
+                                                },
+                                                {
+                                                    e: ['td', mod.name]
+                                                },
+                                                {
+                                                    e: ['td', mod.links ? mod.links.length.toString(10) : '0']
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
                             e: ['p'],
                             c: [
                                 {
-                                    e: ['a'],
-                                    a: [this.modId ? [A.Href, AdminLink.CreateLink(this.modId)] : null],
+                                    e: ['a', 'Add a link'],
+                                    a: [this.modId ? [A.Href, AdminLink.CreateModLink(this.modId)] : null],
                                     v: [[EventType.Click, clickAddLinkEvent]]
                                 }
                             ]

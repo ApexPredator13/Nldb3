@@ -26,7 +26,7 @@ export class DeleteModLinkButton extends ComponentWithForm implements Component 
             c: [
                 {
                     e: ['form'],
-                    v: [[EventType.Submit, e => super.HandleSubmit(e, '/Admin/delete_mod_link', true, AdminLink.ModLinkDeleted(link.link_text))]],
+                    v: [[EventType.Submit, e => super.HandleSubmit(e, '/Admin/delete_mod_link', true, AdminLink.ModLinkDeleted(link.id, link.link_text))]],
                     c: [
                         {
                             e: ['input'],

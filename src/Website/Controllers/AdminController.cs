@@ -13,11 +13,15 @@ namespace Website.Controllers
     {
         private readonly IVideoRepository _videoRepository;
         private readonly IModRepository _modRepository;
+        private readonly IIsaacRepository _isaacRepository;
+        private readonly IIsaacIconManager _iconManager;
 
-        public AdminController(IVideoRepository videoRepository, IModRepository modRepository)
+        public AdminController(IVideoRepository videoRepository, IModRepository modRepository, IIsaacRepository isaacRepository, IIsaacIconManager iconManager)
         {
             _videoRepository = videoRepository;
             _modRepository = modRepository;
+            _isaacRepository = isaacRepository;
+            _iconManager = iconManager;
         }
 
         [HttpPost("save_or_update_videos")]
@@ -60,7 +64,7 @@ namespace Website.Controllers
         [HttpPost("create_mod")]
         public async Task<OkResult> CreateMod([FromForm] CreateMod model)
         {
-            var modId = await _modRepository.SaveMod(model);
+            await _modRepository.SaveMod(model);
             return Ok();
         }
 
@@ -76,6 +80,113 @@ namespace Website.Controllers
             else
             {
                 return BadRequest("Mod Link could not be deleted");
+            }
+        }
+
+        [HttpPost("create_mod_link")]
+        public async Task<ActionResult> CreateLink([FromForm] CreateModLink model)
+        {
+            var result = await _modRepository.AddModUrl(model);
+            if (result > 0)
+            {
+                return Ok();
+            }
+            else
+            {
+                return BadRequest("Link could not be created");
+            }
+        }
+
+        [HttpPost("delete_isaac_resource")]
+        public async Task<ActionResult> DeleteIsaacResource([FromForm] string resourceId)
+        {
+            var result = await _isaacRepository.DeleteResource(resourceId);
+            if (result > 0)
+            {
+                return Ok();
+            }
+            else
+            {
+                return BadRequest("resource was not deleted");
+            }
+        }
+
+        [HttpPost("change_resource_name")]
+        public async Task<ActionResult> ChangeResourceName([FromForm] ChangeName model)
+        {
+            var result = await _isaacRepository.UpdateName(model.ResourceId, model.NewName);
+            
+            if (result > 0)
+            {
+                return Ok();
+            }
+            else
+            {
+                return BadRequest();
+            }
+        }
+
+        [HttpPost("change_icon")]
+        public async Task<ActionResult> ChangeResourceIcon([FromForm] ChangeIcon model)
+        {
+            var resource = await _isaacRepository.GetResourceById(model.ResourceId, false);
+
+            if (resource is null)
+            {
+                return NotFound();
+            }
+
+            _iconManager.ClearRectangle(resource.X, resource.Y, resource.W, resource.H);
+            var (w, h) = await _iconManager.GetPostedImageSize(model.NewIcon!);
+            var (x, y) = await _iconManager.FindEmptySquare(w, h);
+            var (iconWidth, iconHeight) = _iconManager.EmbedIcon(model.NewIcon!, x, y);
+
+            await _isaacRepository.UpdateIconCoordinates(model.ResourceId, x, y, iconWidth, iconHeight);
+            return Ok();
+        }
+
+        [HttpPost("change_exists_in")]
+        public async Task<ActionResult> ChangeExistsIn([FromForm] ChangeExistsIn model)
+        {
+            var result = await _isaacRepository.UpdateExistsIn(model.ResourceId, model.NewExistsIn);
+
+            if (result > 0)
+            {
+                return Ok();
+            }
+            else
+            {
+                return BadRequest("value could not be changed");
+            }
+        }
+
+        [HttpPost("change_mod")]
+        public async Task<ActionResult> ChangeMod([FromForm] ChangeMod model)
+        {
+            var dbChanges = await _isaacRepository.UpdateMod(model);
+
+            if (dbChanges > 0)
+            {
+                return Ok();
+            }
+            else
+            {
+                return BadRequest("Mod could not be changed");
+            }
+        }
+
+        [HttpPost("change_color")]
+        public async Task<ActionResult> ChangeColor([FromForm] ChangeColor model)
+        {
+            var result = await _isaacRepository.UpdateColor(model);
+
+            if (result > 0)
+            {
+                return Ok();
+            }
+            else
+            {
+                return BadRequest("Color could not be changed.");
             }
         }
     }

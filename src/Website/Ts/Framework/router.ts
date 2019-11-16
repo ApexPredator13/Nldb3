@@ -13,7 +13,8 @@ interface PageData {
     Component: new(routeParameters: Array<string>) => Component,
     Title: string | (() => string),
     Url: Array<string>,
-    specificPageType?: PageType
+    specificPageType?: PageType,
+    afterRender?: () => any
 }
 
 const routeEndsWith = (fragment: string) => {
@@ -21,6 +22,20 @@ const routeEndsWith = (fragment: string) => {
         return true;
     } else {
         return false;
+    }
+}
+
+const addAfterRenderActionToPage = (route: string, fun: () => any, requestedPageType?: PageType) => {
+    if (route.startsWith('/')) {
+        route = route.substring(1);
+    }
+    console.log('after render action requested for route: ', route);
+    const page = getRequestedPageFromRoute(route, requestedPageType);
+    console.log('found page: ', page);
+    if (page && page.page) {
+        console.log('setting after render action: ', fun);
+        console.log('to page', page.page);
+        page.page.afterRender = fun;
     }
 }
 
@@ -79,14 +94,14 @@ const initRouter = () => {
             window.addEventListener('popstate', () => {
                 const currentRoute = getCurrentRoute();
                 const page = getRequestedPageFromRoute(getCurrentRoute());
-                navigate(currentRoute, page.page ? page.page.specificPageType : undefined, false, true);
+                navigate(currentRoute, undefined, page.page ? page.page.specificPageType : undefined, false, true);
             });
         }, 100);
 
         // load initial page, only one should exist at the start
         const currentRoute = getCurrentRoute();
         const page = getRequestedPageFromRoute(getCurrentRoute());
-        navigate(currentRoute, page.page ? page.page.specificPageType : undefined, false, true);
+        navigate(currentRoute, undefined, page.page ? page.page.specificPageType : undefined, false, true);
     }
     (window as any).routerInit = true;
 };
@@ -99,14 +114,10 @@ type findPageResult = {
 
 
 const getRequestedPageFromRoute = (route: string, specificPageType?: PageType): findPageResult => {
-    console.log('finding page for route:', route);
-    if (specificPageType) {
-        console.log('...with specific page type:', specificPageType);
-    }
     const result: findPageResult = {
         found: false
     };
-
+    
     // split route into fragments
     const pages = getPages();
     const routeFragments = route.split('/');
@@ -135,7 +146,6 @@ const getRequestedPageFromRoute = (route: string, specificPageType?: PageType): 
 
             // fragment is route parameter? ok! save it and check next fragment!
             if (pageRouteFragment.startsWith('{')) {
-                console.log('parameter detected in route!', routeFragment);
                 parameters.push(routeFragment);
                 continue;
             }
@@ -143,7 +153,6 @@ const getRequestedPageFromRoute = (route: string, specificPageType?: PageType): 
             // fragment is part of Possibility1|Possibility2|Possibility3 ? ok! check next fragment!
             if (pageRouteFragment.indexOf('|') !== -1) {
                 const validPageUrls = pageRouteFragment.split('|');
-                console.log('valid page urls:', validPageUrls);
 
                 let match = false;
                 for (const validPageUrl of validPageUrls) {
@@ -174,9 +183,8 @@ const getRequestedPageFromRoute = (route: string, specificPageType?: PageType): 
             result.page = page;
             result.parameters = parameters;
             result.found = true;
+            console.info('page found!', result);
             break;
-        } else {
-            console.warn('page invalid!', page);
         }
     }
 
@@ -184,16 +192,16 @@ const getRequestedPageFromRoute = (route: string, specificPageType?: PageType): 
 }
 
 
-const navigate = (requestedRoute: string, specificPageType: PageType | undefined = undefined, push = true, forceRender = false, scrollToTop = true) => {
+const navigate = (requestedRoute: string, preventDefault: Event | undefined = undefined, specificPageType: PageType | undefined = undefined, push = true, forceRender = false, scrollToTop = true) => {
+    if (preventDefault) {
+        preventDefault.preventDefault();
+    }
+
     if (requestedRoute.startsWith('/')) {
         requestedRoute = requestedRoute.substring(1);
     }
 
     const { found, page, parameters } = getRequestedPageFromRoute(requestedRoute, specificPageType);
-    console.log('PAGE DETAILS');
-    console.log('found', found);
-    console.log('page', page);
-    console.log('parameters', parameters);
 
     const currentRoute = getCurrentRoute();
 
@@ -211,6 +219,9 @@ const navigate = (requestedRoute: string, specificPageType: PageType | undefined
     if (parent) {
 
         if (push) {
+            if (!requestedRoute.startsWith('/')) {
+                requestedRoute = '/' + requestedRoute;
+            }
             history.pushState(undefined, '', requestedRoute);
         }
 
@@ -224,6 +235,12 @@ const navigate = (requestedRoute: string, specificPageType: PageType | undefined
             if (scrollToTop) {
                 window.scrollTo(0, 0);
             }
+            setTimeout(() => {
+                if (page.afterRender) {
+                    page.afterRender();
+                }
+            }, 100);
+            console.warn('page has after-render-function!', page.afterRender);
         }
     }
 };
@@ -250,7 +267,8 @@ export {
     routeEndsWith,
     getPages,
     getCurrentRoute,
-    extractParametersFromRoute
+    extractParametersFromRoute,
+    addAfterRenderActionToPage
 }
 
 

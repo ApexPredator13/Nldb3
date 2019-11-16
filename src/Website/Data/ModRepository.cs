@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Website.Areas.Admin.ViewModels;
 using Website.Models.Admin;
 using Website.Models.Database;
 using Website.Models.Database.Enums;
@@ -253,7 +252,7 @@ namespace Website.Data
             return usedMods;
         }
 
-        public async Task<int> AddModUrl(CreateModLink modUrl)
+        public async Task<int> AddModUrl(Models.Admin.CreateModLink modUrl)
         {
             using var c = await _connector.Connect();
             using var q = new NpgsqlCommand("INSERT INTO mod_url (id, url, name, mod) VALUES (DEFAULT, @U, @N, @M) RETURNING id; ", c);

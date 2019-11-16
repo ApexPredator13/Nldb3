@@ -308,7 +308,7 @@ export class VideosComponent implements Component {
                     e.preventDefault();
                     console.log('clicked title.', video);
                     if (video.submission_count > 0) {
-                        navigate(Link.Episode(video.id), PageType.Episode);
+                        navigate(Link.Episode(video.id), undefined, PageType.Episode);
                     }
                 }
 

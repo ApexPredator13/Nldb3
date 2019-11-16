@@ -23,8 +23,8 @@ export class AdminLink {
         return `/Admin/ModDeleted/${modName}`;
     }
 
-    static ModLinkDeleted(modLinkName: string) {
-        return `/Admin/ModLinkDeleted/${modLinkName}`;
+    static ModLinkDeleted(modId: number, modLinkName: string) {
+        return `/Admin/ModLinkDeleted/${modId.toString(10)}/${modLinkName}`;
     }
 
     static Mods() {
@@ -39,7 +39,24 @@ export class AdminLink {
         return `/Admin/VideosSaved/${videoIds}`;
     }
 
-    static CreateLink(modId: number) {
+    static CreateModLink(modId: number) {
         return `/Admin/CreateLink/${modId}`;
     }
+
+    static CreateNewResource() {
+        return '/Admin/CreateResource';
+    }
+
+    static ResourceDetails(id: string) {
+        return `/Admin/Resource/${id}`;
+    }
+
+    static ResourceDeleted(resourceId: string) {
+        return `/Admin/ResourceDeleted/${resourceId}`;
+    }
+
+    static EditResource(resourceId: string) {
+        return `/Admin/EditResource/${resourceId}`;
+    }
 }
+

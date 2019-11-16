@@ -32,17 +32,17 @@ namespace Website.Areas.Api.Controllers
             return history;
         }
 
-        [HttpGet("{id}")]
-        public async Task<IsaacResource?> Index(string id, bool includeMod = false)
-        {
-            return await _isaacRepository.GetResourceById(id, includeMod);
-        }
+        //[HttpGet("{id}")]
+        //public async Task<IsaacResource?> Index(string id, bool includeMod = false)
+        //{
+        //    return await _isaacRepository.GetResourceById(id, includeMod);
+        //}
 
-        [HttpGet]
-        public async Task<List<IsaacResource>> Index([FromQuery] GetResource resource)
-        {
-            return await _isaacRepository.GetResources(resource);
-        }
+        //[HttpGet]
+        //public async Task<List<IsaacResource>> Index([FromQuery] GetResource resource)
+        //{
+        //    return await _isaacRepository.GetResources(resource);
+        //}
 
         [HttpGet("effect")]
         public List<int> GetEffectNumber([FromQuery] params string[] name)

@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Website.Areas.Admin.ViewModels;
 using Website.Models.Database;
 using Website.Models.Database.Enums;
 using Website.Areas.Api.Models;
 using Website.Models.SubmitEpisode;
+using Website.Models.Admin;
 
 namespace Website.Services
 {

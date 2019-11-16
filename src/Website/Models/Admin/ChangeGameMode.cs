@@ -1,14 +1,14 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Website.Models.Database.Enums;
 
-namespace Website.Areas.Admin.ViewModels
+namespace Website.Models.Admin
 {
-    public class ChangeExistsIn
+    public class ChangeGameMode
     {
         [Required]
         public string ResourceId { get; set; } = string.Empty;
 
         [Required]
-        public ExistsIn NewExistsIn { get; set; } = ExistsIn.Unspecified;
+        public GameMode NewGameMode { get; set; } = GameMode.Unspecified;
     }
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Website.Models.Database.Enums;
 
-namespace Website.Areas.Admin.ViewModels
+namespace Website.Models.Admin
 {
     public class CreateIsaacResource
     {

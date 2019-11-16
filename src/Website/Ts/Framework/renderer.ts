@@ -57,7 +57,7 @@ class ComponentWithPopup {
 class ComponentWithForm {
     private form: HTMLFormElement | undefined;
 
-    HandleSubmit(e: Event, postUrl: string, authorized: boolean, successUrl: string) {
+    HandleSubmit(e: Event, postUrl: string, authorized: boolean, successUrl: string, pushState = true, scrollToTop = true) {
         e.preventDefault();
 
         const formIsValid = this.ValidateForm(e);
@@ -73,7 +73,8 @@ class ComponentWithForm {
             if (formData) {
                 postResponse(postUrl, formData, authorized)
                     .then(() => {
-                        navigate(successUrl);
+                        console.log('navigating after success: ', successUrl);
+                        navigate(successUrl, undefined, undefined, pushState, false, scrollToTop);
                     })
                     .catch((e: Response) => {
                         // todo: show error in fullscreen modal
@@ -273,7 +274,8 @@ enum A {
     MinLengthErrorMessage,
     MaxLength,
     MaxLengthErrorMessage,
-    Enctype
+    Enctype,
+    Checked
 }
 
 enum EventType {
@@ -338,6 +340,8 @@ const htmlAttributeNameOf = (attribute: A) => {
             return 'maxlength';
         case A.MaxLengthErrorMessage:
             return 'maxlength-error';
+        case A.Checked:
+            return 'checked';
         default:
             return '';
     }

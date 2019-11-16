@@ -1,4 +1,4 @@
-﻿import { Component, FrameworkElement, A, ComponentWithForm, EventType } from "../../Framework/renderer";
+﻿import { FrameworkElement, A, ComponentWithForm, EventType, Component } from "../../Framework/renderer";
 import { PageData, registerPage } from "../../Framework/router";
 import { BackToOverviewLinks } from "../../Components/Admin/back-to-overview-links";
 import { AdminLink } from "./_admin-link-creator";

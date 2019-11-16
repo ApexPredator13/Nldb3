@@ -1,6 +1,7 @@
 ﻿import { Component, FrameworkElement, A, EventType } from "../../Framework/renderer";
 import { PageData, registerPage, navigate } from "../../Framework/router";
 import { AdminLink } from "./_admin-link-creator";
+import { BackToOverviewLinks } from "../../Components/Admin/back-to-overview-links";
 
 export class ModDeleted implements Component {
     E: FrameworkElement;
@@ -24,7 +25,8 @@ export class ModDeleted implements Component {
                             e: ['a', 'Back to Mods'],
                             a: [[A.Href, AdminLink.Mods()]],
                             v: [[EventType.Click, backToMods]]
-                        }
+                        },
+                        new BackToOverviewLinks()
                     ]
                 }
             ]
@@ -33,7 +35,7 @@ export class ModDeleted implements Component {
 
     static RegisterPage() {
         const data: PageData = {
-            Url: ['Admin', 'ModDeleted'],
+            Url: ['Admin', 'ModDeleted', '{modName}'],
             Component: ModDeleted,
             Title: 'Mod Deleted'
         };

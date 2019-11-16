@@ -63,4 +63,9 @@ export class Link {
 
         return `/${resourceType}`;
     }
+
+    static Redirect(destination: string) {
+        return `/Redirect/${encodeURIComponent(destination)}`
+    }
 }
+

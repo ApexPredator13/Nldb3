@@ -2,18 +2,22 @@
 import { PageData, registerPage, navigate } from "../../Framework/router";
 import { AdminLink } from "./_admin-link-creator";
 import { ResourceType } from "../../Enums/resource-type";
+import { getFromLocalStorage, saveToLocalStorage } from "../../Framework/browser";
 
 export class AdminOverviewPage implements Component {
     E: FrameworkElement
 
     constructor() {
+        const lastSelectedResourceType = getFromLocalStorage<ResourceType>('last_selected_resource_type');
+
         const clickModsLink = (e: Event) => {
             e.preventDefault();
             navigate(AdminLink.Mods());
         }
         const clickIsaacContentLink = (e: Event) => {
             e.preventDefault();
-            navigate(AdminLink.ResourceOverview(ResourceType.Item));
+            saveToLocalStorage('resource-position', { position: 0 });
+            navigate(AdminLink.ResourceOverview(typeof (lastSelectedResourceType) === 'number' ? lastSelectedResourceType : ResourceType.Item));
         }
         const clickAddVideoLink = (e: Event) => {
             e.preventDefault();
@@ -44,7 +48,7 @@ export class AdminOverviewPage implements Component {
                     c: [
                         {
                             e: ['a', 'Manage Isaac Content'],
-                            a: [[A.Href, AdminLink.ResourceOverview(ResourceType.Item)]],
+                            a: [[A.Href, AdminLink.ResourceOverview(typeof(lastSelectedResourceType) === 'number' ? lastSelectedResourceType : ResourceType.Item)]],
                             v: [[EventType.Click, clickIsaacContentLink]]
                         }
                     ]

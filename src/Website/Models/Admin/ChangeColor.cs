@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Website.Models.Database;
 
-namespace Website.Areas.Admin.ViewModels
+namespace Website.Models.Admin
 {
     public class ChangeColor
     {

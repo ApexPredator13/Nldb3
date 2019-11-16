@@ -78,6 +78,24 @@ function searchParentsForTag<T extends HTMLElement>(eventOrElement: HTMLElement 
     return undefined;
 }
 
+function getFromLocalStorage<T>(key: string): T | null {
+    const result = localStorage.getItem(key);
+
+    if (!result) {
+        return null;
+    }
+
+    return JSON.parse(result) as T;
+}
+
+const saveToLocalStorage = (key: string, value: any) => {
+    if (value) {
+        const stringified = JSON.stringify(value);
+        console.log('saving to local storage:', key, stringified);
+        localStorage.setItem(key, JSON.stringify(value));
+    }
+}
+
 export {
     removeHashAndQuerystring,
     getHashFromUrl,
@@ -88,6 +106,8 @@ export {
     getFormValue,
     searchParentsForTag,
     hide,
-    show
+    show,
+    getFromLocalStorage,
+    saveToLocalStorage
 }
 

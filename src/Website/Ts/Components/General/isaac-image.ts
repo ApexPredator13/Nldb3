@@ -1,13 +1,23 @@
 ﻿import { FrameworkElement, A, ComponentWithPopup, Component } from "../../Framework/renderer";
 import { GameplayEvent } from "../../Models/gameplay-event";
+import { IsaacResource } from "../../Models/isaac-resource";
 
 class IsaacImage extends ComponentWithPopup implements Component {
     E: FrameworkElement;
 
-    constructor(gameplayEvent: GameplayEvent, resourceToUse: 1 | 2, popupComponent?: Component, upscale: boolean = true) {
+    constructor(gameplayEvent: GameplayEvent | IsaacResource, resourceToUse?: 1 | 2, popupComponent?: Component, upscale: boolean = true) {
         super();
 
-        const resource = resourceToUse === 1 ? gameplayEvent.r1 : gameplayEvent.r2;
+        const isGameplayEvent = (gameplayEvent as GameplayEvent).r1 ? true : false;
+
+        let resource: IsaacResource | null;
+
+        if (isGameplayEvent) {
+            resource = resourceToUse === 1 ? (gameplayEvent as GameplayEvent).r1 : (gameplayEvent as GameplayEvent).r2;
+        } else {
+            resource = gameplayEvent as IsaacResource;
+        }
+
         if (!resource) {
             this.E = {
                 e: ['div']
