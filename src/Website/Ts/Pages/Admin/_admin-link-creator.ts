@@ -51,12 +51,20 @@ export class AdminLink {
         return `/Admin/Resource/${id}`;
     }
 
-    static ResourceDeleted(resourceId: string) {
-        return `/Admin/ResourceDeleted/${resourceId}`;
+    static ResourceDeleted(resourceType: ResourceType, resourceId: string) {
+        return `/Admin/ResourceDeleted/${resourceType.toString(10)}/${resourceId}`;
     }
 
     static EditResource(resourceId: string) {
         return `/Admin/EditResource/${resourceId}`;
+    }
+
+    static RedirectNextResource(resourceType: ResourceType, resourceId: string) {
+        return `/Admin/RedirectNextResource/${resourceType.toString(10)}/${resourceId}`;
+    }
+
+    static DeleteResource(resourceType: ResourceType, resourceId: string) {
+        return `/Admin/DeleteResource/${resourceType.toString(10)}/${resourceId}`;
     }
 }
 

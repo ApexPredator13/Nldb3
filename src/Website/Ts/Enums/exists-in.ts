@@ -28,5 +28,10 @@
     BoosterPack5Onwards,
     RepentanceOnwards,
     Unspecified,
-    AntibirthAndRepentanceOnwards
+    AntibirthAndRepentanceOnwards,
+    CommunityRemixAndAntibirth,
+    CommunityRemixAndAntibirthAndRepentanceOnwards,
+    CommunityRemixAndAntibirthAndAfterbirthOnwards,
+    VanillaAndWrathOfTheLambExclusive,
+    CommunityRemixAndRebirthOnwards
 }

@@ -1,8 +1,7 @@
-﻿import { setZIndex, getFormValue, addClassIfNotExists, searchParentsForTag } from "./browser";
+﻿import { setZIndex, getFormValue, addClassIfNotExists, searchParentsForTag, removeClassIfExists } from "./browser";
 import { popupEventData } from "./popup";
 import { navigate } from "./router";
 import { postResponse } from "./http";
-import { removeClassIfExists } from "../../wwwroot/js/src/lib/dom-operations";
 import { ValidationPopup } from "../Components/General/validation-popup";
 
 type renderFunction = (element: FrameworkElement | Component) => HTMLElement | null;
@@ -27,6 +26,52 @@ interface Component {
 
     /** Async Elements */
     A?: Array<AsyncComponentPart>
+}
+
+const addDisplayNoneOnClick = (e: Event) => {
+    const target = e.target;
+    if (target && target instanceof HTMLDivElement && target.id === 'modal') {
+        addClassIfNotExists(target, 'display-none');
+        removeClassIfExists(target, 'display-nomral');
+        target.innerHTML = '';
+    }
+}
+
+class ComponentWithModal {
+
+    ShowModal(component: Component, closeModalOnClickAnywhere: boolean = true) {
+        // modal might still be open
+        this.DismissModal();
+
+        const modal = document.getElementById('modal');
+        if (!modal) {
+            return;
+        }
+
+        // remove potential leftover click event
+        modal.removeEventListener('click', addDisplayNoneOnClick);
+        if (closeModalOnClickAnywhere) {
+            modal.addEventListener('click', addDisplayNoneOnClick, { once: true })
+        }
+
+        const html = render(component);
+        if (!html) {
+            return;
+        }
+
+        modal.appendChild(html);
+        removeClassIfExists(modal, 'display-none');
+        addClassIfNotExists(modal, 'display-normal');
+    }
+
+    DismissModal() {
+        const modal = document.getElementById('modal');
+        if (modal) {
+            addClassIfNotExists(modal, 'display-none');
+            removeClassIfExists(modal, 'display-normal');
+            modal.innerHTML = '';
+        }
+    }
 }
 
 class ComponentWithPopup {
@@ -108,11 +153,17 @@ class ComponentWithForm {
         const testResults = new Array<boolean>();
 
         for (const element of allElements) {
-            testResults.push(
+            const results = [
                 this.TestRequired(element),
                 this.TestMinlength(element),
                 this.TestMaxLength(element)
-            );
+            ];
+
+            if (!results.some(r => r === false)) {
+                this.RemoveError(element);
+            }
+
+            testResults.push(...results);
         }
 
         if (testResults.some(result => result === false)) {
@@ -122,6 +173,16 @@ class ComponentWithForm {
             this.EnableSubmitButton(form);
             return true;
         }
+    }
+
+    GetFormValue(id: string): string {
+        const element = document.getElementById(id);
+        if (element) {
+            if (element instanceof HTMLSelectElement || element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) {
+                return element.value;
+            }
+        }
+        return '';
     }
 
     private DisableSubmitButton(form: HTMLFormElement) {
@@ -148,36 +209,37 @@ class ComponentWithForm {
     }
 
     private TestRequired(element: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement) {
+        console.log('test required for ', element.name);
         if (element.required && !element.value) {
             const errorAttributeName = htmlAttributeNameOf(A.RequiredErrorMessage);
             const error = element.getAttribute(errorAttributeName);
             this.ShowError(element, error);
-            console.warn('required');
             return false;
         }
 
-        this.RemoveError(element);
         return true;
     }
 
     private TestMinlength(element: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement) {
+        console.log('test min length for ', element.name);
         if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) {
             const minlengthAttributeName = htmlAttributeNameOf(A.MinLength);
             const minLength = Number(element.getAttribute(minlengthAttributeName));
             if (minLength && element.value.length < minLength) {
+                console.log(element.name + ' content is too short: ', minLength);
                 const errorAttributeName = htmlAttributeNameOf(A.MinLengthErrorMessage);
                 const error = element.getAttribute(errorAttributeName);
+                console.log('showing error for ' + element.name + ': ' + error);
                 this.ShowError(element, error);
-                console.warn('too short');
                 return false;
             }
         }
 
-        this.RemoveError(element);
         return true;
     }
 
     private TestMaxLength(element: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement) {
+        console.log('test max length for ', element.name);
         if (element instanceof HTMLTextAreaElement || element instanceof HTMLInputElement) {
             const maxlengthAttributeName = htmlAttributeNameOf(A.MaxLength);
             const maxLength = Number(element.getAttribute(maxlengthAttributeName));
@@ -185,10 +247,10 @@ class ComponentWithForm {
                 const errorAttributeName = htmlAttributeNameOf(A.MaxLengthErrorMessage);
                 const error = element.getAttribute(errorAttributeName);
                 this.ShowError(element, error);
-                console.warn('too long');
                 return false;
             }
         }
+
         return true;
     }
 
@@ -219,7 +281,7 @@ class ComponentWithForm {
                 const popup = new ValidationPopup(message, e);
                 const popupHtml = render(popup);
                 if (popupHtml) {
-                    addClassIfNotExists(e, 'invalid');
+                    console.log('rendering error message', message, e.name);
                     parent.appendChild(popupHtml);
                 }
             }
@@ -232,6 +294,7 @@ class ComponentWithForm {
         if (parent) {
             const popups = parent.getElementsByClassName('popup');
             for (let i = 0; i < popups.length; ++i) {
+                console.log('removing error for ', e.name);
                 parent.removeChild(popups[i]);
             }
         }
@@ -275,7 +338,9 @@ enum A {
     MaxLength,
     MaxLengthErrorMessage,
     Enctype,
-    Checked
+    Checked,
+    Multiple,
+    Size
 }
 
 enum EventType {
@@ -342,6 +407,10 @@ const htmlAttributeNameOf = (attribute: A) => {
             return 'maxlength-error';
         case A.Checked:
             return 'checked';
+        case A.Multiple:
+            return 'multiple';
+        case A.Size:
+            return 'size';
         default:
             return '';
     }
@@ -447,6 +516,7 @@ export {
     Component,
     ComponentWithPopup,
     ComponentWithForm,
+    ComponentWithModal,
     EventType,
     render,
     htmlAttributeNameOf

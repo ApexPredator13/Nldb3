@@ -5,11 +5,18 @@ import { IsaacImage } from "../General/isaac-image";
 export class TransformationProgressPopup implements Component {
     E: FrameworkElement;
 
-    constructor(event: GameplayEvent) {
+    constructor(event: GameplayEvent, upscale: boolean, showRunNumber: boolean = false, top?: number) {
         if (event.r1 && event.r2 && event.r3) {
+            const runNumber = new Array<FrameworkElement>();
+
+            if (showRunNumber) {
+                runNumber.push({ e: ['p', `Run ${event.run_number.toString(10)}`] });
+                runNumber.push({ e: ['hr'] });
+            }
+
             this.E = {
                 e: ['div'],
-                a: [[A.Class, 'popup c downscale']],
+                a: [[A.Class, 'popup c' + (upscale ? '' : ' downscale')], top ? [A.Style, `top: ${top.toString(10)}px`] : null],
                 c: [
                     {
                         e: ['h3', 'Transformation Progress']
@@ -17,7 +24,8 @@ export class TransformationProgressPopup implements Component {
                     {
                         e: ['hr']
                     },
-                    new IsaacImage(event, 1, undefined, false),
+                    ...runNumber,
+                    new IsaacImage(event, 1, undefined, upscale),
                     {
                         e: ['br']
                     },

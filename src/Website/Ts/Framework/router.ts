@@ -2,6 +2,8 @@
 import { NavigationComponent } from './Customizable/Layout/navigation';
 import { MainComponent } from './Customizable/Layout/main';
 import { registerPopupEvent } from './popup';
+import { OtherElements } from './Customizable/Layout/other';
+import { setGlobalChartOptions } from './Customizable/global-chart-options';
 
 enum PageType {
     Episode = 1,
@@ -59,7 +61,26 @@ const getPages = () => {
     return pages;
 }
 
+const setGlobalPageType = (pageType: PageType | undefined) => {
+    console.log('setting global page type');
+    (window as any).page_type = pageType;
+}
+
+const getGlobalPageType = (): PageType | undefined => {
+    return (window as any).page_type;
+}
+
+let registrationCount = 0;
+
 const registerPage = (pageData: PageData) => {
+    // save page type globally, so that it's available on first page load
+    if (registrationCount === 0) {
+        setGlobalPageType(pageData.specificPageType);
+    }
+
+    registrationCount++;
+
+    // the save page
     const pages = getPages();
     const pageExists = pages.some(page => JSON.stringify(page.Url) === JSON.stringify(pageData.Url))
     if (!pageExists) {
@@ -79,14 +100,17 @@ const initRouter = () => {
 
         // register custom events
         registerPopupEvent();
+        setGlobalChartOptions();
 
         // render layout
         const navigation = render(new NavigationComponent());
         const main = render(new MainComponent());
+        const other = render(new OtherElements());
 
-        if (main && navigation) {
+        if (main && navigation && other) {
             document.body.appendChild(navigation);
             document.body.appendChild(main);
+            document.body.appendChild(other);
         }
 
         // delay enough so that initial popstate event that some browsers trigger on load will be skipped
@@ -100,8 +124,9 @@ const initRouter = () => {
 
         // load initial page, only one should exist at the start
         const currentRoute = getCurrentRoute();
-        const page = getRequestedPageFromRoute(getCurrentRoute());
-        navigate(currentRoute, undefined, page.page ? page.page.specificPageType : undefined, false, true);
+        const pageType = getGlobalPageType();
+        console.log('global page type is', pageType);
+        navigate(currentRoute, undefined, pageType, false, true);
     }
     (window as any).routerInit = true;
 };
@@ -202,6 +227,7 @@ const navigate = (requestedRoute: string, preventDefault: Event | undefined = un
     }
 
     const { found, page, parameters } = getRequestedPageFromRoute(requestedRoute, specificPageType);
+    console.log('page found result: ', found, page, parameters);
 
     const currentRoute = getCurrentRoute();
 
@@ -231,15 +257,29 @@ const navigate = (requestedRoute: string, preventDefault: Event | undefined = un
         if (renderedPage) {
             document.title = typeof page.Title === 'string' ? page.Title : page.Title();
             parent.innerHTML = '';
+
+            if (page.afterRender) {
+                const observer = new MutationObserver(() => {
+                    console.log('observer callback!');
+                    if (page.afterRender) {
+                        page.afterRender();
+                    }
+                    observer.disconnect();
+                });
+                observer.observe(parent, { childList: true });
+            }
+
             parent.appendChild(renderedPage);
             if (scrollToTop) {
                 window.scrollTo(0, 0);
             }
+
+            
             setTimeout(() => {
                 if (page.afterRender) {
                     page.afterRender();
                 }
-            }, 100);
+            }, 300);
             console.warn('page has after-render-function!', page.afterRender);
         }
     }

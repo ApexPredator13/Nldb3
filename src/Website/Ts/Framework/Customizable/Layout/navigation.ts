@@ -39,7 +39,8 @@ export class NavigationComponent implements Component {
                     a: [[A.Class, navSectionClass]],
                     c: [
                         {
-                            e: ['h3', 'Learn more about...']
+                            e: ['h3', 'Learn more about...'],
+                            a: [[A.Class, 'l']]
                         },
                         new NavSection(630, Link.Episodes(), 'Episodes'),
                         new NavSection(70, Link.ResourceOverview(ResourceType.Item), 'Collected Items'),

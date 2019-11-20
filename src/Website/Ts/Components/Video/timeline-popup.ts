@@ -57,23 +57,25 @@ export class TimelinePopup implements Component {
 
         // check if NL won the run or died on this floor
         let wonEvent: GameplayEvent | undefined;
-        const diedFrom = new Array<FrameworkElement>();
+        const diedFrom = new Array<FrameworkElement | Component>();
         if (floor.died_from) {
             for (const event of floor.events) {
                 if (event.event_type === GameplayEventType.WonTheRun) {
                     wonEvent = event;
                 }
                 if (event.event_type === GameplayEventType.CharacterDied) {
-                    diedFrom.push({
-                        e: ['hr']
-                    }, {
-                        e: ['p'],
-                        c: [
-                            new IsaacImage(event, 1)
-                        ]
-                    }, {
-                        e: ['p', event.r1.name]
-                    });
+                    diedFrom.push(
+                        {
+                            e: ['hr']
+                        },
+                        {
+                            e: ['p', 'NL was killed by:'],
+                        },
+                        new IsaacImage(event, 1),
+                        {
+                            e: ['p', event.r1.name]
+                        }
+                    );
                     break;
                 }
             }
@@ -93,17 +95,18 @@ export class TimelinePopup implements Component {
         const seconds = floor.duration - minutes * 60;
 
         const minutesString = minutes ? `${minutes.toString(10)} ${(minutes === 1 ? 'minute' : 'minutes')}` : '';
+        const conditionalComma = minutes ? ', ' : '';
         const secondsString = `${seconds.toString(10)} ${seconds === 1 ? 'second' : 'seconds'}`;
 
         this.E = {
             e: ['div'],
-            a: [[A.Class, 'popup c'], [A.Style, 'top: 40px']],
+            a: [[A.Class, 'popup c'], [A.Style, 'top: 50px']],
             c: [
                 {
                     e: ['h4', floor.floor.name]
                 },
                 {
-                    e: ['p', `~ ${minutesString}, ${secondsString}`]
+                    e: ['p', `~ ${minutesString}${conditionalComma}${secondsString}`]
                 },
                 {
                     e: ['hr']

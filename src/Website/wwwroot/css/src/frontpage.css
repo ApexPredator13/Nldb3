@@ -49,10 +49,12 @@
 }
 
 .fp-right {
-    place-self: center end;
+    align-self: end;
+    justify-self: end;
 }
 .fp-left {
-    place-self: center start;
+    align-self: start;
+    justify-self: start;
 }
 .two-wide {
     grid-column-end: span 2;

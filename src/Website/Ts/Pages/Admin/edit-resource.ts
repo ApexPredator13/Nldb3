@@ -6,7 +6,7 @@ import { AdminLink } from "./_admin-link-creator";
 import { IsaacImage } from "../../Components/General/isaac-image";
 import { IsaacResource } from "../../Models/isaac-resource";
 import { convertExistsInToString } from "../../Enums/enum-to-string-converters";
-import { existsInOptionlist } from "../../Components/Admin/exists-in-option-list";
+import { existsInOptionlist } from "../../Components/Admin/option-lists";
 import { Mod } from "../../Models/mod";
 import { Option } from "../../Components/General/option";
 import { BackToOverviewLinks } from "../../Components/Admin/back-to-overview-links";
@@ -22,6 +22,7 @@ export class EditResource extends ComponentWithForm implements Component {
     constructor(parameters: Array<string>) {
         super();
         this.resourceId = parameters[0];
+
         const stayOnPage = getFromLocalStorage<{ stay: boolean }>('stay-on-edit-page');
         this.stay = stayOnPage ? stayOnPage.stay : false;
 
@@ -143,6 +144,7 @@ export class EditResource extends ComponentWithForm implements Component {
                                         },
                                         {
                                             e: ['div'],
+                                            a: [[A.Style, 'background-color: rgba(255,255,255,0.2); display: inline-block; padding: 1rem; border-radius: 1rem;']],
                                             c: [
                                                 new IsaacImage(resource, undefined, undefined, false),
                                                 new IsaacImage(resource, undefined, undefined, true)
@@ -352,9 +354,29 @@ export class EditResource extends ComponentWithForm implements Component {
                                     e: ['p'],
                                     c: [
                                         {
+                                            e: ['a', 'Next Resource'],
+                                            a: [[A.Href, AdminLink.RedirectNextResource(resource.resource_type, resource.id)]],
+                                            v: [[EventType.Click, e => navigate(AdminLink.RedirectNextResource(resource.resource_type, resource.id), e)]]
+                                        }
+                                    ]
+                                },
+                                {
+                                    e: ['p'],
+                                    c: [
+                                        {
                                             e: ['a', 'Back to resources'],
                                             a: [[A.Href, AdminLink.ResourceOverview(resource.resource_type)]],
                                             v: [[EventType.Click, e => navigate(AdminLink.ResourceOverview(resource.resource_type), e)]]
+                                        }
+                                    ]
+                                },
+                                {
+                                    e: ['p'],
+                                    c: [
+                                        {
+                                            e: ['a', 'Delete resource'],
+                                            a: [[A.Href, AdminLink.DeleteResource(resource.resource_type, resource.id)]],
+                                            v: [[EventType.Click, e => navigate(AdminLink.DeleteResource(resource.resource_type, resource.id), e)]]
                                         }
                                     ]
                                 },
@@ -374,7 +396,7 @@ export class EditResource extends ComponentWithForm implements Component {
         const page: PageData = {
             Component: EditResource,
             Title: 'Edit Resource',
-            Url: ['Admin', 'EditResource', '{id}']
+            Url: ['Admin', 'EditResource', '{resourceId}']
         }
         registerPage(page);
     }

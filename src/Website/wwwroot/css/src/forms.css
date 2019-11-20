@@ -33,6 +33,10 @@ button {
     cursor: pointer;
 }
 
+button[disabled=true] {
+    cursor: not-allowed;
+}
+
 button:hover {
     border-color: orange;
 }

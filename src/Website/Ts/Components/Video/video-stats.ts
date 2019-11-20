@@ -10,7 +10,7 @@ export class VideoStats implements Component {
     constructor(video: Promise<Video>) {
         this.E = {
             e: ['div'],
-            a: [[A.Id, 'global-stats']],
+            a: [[A.Id, 'global-stats'], [A.Class, 'video-page-element']],
             c: [
                 {
                     e: ['div'],

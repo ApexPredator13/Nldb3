@@ -20,7 +20,7 @@ export class EventsTableComponent implements Component {
     constructor(private video: Promise<Video>, private episodeIndex: number) {
         this.E = {
             e: ['div'],
-            a: [[A.Id, this.containerId], [A.Class, 'video-page-box']]
+            a: [[A.Id, this.containerId]]
         };
 
         this.A = [
@@ -160,7 +160,7 @@ export class EventsTableComponent implements Component {
 
         for (const event of floor.events) {
             if (event.event_type === GameplayEventType.TransformationProgress && event.r2 && typeof (event.r3) === 'number') {
-                transformationProgress.push(new IsaacImage(event, 1, new TransformationProgressPopup(event)));
+                transformationProgress.push(new IsaacImage(event, 1, new TransformationProgressPopup(event, false)));
             }
         }
 
@@ -214,7 +214,7 @@ export class EventsTableComponent implements Component {
             c: [
                 {
                     e: ['td', character.seed ? `Run ${character.run_number} (Seed: ${character.seed})` : `Run ${character.run_number}`],
-                    a: [[A.Colspan, '6']]
+                    a: [[A.Colspan, '6'], [A.Style, 'background-color: rgba(255,255,255,0.1);']]
                 }
             ]
         };

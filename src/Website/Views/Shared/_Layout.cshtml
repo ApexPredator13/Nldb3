@@ -1,16 +1,5 @@
 ﻿<!DOCTYPE html>
 <html>
-
-@{
-    bool showNavigation = true;
-    if (ViewData.ContainsKey("HideNavigation") && (bool)ViewData["HideNavigation"] == true)
-    {
-        showNavigation = false;
-    }
-
-    var mainTagWidthClass = showNavigation ? "w80" : "w100";
-}
-
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
@@ -35,6 +24,7 @@
         <link rel="stylesheet" href="~/css/src/frontpage.css" />
         <link rel="stylesheet" href="~/css/src/identity.css" />
         <link rel="stylesheet" href="~/css/src/popup.css" />
+        <link rel="stylesheet" href="~/css/src/modal.css" />
     </environment>
     <environment include="Production">
         <link rel="stylesheet" href="~/css/dist/bundle.min.css" />

@@ -92,10 +92,11 @@ export class ResourcesPage extends ComponentWithForm implements Component {
         const part: AsyncComponentPart = {
             I: 'loaded-resources',
             P: get<Array<IsaacResource>>(`/Api/Resources/?ResourceType=${this.resourceType.toString(10)}&IncludeMod=true`).then(resources => {
-
                 const tableLines = new Array<FrameworkElement>();
 
-                for (const resource of resources) {
+                for (let i = 0; i < resources.length; ++i) {
+                    let resource = resources[i];
+
                     const clickEvent = (e: Event) => {
                         saveToLocalStorage('resource-position', { position: window.scrollY });
                         addAfterRenderActionToPage(AdminLink.ResourceOverview(this.resourceType), () => {
@@ -105,7 +106,7 @@ export class ResourcesPage extends ComponentWithForm implements Component {
                                 window.scrollTo(0, lastScrollposition.position);
                             }
                         });
-                        
+
                         navigate(AdminLink.EditResource(resource.id), e);
                     };
 

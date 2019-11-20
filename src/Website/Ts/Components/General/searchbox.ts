@@ -1,6 +1,6 @@
 ﻿import { Component, FrameworkElement, A, EventType, AsyncComponentPart } from "../../Framework/renderer";
-import { IsaacResource } from "../../../wwwroot/js/src/interfaces/isaac-resource";
 import { get } from "../../Framework/http";
+import { IsaacResource } from "../../Models/isaac-resource";
 
 export class SearchboxComponent implements Component {
 

@@ -5,6 +5,12 @@ import { Video } from "../Models/video";
 import { EventsTableComponent } from "../Components/Video/events-table";
 import { VideoStats } from "../Components/Video/video-stats";
 import { Timeline } from "../Components/Video/timeline";
+import { ItemsSortedBySources } from "../Components/Video/sorted-by-sources";
+import { TransformationProgress } from "../Components/Video/transformation-progress";
+import { TransformationProgressChart } from "../Components/Video/transformation-progress-chart";
+import { PlayedCharacters } from "../Components/Video/played-characters";
+import { TimeSpentOnEachFloor } from "../Components/Video/time-spent-on-each-floor";
+import { ItemPickupChart } from "../Components/Video/item-pickup-chart";
 
 export class EpisodePage implements Component {
     E: FrameworkElement;
@@ -14,10 +20,8 @@ export class EpisodePage implements Component {
     private videoData: Promise<Video>;
 
     private headerContainerId = 'video-title';
-    private videoEventsTableId = 'video-events-table';
 
     constructor(parameters: Array<string>) {
-        console.log('PARAMETERS', parameters);
         if (!parameters || parameters.length === 0) {
             parameters = extractParametersFromRoute(1);
         }
@@ -26,8 +30,6 @@ export class EpisodePage implements Component {
 
         // load video
         this.videoData = get<Video>(`/api/videos/${this.videoId}`);
-
-        // set title again - could be empty if page data didn't exist
         this.videoData.then(video => setTitle(video.title));
 
         this.E = {
@@ -39,20 +41,63 @@ export class EpisodePage implements Component {
                 },
                 {
                     e: ['div'],
-                    a: [[A.Id, this.videoEventsTableId]],
                     c: [
                         {
-                            e: ['h3', 'Gameplay-Events in chronological order']
+                            e: ['h2', 'Featuring...']
                         },
-                        new EventsTableComponent(this.videoData, 0),
+                        new PlayedCharacters(this.videoData, 0),
                         {
-                            e: ['h3', 'Timeline']
+                            e: ['hr']
+                        },
+                        {
+                            e: ['h2', 'Timeline']
+                        },
+                        {
+                            e: ['p', 'Click on a floor to jump to this part in the video']
                         },
                         new Timeline(this.videoData, 0),
                         {
-                            e: ['h3', 'Video Statistics compared to record episodes / an average episode']
+                            e: ['h2', 'Approximate time spent on each floor (in seconds)']
                         },
-                        new VideoStats(this.videoData)
+                        new TimeSpentOnEachFloor(this.videoData, 0),
+                        {
+                            e: ['hr']
+                        },
+                        {
+                            e: ['h2', 'Gameplay-Events in chronological order']
+                        },
+                        new EventsTableComponent(this.videoData, 0),
+                        {
+                            e: ['hr']
+                        },
+                        {
+                            e: ['h2', 'Achieved Transformation Progress']
+                        },
+                        new TransformationProgress(this.videoData, 0),
+                        {
+                            e: ['h3', 'Transformative items from this episode, by transformation'],
+                            a: [[A.Id, 'transformation-progress-header']]
+                        },
+                        new TransformationProgressChart(this.videoData, 0),
+                        {
+                            e: ['hr']
+                        },
+                        {
+                            e: ['h2', 'Item pickups sorted by item source']
+                        },
+                        new ItemsSortedBySources(this.videoData, 0),
+                        new ItemPickupChart(this.videoData, 0),
+                        {
+                            e: ['hr']
+                        },
+                        {
+                            e: ['h2', 'Video Stats compared to record episodes / an average episode']
+                        },
+                        new VideoStats(this.videoData),
+                        {
+                            e: ['div'],
+                            a: [[A.Style, 'width: 100%; height: 400px;']]
+                        }
                     ]
                 }
             ]
@@ -60,14 +105,21 @@ export class EpisodePage implements Component {
 
         this.A = [
             this.CreateVideoTitle()
-        ]
+        ];
     }
 
     private CreateVideoTitle(): AsyncComponentPart {
         return {
             I: this.headerContainerId,
             P: this.videoData.then(video => {
-                return { e: ['h1', video.title] };
+                return {
+                    e: ['h1', video.title],
+                    c: [
+                        {
+                            e: ['hr']
+                        }
+                    ]
+                };
             })
         }
     }

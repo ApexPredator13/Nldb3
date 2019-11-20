@@ -100,6 +100,15 @@ namespace Website.Controllers
         [HttpPost("delete_isaac_resource")]
         public async Task<ActionResult> DeleteIsaacResource([FromForm] string resourceId)
         {
+            var resource = await _isaacRepository.GetResourceById(resourceId, false);
+
+            if (resource is null)
+            {
+                return NotFound();
+            }
+
+            _iconManager.ClearRectangle(resource.X, resource.Y, resource.W, resource.H);
+
             var result = await _isaacRepository.DeleteResource(resourceId);
             if (result > 0)
             {
@@ -188,6 +197,23 @@ namespace Website.Controllers
             {
                 return BadRequest("Color could not be changed.");
             }
+        }
+
+        [HttpPost("create_resource")]
+        public async Task<ActionResult> CreateResource([FromForm] CreateIsaacResource model)
+        {
+            // CHECK IF TAGS EXIST!
+            if (model.Icon is null)
+            {
+                return BadRequest("no icon!");
+            }
+
+            var (width, height) = await _iconManager.GetPostedImageSize(model.Icon);
+            var (x, y) = await _iconManager.FindEmptySquare(width, height);
+            var (embeddedIconWidth, embeddedIconHeight) = _iconManager.EmbedIcon(model.Icon, x, y);
+            var result = await _isaacRepository.SaveResource(model, x, y, embeddedIconWidth, embeddedIconHeight);
+
+            return Ok(result);
         }
     }
 }

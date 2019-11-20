@@ -9,6 +9,11 @@ import { ModPage } from "./mod";
 import { ModLinkDeletedPage } from "./mod-link-deleted";
 import { CreateModLinkPage } from "./create-mod-link";
 import { EditResource } from "./edit-resource";
+import { Redirect } from "../redirect";
+import { RedirectNextResource } from "./redirect-next-resource";
+import { CreateIsaacResource } from "./create-isaac-resource";
+import { DeleteResource } from "./delete-resource";
+import { ResourceDeleted } from "./resource-deleted";
 
 (() => {
     AdminOverviewPage.RegisterPage();
@@ -22,5 +27,10 @@ import { EditResource } from "./edit-resource";
     ModLinkDeletedPage.RegisterPage();
     CreateModLinkPage.RegisterPage();
     EditResource.RegisterPage();
+    Redirect.RegisterPage();
+    RedirectNextResource.RegisterPage();
+    CreateIsaacResource.RegisterPage();
+    DeleteResource.RegisterPage();
+    ResourceDeleted.RegisterPage();
 })();
 

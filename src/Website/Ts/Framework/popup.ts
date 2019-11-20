@@ -19,7 +19,8 @@ const registerPopupEvent = () => {
             addClassIfNotExists(target, 'popup-container');
 
             // skip if popup exists already
-            if (target.innerHTML) {
+            const existingPopupElements = target.getElementsByClassName('popup');
+            if (existingPopupElements && existingPopupElements.length > 0) {
                 return;
             }
 

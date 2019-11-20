@@ -136,7 +136,6 @@
         RemovesCurse,
         AddsCurse,
         SpawnsFamiliarOrOrbital,
-        Heals,
         SpikeImmunity,
         RandomStatusEffect,
         ChangesChestBehavior,

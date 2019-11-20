@@ -13,12 +13,12 @@
     "clean-webpack-plugin": "^2.0.1",
     "ts-loader": "^5.3.3",
     "typescript": "^3.4.4",
-    "webpack": "^4.35.0",
-    "webpack-cli": "^3.3.0"
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.10"
   },
   "dependencies": {
+    "array-flat-polyfill": "^1.0.1",
     "chart.js": "^2.9.2",
-    "oidc-client": "^1.9.1",
-    "rxjs": "^6.5.2"
+    "oidc-client": "^1.9.1"
   }
 }
