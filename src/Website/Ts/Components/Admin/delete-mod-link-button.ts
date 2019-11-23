@@ -1,7 +1,8 @@
-﻿import { ComponentWithForm, Component, FrameworkElement, A, EventType } from "../../Framework/renderer";
+﻿import { Component, FrameworkElement, A, EventType } from "../../Framework/renderer";
 import { ModUrl } from "../../Models/mod-url";
 import { show, hide } from "../../Framework/browser";
 import { AdminLink } from "../../Pages/Admin/_admin-link-creator";
+import { ComponentWithForm } from "../../Framework/ComponentBaseClasses/component-with-form";
 
 export class DeleteModLinkButton extends ComponentWithForm implements Component {
     E: FrameworkElement;

@@ -1,12 +1,14 @@
 ﻿import { User, UserManager, UserManagerSettings } from 'oidc-client';
 import { removeHashAndQuerystring, getHashFromUrl } from '../browser';
+import { getConfig } from './config.development';
 
 const getUserManager = (): UserManager => {
     if ((window as any).userManager) {
         return (window as any).userManager as UserManager;
     }
 
-    const baseUrlOfThisWebsite = 'https://localhost:5005';
+    const config = getConfig();
+    const baseUrlOfThisWebsite = config.baseUrlWithoutTrailingSlash;
 
     const settings: UserManagerSettings = {
         authority: baseUrlOfThisWebsite,

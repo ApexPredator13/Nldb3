@@ -1,15 +1,16 @@
-﻿import { Component, FrameworkElement, AsyncComponentPart, A, ComponentWithPopup } from "../../Framework/renderer";
+﻿import { Component, FrameworkElement, AsyncComponentPart, A } from "../../Framework/renderer";
 import { Video } from "../../Models/video";
 import { GameplayEventType } from "../../Enums/gameplay-event-type";
 import { IsaacImage } from "../General/isaac-image";
 import { TransformationProgressPopup } from "./transformation-progress-popup";
 import { GameplayEvent } from "../../Models/gameplay-event";
+import { ComponentWithPopup } from "../../Framework/ComponentBaseClasses/component-with-popup";
 
 class TransformationProgress extends ComponentWithPopup implements Component {
     E: FrameworkElement;
     A: Array<AsyncComponentPart>;
 
-    constructor(video: Promise<Video>, useSubmission: number) {
+    constructor(video: Promise<Video | null>, useSubmission: number) {
         super();
 
         this.E = {
@@ -20,7 +21,7 @@ class TransformationProgress extends ComponentWithPopup implements Component {
         this.A = this.CreateAsyncPart(video, useSubmission);
     }
 
-    private CreateAsyncPart(video: Promise<Video>, useSubmission: number): Array<AsyncComponentPart> {
+    private CreateAsyncPart(video: Promise<Video | null>, useSubmission: number): Array<AsyncComponentPart> {
 
         const part: AsyncComponentPart = {
             I: 'video-transformation-stats-container',
@@ -105,7 +106,11 @@ class TransformationProgress extends ComponentWithPopup implements Component {
     }
 }
 
-const filterTransformationEvents = (video: Video, useSubmission: number): Map<string, Array<GameplayEvent>> => {
+const filterTransformationEvents = (video: Video | null, useSubmission: number): Map<string, Array<GameplayEvent>> => {
+
+    if (!video) {
+        return new Map<string, Array<GameplayEvent>>();
+    }
 
     const submission = video.submissions[useSubmission];
     const sortedTransformationProgressEvents = new Map<string, Array<GameplayEvent>>();

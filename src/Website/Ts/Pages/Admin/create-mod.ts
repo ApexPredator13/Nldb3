@@ -1,6 +1,7 @@
-﻿import { Component, FrameworkElement, ComponentWithForm, A, EventType } from "../../Framework/renderer";
+﻿import { Component, FrameworkElement, A, EventType } from "../../Framework/renderer";
 import { PageData, registerPage } from "../../Framework/router";
 import { AdminLink } from "./_admin-link-creator";
+import { ComponentWithForm } from "../../Framework/ComponentBaseClasses/component-with-form";
 
 export class CreateModPage extends ComponentWithForm implements Component {
     E: FrameworkElement;

@@ -25,12 +25,12 @@ namespace Website.Areas.Api.Controllers
             _barGraphCreator = barGraphCreator;
         }
 
-        [HttpPost("history")]
-        public async Task<History> GetHistory([FromBody] SubmittedCompleteEpisode episode)
-        {
-            var history = await _isaacRepository.GetHistory(episode);
-            return history;
-        }
+        //[HttpPost("history")]
+        //public async Task<History> GetHistory([FromBody] SubmittedCompleteEpisode episode)
+        //{
+        //    var history = await _isaacRepository.GetHistory(episode);
+        //    return history;
+        //}
 
         //[HttpGet("{id}")]
         //public async Task<IsaacResource?> Index(string id, bool includeMod = false)

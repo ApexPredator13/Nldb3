@@ -9,8 +9,6 @@ export class Redirect implements Component {
             e: ['div', 'Redirecting...']
         };
 
-        console.log('REDIRECTING TO: ', decodeURI(parameters[0]));
-
         setTimeout(() => {
             navigate(decodeURIComponent(parameters[0]));
         }, 100);

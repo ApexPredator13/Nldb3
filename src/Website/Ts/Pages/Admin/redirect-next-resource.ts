@@ -17,18 +17,19 @@ export class RedirectNextResource implements Component {
         }
 
         get<Array<IsaacResource>>(`/Api/Resources/?ResourceType=${resourceType.toString(10)}`).then(resources => {
-            console.log('(redirect) resources loaded.')
             let loadNextResource = false;
+
+            if (!resources) {
+                return;
+            }
 
             for (let resource of resources) {
                 if (loadNextResource) {
                     const link = AdminLink.EditResource(resource.id);
-                    console.log('loading next resource: ', link);
                     navigate(link);
                     break;
                 }
                 if (resource.id === nextResourceId) {
-                    console.log('found current resource: ', resource.id);
                     loadNextResource = true;
                 }
             }

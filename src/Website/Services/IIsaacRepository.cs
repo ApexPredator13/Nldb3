@@ -47,5 +47,6 @@ namespace Website.Services
         int GetResourceNumber(ResourceType resourceType);
         Task<int> DeleteSubmission(int submissionId);
         Task<bool> ResourceExists(string resourceId);
+        Task<int> ClearTags(string id);
     }
 }

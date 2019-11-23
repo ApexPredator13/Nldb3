@@ -1,9 +1,10 @@
 ﻿import { render, Component } from './renderer';
 import { NavigationComponent } from './Customizable/Layout/navigation';
 import { MainComponent } from './Customizable/Layout/main';
-import { registerPopupEvent } from './popup';
 import { OtherElements } from './Customizable/Layout/other';
 import { setGlobalChartOptions } from './Customizable/global-chart-options';
+import { getConfig } from './Customizable/config.development';
+import { registerPopupEvent } from './ComponentBaseClasses/component-with-popup';
 
 enum PageType {
     Episode = 1,
@@ -16,7 +17,8 @@ interface PageData {
     Title: string | (() => string),
     Url: Array<string>,
     specificPageType?: PageType,
-    afterRender?: () => any
+    afterRender?: () => any,
+    beforeLeaving?: () => any
 }
 
 const routeEndsWith = (fragment: string) => {
@@ -31,12 +33,8 @@ const addAfterRenderActionToPage = (route: string, fun: () => any, requestedPage
     if (route.startsWith('/')) {
         route = route.substring(1);
     }
-    console.log('after render action requested for route: ', route);
     const page = getRequestedPageFromRoute(route, requestedPageType);
-    console.log('found page: ', page);
     if (page && page.page) {
-        console.log('setting after render action: ', fun);
-        console.log('to page', page.page);
         page.page.afterRender = fun;
     }
 }
@@ -48,7 +46,6 @@ const extractParametersFromRoute = (amount: number): Array<string> => {
         return new Array<string>();
     }
     const parameters = routeParts.reverse().splice(0, amount);
-    console.log(parameters);
     return parameters;
 }
 
@@ -62,7 +59,6 @@ const getPages = () => {
 }
 
 const setGlobalPageType = (pageType: PageType | undefined) => {
-    console.log('setting global page type');
     (window as any).page_type = pageType;
 }
 
@@ -80,14 +76,11 @@ const registerPage = (pageData: PageData) => {
 
     registrationCount++;
 
-    // the save page
+    // then save page
     const pages = getPages();
     const pageExists = pages.some(page => JSON.stringify(page.Url) === JSON.stringify(pageData.Url))
     if (!pageExists) {
-        console.info('registering page: ', pageData.Url.join('/'));
         pages.push(pageData);
-    } else {
-        console.info('page already exists: ', pageData.Url.join('/'));
     }
 }
 
@@ -125,7 +118,6 @@ const initRouter = () => {
         // load initial page, only one should exist at the start
         const currentRoute = getCurrentRoute();
         const pageType = getGlobalPageType();
-        console.log('global page type is', pageType);
         navigate(currentRoute, undefined, pageType, false, true);
     }
     (window as any).routerInit = true;
@@ -208,7 +200,6 @@ const getRequestedPageFromRoute = (route: string, specificPageType?: PageType): 
             result.page = page;
             result.parameters = parameters;
             result.found = true;
-            console.info('page found!', result);
             break;
         }
     }
@@ -227,7 +218,6 @@ const navigate = (requestedRoute: string, preventDefault: Event | undefined = un
     }
 
     const { found, page, parameters } = getRequestedPageFromRoute(requestedRoute, specificPageType);
-    console.log('page found result: ', found, page, parameters);
 
     const currentRoute = getCurrentRoute();
 
@@ -238,6 +228,19 @@ const navigate = (requestedRoute: string, preventDefault: Event | undefined = un
     // don't re-render the same url, except it's forced
     if (currentRoute === requestedRoute && !forceRender) {
         return;
+    }
+    
+    // check if anything has to be done before leaving
+    if ((window as any).beforeLeaving) {
+        (window as any).beforeLeaving();
+        (window as any).beforeLeaving = null;
+    }
+
+    // save new beforeLeaving action
+    if (page.beforeLeaving) {
+        (window as any).beforeLeaving = page.beforeLeaving;
+    } else {
+        (window as any).beforeLeaving = null;
     }
 
     // render new page
@@ -260,7 +263,6 @@ const navigate = (requestedRoute: string, preventDefault: Event | undefined = un
 
             if (page.afterRender) {
                 const observer = new MutationObserver(() => {
-                    console.log('observer callback!');
                     if (page.afterRender) {
                         page.afterRender();
                     }
@@ -274,21 +276,21 @@ const navigate = (requestedRoute: string, preventDefault: Event | undefined = un
                 window.scrollTo(0, 0);
             }
 
-            
+
             setTimeout(() => {
                 if (page.afterRender) {
                     page.afterRender();
                 }
             }, 300);
-            console.warn('page has after-render-function!', page.afterRender);
         }
     }
 };
 
 // TODO: base url in production mode
 const getCurrentRoute = () => {
+    const config = getConfig();
     const url = window.location.href;
-    const baseUrlLength = 'https://localhost:5005'.length;
+    const baseUrlLength = config.baseUrlWithoutTrailingSlash.length;
     if (url.length <= baseUrlLength) {
         return '/';
     } else {

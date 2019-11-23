@@ -263,7 +263,6 @@ namespace Website
 
                 endpoints.MapControllerRoute("defaultArea", "{area:exists}/{controller=home}/{action=index}/{id?}");
                 endpoints.MapControllerRoute("default", "{controller=home}/{action=index}/{id?}");
-                endpoints.MapControllerRoute("catchall", "{*url}", new { controller = Controllers.HomeController.Controllername, action = nameof(Controllers.HomeController.Index) } );
             });
 
             app.ApplyEntityFrameworkDatabaseMigrations();

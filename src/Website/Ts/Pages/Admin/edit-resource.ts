@@ -1,4 +1,4 @@
-﻿import { ComponentWithForm, FrameworkElement, Component, AsyncComponentPart, A, EventType } from "../../Framework/renderer";
+﻿import { FrameworkElement, Component, AsyncComponentPart, A, EventType } from "../../Framework/renderer";
 import { PageData, registerPage, navigate } from "../../Framework/router";
 import { get } from "../../Framework/http";
 import { Link } from "../_link-creator";
@@ -6,11 +6,12 @@ import { AdminLink } from "./_admin-link-creator";
 import { IsaacImage } from "../../Components/General/isaac-image";
 import { IsaacResource } from "../../Models/isaac-resource";
 import { convertExistsInToString } from "../../Enums/enum-to-string-converters";
-import { existsInOptionlist } from "../../Components/Admin/option-lists";
+import { existsInOptionlist, tagsOptionList } from "../../Components/Admin/option-lists";
 import { Mod } from "../../Models/mod";
 import { Option } from "../../Components/General/option";
 import { BackToOverviewLinks } from "../../Components/Admin/back-to-overview-links";
 import { saveToLocalStorage, getFromLocalStorage } from "../../Framework/browser";
+import { ComponentWithForm } from "../../Framework/ComponentBaseClasses/component-with-form";
 
 export class EditResource extends ComponentWithForm implements Component {
     E: FrameworkElement;
@@ -73,6 +74,13 @@ export class EditResource extends ComponentWithForm implements Component {
         const result: AsyncComponentPart = {
             I: 'resource-details-container',
             P: Promise.all([get<Array<Mod>>('/api/mods'), get<IsaacResource>(`/api/Resources/${this.resourceId}/?includeMod=true`)]).then(([mods, resource]) => {
+
+                if (!mods || !resource) {
+                    return {
+                        e: ['div', 'cannot load resource']
+                    };
+                }
+
                 const page: FrameworkElement = {
                     e: ['div'],
                     c: [
@@ -245,7 +253,7 @@ export class EditResource extends ComponentWithForm implements Component {
                                         }
                                     ]
                                 },
-                                {  
+                                {
                                     e: ['hr']
                                 },
                                 {
@@ -349,6 +357,44 @@ export class EditResource extends ComponentWithForm implements Component {
                                 },
                                 {
                                     e: ['hr']
+                                },
+                                {
+                                    e: ['div'],
+                                    c: [
+                                        {
+                                            e: ['form'],
+                                            a: [[A.Method, 'post']],
+                                            v: [[EventType.Submit, e => super.HandleSubmit(e, '/Admin/change_tags', true, this.GetLinkForNextPage(resource), this.stay ? false : true, false)]],
+                                            c: [
+                                                {
+                                                    e: ['input'],
+                                                    a: [[A.Type, 'hidden'], [A.Name, 'ResourceId'], [A.Value, resource.id]]
+                                                },
+                                                {
+                                                    e: ['div'],
+                                                    a: [[A.Class]],
+                                                    c: [
+                                                        {
+                                                            e: ['select'],
+                                                            a: [[A.Name, 'Tags'], [A.Multiple, 'true'], [A.Size, '30']],
+                                                            v: [[EventType.Input, e => super.ValidateForm(e)]],
+                                                            c: tagsOptionList(resource.tags)
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    e: ['div'],
+                                                    a: [[A.Class]],
+                                                    c: [
+                                                        {
+                                                            e: ['button', 'Change Tags'],
+                                                            a: [[A.Type, 'submit'], [A.Disabled, 'true']]
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
                                 },
                                 {
                                     e: ['p'],

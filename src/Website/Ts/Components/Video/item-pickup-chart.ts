@@ -7,7 +7,7 @@ import 'array-flat-polyfill';
 export class ItemPickupChart implements Component {
     E: FrameworkElement;
 
-    constructor(video: Promise<Video>, submissionToUse: number) {
+    constructor(video: Promise<Video | null>, submissionToUse: number) {
         this.E = {
             e: ['div'],
             a: [[A.Class, 'video-page-element']],
@@ -20,6 +20,10 @@ export class ItemPickupChart implements Component {
         };
 
         video.then(video => {
+
+            if (!video) {
+                return;
+            }
 
             const canvas = document.getElementById('item-pickup-chart-canvas');
             if (!canvas || !(canvas instanceof HTMLCanvasElement)) {

@@ -34,7 +34,6 @@ export class SearchboxComponent implements Component {
             }
 
             if (id) {
-                console.log('emitting', id);
                 for (let i = 0; i < this.subscribers.length; ++i) {
                     this.subscribers[i](id);
                 }
@@ -122,41 +121,48 @@ export class SearchboxComponent implements Component {
         }
     }
 
-    private CreateResourceLines(data: Array<IsaacResource>) {
+    private CreateResourceLines(data: Array<IsaacResource> | null): FrameworkElement {
         const lines: Array<FrameworkElement> = new Array<FrameworkElement>();
 
-        for (let i = 0; i < data.length; ++i) {
-            const x = data[i].x <= 0 ? '0px' : `-${data[i].x.toString(10)}px`;
-            const y = data[i].y <= 0 ? '0px' : `-${data[i].y.toString(10)}px`;
-            const w = data[i].w <= 0 ? '0px' : `${data[i].w.toString(10)}px`;
-            const h = data[i].h <= 0 ? '0px' : `${data[i].h.toString(10)}px`;
-            const style = `background: url('/img/isaac.png') ${x} ${y} transparent; width: ${w}; height: ${h}`;
-
-            let displayName = data[i].name;
-            if (this.displayResourceType) {
-                switch (data[i].resource_type) {
-                    case 11: displayName += ' (killed by)'; break;
-                    case 7: displayName += ' (item source)'; break;
-                    case 14: displayName += ' (character reroll)'; break;
-                    case 1: displayName += ' (bossfight)'; break;
-                }
-            }
-
+        if (!data) {
             lines.push({
-                e: ['div'],
-                a: [[A.Class, 'dd-line'], [A.DataId, data[i].id], [A.Title, data[i].name], [A.DataLowercaseName, data[i].name.toLowerCase()]],
-                c: [
-                    {
-                        e: ['div', displayName],
-                        a: [[A.Class, 'dd-text']]
-                    },
-                    {
-                        e: ['div'],
-                        a: [[A.Class, 'dd-image'], [A.Style, style]]
-                    }
-                ],
-                v: [[EventType.Click, e => this.Emit(e)]]
+                e: ['div', 'no data available']
             });
+        } else {
+            for (let i = 0; i < data.length; ++i) {
+
+                const x = data[i].x <= 0 ? '0px' : `-${data[i].x.toString(10)}px`;
+                const y = data[i].y <= 0 ? '0px' : `-${data[i].y.toString(10)}px`;
+                const w = data[i].w <= 0 ? '0px' : `${data[i].w.toString(10)}px`;
+                const h = data[i].h <= 0 ? '0px' : `${data[i].h.toString(10)}px`;
+                const style = `background: url('/img/isaac.png') ${x} ${y} transparent; width: ${w}; height: ${h}`;
+
+                let displayName = data[i].name;
+                if (this.displayResourceType) {
+                    switch (data[i].resource_type) {
+                        case 11: displayName += ' (killed by)'; break;
+                        case 7: displayName += ' (item source)'; break;
+                        case 14: displayName += ' (character reroll)'; break;
+                        case 1: displayName += ' (bossfight)'; break;
+                    }
+                }
+
+                lines.push({
+                    e: ['div'],
+                    a: [[A.Class, 'dd-line'], [A.DataId, data[i].id], [A.Title, data[i].name], [A.DataLowercaseName, data[i].name.toLowerCase()]],
+                    c: [
+                        {
+                            e: ['div', displayName],
+                            a: [[A.Class, 'dd-text']]
+                        },
+                        {
+                            e: ['div'],
+                            a: [[A.Class, 'dd-image'], [A.Style, style]]
+                        }
+                    ],
+                    v: [[EventType.Click, e => this.Emit(e)]]
+                });
+            }
         }
 
         const searchboxLinesContainer: FrameworkElement = {

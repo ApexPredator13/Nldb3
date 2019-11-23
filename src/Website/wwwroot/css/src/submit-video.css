@@ -1,4 +1,50 @@
-﻿#quotes-textarea, #submit-topic-textarea {
+﻿/* layout */
+#menu-wrapper {
+    display: flex;
+}
+
+#left-column {
+    width: 70%;
+    display: flex;
+    flex-direction: column;
+}
+
+#right-column {
+    width: 30%;
+}
+
+#youtube-player-container {
+    width: 100%;
+    padding-bottom: 56.25%;
+    position: relative;
+}
+
+#quotes-and-topic-wrapper {
+    display: flex;
+}
+
+#ytplayer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+
+/* quotes and topic area */
+#quotes {
+    width: 50%;
+    font-size: 0.85rem;
+    padding: 0 0.5rem;
+    text-align: left;
+}
+
+#quotes-textarea-wrapper {
+    display: flex;
+}
+
+#quotes-textarea, #submit-topic-textarea {
     border-radius: 0.5rem;
     background-color: beige;
     padding: 0.3rem;
@@ -17,6 +63,33 @@
     cursor: pointer;
 }
 
+
+#submit-topic-container {
+    border-left: 1px solid rgba(255,255,255,0.1);
+    border-right: 1px solid rgba(255,255,255,0.1);
+    width: 20%;
+    text-align: left;
+    padding: 0 0.5rem;
+}
+
+#submit-topic-container > p {
+    font-size: 0.85rem;
+}
+
+/* history */
+#history-container {
+    width: 30%;
+    text-align: left;
+    padding: 0 0.5rem;
+}
+
+#history-container > p {
+    margin: 0; 
+    padding: 0; 
+    font-size: 0.8rem;
+}
+
+
 #current-player-container {
     position: absolute;
     top: 0;
@@ -31,9 +104,4 @@
 .change-player-container-modifier {
     background-color: red !important;
     border-color: red !important;
-}
-
-#submit-topic-container {
-    border-left: 1px solid rgba(255,255,255,0.1);
-    border-right: 1px solid rgba(255,255,255,0.1);
 }

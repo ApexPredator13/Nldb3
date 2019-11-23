@@ -67,5 +67,9 @@ export class Link {
     static Redirect(destination: string) {
         return `/Redirect/${encodeURIComponent(destination)}`
     }
+
+    static SubmitVideo(videoId: string) {
+        return `/SubmitVideo/${videoId}`;
+    }
 }
 

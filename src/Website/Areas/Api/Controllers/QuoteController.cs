@@ -57,32 +57,32 @@ namespace Website.Areas.Api.Controllers
             return await _quoteRepository.Search(text, userId);
         }
 
-        [HttpPost, Authorize]
-        public async Task<ActionResult> CreateQuote([FromBody] SubmittedQuote quote)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest("Invalid request.");
-            }
+        //[HttpPost, Authorize]
+        //public async Task<ActionResult> CreateQuote([FromBody] SubmittedQuote quote)
+        //{
+        //    if (!ModelState.IsValid)
+        //    {
+        //        return BadRequest("Invalid request.");
+        //    }
 
-            var userId = _userManager.GetUserId(User);
-            var userCanCreateQuote = await _quoteRepository.UserCanCreateQuote(userId);
+        //    var userId = _userManager.GetUserId(User);
+        //    var userCanCreateQuote = await _quoteRepository.UserCanCreateQuote(userId);
 
-            if (!userCanCreateQuote)
-            {
-                return BadRequest("A quote can only be submitted every 15 seconds");
-            }
+        //    if (!userCanCreateQuote)
+        //    {
+        //        return BadRequest("A quote can only be submitted every 15 seconds");
+        //    }
 
-            var quoteInsertChanges = await _quoteRepository.SaveQuote(quote, userId);
-            if (quoteInsertChanges > 0)
-            {
-                return Ok();
-            }
-            else
-            {
-                return BadRequest("The quote was not saved successfully. Please try again.");
-            }
-        }
+        //    var quoteInsertChanges = await _quoteRepository.SaveQuote(quote, userId);
+        //    if (quoteInsertChanges > 0)
+        //    {
+        //        return Ok();
+        //    }
+        //    else
+        //    {
+        //        return BadRequest("The quote was not saved successfully. Please try again.");
+        //    }
+        //}
     }
 }
 

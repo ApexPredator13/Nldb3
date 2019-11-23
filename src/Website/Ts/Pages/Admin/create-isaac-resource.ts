@@ -1,4 +1,4 @@
-﻿import { ComponentWithForm, Component, FrameworkElement, EventType, A, AsyncComponentPart } from "../../Framework/renderer";
+﻿import { Component, FrameworkElement, EventType, A, AsyncComponentPart } from "../../Framework/renderer";
 import { existsInOptionlist, gameModeOptionList, resourceTypeOptionList, tagsOptionList } from "../../Components/Admin/option-lists";
 import { GameMode } from "../../Enums/game-mode";
 import { ResourceType } from "../../Enums/resource-type";
@@ -8,6 +8,7 @@ import { Option } from "../../Components/General/option";
 import { ExistsIn } from "../../Enums/exists-in";
 import { PageData, registerPage } from "../../Framework/router";
 import { AdminLink } from "./_admin-link-creator";
+import { ComponentWithForm } from "../../Framework/ComponentBaseClasses/component-with-form";
 
 export class CreateIsaacResource extends ComponentWithForm implements Component {
     E: FrameworkElement;
@@ -30,6 +31,13 @@ export class CreateIsaacResource extends ComponentWithForm implements Component 
         const part: AsyncComponentPart = {
             I: 'form-container',
             P: get<Array<Mod>>('/Api/Mods').then(mods => {
+
+                if (!mods) {
+                    const failedToLoadMods: FrameworkElement = {
+                        e: ['div', 'Failed to load mods']
+                    };
+                    return failedToLoadMods;
+                }
 
                 const modOptionList = mods.map(mod => new Option(mod.id ? mod.id.toString(10) : '', mod.name))
                 modOptionList.unshift(new Option('', 'No Mod', true));

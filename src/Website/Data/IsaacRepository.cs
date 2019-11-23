@@ -1117,6 +1117,14 @@ namespace Website.Data
             return await q.ExecuteNonQueryAsync();
         }
 
+        public async Task<int> ClearTags(string id)
+        {
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand("UPDATE isaac_resources SET tags = NULL WHERE id = @Id;", c);
+            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, id);
+            return await q.ExecuteNonQueryAsync();
+        }
+
         public List<AvailableStats> GetAvailableStats(IsaacResource resource)
         {
             return resource.ResourceType switch

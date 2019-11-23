@@ -202,7 +202,6 @@ namespace Website.Controllers
         [HttpPost("create_resource")]
         public async Task<ActionResult> CreateResource([FromForm] CreateIsaacResource model)
         {
-            // CHECK IF TAGS EXIST!
             if (model.Icon is null)
             {
                 return BadRequest("no icon!");
@@ -214,6 +213,27 @@ namespace Website.Controllers
             var result = await _isaacRepository.SaveResource(model, x, y, embeddedIconWidth, embeddedIconHeight);
 
             return Ok(result);
+        }
+
+        [HttpPost("change_tags")]
+        public async Task<ActionResult> ChangeTags([FromForm] ChangeTags model)
+        {
+            await _isaacRepository.ClearTags(model.ResourceId);
+            int dbChanges = 0;
+
+            foreach (var tag in model.Tags)
+            {
+                dbChanges += await _isaacRepository.AddTag(model.ResourceId, tag);
+            }
+           
+            if (dbChanges > 0)
+            {
+                return Ok();
+            } 
+            else
+            {
+                return BadRequest("No tags were added");
+            }
         }
     }
 }

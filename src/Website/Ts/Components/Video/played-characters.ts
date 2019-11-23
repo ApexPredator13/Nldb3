@@ -7,7 +7,7 @@ export class PlayedCharacters implements Component {
     E: FrameworkElement;
     A: Array<AsyncComponentPart>;
 
-    constructor(video: Promise<Video>, submissionToUse: number) {
+    constructor(video: Promise<Video | null>, submissionToUse: number) {
         this.E = {
             e: ['div'],
             a: [[A.Id, 'played-characters-container'], [A.Class, 'video-page-element']],
@@ -16,10 +16,17 @@ export class PlayedCharacters implements Component {
         this.A = this.CreateAsyncPart(video, submissionToUse);
     }
 
-    private CreateAsyncPart(video: Promise<Video>, submissionToUse: number): Array<AsyncComponentPart> {
+    private CreateAsyncPart(video: Promise<Video | null>, submissionToUse: number): Array<AsyncComponentPart> {
         const part: AsyncComponentPart = {
             I: 'played-characters-container',
             P: video.then(video => {
+                if (!video) {
+                    const failedToLoad: FrameworkElement = {
+                        e: ['div']
+                    };
+                    return failedToLoad;
+                }
+
                 const submission = video.submissions[submissionToUse];
 
                 const characterElements = new Array<FrameworkElement>();

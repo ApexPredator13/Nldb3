@@ -1,4 +1,7 @@
 ﻿import { getUser } from "./Customizable/authentication";
+import { ComponentWithModal } from "./ComponentBaseClasses/component-with-modal";
+import { GenericError } from "../Components/Modal/generic-error";
+
 
 async function createAuthHeader(): Promise<Headers | undefined> {
     const user = await getUser();
@@ -10,35 +13,59 @@ async function createAuthHeader(): Promise<Headers | undefined> {
     return undefined;
 }
 
-async function request<T>(url: string, requestInit?: RequestInit): Promise<T> {
-    const response = await fetch(url, requestInit);
-    return response.json() as Promise<T>;
+
+async function request<T>(url: string, requestInit?: RequestInit, displayError = true): Promise<T | null> {
+    try {
+        const response = await fetch(url, requestInit);
+
+        if (!response.ok) {
+            if (displayError) {
+                const errorMessage = await response.text();
+                new ComponentWithModal().ShowModal(new GenericError(errorMessage));
+            }
+            return null;
+        }
+
+        return response.json() as Promise<T>;
+    } catch (e) {
+        if (displayError) {
+            new ComponentWithModal().ShowModal(new GenericError('You are either offline or the server is dead.'));
+        }
+        return null;
+    }
 }
 
-async function get<T>(url: string, authorized: boolean = false): Promise<T> {
-    const headers = authorized ? await createAuthHeader() : undefined;
-    return request<T>(url, { method: 'GET', headers: headers });
+async function requestResponse(url: string, requestInit?: RequestInit): Promise<Response> {
+    return fetch(url, requestInit);
 }
 
-async function post<T>(url: string, body?: FormData, authorized: boolean = false): Promise<T> {
+
+
+async function get<T>(url: string, authorized = false, displayError = true): Promise<T | null> {
     const headers = authorized ? await createAuthHeader() : undefined;
-    return request<T>(url, { method: 'POST', headers: headers, body: body });
+    return request<T>(url, { method: 'GET', headers: headers }, displayError);
 }
 
-async function getResponse(url: string, authorized: boolean = false): Promise<Response> {
+async function getResponse(url: string, authorized = false): Promise<Response> {
     const headers = authorized ? await createAuthHeader() : undefined;
-    return await fetch(url, { method: 'GET', headers: headers });
+    return requestResponse(url, { method: 'GET', headers: headers });
 }
 
-async function postResponse(url: string, body?: FormData, authorized: boolean = false): Promise<Response> {
+async function post<T>(url: string, body?: FormData | string, authorized = false, displayError = true): Promise<T | null> {
     const headers = authorized ? await createAuthHeader() : undefined;
-    return await fetch(url, { method: 'POST', headers: headers, body: body });
+    return request<T>(url, { method: 'POST', headers: headers, body: body }, displayError);
 }
+
+async function postResponse(url: string, body?: FormData | string, authorized = false): Promise<Response> {
+    const headers = authorized ? await createAuthHeader() : undefined;
+    return requestResponse(url, { method: 'POST', headers: headers, body: body });
+}
+
 
 export {
     get,
-    post,
     getResponse,
+    post,
     postResponse
 }
 

@@ -1,4 +1,4 @@
-﻿import { Component, FrameworkElement, A, AsyncComponentPart } from "../Framework/renderer";
+﻿import { Component, FrameworkElement, A, AsyncComponentPart, EventType } from "../Framework/renderer";
 import { TopicComponent } from "../Components/Home/Topic";
 import { Frontpage } from "../Models/frontpage";
 import { get } from "../Framework/http";
@@ -49,7 +49,8 @@ export class HomePage implements Component {
                                 topic1.E,
                                 topic2.E,
                                 topic3.E
-                            ]
+                            ],
+                            v: [[EventType.Click, () => get('/Api/Resources/test')]]
                         },
                         {
                             e: ['div'],
@@ -85,6 +86,12 @@ export class HomePage implements Component {
             get<Array<FrontpageTopUser>>('/api/frontpage/top-users'),
             get<Frontpage>('/api/frontpage'),
         ]);
+
+        if (!topUsers || !data) {
+            return {
+                e: ['div', 'cannot load users']
+            };
+        }
 
         const restUsers: Array<FrameworkElement> = new Array<FrameworkElement>();
         for (let i = 3; i < topUsers.length; ++i) {

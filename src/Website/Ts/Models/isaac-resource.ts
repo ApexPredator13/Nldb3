@@ -2,6 +2,7 @@
 import { GameMode } from '../Enums/game-mode';
 import { ExistsIn } from '../Enums/exists-in';
 import { ResourceType } from '../Enums/resource-type';
+import { Tag } from '../Enums/tags';
 
 export interface IsaacResource {
     id: string,
@@ -15,7 +16,7 @@ export interface IsaacResource {
     game_mode: GameMode,
     color: string,
     mod: Mod | undefined,
-    tags: Array<number> | undefined
+    tags: Array<Tag> | undefined
     display_order: number | undefined;
     difficulty: number | undefined;
 }

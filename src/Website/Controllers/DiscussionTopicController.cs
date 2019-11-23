@@ -9,9 +9,9 @@ using Website.Services;
 using Website.Infrastructure;
 using Microsoft.AspNetCore.Identity;
 
-namespace Website.Areas.Api.Controllers
+namespace Website.Controllers
 {
-    [Area("api"), Route("[area]/topics"), ApiController]
+    [Route("Api/Topics"), ApiController]
     public class DiscussionTopicController : Controller
     {
         private readonly IDiscussionTopicsRepository _discussionTopicRepository;

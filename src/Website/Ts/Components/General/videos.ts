@@ -6,8 +6,12 @@ import { ResourceType } from "../../Enums/resource-type";
 import { navigate, PageType } from "../../Framework/router";
 import { VideoOrderBy } from "../../Enums/video-order-by";
 import { Link } from "../../Pages/_link-creator";
+import { addClassIfNotExists, removeClassIfExists } from "../../Framework/browser";
+import { getUser } from "../../Framework/Customizable/authentication";
+import { NotLoggedInModal } from "../Modal/not-logged-in";
+import { ComponentWithModal } from "../../Framework/ComponentBaseClasses/component-with-modal";
 
-export class VideosComponent implements Component {
+export class VideosComponent extends ComponentWithModal implements Component {
 
     E: FrameworkElement;
     A: Array<AsyncComponentPart>
@@ -25,6 +29,7 @@ export class VideosComponent implements Component {
     private videoTableBodyId = 'video-table-body';
 
     constructor(header: string, description?: string, private resourceType?: ResourceType, private from?: string, private to?: string, private resourceId?: string) {
+        super();
         const url = this.createRequestUrl(false);
         this.A = this.CreateTbody(url);
         this.E = this.CreateThead(header, description);
@@ -167,8 +172,6 @@ export class VideosComponent implements Component {
 
 
     private CreateTbody(url: string): Array<AsyncComponentPart> {
-        console.log('loading videos from ', url);
-
         const videoRequest = get<VideoResult>(url);
 
         const pagination: AsyncComponentPart = {
@@ -264,8 +267,15 @@ export class VideosComponent implements Component {
 
     
 
-    private async CreatePagination(videoRequest: Promise<VideoResult>): Promise<FrameworkElement> {
+    private async CreatePagination(videoRequest: Promise<VideoResult | null>): Promise<FrameworkElement> {
         return videoRequest.then(videoResult => {
+
+            if (!videoResult) {
+                return {
+                    e: ['div']
+                }
+            }
+
             const paginationElements = new Array<FrameworkElement>();
 
             let pageCounter = 1;
@@ -299,14 +309,19 @@ export class VideosComponent implements Component {
 
 
 
-    private async CreateVideos(videoRequest: Promise<VideoResult>): Promise<FrameworkElement> {
+    private async CreateVideos(videoRequest: Promise<VideoResult | null>): Promise<FrameworkElement> {
         return videoRequest.then(videoResult => {
+            if (!videoResult) {
+                return {
+                    e: ['div', 'failed to load video data']
+                }
+            }
+
             const videos = new Array<FrameworkElement>();
             for (let i = 0; i < videoResult.videos.length; ++i) {
                 const video = videoResult.videos[i];
                 const clickEvent = (e: Event) => {
                     e.preventDefault();
-                    console.log('clicked title.', video);
                     if (video.submission_count > 0) {
                         navigate(Link.Episode(video.id), undefined, PageType.Episode);
                     }
@@ -359,7 +374,7 @@ export class VideosComponent implements Component {
                     },
                     {
                         e: ['td', 'Submit'],
-                        v: [[EventType.Click, e => { e.preventDefault(); navigate('submit'); }]],
+                        v: [[EventType.Click, e => this.SubmitVideoClickEvent(e, video.id)]],
                         a: [[A.Class, 'hand u']]
                     }
                 ]
@@ -380,6 +395,24 @@ export class VideosComponent implements Component {
     }
 
 
+    private SubmitVideoClickEvent(e: Event, videoId: string) {
+        e.preventDefault();
+        const target = e.target;
+        if (target && target instanceof HTMLTableCellElement) {
+            addClassIfNotExists(target, 'progress');
+            getUser().then(user => {
+                if (!user) {
+                    super.ShowModal(new NotLoggedInModal(), true);
+                } else {
+                    navigate(Link.SubmitVideo(videoId))
+                }
+            }).finally(() => {
+                if (target) {
+                    removeClassIfExists(target, 'progress');
+                }
+            });
+        }
+    }
 
     private PrintNumber(num: number | undefined | null, decimals: null | 1 | 2 = null): string | undefined {
         if (num) {

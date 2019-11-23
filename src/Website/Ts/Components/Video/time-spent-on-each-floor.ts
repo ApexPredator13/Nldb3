@@ -5,7 +5,7 @@ import { Chart } from 'chart.js';
 export class TimeSpentOnEachFloor implements Component {
     E: FrameworkElement;
 
-    constructor(video: Promise<Video>, submissionToUse: number) {
+    constructor(video: Promise<Video | null>, submissionToUse: number) {
         this.E = {
             e: ['div'],
             a: [[A.Class, 'video-page-element']],
@@ -18,35 +18,37 @@ export class TimeSpentOnEachFloor implements Component {
         }
 
         video.then(video => {
-            const submission = video.submissions[submissionToUse];
-            const allFloors = submission.played_characters.flatMap(c => c.played_floors);
+            if (video) {
+                const submission = video.submissions[submissionToUse];
+                const allFloors = submission.played_characters.flatMap(c => c.played_floors);
 
-            const canvas = document.getElementById('time-spent-canvas');
-            if (!canvas || !(canvas instanceof HTMLCanvasElement)) {
-                return;
-            }
-            const canvasContext = canvas.getContext('2d');
-            if (!canvasContext) {
-                return;
-            }
-
-            new Chart(canvasContext, {
-                type: 'bar',
-                data: {
-                    labels: allFloors.map(f => f.floor.name),
-                    datasets: [
-                        {
-                            data: allFloors.map(f => f.duration),
-                            backgroundColor: allFloors.map(f => f.floor.color)
-                        }
-                    ]
-                },
-                options: {
-                    legend: {
-                        display: false
-                    }
+                const canvas = document.getElementById('time-spent-canvas');
+                if (!canvas || !(canvas instanceof HTMLCanvasElement)) {
+                    return;
                 }
-            })
+                const canvasContext = canvas.getContext('2d');
+                if (!canvasContext) {
+                    return;
+                }
+
+                new Chart(canvasContext, {
+                    type: 'bar',
+                    data: {
+                        labels: allFloors.map(f => f.floor.name),
+                        datasets: [
+                            {
+                                data: allFloors.map(f => f.duration),
+                                backgroundColor: allFloors.map(f => f.floor.color)
+                            }
+                        ]
+                    },
+                    options: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                });
+            }
         });
     }
 }

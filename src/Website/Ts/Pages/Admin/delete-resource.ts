@@ -1,7 +1,8 @@
-﻿import { ComponentWithForm, Component, FrameworkElement, A, EventType } from "../../Framework/renderer";
+﻿import { Component, FrameworkElement, A, EventType } from "../../Framework/renderer";
 import { AdminLink } from "./_admin-link-creator";
 import { navigate, PageData, registerPage } from "../../Framework/router";
 import { ResourceType } from "../../Enums/resource-type";
+import { ComponentWithForm } from "../../Framework/ComponentBaseClasses/component-with-form";
 
 export class DeleteResource extends ComponentWithForm implements Component {
     E: FrameworkElement;

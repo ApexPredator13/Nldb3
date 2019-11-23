@@ -6,6 +6,7 @@ using Website.Models;
 using Website.Models.Database;
 using Website.Models.Database.Enums;
 using Website.Models.Resource;
+using Website.Models.SubmitEpisode;
 using Website.Services;
 
 namespace Website.Controllers
@@ -45,6 +46,9 @@ namespace Website.Controllers
             _videoRepository = videoRepository;
         }
 
+        [HttpGet("test")]
+        public BadRequestObjectResult Test() => BadRequest("This is a test");
+
         [HttpGet]
         public async Task<List<IsaacResource>> GetResources([FromQuery] GetResource searchOptions)
         {
@@ -55,6 +59,13 @@ namespace Website.Controllers
         public async Task<IsaacResource?> GetResource(string id, bool includeMod = false)
         {
             return await _isaacRepository.GetResourceById(id, includeMod);
+        }
+
+        [HttpPost("history")]
+        public async Task<History> GetHistory([FromBody] SubmittedCompleteEpisode episode)
+        {
+            var history = await _isaacRepository.GetHistory(episode);
+            return history;
         }
 
         //[HttpGet]

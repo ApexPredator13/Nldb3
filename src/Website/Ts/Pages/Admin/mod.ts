@@ -15,7 +15,6 @@ export class ModPage implements Component {
 
     constructor(parameters: Array<string>) {
         const modId = Number(parameters[0]);
-        console.log('page data', modId);
         if (typeof (modId) === 'number') {
             this.modId = modId;
         }
@@ -41,6 +40,13 @@ export class ModPage implements Component {
         const part: AsyncComponentPart = {
             I: 'mod-container',
             P: this.modId ? get<Mod>(`/Api/Mods/${this.modId}`).then(mod => {
+
+                if (!mod) {
+                    const failedToLoadMod: FrameworkElement = {
+                        e: ['div', 'Failed to load mod']
+                    };
+                    return failedToLoadMod;
+                }
 
                 const clickAddLinkEvent = (e: Event) => {
                     e.preventDefault();

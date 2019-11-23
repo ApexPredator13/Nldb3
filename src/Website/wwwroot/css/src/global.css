@@ -80,6 +80,9 @@ a:hover {
 .hand {
     cursor: pointer;
 }
+.progress {
+    cursor: progress;
+}
 .orange {
     color: orange;
 }

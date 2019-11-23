@@ -15,7 +15,7 @@ export class ItemsSortedBySources implements Component {
 
     private results = new Map<string, sortedItems>();
 
-    constructor(video: Promise<Video>, submissionToUse: number) {
+    constructor(video: Promise<Video | null>, submissionToUse: number) {
 
         this.E = {
             e: ['div'],
@@ -63,11 +63,18 @@ export class ItemsSortedBySources implements Component {
         }
     }
 
-    private CreateAsyncPart(video: Promise<Video>, submissionToUse: number): Array<AsyncComponentPart> {
+    private CreateAsyncPart(video: Promise<Video | null>, submissionToUse: number): Array<AsyncComponentPart> {
         const part: AsyncComponentPart = {
             A: true,
             I: 'sorted-items-table',
             P: video.then(video => {
+                if (!video) {
+                    const failedToLoad: FrameworkElement = {
+                        e: ['div']
+                    };
+                    return failedToLoad;
+                }
+
                 for (const character of video.submissions[submissionToUse].played_characters) {
                     for (const floor of character.played_floors) {
                         for (const event of floor.events) {

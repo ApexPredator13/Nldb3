@@ -7,7 +7,7 @@ import { Chart, ChartConfiguration } from 'chart.js';
 export class VideoStats implements Component {
     E: FrameworkElement;
 
-    constructor(video: Promise<Video>) {
+    constructor(video: Promise<Video | null>) {
         this.E = {
             e: ['div'],
             a: [[A.Id, 'global-stats'], [A.Class, 'video-page-element']],
@@ -90,9 +90,13 @@ export class VideoStats implements Component {
         this.CreateVideoStatsChart(video);
     }
 
-    private CreateVideoStatsChart(video: Promise<Video>): void {
+    private CreateVideoStatsChart(video: Promise<Video | null>): void {
 
         Promise.all([video, get<MaxVideoStats>('/api/videos/max')]).then(([video, stats]) => {
+            if (!stats || !video) {
+                return;
+            }
+
             const { likes, dislikes, view_count, comment_count } = video;
             const { max_likes, max_dislikes, max_views, max_comments, avg_likes, avg_dislikes, avg_views, avg_comments } = stats;
 

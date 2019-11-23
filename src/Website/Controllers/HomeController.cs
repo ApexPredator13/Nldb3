@@ -9,6 +9,7 @@ namespace Website.Controllers
     {
         public const string Controllername = "Home";
 
+        [HttpGet("{*url}")]
         public IActionResult Index() => View();
 
         public ViewResult SilentSignin() => View();

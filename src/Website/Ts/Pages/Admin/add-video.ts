@@ -1,7 +1,8 @@
-﻿import { FrameworkElement, A, ComponentWithForm, EventType, Component } from "../../Framework/renderer";
+﻿import { FrameworkElement, A, EventType, Component } from "../../Framework/renderer";
 import { PageData, registerPage } from "../../Framework/router";
 import { BackToOverviewLinks } from "../../Components/Admin/back-to-overview-links";
 import { AdminLink } from "./_admin-link-creator";
+import { ComponentWithForm } from "../../Framework/ComponentBaseClasses/component-with-form";
 
 export class AddVideoPage extends ComponentWithForm implements Component {
     E: FrameworkElement

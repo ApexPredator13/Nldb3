@@ -179,6 +179,7 @@ const convertTagToString = (t: Tag): string => {
         case Tag.DamageUpTemporary: return 'Temporary Damage Up';
         case Tag.DamageDownTemporary: return 'Temporary Damage Down';
         case Tag.SpeedUpTemporary: return 'Temporary Speed Up';
+        case Tag.SpeedDownTemporary: return 'Temporary Speed Down';
         case Tag.ShotSpeedDownTemporary: return 'Temporary Speed Down';
         case Tag.ShotSpeedUpTemporary: return 'Temporary Shot Speed Up';
         case Tag.ShotSpeedDownTemporary: return 'Temporary Shot Speed Down';

@@ -72,8 +72,12 @@ button:focus {
     border-color: red;
 }
 
-button[disabled=true] {
+button[disabled] {
     cursor: not-allowed;
+}
+
+button[disabled=false] {
+    cursor: pointer;
 }
 
 form .fc {

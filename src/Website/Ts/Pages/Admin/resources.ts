@@ -1,4 +1,4 @@
-﻿import { Component, FrameworkElement, AsyncComponentPart, A, EventType, ComponentWithForm, render } from "../../Framework/renderer";
+﻿import { Component, FrameworkElement, AsyncComponentPart, A, EventType, render } from "../../Framework/renderer";
 import { PageData, registerPage, navigate, addAfterRenderActionToPage } from "../../Framework/router";
 import { get } from "../../Framework/http";
 import { IsaacResource } from "../../Models/isaac-resource";
@@ -8,6 +8,7 @@ import { Option } from '../../Components/General/option';
 import { convertGameModeToString, convertExistsInToString } from "../../Enums/enum-to-string-converters";
 import { saveToLocalStorage, getFromLocalStorage } from "../../Framework/browser";
 import { IsaacImage } from "../../Components/General/isaac-image";
+import { ComponentWithForm } from "../../Framework/ComponentBaseClasses/component-with-form";
 
 export class ResourcesPage extends ComponentWithForm implements Component {
     E: FrameworkElement;
@@ -92,6 +93,14 @@ export class ResourcesPage extends ComponentWithForm implements Component {
         const part: AsyncComponentPart = {
             I: 'loaded-resources',
             P: get<Array<IsaacResource>>(`/Api/Resources/?ResourceType=${this.resourceType.toString(10)}&IncludeMod=true`).then(resources => {
+
+                if (!resources) {
+                    const noResourcesElement: FrameworkElement = {
+                        e: ['div', 'failed to load resources']
+                    };
+                    return noResourcesElement;
+                }
+
                 const tableLines = new Array<FrameworkElement>();
 
                 for (let i = 0; i < resources.length; ++i) {
@@ -102,7 +111,6 @@ export class ResourcesPage extends ComponentWithForm implements Component {
                         addAfterRenderActionToPage(AdminLink.ResourceOverview(this.resourceType), () => {
                             const lastScrollposition = getFromLocalStorage<{ position: number }>('resource-position');
                             if (lastScrollposition) {
-                                console.log('scrolling to:', lastScrollposition.position);
                                 window.scrollTo(0, lastScrollposition.position);
                             }
                         });

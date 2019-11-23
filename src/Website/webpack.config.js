@@ -1,5 +1,8 @@
 ﻿const path = require('path');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
+const webpack = require('webpack');
+
+const configuration = 'development';
 
 module.exports = {
     entry: {
@@ -35,12 +38,17 @@ module.exports = {
         extensions: [ '.ts', '.css', '.js' ]
     },
     plugins: [
-        new CleanWebpackPlugin()
+        new CleanWebpackPlugin(),
+        new webpack.NormalModuleReplacementPlugin(
+            /[.a-zA-Z|\/|\\]*config.(production|development).ts/,
+            configuration === 'production' ? './config.production.ts' : './config.development.ts'
+        )
     ],
     mode: 'production',
     externals: {
         moment: 'moment'
     },
+    devtool: 'inline-source-map',
     optimization: {
         runtimeChunk: 'single',
         splitChunks: {

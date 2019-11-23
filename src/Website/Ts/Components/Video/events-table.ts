@@ -17,7 +17,7 @@ export class EventsTableComponent implements Component {
 
     private containerId = 'video-page-tables';
 
-    constructor(private video: Promise<Video>, private episodeIndex: number) {
+    constructor(private video: Promise<Video | null>, private episodeIndex: number) {
         this.E = {
             e: ['div'],
             a: [[A.Id, this.containerId]]
@@ -32,6 +32,13 @@ export class EventsTableComponent implements Component {
         const componentPart: AsyncComponentPart = {
             I: this.containerId,
             P: this.video.then(v => {
+
+                if (!v) {
+                    const failedToLoad: FrameworkElement = {
+                        e: ['div']
+                    };
+                    return failedToLoad;
+                }
 
                 const e = v.submissions[this.episodeIndex];
 

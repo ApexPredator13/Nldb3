@@ -55,7 +55,14 @@ export class ModsPage implements Component {
         return [part];
     }
 
-    private CreateModsTable(mods: Array<Mod>): FrameworkElement {
+    private CreateModsTable(mods: Array<Mod> | null): FrameworkElement {
+
+        if (!mods) {
+            const failedToLoadMods: FrameworkElement = {
+                e: ['div', 'Failed to load mods']
+            };
+            return failedToLoadMods;
+        }
 
         const lines = new Array<FrameworkElement>();
 

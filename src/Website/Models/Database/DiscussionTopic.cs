@@ -15,7 +15,7 @@ namespace Website.Models.Database
 
         [Required]
         [JsonProperty("topic")]
-        [StringLength(100, MinimumLength = 3)]
+        [StringLength(100, MinimumLength = 5)]
         public string Topic { get; set; } = string.Empty;
     }
 }

@@ -90,8 +90,6 @@ function getFromLocalStorage<T>(key: string): T | null {
 
 const saveToLocalStorage = (key: string, value: any) => {
     if (value) {
-        const stringified = JSON.stringify(value);
-        console.log('saving to local storage:', key, stringified);
         localStorage.setItem(key, JSON.stringify(value));
     }
 }

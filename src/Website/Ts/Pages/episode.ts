@@ -17,7 +17,7 @@ export class EpisodePage implements Component {
     A: Array<AsyncComponentPart>;
 
     private videoId: string;
-    private videoData: Promise<Video>;
+    private videoData: Promise<Video | null>;
 
     private headerContainerId = 'video-title';
 
@@ -30,7 +30,7 @@ export class EpisodePage implements Component {
 
         // load video
         this.videoData = get<Video>(`/api/videos/${this.videoId}`);
-        this.videoData.then(video => setTitle(video.title));
+        this.videoData.then(video => setTitle(video ? video.title : 'failed to load video'));
 
         this.E = {
             e: ['div'],
@@ -113,7 +113,7 @@ export class EpisodePage implements Component {
             I: this.headerContainerId,
             P: this.videoData.then(video => {
                 return {
-                    e: ['h1', video.title],
+                    e: ['h1', video ? video.title : 'Failed to load video'],
                     c: [
                         {
                             e: ['hr']

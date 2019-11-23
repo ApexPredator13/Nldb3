@@ -1,14 +1,15 @@
-﻿import { FrameworkElement, AsyncComponentPart, A, ComponentWithPopup, Component, EventType } from "../../Framework/renderer";
+﻿import { FrameworkElement, AsyncComponentPart, A, Component, EventType } from "../../Framework/renderer";
 import { Video } from "../../Models/video";
 import { TimelinePopup } from "./timeline-popup";
 import { GameplayEventType } from "../../Enums/gameplay-event-type";
 import { IsaacImage } from "../General/isaac-image";
+import { ComponentWithPopup } from "../../Framework/ComponentBaseClasses/component-with-popup";
 
 export class Timeline extends ComponentWithPopup implements Component {
     E: FrameworkElement;
     A: Array<AsyncComponentPart>;
 
-    constructor(video: Promise<Video>, submissionIndex: number) {
+    constructor(video: Promise<Video | null>, submissionIndex: number) {
         super();
 
         const element: FrameworkElement = {
@@ -20,10 +21,18 @@ export class Timeline extends ComponentWithPopup implements Component {
         this.A = this.CreateTimeline(video, submissionIndex);
     }
 
-    CreateTimeline(video: Promise<Video>, submissionIndex: number): Array<AsyncComponentPart> {
+    CreateTimeline(video: Promise<Video | null>, submissionIndex: number): Array<AsyncComponentPart> {
         const part: AsyncComponentPart = {
             I: 'timeline-container',
             P: video.then(video => {
+
+                if (!video) {
+                    const failedToLoad: FrameworkElement = {
+                        e: ['div']
+                    };
+                    return failedToLoad;
+                }
+
                 const submission = video.submissions[submissionIndex];
                 const floors = submission.played_characters.flatMap(x => x.played_floors);
 
@@ -33,10 +42,6 @@ export class Timeline extends ComponentWithPopup implements Component {
 
                 for (let i = 0; i < floors.length; ++i) {
                     const floor = floors[i];
-
-                    if (floor.floor.name.toLowerCase().indexOf('chest') !== -1) {
-                        console.log(floor);
-                    }
 
                     const durationSplit = video.duration.split(':');
                     const hours = Number(durationSplit[0]);

@@ -1,5 +1,5 @@
-﻿import { render, Component } from "./renderer";
-import { addClassIfNotExists } from "./browser";
+﻿import { FrameworkElement, Component, EventType, render } from "../renderer";
+import { setZIndex, addClassIfNotExists } from "../browser";
 
 type popupEventData = {
     popup: Component,
@@ -8,7 +8,6 @@ type popupEventData = {
 
 const registerPopupEvent = () => {
     if (!(window as any).popupEventSet) {
-        console.log('registering popup event...');
         window.addEventListener("showPopup", ((e: CustomEvent<popupEventData>) => {
             const data = e.detail;
             const target = data.event.target;
@@ -33,8 +32,6 @@ const registerPopupEvent = () => {
                 }
 
                 target.appendChild(html);
-            } else {
-                console.warn('popup component was not rendered', html);
             }
         }) as EventListener);
     }
@@ -42,7 +39,33 @@ const registerPopupEvent = () => {
     (window as any).popupEventSet = true;
 }
 
+class ComponentWithPopup {
+    CreatePopupForElement(element: FrameworkElement, component: Component) {
+        if (!element.v) {
+            element.v = new Array<[EventType, EventListener]>();
+        }
+
+        const mouseEnter = (e: Event) => {
+            const eventData: popupEventData = {
+                event: e,
+                popup: component
+            };
+
+            setZIndex(e, 10000);
+            const event: CustomEvent<popupEventData> = new CustomEvent('showPopup', { detail: eventData });
+            window.dispatchEvent(event);
+        };
+
+        const mouseLeave = (e: Event) => {
+            setZIndex(e, null);
+        }
+
+        element.v.push([EventType.MouseEnter, mouseEnter], [EventType.MouseLeave, mouseLeave]);
+    }
+}
+
 export {
+    ComponentWithPopup,
     registerPopupEvent,
     popupEventData
 }
