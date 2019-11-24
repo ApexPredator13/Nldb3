@@ -3,7 +3,8 @@
 export interface SubmittedGameplayEvent {
     EventType: GameplayEventType,
     RelatedResource1: string,
-    RelatedResource2: string | null,
-    RelatedResource3: number | null,
-    Player: number | null
+    RelatedResource2?: string,
+    RelatedResource3?: number,
+    Player: 1 | 2 | null,
+    Rerolled?: boolean
 }

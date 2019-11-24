@@ -74,24 +74,35 @@ export class HistoryTable implements Component {
         this.ReloadHistory();
     }
 
+    AddSeed(seed: string | null) {
+        const currentCharacter = this.GetCurrentCharacter();
+        currentCharacter.Seed = seed;
+    }
+
+    CurrentCharacterHasSeed(): boolean {
+        const currentCharacter = this.GetCurrentCharacter();
+        if (currentCharacter.Seed) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     private RemoveHistoryElement(e: Event) {
         const data = this.GetRemoveIndexData(e);
+        console.log('remove history: ', data);
         if (!data.valid) {
             return;
         }
 
-        // character was removed
-        if (data.characterIndex && !data.floorIndex && !data.eventIndex) {
+        if (data.characterIndex !== null && data.floorIndex == null && data.eventIndex == null) {
+            // character was removed
             this.dataForThisEpisode.PlayedCharacters.splice(data.characterIndex, 1);
-        }
-
-        // floor was removed
-        if (data.characterIndex && data.floorIndex && !data.eventIndex) {
+        } else if (data.characterIndex !== null && data.floorIndex !== null && data.eventIndex == null) {
+            // floor was removed
             this.dataForThisEpisode.PlayedCharacters[data.characterIndex].PlayedFloors.splice(data.floorIndex, 1);
-        }
-
-        // event was removed
-        if (data.characterIndex && data.floorIndex && data.eventIndex) {
+        } else if (data.characterIndex !== null && data.floorIndex !== null && data.eventIndex !== null) {
+            // event was removed
             this.dataForThisEpisode.PlayedCharacters[data.characterIndex].PlayedFloors[data.floorIndex].GameplayEvents.splice(data.eventIndex, 1);
         }
 
@@ -99,7 +110,7 @@ export class HistoryTable implements Component {
     }
 
     private GetRemoveIndexData(e: Event): removeHistoryElement {
-        const target = e.target;
+        const target = e.currentTarget;
 
         const invalidResult = {
             valid: false,
@@ -123,6 +134,7 @@ export class HistoryTable implements Component {
         if (!characterIndex && !floorIndex && !eventIndex) {
             return invalidResult;
         } else {
+            e.stopPropagation();
             return {
                 valid: true,
                 characterIndex: characterIndex ? Number(characterIndex) : null,
@@ -139,7 +151,8 @@ export class HistoryTable implements Component {
 
     private GetCurrentFloor(): SubmittedPlayedFloor {
         const currentCharacter = this.GetCurrentCharacter();
-        const currentFloorIndex = currentCharacter.PlayedFloors.length;
+        console.log('current floor requested', currentCharacter);
+        const currentFloorIndex = currentCharacter.PlayedFloors.length - 1;
         return currentCharacter.PlayedFloors[currentFloorIndex];
     }
 
@@ -240,14 +253,6 @@ export class HistoryTable implements Component {
         };
 
         return row;
-    }
-
-    CreateCharacterTableCell(character: CharacterHistory, characterIndex: number): FrameworkElement {
-        return {
-            e: ['td'],
-            a: [[A.Class, 'hand'], [A.DataC, characterIndex.toString(10)]],
-            c: [ new IsaacImage(character.characterImage, undefined, undefined, false) ]
-        };
     }
 }
 

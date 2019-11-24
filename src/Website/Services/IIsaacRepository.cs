@@ -20,7 +20,7 @@ namespace Website.Services
         Task<int> MakeTransformative(MakeIsaacResourceTransformative model);
         Task<string?> GetFirstResourceIdFromName(string name);
         Task<List<(string transformation, bool countsMultipleTimes, int stepsNeeded)>> GetTransformationData(string resourceId, string videoTitle, DateTime videoReleasedate);
-        Task<bool> HasTags(string resourceId, params Effect[] RequiredTags);
+        Task<bool> HasTags(string resourceId, params Tag[] RequiredTags);
         Task<int> UpdateName(string id, string newName);
         Task<int> UpdateId(string oldId, string newId);
         Task<int> UpdateColor(ChangeColor changeColor);
@@ -33,7 +33,7 @@ namespace Website.Services
         Task<List<PlayedFloor>> GetFloorsForVideo(string videoId, int? submissionId = null);
         Task<List<PlayedCharacter>> GetPlayedCharactersForVideo(string videoId, int? submissionId = null);
         Task<List<SubmittedEpisode>> GetSubmittedEpisodesForVideo(string videoId, int? submissionId = null);
-        Task<int> AddTag(string id, Effect tag);
+        Task<int> AddTag(string id, Tag tag);
         Task<List<DateTime>> GetEncounteredIsaacResourceTimestamps(string isaacResourceId, int resourceNumber, GameplayEventType? eventType = null);
         Task<string?> GetResourceNameFromId(string id);
         Task<ResourceType> GetResourceTypeFromId(string id);
@@ -48,5 +48,6 @@ namespace Website.Services
         Task<int> DeleteSubmission(int submissionId);
         Task<bool> ResourceExists(string resourceId);
         Task<int> ClearTags(string id);
+        Task<int> ChangeDisplayOrder(ChangeDisplayOrder displayOrder);
     }
 }

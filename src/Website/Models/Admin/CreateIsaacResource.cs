@@ -35,6 +35,6 @@ namespace Website.Models.Admin
 
         public int? Difficulty { get; set; } = null;
 
-        public List<Effect>? Tags { get; set; } = null;
+        public List<Tag>? Tags { get; set; } = null;
     }
 }

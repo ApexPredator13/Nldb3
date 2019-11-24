@@ -269,5 +269,6 @@
     ComesAfterUteroXl,
     ComesAfterWombOne,
     ComesAfterWombTwo,
-    ComesAfterWombXl
+    ComesAfterWombXl,
+    IsFirstFloor
 }

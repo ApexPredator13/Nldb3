@@ -45,6 +45,15 @@ namespace Website.Data
             }
         }
 
+        public async Task<int> ChangeDisplayOrder(ChangeDisplayOrder displayOrder)
+        {
+            using var c = await _connector.Connect();
+            using var q = new NpgsqlCommand("UPDATE isaac_resources SET display_order = @NewOrder WHERE id = @Id;", c);
+            q.Parameters.AddWithValue("@NewOrder", NpgsqlDbType.Integer, displayOrder.DisplayOrder ?? (object)DBNull.Value);
+            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, displayOrder.ResourceId);
+            return await q.ExecuteNonQueryAsync();
+        }
+
         public async Task<List<(int amount, IsaacResource item)>> GetTransformationItemRanking(string transformationId)
         {
             var result = new List<(int amount, IsaacResource item)>();
@@ -80,7 +89,7 @@ namespace Website.Data
                         Mod = null,
                         DisplayOrder = r.IsDBNull(8) ? null : (int?)r.GetInt32(8),
                         Difficulty = r.IsDBNull(9) ? null : (int?)r.GetInt32(9),
-                        Tags = r.IsDBNull(10) ? null : ((int[])r[10]).Select(x => (Effect)x).ToList()
+                        Tags = r.IsDBNull(10) ? null : ((int[])r[10]).Select(x => (Tag)x).ToList()
                     };
                     result.Add((amount, resource));
                 }
@@ -126,7 +135,7 @@ namespace Website.Data
                         Mod = null,
                         DisplayOrder = r.IsDBNull(8) ? null : (int?)r.GetInt32(8),
                         Difficulty = r.IsDBNull(9) ? null : (int?)r.GetInt32(9),
-                        Tags = r.IsDBNull(10) ? null : ((int[])r[10]).Select(x => (Effect)x).ToList()
+                        Tags = r.IsDBNull(10) ? null : ((int[])r[10]).Select(x => (Tag)x).ToList()
                     };
                     result.Add((amount, resource));
                 }
@@ -173,7 +182,7 @@ namespace Website.Data
                         Mod = null,
                         DisplayOrder = r.IsDBNull(8) ? null : (int?)r.GetInt32(8),
                         Difficulty = r.IsDBNull(9) ? null : (int?)r.GetInt32(9),
-                        Tags = r.IsDBNull(10) ? null : ((int[])r[10]).Select(x => (Effect)x).ToList()
+                        Tags = r.IsDBNull(10) ? null : ((int[])r[10]).Select(x => (Tag)x).ToList()
                     };
                     result.Add((amount, resource));
                 }
@@ -218,7 +227,7 @@ namespace Website.Data
                         Mod = null,
                         DisplayOrder = r.IsDBNull(8) ? null : (int?)r.GetInt32(8),
                         Difficulty = r.IsDBNull(9) ? null : (int?)r.GetInt32(9),
-                        Tags = r.IsDBNull(10) ? null : ((int[])r[10]).Select(x => (Effect)x).ToList()
+                        Tags = r.IsDBNull(10) ? null : ((int[])r[10]).Select(x => (Tag)x).ToList()
                     };
 
                     result.Add((amount, resource));
@@ -263,7 +272,7 @@ namespace Website.Data
                         Mod = null,
                         DisplayOrder = r.IsDBNull(8) ? null : (int?)r.GetInt32(8),
                         Difficulty = r.IsDBNull(9) ? null : (int?)r.GetInt32(9),
-                        Tags = r.IsDBNull(10) ? null : ((int[])r[10]).Select(x => (Effect)x).ToList()
+                        Tags = r.IsDBNull(10) ? null : ((int[])r[10]).Select(x => (Tag)x).ToList()
                     };
 
                     result.Add((amount, resource));
@@ -483,7 +492,7 @@ namespace Website.Data
                             Color = r.GetString(i++),
                             DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
                             Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                            Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Effect)x).ToList(),
+                            Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Tag)x).ToList(),
                         }
                     };
 
@@ -500,7 +509,7 @@ namespace Website.Data
                             Color = r.GetString(i++),
                             DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
                             Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                            Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Effect)x).ToList()
+                            Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Tag)x).ToList()
                         };
                     }
 
@@ -558,7 +567,7 @@ namespace Website.Data
                             Color = r.GetString(i++),
                             DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
                             Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                            Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Effect)x).ToList()
+                            Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Tag)x).ToList()
                         }
                     };
 
@@ -575,7 +584,7 @@ namespace Website.Data
                             Color = r.GetString(i++),
                             DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
                             Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                            Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Effect)x).ToList()
+                            Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Tag)x).ToList()
                         };
                     }
 
@@ -592,7 +601,7 @@ namespace Website.Data
 
             var query =
                 "SELECT " +
-                    "e.id, e.event_type, e.action, e.resource_three, e.run_number, e.player, e.floor_number, e.submission, " +
+                    "e.id, e.event_type, e.action, e.resource_three, e.run_number, e.player, e.floor_number, e.submission, e.was_rerolled, " +
                     "r1.id, r1.name, r1.type, r1.exists_in, r1.x, r1.game_mode, r1.color, r1.display_order, r1.difficulty, r1.tags, " +
                     "r2.id, r2.name, r2.type, r2.exists_in, r2.x, r2.game_mode, r2.color, r2.display_order, r2.difficulty, r2.tags " +
                 "FROM gameplay_events e " +
@@ -624,6 +633,7 @@ namespace Website.Data
                         Player = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
                         FloorNumber = r.GetInt32(i++),
                         Submission = r.GetInt32(i++),
+                        WasRerolled = r.GetBoolean(i++),
                         Resource1 = new IsaacResource()
                         {
                             Id = r.GetString(i++),
@@ -635,7 +645,7 @@ namespace Website.Data
                             Color = r.GetString(i++),
                             DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
                             Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                            Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Effect)x).ToList()
+                            Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Tag)x).ToList(),
                         }
                     };
 
@@ -652,7 +662,7 @@ namespace Website.Data
                             Color = r.GetString(i++),
                             DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
                             Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                            Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Effect)x).ToList()
+                            Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Tag)x).ToList()
                         };
                     }
 
@@ -892,7 +902,7 @@ namespace Website.Data
                             Color = r.GetString(i++),
                             DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
                             Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                            Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Effect)x).ToList()
+                            Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Tag)x).ToList()
                         });
                     }
                     else i += 10;
@@ -974,7 +984,7 @@ namespace Website.Data
                             Color = r.GetString(i++),
                             DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
                             Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                            Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Effect)x).ToList()
+                            Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Tag)x).ToList()
                         };
                     }
                     else i += 10;
@@ -1055,7 +1065,7 @@ namespace Website.Data
             return await q.ExecuteNonQueryAsync();
         }
 
-        public async Task<bool> HasTags(string resourceId, params Effect[] effects)
+        public async Task<bool> HasTags(string resourceId, params Tag[] effects)
         {
             bool hasEffects = false;
 
@@ -1108,7 +1118,7 @@ namespace Website.Data
             return result;
         }
 
-        public async Task<int> AddTag(string id, Effect tag)
+        public async Task<int> AddTag(string id, Tag tag)
         {
             using var c = await _connector.Connect();
             using var q = new NpgsqlCommand("UPDATE isaac_resources SET tags = tags || ARRAY[@T] WHERE id = @Id;", c);

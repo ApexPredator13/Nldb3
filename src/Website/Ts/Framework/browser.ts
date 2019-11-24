@@ -37,13 +37,13 @@ const show = (...elements: Array<HTMLElement | null>) => {
     }
 }
 
-const addClassIfNotExists = (e: HTMLElement | null, className: string) => {
+const addClassIfNotExists = (e: Element | null, className: string) => {
     if (e &&!e.classList.contains(className)) {
         e.classList.add(className);
     }
 }
 
-const removeClassIfExists = (e: HTMLElement | null, className: string) => {
+const removeClassIfExists = (e: Element | null, className: string) => {
     if (e &&e.classList.contains(className)) {
         e.classList.remove(className);
     }

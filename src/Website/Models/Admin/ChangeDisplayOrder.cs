@@ -3,16 +3,14 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
-using Website.Models.Database.Enums;
 
 namespace Website.Models.Admin
 {
-    public class ChangeTags
+    public class ChangeDisplayOrder
     {
         [Required]
         public string ResourceId { get; set; } = string.Empty;
 
-        [Required]
-        public IEnumerable<Tag> Tags { get; set; } = new List<Tag>();
+        public int? DisplayOrder { get; set; } = null;
     }
 }

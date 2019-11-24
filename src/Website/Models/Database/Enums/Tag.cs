@@ -1,6 +1,6 @@
 ﻿namespace Website.Models.Database.Enums
 {
-    public enum Effect
+    public enum Tag
     {
         Unspecified,
         ChangesDropBehavior,
@@ -272,6 +272,7 @@
         ComesAfterUteroXl,
         ComesAfterWombOne,
         ComesAfterWombTwo,
-        ComesAfterWombXl
+        ComesAfterWombXl,
+        IsFirstFloor
     }
 }

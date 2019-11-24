@@ -1,51 +1,18 @@
-﻿import { Component, FrameworkElement, A, EventType, AsyncComponentPart } from "../../Framework/renderer";
-import { get } from "../../Framework/http";
+﻿import { Component, FrameworkElement, A, EventType, AsyncComponentPart, htmlAttributeNameOf } from "../../Framework/renderer";
 import { IsaacResource } from "../../Models/isaac-resource";
+import { ComponentWithSubscribers } from "../../Framework/ComponentBaseClasses/component-with-subscribers";
+import { ResourceType } from "../../Enums/resource-type";
+import { removeClassIfExists, addClassIfNotExists } from "../../Framework/browser";
 
-export class SearchboxComponent implements Component {
+export class SearchboxComponent<TCaller> extends ComponentWithSubscribers<string, TCaller> implements Component {
 
     E: FrameworkElement;
     A: Array<AsyncComponentPart> | undefined;
 
-    private subscribers: Array<(id: string) => any>;
-    private displayResourceType: boolean
+    constructor(caller: ThisType<TCaller>, private someSearchboxId: number, private data: Array<IsaacResource> | Promise<Array<IsaacResource> | null>, private displayResourceType: boolean) {
+        super(caller);
 
-    constructor(data: string | Array<IsaacResource>, someSearchboxId: number, displayResourceType: boolean) {
-        this.E = this.CreateFrameworkElement(data, someSearchboxId);
-        this.subscribers = new Array<(id: string) => any>();
-        this.displayResourceType = displayResourceType;
-    }
-
-    Subscribe(fn: (id: string) => any) {
-        this.subscribers.push(fn);
-    }
-
-    private Emit(e: Event): void {
-        e.preventDefault();
-        e.stopPropagation();
-        const target = e.target;
-        if (target && target instanceof HTMLDivElement) {
-            let id: string | null = null;
-
-            if (target.className === 'dd-line') {
-                id = target.getAttribute('data-id');
-            } else if ((target.className === 'dd-text' || target.className === 'dd-image') && target.parentElement) {
-                id = target.parentElement.getAttribute('data-id');
-            }
-
-            if (id) {
-                for (let i = 0; i < this.subscribers.length; ++i) {
-                    this.subscribers[i](id);
-                }
-            }
-        }
-    }
-
-    private CreateFrameworkElement(data: string | Array<IsaacResource>, id: number): FrameworkElement {
-        const isAsync = typeof data === 'string';
-        const initialSearchboxContent: FrameworkElement = isAsync ? { e: ['span', 'loading resources...'] } : this.CreateResourceLines(data as Array<IsaacResource>);
-
-        const e: FrameworkElement = {
+        this.E = {
             e: ['div'],
             a: [[A.Class, 'dd-container']],
             c: [
@@ -62,32 +29,63 @@ export class SearchboxComponent implements Component {
                 },
                 {
                     e: ['div'],
-                    a: [[A.Id, id.toString(10)]],
-                    c: [initialSearchboxContent]
+                    a: [[A.Id, someSearchboxId.toString(10)]],
+                    c: [
+                        {
+                            e: ['span', 'loading resources...']
+                        }
+                    ]
                 }
             ],
             v: [[EventType.MouseEnter, e => this.FocusOnMouseover(e)]]
-        };
-
-        if (isAsync) {
-            const asyncComponent = get<Array<IsaacResource>>(data as string).then(resources => {
-                const lines = this.CreateResourceLines(resources);
-                return lines;
-            });
-            this.A = [{
-                P: asyncComponent,
-                I: id.toString(10)
-            }];
         }
 
-        return e;
+        this.A = this.CreateSearchbox();
+    }
+
+    private LineClickEvent(e: Event): void {
+        e.preventDefault();
+        e.stopPropagation();
+        const target = e.target;
+        if (target && target instanceof HTMLDivElement) {
+            let id: string | null = null;
+
+            if (target.className === 'dd-line') {
+                id = target.getAttribute('data-id');
+            } else if ((target.className === 'dd-text' || target.className === 'dd-image') && target.parentElement) {
+                id = target.parentElement.getAttribute('data-id');
+            }
+
+            if (id) {
+                super.Emit(id);
+            }
+        }
+    }
+
+    private CreateSearchbox(): Array<AsyncComponentPart> {
+
+        const part: AsyncComponentPart = {
+            I: this.someSearchboxId.toString(10),
+            P: (Array.isArray(this.data) ? Promise.resolve(this.data) : this.data).then(resources => {
+                if (resources) {
+                    return this.CreateResourceLines(resources);
+                } else {
+                    const noResources: FrameworkElement = {
+                        e: ['span', 'No resources were found']
+                    };
+                    return noResources;
+                }
+            })
+        };
+
+        return [part];
     }
 
     private FocusOnMouseover(e: Event) {
         const target = e.target;
         if (target && target instanceof HTMLDivElement) {
             e.stopPropagation();
-            const searchBoxes = target.getElementsByClassName('dd-search');
+            const searchBoxes = target.getElementsByClassName('dd-searchbox');
             if (searchBoxes && searchBoxes.length > 0) {
                 const firstSearchBox = searchBoxes[0];
                 if (firstSearchBox instanceof HTMLInputElement) {
@@ -101,18 +99,23 @@ export class SearchboxComponent implements Component {
         const target = e.target;
         if (target && target instanceof HTMLInputElement) {
             const value = target.value;
-            if (value) {
-                const parent = target.parentElement;
-                if (parent) {
-                    const linesContainer = parent.nextElementSibling;
-                    if (linesContainer) {
-                        const lines = linesContainer.getElementsByClassName('dd-line');
+            const parent = target.parentElement;
+            if (parent) {
+                const linesContainer = parent.nextElementSibling;
+                if (linesContainer) {
+                    const lines = linesContainer.getElementsByClassName('dd-line');
+                    if (!value) {
                         for (let i = 0; i < lines.length; ++i) {
-                            const text = lines[i].getAttribute('data-n');
+                            removeClassIfExists(lines[i], 'display-none');
+                        }
+                    } else {
+                        const dataLowercaseName = htmlAttributeNameOf(A.DataLowercaseName);
+                        for (let i = 0; i < lines.length; ++i) {
+                            const text = lines[i].getAttribute(dataLowercaseName);
                             if (text && text.indexOf(value) === -1) {
-                                lines[i].classList.add('display-none');
+                                addClassIfNotExists(lines[i], 'display-none');
                             } else {
-                                lines[i].classList.remove('display-none');
+                                removeClassIfExists(lines[i], 'display-none');
                             }
                         }
                     }
@@ -121,7 +124,7 @@ export class SearchboxComponent implements Component {
         }
     }
 
-    private CreateResourceLines(data: Array<IsaacResource> | null): FrameworkElement {
+    private CreateResourceLines(data: Array<IsaacResource>): FrameworkElement {
         const lines: Array<FrameworkElement> = new Array<FrameworkElement>();
 
         if (!data) {
@@ -140,10 +143,10 @@ export class SearchboxComponent implements Component {
                 let displayName = data[i].name;
                 if (this.displayResourceType) {
                     switch (data[i].resource_type) {
-                        case 11: displayName += ' (killed by)'; break;
-                        case 7: displayName += ' (item source)'; break;
-                        case 14: displayName += ' (character reroll)'; break;
-                        case 1: displayName += ' (bossfight)'; break;
+                        case ResourceType.Enemy: displayName += ' (killed by)'; break;
+                        case ResourceType.ItemSource: displayName += ' (item source)'; break;
+                        case ResourceType.CharacterReroll: displayName += ' (character reroll)'; break;
+                        case ResourceType.Boss: displayName += ' (bossfight)'; break;
                     }
                 }
 
@@ -160,7 +163,7 @@ export class SearchboxComponent implements Component {
                             a: [[A.Class, 'dd-image'], [A.Style, style]]
                         }
                     ],
-                    v: [[EventType.Click, e => this.Emit(e)]]
+                    v: [[EventType.Click, e => this.LineClickEvent(e)]]
                 });
             }
         }

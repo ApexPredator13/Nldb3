@@ -12,6 +12,6 @@ namespace Website.Areas.Api.Models
         public ResourceOrderBy OrderBy1 { get; set; } = ResourceOrderBy.DisplayOrder;
         public ResourceOrderBy OrderBy2 { get; set; } = ResourceOrderBy.Id;
         public bool Asc { get; set; } = true;
-        public List<Effect> RequiredTags { get; set; } = new List<Effect>();
+        public List<Tag> RequiredTags { get; set; } = new List<Tag>();
     }
 }

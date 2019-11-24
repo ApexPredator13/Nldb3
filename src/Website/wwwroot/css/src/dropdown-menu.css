@@ -3,8 +3,6 @@
 }
 .dd-container {
     width: 300px;
-    height: 30px;
-    position: relative;
     margin: 0 auto;
     border-left: 1px solid gray;
     border-right: 1px solid gray;
@@ -14,16 +12,14 @@
 .dd-search {
     width: 95%;
     height: 30px;
-    margin: 0 auto;
 }
 .dd-searchbox {
     width: 100%;
 }
 .dd-dropdown {
-    position: absolute;
     max-height: 300px;
     width: 300px;
-    background-color: black;
+    background-color: rgba(255,255,255,0.1);
     overflow-y: scroll;
     top: 30px;
     left: 0;

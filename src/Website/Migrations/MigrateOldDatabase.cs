@@ -250,10 +250,10 @@ namespace Website.Migrations
                 {
                     while (r.Read())
                     {
-                        var tags = new List<Effect>();
+                        var tags = new List<Tag>();
                         if (r.GetBoolean(5))
                         {
-                            tags.Add(Effect.DoubleTroubleBossfight);
+                            tags.Add(Tag.DoubleTroubleBossfight);
                         }
 
                         newBosses.Add(new CreateIsaacResource()
@@ -302,73 +302,73 @@ namespace Website.Migrations
                     if (boss == "LittleHorn") boss = "LittleHornBoss";
 
                     var floor = r2.GetString(0);
-                    var floorOccurrences = new List<Effect>();
+                    var floorOccurrences = new List<Tag>();
 
                     switch (floor)
                     {
-                        case "CavesTwo": floorOccurrences.Add(Effect.AppearsOnCavesTwo); break;
-                        case "CatacombsTwo": floorOccurrences.Add(Effect.AppearsOnCatacombsTwo); break;
-                        case "CatacombsOne": floorOccurrences.Add(Effect.AppearsOnCatacombsOne); break;
-                        case "GreedModeCaves": floorOccurrences.Add(Effect.AppearsOnGreedModeCaves); break;
-                        case "TheVoid": floorOccurrences.Add(Effect.AppearsOnTheVoid); break;
-                        case "UteroTwo": floorOccurrences.Add(Effect.AppearsOnUteroTwo); break;
-                        case "GreedModeWomb": floorOccurrences.Add(Effect.AppearsOnGreedModeWomb); break;
-                        case "GreedModeUltraGreed": floorOccurrences.Add(Effect.AppearsOnGreedModeUltraGreed); break;
-                        case "DepthsTwo": floorOccurrences.Add(Effect.AppearsOnDepthsTwo); break;
-                        case "MinesTwo": floorOccurrences.Add(Effect.AppearsOnMinesTwo); break;
-                        case "FloodedCavesOne": floorOccurrences.Add(Effect.AppearsOnFloodedCavesOne); break;
+                        case "CavesTwo": floorOccurrences.Add(Tag.AppearsOnCavesTwo); break;
+                        case "CatacombsTwo": floorOccurrences.Add(Tag.AppearsOnCatacombsTwo); break;
+                        case "CatacombsOne": floorOccurrences.Add(Tag.AppearsOnCatacombsOne); break;
+                        case "GreedModeCaves": floorOccurrences.Add(Tag.AppearsOnGreedModeCaves); break;
+                        case "TheVoid": floorOccurrences.Add(Tag.AppearsOnTheVoid); break;
+                        case "UteroTwo": floorOccurrences.Add(Tag.AppearsOnUteroTwo); break;
+                        case "GreedModeWomb": floorOccurrences.Add(Tag.AppearsOnGreedModeWomb); break;
+                        case "GreedModeUltraGreed": floorOccurrences.Add(Tag.AppearsOnGreedModeUltraGreed); break;
+                        case "DepthsTwo": floorOccurrences.Add(Tag.AppearsOnDepthsTwo); break;
+                        case "MinesTwo": floorOccurrences.Add(Tag.AppearsOnMinesTwo); break;
+                        case "FloodedCavesOne": floorOccurrences.Add(Tag.AppearsOnFloodedCavesOne); break;
                         case "MissingFloor": break;
-                        case "DankDepthsTwo": floorOccurrences.Add(Effect.AppearsOnDankDepthsTwo); break;
-                        case "CellarOne": floorOccurrences.Add(Effect.AppearsOnCellarOne); break;
-                        case "DepthsXL": floorOccurrences.Add(Effect.AppearsOnDepthsXl); break;
-                        case "UteroXL": floorOccurrences.Add(Effect.AppearsOnUteroXl); break;
-                        case "CorpseXL": floorOccurrences.Add(Effect.AppearsOnCorpseXl); break;
-                        case "ScarredWombOne": floorOccurrences.Add(Effect.AppearsOnScarredWombOne); break;
-                        case "DownpourXL": floorOccurrences.Add(Effect.AppearsOnDownpourXl); break;
-                        case "ScarredWombTwo": floorOccurrences.Add(Effect.AppearsOnScarredWombTwo); break;
-                        case "ScarredWombXL": floorOccurrences.Add(Effect.AppearsOnScarredWombXl); break;
-                        case "BurningBasementTwo": floorOccurrences.Add(Effect.AppearsOnBurningBasementTwo); break;
-                        case "DankDepthsXL": floorOccurrences.Add(Effect.AppearsOnDankDepthsXl); break;
-                        case "BurningBasementOne": floorOccurrences.Add(Effect.AppearsOnBurningBasementOne); break;
-                        case "UteroOne": floorOccurrences.Add(Effect.AppearsOnUteroOne); break;
-                        case "GreedModeSheol": floorOccurrences.Add(Effect.AppearsOnGreedModeSheol); break;
-                        case "MausoleumOne": floorOccurrences.Add(Effect.AppearsOnMausoleumOne); break;
-                        case "Chest": floorOccurrences.Add(Effect.AppearsOnChest); break;
-                        case "CellarTwo": floorOccurrences.Add(Effect.AppearsOnCellarTwo); break;
-                        case "MinesOne": floorOccurrences.Add(Effect.AppearsOnMinesOne); break;
-                        case "NecropolisXL": floorOccurrences.Add(Effect.AppearsOnNecropolisOne); break;
-                        case "MinesXL": floorOccurrences.Add(Effect.AppearsOnMinesXl); break;
-                        case "MausoleumTwo": floorOccurrences.Add(Effect.AppearsOnMausoleumTwo); break;
-                        case "DankDepthsOne": floorOccurrences.Add(Effect.AppearsOnDankDepthsOne); break;
-                        case "DepthsOne": floorOccurrences.Add(Effect.AppearsOnDepthsOne); break;
-                        case "DownpourOne": floorOccurrences.Add(Effect.AppearsOnDownpourOne); break;
-                        case "NecropolisTwo": floorOccurrences.Add(Effect.AppearsOnNecropolisTwo); break;
-                        case "GreedModeTheShop": floorOccurrences.Add(Effect.AppearsOnGreedModeTheShop); break;
-                        case "Downpour 1": floorOccurrences.Add(Effect.AppearsOnDownpourOne); break;
-                        case "CavesOne": floorOccurrences.Add(Effect.AppearsOnCavesOne); break;
-                        case "GreedModeDepths": floorOccurrences.Add(Effect.AppearsOnGreedModeDepths); break;
-                        case "BurningBasementXL": floorOccurrences.Add(Effect.AppearsOnBurningBasementXl); break;
-                        case "WombXL": floorOccurrences.Add(Effect.AppearsOnWombXl); break;
-                        case "Cathedral": floorOccurrences.Add(Effect.AppearsOnCathedral); break;
-                        case "BlueBaby": floorOccurrences.Add(Effect.AppearsOnBlueWomb); break;
-                        case "FloodedCavesTwo": floorOccurrences.Add(Effect.AppearsOnFloodedCavesTwo); break;
-                        case "NecropolisOne": floorOccurrences.Add(Effect.AppearsOnNecropolisOne); break;
-                        case "MausoleumXL": floorOccurrences.Add(Effect.AppearsOnMausoleumXl); break;
-                        case "Sheol": floorOccurrences.Add(Effect.AppearsOnSheol); break;
-                        case "CorpseTwo": floorOccurrences.Add(Effect.AppearsOnCorpseTwo); break;
-                        case "DownpourTwo": floorOccurrences.Add(Effect.AppearsOnDownpourTwo); break;
-                        case "WombOne": floorOccurrences.Add(Effect.AppearsOnWombOne); break;
-                        case "BasementOne": floorOccurrences.Add(Effect.AppearsOnBasementOne); break;
-                        case "GreedModeBasement": floorOccurrences.Add(Effect.AppearsOnGreedModeBasement); break;
-                        case "CavesXL": floorOccurrences.Add(Effect.AppearsOnCavesXl); break;
-                        case "CatacombsXL": floorOccurrences.Add(Effect.AppearsOnCatacombsXl); break;
-                        case "CorpseOne": floorOccurrences.Add(Effect.AppearsOnCorpseOne); break;
-                        case "DarkRoom": floorOccurrences.Add(Effect.AppearsOnDarkRoom); break;
-                        case "WombTwo": floorOccurrences.Add(Effect.AppearsOnWombTwo); break;
-                        case "CellarXL": floorOccurrences.Add(Effect.AppearsOnCellarXl); break;
-                        case "BasementTwo": floorOccurrences.Add(Effect.AppearsOnBasementTwo); break;
-                        case "FloodedCavesXL": floorOccurrences.Add(Effect.AppearsOnFloodedCavesXl); break;
-                        case "BasementXL": floorOccurrences.Add(Effect.AppearsOnBasementXl); break;
+                        case "DankDepthsTwo": floorOccurrences.Add(Tag.AppearsOnDankDepthsTwo); break;
+                        case "CellarOne": floorOccurrences.Add(Tag.AppearsOnCellarOne); break;
+                        case "DepthsXL": floorOccurrences.Add(Tag.AppearsOnDepthsXl); break;
+                        case "UteroXL": floorOccurrences.Add(Tag.AppearsOnUteroXl); break;
+                        case "CorpseXL": floorOccurrences.Add(Tag.AppearsOnCorpseXl); break;
+                        case "ScarredWombOne": floorOccurrences.Add(Tag.AppearsOnScarredWombOne); break;
+                        case "DownpourXL": floorOccurrences.Add(Tag.AppearsOnDownpourXl); break;
+                        case "ScarredWombTwo": floorOccurrences.Add(Tag.AppearsOnScarredWombTwo); break;
+                        case "ScarredWombXL": floorOccurrences.Add(Tag.AppearsOnScarredWombXl); break;
+                        case "BurningBasementTwo": floorOccurrences.Add(Tag.AppearsOnBurningBasementTwo); break;
+                        case "DankDepthsXL": floorOccurrences.Add(Tag.AppearsOnDankDepthsXl); break;
+                        case "BurningBasementOne": floorOccurrences.Add(Tag.AppearsOnBurningBasementOne); break;
+                        case "UteroOne": floorOccurrences.Add(Tag.AppearsOnUteroOne); break;
+                        case "GreedModeSheol": floorOccurrences.Add(Tag.AppearsOnGreedModeSheol); break;
+                        case "MausoleumOne": floorOccurrences.Add(Tag.AppearsOnMausoleumOne); break;
+                        case "Chest": floorOccurrences.Add(Tag.AppearsOnChest); break;
+                        case "CellarTwo": floorOccurrences.Add(Tag.AppearsOnCellarTwo); break;
+                        case "MinesOne": floorOccurrences.Add(Tag.AppearsOnMinesOne); break;
+                        case "NecropolisXL": floorOccurrences.Add(Tag.AppearsOnNecropolisOne); break;
+                        case "MinesXL": floorOccurrences.Add(Tag.AppearsOnMinesXl); break;
+                        case "MausoleumTwo": floorOccurrences.Add(Tag.AppearsOnMausoleumTwo); break;
+                        case "DankDepthsOne": floorOccurrences.Add(Tag.AppearsOnDankDepthsOne); break;
+                        case "DepthsOne": floorOccurrences.Add(Tag.AppearsOnDepthsOne); break;
+                        case "DownpourOne": floorOccurrences.Add(Tag.AppearsOnDownpourOne); break;
+                        case "NecropolisTwo": floorOccurrences.Add(Tag.AppearsOnNecropolisTwo); break;
+                        case "GreedModeTheShop": floorOccurrences.Add(Tag.AppearsOnGreedModeTheShop); break;
+                        case "Downpour 1": floorOccurrences.Add(Tag.AppearsOnDownpourOne); break;
+                        case "CavesOne": floorOccurrences.Add(Tag.AppearsOnCavesOne); break;
+                        case "GreedModeDepths": floorOccurrences.Add(Tag.AppearsOnGreedModeDepths); break;
+                        case "BurningBasementXL": floorOccurrences.Add(Tag.AppearsOnBurningBasementXl); break;
+                        case "WombXL": floorOccurrences.Add(Tag.AppearsOnWombXl); break;
+                        case "Cathedral": floorOccurrences.Add(Tag.AppearsOnCathedral); break;
+                        case "BlueBaby": floorOccurrences.Add(Tag.AppearsOnBlueWomb); break;
+                        case "FloodedCavesTwo": floorOccurrences.Add(Tag.AppearsOnFloodedCavesTwo); break;
+                        case "NecropolisOne": floorOccurrences.Add(Tag.AppearsOnNecropolisOne); break;
+                        case "MausoleumXL": floorOccurrences.Add(Tag.AppearsOnMausoleumXl); break;
+                        case "Sheol": floorOccurrences.Add(Tag.AppearsOnSheol); break;
+                        case "CorpseTwo": floorOccurrences.Add(Tag.AppearsOnCorpseTwo); break;
+                        case "DownpourTwo": floorOccurrences.Add(Tag.AppearsOnDownpourTwo); break;
+                        case "WombOne": floorOccurrences.Add(Tag.AppearsOnWombOne); break;
+                        case "BasementOne": floorOccurrences.Add(Tag.AppearsOnBasementOne); break;
+                        case "GreedModeBasement": floorOccurrences.Add(Tag.AppearsOnGreedModeBasement); break;
+                        case "CavesXL": floorOccurrences.Add(Tag.AppearsOnCavesXl); break;
+                        case "CatacombsXL": floorOccurrences.Add(Tag.AppearsOnCatacombsXl); break;
+                        case "CorpseOne": floorOccurrences.Add(Tag.AppearsOnCorpseOne); break;
+                        case "DarkRoom": floorOccurrences.Add(Tag.AppearsOnDarkRoom); break;
+                        case "WombTwo": floorOccurrences.Add(Tag.AppearsOnWombTwo); break;
+                        case "CellarXL": floorOccurrences.Add(Tag.AppearsOnCellarXl); break;
+                        case "BasementTwo": floorOccurrences.Add(Tag.AppearsOnBasementTwo); break;
+                        case "FloodedCavesXL": floorOccurrences.Add(Tag.AppearsOnFloodedCavesXl); break;
+                        case "BasementXL": floorOccurrences.Add(Tag.AppearsOnBasementXl); break;
                     }
 
                     if (floorOccurrences.Count > 0)
@@ -560,12 +560,12 @@ namespace Website.Migrations
                         var currentFloorId = await _isaacRepository.GetFirstResourceIdFromName(r.GetString(0));
                         var nextFloorId = await _isaacRepository.GetFirstResourceIdFromName(r.GetString(1));
 
-                        if (!string.IsNullOrEmpty(nextFloorId) && Enum.TryParse(typeof(Effect), $"ComesAfter{currentFloorId}", out object? foundEffect))
+                        if (!string.IsNullOrEmpty(nextFloorId) && Enum.TryParse(typeof(Tag), $"ComesAfter{currentFloorId}", out object? foundEffect))
                         {
                             if (!(foundEffect is null))
                             {
                                 _logger.LogDebug($"{nextFloorId} comes after {currentFloorId}");
-                                await _isaacRepository.AddTag(nextFloorId, (Effect)foundEffect);
+                                await _isaacRepository.AddTag(nextFloorId, (Tag)foundEffect);
                             }
                         }
                     }
@@ -614,19 +614,19 @@ namespace Website.Migrations
                             var itemName = r.GetString(1);
                             var isSpacebarItem = r.GetBoolean(5);
 
-                            var tags = new List<Effect>();
+                            var tags = new List<Tag>();
                             if (isSpacebarItem)
                             {
-                                tags.Add(Effect.IsSpacebarItem);
+                                tags.Add(Tag.IsSpacebarItem);
                             }
                             else
                             {
-                                tags.Add(Effect.IsPassiveItem);
+                                tags.Add(Tag.IsPassiveItem);
                             }
 
                             if (itemName == "Void")
                             {
-                                tags.Add(Effect.AbsorbsOtherItems);
+                                tags.Add(Tag.AbsorbsOtherItems);
                             }
 
                             newItems.Add(new CreateIsaacResource()
@@ -865,7 +865,7 @@ namespace Website.Migrations
                             Name = r.GetString(0),
                             FromMod = r.IsDBNull(4) ? null : await _modRepository.GetModIdByName(r.GetString(4)),
                             ResourceType = ResourceType.Transformation,
-                            Tags = new List<Effect> { Effect.ThreeStepsToTransformation }
+                            Tags = new List<Tag> { Tag.ThreeStepsToTransformation }
                         });
                     }
                 }

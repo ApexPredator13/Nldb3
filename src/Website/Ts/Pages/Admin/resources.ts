@@ -20,6 +20,10 @@ export class ResourcesPage extends ComponentWithForm implements Component {
         super();
         this.resourceType = Number(parameters[0]) as ResourceType;
 
+        if (isNaN(this.resourceType)) {
+            this.resourceType = ResourceType.Boss;
+        }
+
         const selectEvent = (e: Event) => {
             const target = e.target;
             if (target && target instanceof HTMLSelectElement) {

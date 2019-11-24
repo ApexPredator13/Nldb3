@@ -2,15 +2,25 @@
 import { ComponentWithModal } from "./ComponentBaseClasses/component-with-modal";
 import { GenericError } from "../Components/Modal/generic-error";
 
-
-async function createAuthHeader(): Promise<Headers | undefined> {
-    const user = await getUser();
-    if (user) {
-        const headers = new Headers();
-        headers.append('Authorization', `${user.token_type} ${user.access_token}`);
-        return headers;
+async function createHeaders(body?: FormData | string, authorized?: boolean): Promise<Headers | undefined> {
+    if (!body && !authorized) {
+        return undefined;
     }
-    return undefined;
+
+    const headers = new Headers();
+
+    if (body && typeof (body) === 'string') {
+        headers.append('Content-Type', 'application/json');
+    }
+
+    if (authorized) {
+        const user = await getUser();
+        if (user) {
+            headers.append('Authorization', `${user.token_type} ${user.access_token}`);
+        }
+    }
+
+    return headers;
 }
 
 
@@ -42,22 +52,22 @@ async function requestResponse(url: string, requestInit?: RequestInit): Promise<
 
 
 async function get<T>(url: string, authorized = false, displayError = true): Promise<T | null> {
-    const headers = authorized ? await createAuthHeader() : undefined;
+    const headers = await createHeaders(undefined, authorized);
     return request<T>(url, { method: 'GET', headers: headers }, displayError);
 }
 
 async function getResponse(url: string, authorized = false): Promise<Response> {
-    const headers = authorized ? await createAuthHeader() : undefined;
+    const headers = await createHeaders(undefined, authorized);
     return requestResponse(url, { method: 'GET', headers: headers });
 }
 
 async function post<T>(url: string, body?: FormData | string, authorized = false, displayError = true): Promise<T | null> {
-    const headers = authorized ? await createAuthHeader() : undefined;
+    const headers = await createHeaders(body, authorized);
     return request<T>(url, { method: 'POST', headers: headers, body: body }, displayError);
 }
 
 async function postResponse(url: string, body?: FormData | string, authorized = false): Promise<Response> {
-    const headers = authorized ? await createAuthHeader() : undefined;
+    const headers = await createHeaders(body, authorized);
     return requestResponse(url, { method: 'POST', headers: headers, body: body });
 }
 

@@ -18,7 +18,8 @@ interface PageData {
     Url: Array<string>,
     specificPageType?: PageType,
     afterRender?: () => any,
-    beforeLeaving?: () => any
+    beforeLeaving?: () => any,
+    canLeave?: () => boolean
 }
 
 const routeEndsWith = (fragment: string) => {
@@ -108,9 +109,12 @@ const initRouter = () => {
 
         // delay enough so that initial popstate event that some browsers trigger on load will be skipped
         setTimeout(() => {
-            window.addEventListener('popstate', () => {
+            window.addEventListener('popstate', (e: PopStateEvent) => {
+                console.log('popstate!!!!!', e);
+                console.log(e);
                 const currentRoute = getCurrentRoute();
                 const page = getRequestedPageFromRoute(getCurrentRoute());
+                console.log('navigating after popstate', page);
                 navigate(currentRoute, undefined, page.page ? page.page.specificPageType : undefined, false, true);
             });
         }, 100);
@@ -229,11 +233,31 @@ const navigate = (requestedRoute: string, preventDefault: Event | undefined = un
     if (currentRoute === requestedRoute && !forceRender) {
         return;
     }
-    
-    // check if anything has to be done before leaving
-    if ((window as any).beforeLeaving) {
-        (window as any).beforeLeaving();
-        (window as any).beforeLeaving = null;
+
+    // check if user can leave the page unprompted or if we have a 'progress will not be saved' situation
+    const lastUrl = (window as any).lastUrl as string | null | undefined;
+    const allowedToLeave = (window as any).leavingAllowed as (() => boolean) | null | undefined;
+
+    if (allowedToLeave) {
+        const leavingIsOk = allowedToLeave();
+        if (!leavingIsOk) {
+            // reverse popstate if navigation was cancelled
+            history.pushState(undefined, '', lastUrl);
+            return;
+        }
+    }
+
+    // check if cleanup work has to be done before navigating
+    const beforeLeaving = (window as any).beforeLeaving as (() => any) | null | undefined;
+    if (beforeLeaving) {
+        beforeLeaving();
+    }
+
+    // save leaving guard
+    if (page.canLeave) {
+        (window as any).leavingAllowed = page.canLeave;
+    } else {
+        (window as any).leavingAllowed = null;
     }
 
     // save new beforeLeaving action
@@ -252,6 +276,9 @@ const navigate = (requestedRoute: string, preventDefault: Event | undefined = un
                 requestedRoute = '/' + requestedRoute;
             }
             history.pushState(undefined, '', requestedRoute);
+
+            // save this url as last url
+            (window as any).lastUrl = requestedRoute;
         }
 
         const component = new page.Component(parameters);

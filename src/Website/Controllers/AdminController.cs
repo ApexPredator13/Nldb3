@@ -235,5 +235,19 @@ namespace Website.Controllers
                 return BadRequest("No tags were added");
             }
         }
+
+        [HttpPost("change_display_order")]
+        public async Task<ActionResult> ChangeDisplayOrder([FromForm] ChangeDisplayOrder model)
+        {
+            var result = await _isaacRepository.ChangeDisplayOrder(model);
+            if (result > 0)
+            {
+                return Ok();
+            }
+            else
+            {
+                return BadRequest("display order was not updated successfully");
+            }
+        }
     }
 }

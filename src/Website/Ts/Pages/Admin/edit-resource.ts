@@ -362,6 +362,9 @@ export class EditResource extends ComponentWithForm implements Component {
                                     e: ['div'],
                                     c: [
                                         {
+                                            e: ['h2', 'Edit Tags']
+                                        },
+                                        {
                                             e: ['form'],
                                             a: [[A.Method, 'post']],
                                             v: [[EventType.Submit, e => super.HandleSubmit(e, '/Admin/change_tags', true, this.GetLinkForNextPage(resource), this.stay ? false : true, false)]],
@@ -372,7 +375,6 @@ export class EditResource extends ComponentWithForm implements Component {
                                                 },
                                                 {
                                                     e: ['div'],
-                                                    a: [[A.Class]],
                                                     c: [
                                                         {
                                                             e: ['select'],
@@ -384,7 +386,6 @@ export class EditResource extends ComponentWithForm implements Component {
                                                 },
                                                 {
                                                     e: ['div'],
-                                                    a: [[A.Class]],
                                                     c: [
                                                         {
                                                             e: ['button', 'Change Tags'],
@@ -395,6 +396,56 @@ export class EditResource extends ComponentWithForm implements Component {
                                             ]
                                         }
                                     ]
+                                },
+                                {
+                                    e: ['hr']
+                                },
+                                {
+                                    e: ['div'],
+                                    c: [
+                                        {
+                                            e: ['h2', 'Edit Display Order']
+                                        },
+                                        {
+                                            e: ['form'],
+                                            a: [[A.Method, 'post']],
+                                            v: [[EventType.Submit, e => super.HandleSubmit(e, '/Admin/change_display_order', true, this.GetLinkForNextPage(resource), this.stay ? false : true, false)]],
+                                            c: [
+                                                {
+                                                    e: ['input'],
+                                                    a: [[A.Type, 'hidden'], [A.Name, 'ResourceId'], [A.Value, resource.id]]
+                                                },
+                                                {
+                                                    e: ['div'],
+                                                    c: [
+                                                        {
+                                                            e: ['label', 'Leaving order empty will set it to NULL']
+                                                        },
+                                                        {
+                                                            e: ['br']
+                                                        },
+                                                        {
+                                                            e: ['input'],
+                                                            a: [[A.Type, 'number'], [A.Name, 'DisplayOrder'], [A.Value, typeof (resource.display_order) === 'number' ? resource.display_order : '']],
+                                                            v: [[EventType.Input, e => super.ValidateForm(e)]]
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    e: ['div'],
+                                                    c: [
+                                                        {
+                                                            e: ['button', 'Change Order'],
+                                                            a: [[A.Type, 'submit'], [A.Disabled, 'true']]
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    e: ['hr']
                                 },
                                 {
                                     e: ['p'],

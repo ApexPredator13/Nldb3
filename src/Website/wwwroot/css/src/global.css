@@ -31,6 +31,10 @@ a:hover {
     color: lightgray;
 }
 
+li {
+    padding: 0.2rem 0;
+}
+
 .l {
     text-align: left;
 }

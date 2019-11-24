@@ -41,5 +41,8 @@ namespace Website.Models.Database
 
         [JsonProperty("submission")]
         public int Submission { get; set; } = 0;
+
+        [JsonProperty("was_rerolled")]
+        public bool WasRerolled { get; set; } = false;
     }
 }

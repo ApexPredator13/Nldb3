@@ -4,7 +4,7 @@ import { ValidationPopup } from "../../Components/General/validation-popup";
 import { GenericError } from "../../Components/Modal/generic-error";
 import { navigate } from "../router";
 import { ComponentWithModal } from "./component-with-modal";
-import { post } from "../http";
+import { postResponse } from "../http";
 
 export class ComponentWithForm {
     private form: HTMLFormElement | undefined;
@@ -23,23 +23,36 @@ export class ComponentWithForm {
 
             const formData = getFormValue(e);
             if (formData) {
-                post(postUrl, formData, authorized)
-                    .then(() => {
-                        navigate(successUrl, undefined, undefined, pushState, false, scrollToTop);
-                    })
-                    .catch((e: Response) => {
-                        console.warn('bad request',e);
-                        e.text().then(message => {
-                            const c = new ComponentWithModal();
-                            c.ShowModal(new GenericError(message), true);
-                        });
-                    })
-                    .finally(() => {
+                postResponse(postUrl, formData, authorized)
+                    .then(response => {
+                        if (response.ok) {
+                            navigate(successUrl, undefined, undefined, pushState, false, scrollToTop);
+                        } else {
+                            this.GetErrorMessage(response).then(msg => {
+                                new ComponentWithModal().ShowModal(new GenericError(msg))
+                            });
+                        }
+                    }).finally(() => {
                         for (let i = 0; i < formButtons.length; ++i) {
                             formButtons[i].disabled = false;
                         }
                     });
             }
+        }
+    }
+
+    async GetErrorMessage(response: Response): Promise<string> {
+        try {
+            const body = await response.json();
+            if (body && body.errors) {
+                const keys = Object.keys(body.errors);
+                const errorMessage = body.errors[keys[0]];
+                return errorMessage;
+            }
+            const bodyText = await response.text();
+            return bodyText;
+        } catch {
+            return 'An error has occurred!';
         }
     }
 

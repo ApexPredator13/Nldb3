@@ -257,7 +257,8 @@ namespace Website.Data
                     "run_number INTEGER NOT NULL, " +
                     "player INTEGER, " +
                     "floor_number INTEGER NOT NULL, " +
-                    "submission INTEGER NOT NULL REFERENCES video_submissions (id) ON UPDATE CASCADE ON DELETE CASCADE" +
+                    "submission INTEGER NOT NULL REFERENCES video_submissions (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
+                    "was_rerolled BOOLEAN NOT NULL DEFAULT FALSE" +
                 "); ";
 
             Execute(query);

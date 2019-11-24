@@ -8,5 +8,6 @@
     SpecialSeed,
     Unspecified,
     HardAndNormal,
-    CommunityChallenge
+    CommunityChallenge,
+    GreedAndGreedier
 }

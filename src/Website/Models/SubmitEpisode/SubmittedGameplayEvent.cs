@@ -16,5 +16,7 @@ namespace Website.Models.SubmitEpisode
         public int? RelatedResource3 { get; set; } = null;
 
         public int? Player { get; set; } = null;
+
+        public bool Rerolled { get; set; } = false;
     }
 }

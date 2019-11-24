@@ -48,7 +48,7 @@ namespace Website.Areas.Api.Controllers
         public List<int> GetEffectNumber([FromQuery] params string[] name)
         {
             var result = new List<int>();
-            var enumType = typeof(Effect);
+            var enumType = typeof(Tag);
             var effectNames = Enum.GetNames(enumType);
 
             foreach (var n in name)
@@ -59,7 +59,7 @@ namespace Website.Areas.Api.Controllers
                 {
                     try
                     {
-                        var enumValue = Convert.ToInt32((Effect)Enum.Parse(enumType, exists));
+                        var enumValue = Convert.ToInt32((Tag)Enum.Parse(enumType, exists));
                         result.Add(enumValue);
                     }
                     catch
@@ -75,17 +75,17 @@ namespace Website.Areas.Api.Controllers
         [HttpGet("next-floorset/{id}")]
         public async Task<List<IsaacResource>> GetNextFloorset([FromRoute] string id)
         {
-            if (Enum.TryParse(typeof(Effect), $"ComesAfter{id}", out object? effect))
+            if (Enum.TryParse(typeof(Tag), $"ComesAfter{id}", out object? effect))
             {
                 if (effect is null)
                 {
                     return new List<IsaacResource>();
                 }
 
-                var foundEffect = (Effect)effect;
+                var foundEffect = (Tag)effect;
                 return await _isaacRepository.GetResources(new GetResource()
                 {
-                    RequiredTags = new List<Effect> { foundEffect },
+                    RequiredTags = new List<Tag> { foundEffect },
                     ResourceType = ResourceType.Floor
                 });
             }

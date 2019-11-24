@@ -1,6 +1,7 @@
 ﻿/* layout */
 #menu-wrapper {
     display: flex;
+    position: relative;
 }
 
 #left-column {
@@ -90,6 +91,7 @@
 }
 
 
+/* current player */
 #current-player-container {
     position: absolute;
     top: 0;
