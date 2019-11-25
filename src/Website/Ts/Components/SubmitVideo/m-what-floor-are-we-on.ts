@@ -3,14 +3,15 @@ import { IsaacResource } from "../../Models/isaac-resource";
 import { Boxes } from "../General/boxes";
 import { SearchboxComponent } from "../General/searchbox";
 
-export class WhatFloorDidWeStartOn<TSubscriber> implements Component {
+export class WhatFloorAreWeOn<TSubscriber> implements Component {
     E: FrameworkElement;
 
     constructor(
         subscriber: ThisType<TSubscriber>,
         firstFloors: Promise<Array<IsaacResource> | null>,
         allFloors: Promise<Array<IsaacResource> | null>,
-        selectedFloorProcessor: (id: string) => any
+        selectedFloorProcessor: (id: string) => any,
+        isFirstPromptToSelectFloor: boolean
     ) {
         const boxes = new Boxes(subscriber, 3, firstFloors, undefined, false);
         boxes.Subscribe(selectedFloorProcessor);
@@ -22,7 +23,7 @@ export class WhatFloorDidWeStartOn<TSubscriber> implements Component {
             e: ['div'],
             c: [
                 {
-                    e: ['h2', 'What floor did we start on?']
+                    e: ['h2', isFirstPromptToSelectFloor ? 'What floor did we start on?' : 'What floor are we on?']
                 },
                 boxes,
                 {

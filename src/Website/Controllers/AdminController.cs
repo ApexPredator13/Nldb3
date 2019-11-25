@@ -216,9 +216,10 @@ namespace Website.Controllers
         }
 
         [HttpPost("change_tags")]
-        public async Task<ActionResult> ChangeTags([FromForm] ChangeTags model)
+        public async Task<ActionResult> ChangeTags([FromBody] ChangeTags model)
         {
-            await _isaacRepository.ClearTags(model.ResourceId);
+            int deleteChanges = await _isaacRepository.ClearTags(model.ResourceId);
+
             int dbChanges = 0;
 
             foreach (var tag in model.Tags)
@@ -226,7 +227,7 @@ namespace Website.Controllers
                 dbChanges += await _isaacRepository.AddTag(model.ResourceId, tag);
             }
            
-            if (dbChanges > 0)
+            if (dbChanges != 0 || deleteChanges != 0)
             {
                 return Ok();
             } 
@@ -247,6 +248,20 @@ namespace Website.Controllers
             else
             {
                 return BadRequest("display order was not updated successfully");
+            }
+        }
+
+        [HttpPost("change_game_mode")]
+        public async Task<ActionResult> ChangeGameMode([FromForm] ChangeGameMode model)
+        {
+            var result = await _isaacRepository.UpdateGameMode(model.ResourceId, model.NewGameMode);
+            if (result > 0)
+            {
+                return Ok();
+            }
+            else
+            {
+                return BadRequest("game mode was not updated successfully");
             }
         }
     }

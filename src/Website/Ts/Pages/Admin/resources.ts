@@ -5,7 +5,7 @@ import { IsaacResource } from "../../Models/isaac-resource";
 import { ResourceType } from "../../Enums/resource-type";
 import { AdminLink } from "./_admin-link-creator";
 import { Option } from '../../Components/General/option';
-import { convertGameModeToString, convertExistsInToString } from "../../Enums/enum-to-string-converters";
+import { convertGameModeToString, convertExistsInToString, convertTagToString } from "../../Enums/enum-to-string-converters";
 import { saveToLocalStorage, getFromLocalStorage } from "../../Framework/browser";
 import { IsaacImage } from "../../Components/General/isaac-image";
 import { ComponentWithForm } from "../../Framework/ComponentBaseClasses/component-with-form";
@@ -172,7 +172,7 @@ export class ResourcesPage extends ComponentWithForm implements Component {
                                 e: ['td', typeof (resource.difficulty) === 'number' ? resource.difficulty.toString(10) : '']
                             },
                             {
-                                e: ['td', resource.tags ? resource.tags.map(tag => tag.toString(10)).join(', ') : '']
+                                e: ['td', resource.tags ? resource.tags.map(tag => convertTagToString(tag)).join(', ') : '']
                             },
                         ]
                     });

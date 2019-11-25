@@ -14,6 +14,7 @@
         if (this.Subscribers.length > 0) {
             for (const subscriber of this.Subscribers) {
                 const boundFunction = subscriber.bind(this.caller);
+                console.log('emitting ', id);
                 boundFunction(id);
             }
         }

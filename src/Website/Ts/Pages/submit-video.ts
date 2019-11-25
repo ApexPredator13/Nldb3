@@ -1,4 +1,4 @@
-﻿import { HistoryTable } from "../Components/SubmitVideo/history-table";
+﻿import { HistoryTable, removeHistoryElement } from "../Components/SubmitVideo/history-table";
 import { WhatCharacterWasChosen } from "../Components/SubmitVideo/m-what-character-was-chosen";
 import { WhatGameModeWasChosen } from "../Components/SubmitVideo/m-what-game-mode-was-played";
 import { SubmitQuote } from "../Components/SubmitVideo/submit-quote";
@@ -15,13 +15,14 @@ import { IsaacResource } from "../Models/isaac-resource";
 import { SubmittedPlayedCharacter } from "../Models/submitted-played-character";
 import { SubmittedPlayedFloor } from "../Models/submitted-played-floor";
 import { Tag } from "../Enums/tags";
-import { WhatFloorDidWeStartOn } from "../Components/SubmitVideo/m-what-floor-did-we-start-on";
+import { WhatFloorAreWeOn } from "../Components/SubmitVideo/m-what-floor-are-we-on";
 import { SubmittedGameplayEvent } from "../Models/submitted-gameplay-event";
 import { WasTheFloorCursed } from "../Components/SubmitVideo/m-was-the-floor-cursed";
 import { GameplayEventType } from "../Enums/gameplay-event-type";
 import { DidNlShowTheSeed } from "../Components/SubmitVideo/m-did-nl-show-the-seed";
 import { MainSelectScreen } from "../Components/SubmitVideo/m-main-select-screen";
 import { WhereDidTheItemComeFrom } from "../Components/SubmitVideo/m-where-did-the-item-come-from";
+import { WhatItemWasCollected } from "../Components/SubmitVideo/m-what-item-was-collected";
 
 enum StaticResourcesForMenu {
     MajorGameplayEvents = 1,
@@ -34,7 +35,7 @@ enum StaticResourcesForMenu {
     ConfirmNlDied,
     ConfirmNlWon,
     CommonBosses,
-    CommonFloors,
+    NextFloorset,
     WasThereAnotherRun,
     SubmitRun,
     SubmitFailed,
@@ -47,7 +48,7 @@ enum StaticResourcesForMenu {
 export class SubmitVideo implements Component {
     E: FrameworkElement;
 
-    private history: HistoryTable;
+    private history: HistoryTable<SubmitVideo>;
     private currentPlayer: 1 | 2;
     private storedServerResources: Map<string, Array<IsaacResource>>;
     private staticResources: Map<StaticResourcesForMenu, Array<IsaacResource>>;
@@ -56,13 +57,16 @@ export class SubmitVideo implements Component {
     private rightColumn: HTMLDivElement | undefined;
 
     private tempChosenCharacterId: string | undefined;
+    private tempChosenItemSource: string | undefined;
+    private wasRerolled = false;
+
     private initialMenu: WhatCharacterWasChosen<SubmitVideo>;
 
     constructor(parameters: Array<string>) {
         const videoId = parameters[0];
         const origin = getConfig().baseUrlWithoutTrailingSlash;
         this.youtubePlayer = new YoutubePlayer();
-        this.history = new HistoryTable(videoId);
+        this.history = new HistoryTable<SubmitVideo>(this, videoId, this.ItemWasRemovedFromHistory, this.youtubePlayer);
         this.currentPlayer = 1;
         this.storedServerResources = new Map<string, Array<IsaacResource>>();
         this.staticResources = new Map<StaticResourcesForMenu, Array<IsaacResource>>();
@@ -115,6 +119,33 @@ export class SubmitVideo implements Component {
                     v: [[EventType.Click, e => this.ChangePlayer(e)]]
                 }
             ]
+        }
+    }
+
+    
+    private ItemWasRemovedFromHistory(removedElement: removeHistoryElement) {
+        // user has confirmed that the character must be removed, and the history element already removed it.
+        // ask the user to select a character again
+        if (removedElement.characterIndex !== null && removedElement.floorIndex === null && removedElement.eventIndex === null) {
+            this.Display(this.initialMenu);
+            return;
+        }
+
+        // user has confirmed that a floor must be removed, and the history element already removed the floor.
+        // ask the user to select a floor again
+        if (removedElement.characterIndex !== null && removedElement.floorIndex !== null && removedElement.eventIndex === null) {
+            this.ShowChooseFloor();
+            return;
+        }
+
+        // generic events are safe to remove, except for the curse. here the 'select curse' menu must be displayed again
+        if (removedElement.characterIndex !== null && removedElement.floorIndex !== null && removedElement.eventIndex !== null && removedElement.eventType !== null) {
+            console.log('removing event!', removedElement);
+            if (removedElement.eventType === ResourceType.Curse) {
+                console.log('event is curse?', removedElement.eventType, removedElement.eventType === ResourceType.Curse);
+                this.ShowWasTheFloorCursed();
+                return;
+            }
         }
     }
 
@@ -201,7 +232,7 @@ export class SubmitVideo implements Component {
             { id: 'no', name: 'No, that was it!', x: 665, y: 0, w: 35, h: 35 } as IsaacResource
         ]);
         this.staticResources.set(StaticResourcesForMenu.CommonBosses, []);
-        this.staticResources.set(StaticResourcesForMenu.CommonFloors, []);
+        this.staticResources.set(StaticResourcesForMenu.NextFloorset, []);
         this.staticResources.set(StaticResourcesForMenu.ConfirmNlDied, [
             { id: 'yes', name: 'Yes, NL died!', x: 1050, y: 0, w: 35, h: 30 } as IsaacResource,
             { id: 'no', name: 'No, CANCEL!', x: 1085, y: 0, w: 35, h: 30 } as IsaacResource
@@ -293,19 +324,49 @@ export class SubmitVideo implements Component {
         this.ShowChooseFirstFloor();
     }
 
-    private ShowChooseFirstFloor() {
-        const firstFloors = this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.Floor}&RequiredTags=${Tag.IsFirstFloor}`);
-        const allFloors = this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.Floor}`);
-        this.Display(new WhatFloorDidWeStartOn<SubmitVideo>(this, firstFloors, allFloors, this.FirstFloorWasChosen));
+    private ShowChooseFloor() {
+        const commonFloorsThatComeNext = this.GetStaticResource(StaticResourcesForMenu.NextFloorset);
+        const allFloors = this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.Floor.toString(10)}`);
+        this.Display(new WhatFloorAreWeOn<SubmitVideo>(this, Promise.resolve(commonFloorsThatComeNext), allFloors, this.FloorWasChosen, true));
     }
 
-    private FirstFloorWasChosen(id: string) {
+    private ShowChooseFirstFloor() {
+        const firstFloors = this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.Floor.toString(10)}&RequiredTags=${Tag.IsFirstFloor.toString(10)}`);
+        const allFloors = this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.Floor.toString(10)}`);
+        this.Display(new WhatFloorAreWeOn<SubmitVideo>(this, firstFloors, allFloors, this.FloorWasChosen, true));
+    }
+
+    private FloorWasChosen(id: string) {
         this.history.AddFloor({
             Duration: null,
             FloorId: id,
             GameplayEvents: new Array<SubmittedGameplayEvent>()
         });
         this.ShowWasTheFloorCursed();
+
+        // now that we know the floor, preload common bosses for this floor
+        get<Tag>(`/Api/Resources/effect/?name=${id}`, false, false).then(tag => {
+            if (tag && typeof (tag) === 'number') {
+                this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.Boss.toString(10)}&RequiredTags=${tag.toString(10)}`).then(bossesForThisFloor => {
+                    if (bossesForThisFloor) {
+                        this.staticResources.set(StaticResourcesForMenu.CommonBosses, bossesForThisFloor);
+                    }
+                });
+            }
+        });
+        this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.Boss}`);
+
+        // ...and the next floorset
+        get<Tag>(`/Api/Resources/effect/?name=${id}`, false, false).then(tag => {
+            if (tag && typeof (tag) === 'number') {
+                this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.Floor.toString(10)}&RequiredTags=${tag.toString(10)}`).then(nextFloorset => {
+                    if (nextFloorset) {
+                        // remove rare xl floors
+                        this.staticResources.set(StaticResourcesForMenu.NextFloorset, nextFloorset.filter(floor => floor.id.toLowerCase().indexOf('xl') === -1));
+                    }
+                })
+            }
+        });
     }
 
     private ShowWasTheFloorCursed() {
@@ -313,6 +374,7 @@ export class SubmitVideo implements Component {
         const allCurses = this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.Curse}`);
         this.Display(new WasTheFloorCursed<SubmitVideo>(this, noCurse, allCurses, this.CurseWasSelected));
     }
+
 
     private CurseWasSelected(id: string) {
         if (id !== 'NoCurse') {
@@ -323,7 +385,7 @@ export class SubmitVideo implements Component {
             });
         }
 
-        if (!this.history.CurrentCharacterHasSeed()) {
+        if (this.history.WeAreOnFirstFloor() && !this.history.CurrentCharacterHasSeed()) {
             this.ShowSelectSeed();
         } else {
             this.ShowMainSelectScreen();
@@ -341,12 +403,18 @@ export class SubmitVideo implements Component {
     }
 
     private ShowMainSelectScreen() {
+        this.Cleanup();
         const events = this.GetStaticResource(StaticResourcesForMenu.MajorGameplayEvents);
         const consumableEvents = this.GetStaticResource(StaticResourcesForMenu.UsedConsumables);
         this.Display(new MainSelectScreen<SubmitVideo>(this, events, consumableEvents, this.ProcessMainSelectScreenSelection))
     }
 
     private ProcessMainSelectScreenSelection(selectedEvent: string) {
+        if (!selectedEvent) {
+            this.ShowMainSelectScreen();
+            return;
+        }
+
         const selection = parseInt(selectedEvent, 10);
         if (isNaN(selection)) {
             this.ShowMainSelectScreen();
@@ -357,18 +425,84 @@ export class SubmitVideo implements Component {
 
         switch (gameplayEvent) {
             case GameplayEventType.ItemCollected: this.ShowWhereDidTheItemComeFrom(); break;
-            //case GameplayEventType.ItemTouched: this.ShowWhereDidTheTouchedItemComeFrom(); break;
+            case GameplayEventType.ItemTouched: this.ShowWhereDidTheTouchedItemComeFrom(); break;
         }
     }
 
-    private ShowWhereDidTheItemComeFrom() {
-        const itemSources = get<Array<IsaacResource>>(`/Api/Resources/?ResourceType=${ResourceType.ItemSource}`);
-        this.Display(new WhereDidTheItemComeFrom(this, itemSources, this.WhatItemWasCollected, this.youtubePlayer));
+    private ShowWhereDidTheTouchedItemComeFrom() {
+        const itemSources = this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.ItemSource}`);
+        this.Display(new WhereDidTheItemComeFrom<SubmitVideo>(this, itemSources, this.ShowWhatItemWasTouched, this.youtubePlayer, true));
     }
 
-    private WhatItemWasCollected(id: string) {
-        console.log('item collected:', id);
+    private ShowWhatItemWasTouched(itemsourceId: string) {
+        if (!itemsourceId) {
+            this.ShowMainSelectScreen();
+            return;
+        }
+        this.tempChosenItemSource = itemsourceId;
+
+        const items = this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.Item}&RequiredTags=${Tag.IsSpacebarItem}`);
+        this.Display(new WhatItemWasCollected<SubmitVideo>(this, items, this.TouchedItemAndSourceWereSelected, this.ItemWasRerolled, this.youtubePlayer, true));
     }
+
+    private TouchedItemAndSourceWereSelected(itemId: string) {
+        if (itemId && this.tempChosenItemSource) {
+            this.history.AddEvent({
+                EventType: GameplayEventType.ItemTouched,
+                Player: this.currentPlayer,
+                RelatedResource1: itemId,
+                RelatedResource2: this.tempChosenItemSource,
+                Rerolled: this.wasRerolled
+            });
+        }
+        
+        this.ShowMainSelectScreen();
+    }
+
+    private ShowWhereDidTheItemComeFrom() {
+        const itemSources = this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.ItemSource}`);
+        this.Display(new WhereDidTheItemComeFrom<SubmitVideo>(this, itemSources, this.ShowWhatItemWasCollected, this.youtubePlayer, false));
+    }
+
+    private ShowWhatItemWasCollected(itemsourceId: string) {
+        // itemsourceId = empty string if user clicked back button
+        if (!itemsourceId) {
+            this.ShowMainSelectScreen();
+            return;
+        }
+        this.tempChosenItemSource = itemsourceId;
+
+        const items = this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.Item}`);
+        this.Display(new WhatItemWasCollected<SubmitVideo>(this, items, this.ItemAndSourceWereSelected, this.ItemWasRerolled, this.youtubePlayer, false))
+    }
+
+    private ItemWasRerolled(wasRerolled: boolean) {
+        this.wasRerolled = wasRerolled;
+    }
+
+    private Cleanup() {
+        this.tempChosenCharacterId = undefined;
+        this.tempChosenItemSource = undefined;
+        this.wasRerolled = false;
+    }
+
+    private ItemAndSourceWereSelected(itemId: string) {
+        if (itemId && this.tempChosenItemSource) {
+            const event: SubmittedGameplayEvent = {
+                EventType: GameplayEventType.ItemCollected,
+                Player: this.currentPlayer,
+                RelatedResource1: itemId,
+                RelatedResource2: this.tempChosenItemSource,
+                Rerolled: this.wasRerolled
+            };
+            console.log('adding gameplay event', event);
+            this.history.AddEvent(event);
+        }
+
+        this.ShowMainSelectScreen();
+    }
+
+
 
     static RegisterPage() {
         const page: PageData = {
@@ -376,7 +510,7 @@ export class SubmitVideo implements Component {
             Title: 'loading video...',
             Url: ['SubmitVideo', '{id}'],
             afterRender: () => {
-                // make navigation invisible
+                // make nav bar invisible
                 const nav = document.getElementById('nav');
                 if (nav) {
                     removeClassIfExists(nav, 'w20');
@@ -390,7 +524,7 @@ export class SubmitVideo implements Component {
                 }
             },
             beforeLeaving: () => {
-                // show navigation again
+                // show nav bar again
                 const nav = document.getElementById('nav');
                 if (nav) {
                     addClassIfNotExists(nav, 'w20');

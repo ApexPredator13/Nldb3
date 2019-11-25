@@ -1,5 +1,6 @@
 ﻿import { Component, render } from "../renderer";
 import { addClassIfNotExists, removeClassIfExists } from "../browser";
+import { YoutubePlayer } from "../../Components/SubmitVideo/youtube-player";
 
 const addDisplayNoneOnClick = (e: Event) => {
     console.log('addDisplayNoneOnClick', e);
@@ -12,6 +13,9 @@ const addDisplayNoneOnClick = (e: Event) => {
 }
 
 export class ComponentWithModal {
+
+    // passing a YoutubePlayer will pause the video when a modal is shown
+    constructor(private youtubePlayer?: YoutubePlayer) { }
 
     ShowModal(component: Component, closeModalOnClickOutside: boolean = true) {
         // modal might still be open
@@ -31,6 +35,10 @@ export class ComponentWithModal {
         const html = render(component);
         if (!html) {
             return;
+        }
+
+        if (this.youtubePlayer) {
+            this.youtubePlayer.PauseVideo();
         }
 
         modal.appendChild(html);

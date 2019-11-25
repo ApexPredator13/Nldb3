@@ -1,17 +1,20 @@
-﻿import { FrameworkElement, Component, AsyncComponentPart, A, EventType } from "../../Framework/renderer";
+﻿import { FrameworkElement, Component, AsyncComponentPart, A, EventType, htmlAttributeNameOf } from "../../Framework/renderer";
 import { PageData, registerPage, navigate } from "../../Framework/router";
-import { get } from "../../Framework/http";
+import { get, postResponse } from "../../Framework/http";
 import { Link } from "../_link-creator";
 import { AdminLink } from "./_admin-link-creator";
 import { IsaacImage } from "../../Components/General/isaac-image";
 import { IsaacResource } from "../../Models/isaac-resource";
-import { convertExistsInToString } from "../../Enums/enum-to-string-converters";
-import { existsInOptionlist, tagsOptionList } from "../../Components/Admin/option-lists";
+import { convertExistsInToString, convertTagToString, convertGameModeToString } from "../../Enums/enum-to-string-converters";
+import { existsInOptionlist, tagsAsIsaacResources, gameModeOptionList } from "../../Components/Admin/option-lists";
 import { Mod } from "../../Models/mod";
 import { Option } from "../../Components/General/option";
 import { BackToOverviewLinks } from "../../Components/Admin/back-to-overview-links";
 import { saveToLocalStorage, getFromLocalStorage } from "../../Framework/browser";
 import { ComponentWithForm } from "../../Framework/ComponentBaseClasses/component-with-form";
+import { SearchboxComponent } from "../../Components/General/searchbox";
+import { Tag } from "../../Enums/tags";
+import { ResourceType } from "../../Enums/resource-type";
 
 export class EditResource extends ComponentWithForm implements Component {
     E: FrameworkElement;
@@ -19,6 +22,7 @@ export class EditResource extends ComponentWithForm implements Component {
 
     private stay: boolean = false
     private resourceId: string;
+    private resourceType: ResourceType | undefined;
 
     constructor(parameters: Array<string>) {
         super();
@@ -58,6 +62,10 @@ export class EditResource extends ComponentWithForm implements Component {
                 {
                     e: ['div', 'loading...'],
                     a: [[A.Id, 'resource-details-container']]
+                },
+                {
+                    e: ['div'],
+                    a: [[A.Style, 'width: 100%; height: 700px;']]
                 }
             ]
             
@@ -66,8 +74,8 @@ export class EditResource extends ComponentWithForm implements Component {
         this.A = this.CreatePage();
     }
 
-    private GetLinkForNextPage(resource: IsaacResource) {
-        return this.stay ? Link.Redirect(AdminLink.EditResource(this.resourceId)) : AdminLink.ResourceOverview(resource.resource_type);
+    private GetLinkForNextPage() {
+        return this.stay ? Link.Redirect(AdminLink.EditResource(this.resourceId)) : AdminLink.ResourceOverview(this.resourceType ? this.resourceType : ResourceType.Boss);
     }
 
     CreatePage(): Array<AsyncComponentPart> {
@@ -80,6 +88,13 @@ export class EditResource extends ComponentWithForm implements Component {
                         e: ['div', 'cannot load resource']
                     };
                 }
+
+                this.resourceId = resource.id;
+                this.resourceType = resource.resource_type;
+
+                const tagSearchbox = new SearchboxComponent<EditResource>(this, 1, tagsAsIsaacResources(), false);
+                tagSearchbox.Subscribe(this.AddTag);
+
 
                 const page: FrameworkElement = {
                     e: ['div'],
@@ -98,7 +113,7 @@ export class EditResource extends ComponentWithForm implements Component {
                                 },
                                 {
                                     e: ['form'],
-                                    v: [[EventType.Submit, e => super.HandleSubmit(e, '/Admin/change_resource_name', true, this.GetLinkForNextPage(resource), this.stay ? false : true, false)]],
+                                    v: [[EventType.Submit, e => super.HandleSubmit(e, '/Admin/change_resource_name', true, this.GetLinkForNextPage(), this.stay ? false : true, false)]],
                                     a: [[A.Method, 'post']],
                                     c: [
                                         {
@@ -142,6 +157,33 @@ export class EditResource extends ComponentWithForm implements Component {
                                     e: ['hr']
                                 },
                                 {
+                                    e: ['div'],
+                                    c: [
+                                        {
+                                            e: ['h2', 'Edit Tags']
+                                        },
+                                        {
+                                            e: ['p', 'Selected Tags:'],
+                                        },
+                                        {
+                                            e: ['p'],
+                                            a: [[A.Id, 'selected-tags']],
+                                            c: resource.tags ? resource.tags.map(tag => {
+                                                const span: FrameworkElement = {
+                                                    e: ['span', convertTagToString(tag)],
+                                                    a: [[A.DataC, tag.toString(10)], [A.Class, 'selected-tag']],
+                                                    v: [[EventType.Click, e => this.RemoveTag(e)]]
+                                                };
+                                                return span
+                                            }) : []
+                                        },
+                                        tagSearchbox
+                                    ]
+                                },
+                                {
+                                    e: ['hr']
+                                },
+                                {
                                     e: ['h2', 'Change Icon']
                                 },
                                 {
@@ -160,7 +202,7 @@ export class EditResource extends ComponentWithForm implements Component {
                                         },
                                         {
                                             e: ['form'],
-                                            v: [[EventType.Submit, e => super.HandleSubmit(e, '/Admin/change_icon', true, this.GetLinkForNextPage(resource), this.stay ? false : true, false)]],
+                                            v: [[EventType.Submit, e => super.HandleSubmit(e, '/Admin/change_icon', true, this.GetLinkForNextPage(), this.stay ? false : true, false)]],
                                             a: [[A.Enctype, 'multipart/form-data'], [A.Method, 'post']],
                                             c: [
                                                 {
@@ -220,7 +262,7 @@ export class EditResource extends ComponentWithForm implements Component {
                                         {
                                             e: ['form'],
                                             a: [[A.Method, 'post']],
-                                            v: [[EventType.Submit, e => super.HandleSubmit(e, '/Admin/change_exists_in', true, this.GetLinkForNextPage(resource), this.stay ? false : true, false)]],
+                                            v: [[EventType.Submit, e => super.HandleSubmit(e, '/Admin/change_exists_in', true, this.GetLinkForNextPage(), this.stay ? false : true, false)]],
                                             c: [
                                                 {
                                                     e: ['input'],
@@ -277,7 +319,7 @@ export class EditResource extends ComponentWithForm implements Component {
                                         {
                                             e: ['form'],
                                             a: [[A.Method, 'post']],
-                                            v: [[EventType.Submit, e => super.HandleSubmit(e, '/Admin/change_mod', true, this.GetLinkForNextPage(resource), this.stay ? false : true, false)]],
+                                            v: [[EventType.Submit, e => super.HandleSubmit(e, '/Admin/change_mod', true, this.GetLinkForNextPage(), this.stay ? false : true, false)]],
                                             c: [
                                                 {
                                                     e: ['input'],
@@ -326,7 +368,7 @@ export class EditResource extends ComponentWithForm implements Component {
                                         {
                                             e: ['form'],
                                             a: [[A.Method, 'post']],
-                                            v: [[EventType.Submit, e => super.HandleSubmit(e, '/Admin/change_color', true, this.GetLinkForNextPage(resource), this.stay ? false : true, false)]],
+                                            v: [[EventType.Submit, e => super.HandleSubmit(e, '/Admin/change_color', true, this.GetLinkForNextPage(), this.stay ? false : true, false)]],
                                             c: [
                                                 {
                                                     e: ['input'],
@@ -362,54 +404,12 @@ export class EditResource extends ComponentWithForm implements Component {
                                     e: ['div'],
                                     c: [
                                         {
-                                            e: ['h2', 'Edit Tags']
-                                        },
-                                        {
-                                            e: ['form'],
-                                            a: [[A.Method, 'post']],
-                                            v: [[EventType.Submit, e => super.HandleSubmit(e, '/Admin/change_tags', true, this.GetLinkForNextPage(resource), this.stay ? false : true, false)]],
-                                            c: [
-                                                {
-                                                    e: ['input'],
-                                                    a: [[A.Type, 'hidden'], [A.Name, 'ResourceId'], [A.Value, resource.id]]
-                                                },
-                                                {
-                                                    e: ['div'],
-                                                    c: [
-                                                        {
-                                                            e: ['select'],
-                                                            a: [[A.Name, 'Tags'], [A.Multiple, 'true'], [A.Size, '30']],
-                                                            v: [[EventType.Input, e => super.ValidateForm(e)]],
-                                                            c: tagsOptionList(resource.tags)
-                                                        }
-                                                    ]
-                                                },
-                                                {
-                                                    e: ['div'],
-                                                    c: [
-                                                        {
-                                                            e: ['button', 'Change Tags'],
-                                                            a: [[A.Type, 'submit'], [A.Disabled, 'true']]
-                                                        }
-                                                    ]
-                                                }
-                                            ]
-                                        }
-                                    ]
-                                },
-                                {
-                                    e: ['hr']
-                                },
-                                {
-                                    e: ['div'],
-                                    c: [
-                                        {
                                             e: ['h2', 'Edit Display Order']
                                         },
                                         {
                                             e: ['form'],
                                             a: [[A.Method, 'post']],
-                                            v: [[EventType.Submit, e => super.HandleSubmit(e, '/Admin/change_display_order', true, this.GetLinkForNextPage(resource), this.stay ? false : true, false)]],
+                                            v: [[EventType.Submit, e => super.HandleSubmit(e, '/Admin/change_display_order', true, this.GetLinkForNextPage(), this.stay ? false : true, false)]],
                                             c: [
                                                 {
                                                     e: ['input'],
@@ -436,6 +436,57 @@ export class EditResource extends ComponentWithForm implements Component {
                                                     c: [
                                                         {
                                                             e: ['button', 'Change Order'],
+                                                            a: [[A.Type, 'submit'], [A.Disabled, 'true']]
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    e: ['hr']
+                                },
+                                {
+                                    e: ['div'],
+                                    c: [
+                                        {
+                                            e: ['h2', 'Edit Game Mode']
+                                        },
+                                        {
+                                            e: ['form'],
+                                            a: [[A.Method, 'post']],
+                                            v: [[EventType.Submit, e => super.HandleSubmit(e, '/Admin/change_game_mode', true, this.GetLinkForNextPage(), this.stay ? false : true, false)]],
+                                            c: [
+                                                {
+                                                    e: ['input'],
+                                                    a: [[A.Type, 'hidden'], [A.Name, 'ResourceId'], [A.Value, resource.id]]
+                                                },
+                                                {
+                                                    e: ['div'],
+                                                    c: [
+                                                        {
+                                                            e: ['label', `Current game mode is: ${resource.game_mode ? convertGameModeToString(resource.game_mode) : 'not set yet'}`]
+                                                        },
+                                                        {
+                                                            e: ['br']
+                                                        },
+                                                        {
+                                                            e: ['select'],
+                                                            a: [[A.Name, 'NewGameMode'], [A.Required, 'true'], [A.RequiredErrorMessage, 'Please select an option']],
+                                                            v: [[EventType.Change, e => super.ValidateForm(e)]],
+                                                            c: [
+                                                                new Option('', 'Choose...', typeof(resource.game_mode) === 'number' ? false : true),
+                                                                ...gameModeOptionList(typeof (resource.game_mode) === 'number' ? resource.game_mode : undefined)
+                                                            ]
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    e: ['div'],
+                                                    c: [
+                                                        {
+                                                            e: ['button', 'Change Game Mode'],
                                                             a: [[A.Type, 'submit'], [A.Disabled, 'true']]
                                                         }
                                                     ]
@@ -487,6 +538,79 @@ export class EditResource extends ComponentWithForm implements Component {
         };
 
         return [result];
+    }
+
+
+    private GetExistingTags() {
+        const existingTags = new Array<Tag>();
+        const tagContainer = document.getElementById('selected-tags');
+        if (tagContainer && tagContainer instanceof HTMLParagraphElement) {
+            const spans = tagContainer.getElementsByTagName('span');
+            if (spans && spans.length > 0) {
+                const attributeName = htmlAttributeNameOf(A.DataC);
+                for (let i = 0; i < spans.length; ++i) {
+                    const span = spans[i];
+                    const attributeValue = span.getAttribute(attributeName);
+                    if (attributeValue) {
+                        const attributeAsTag = parseInt(attributeValue, 10);
+                        if (!isNaN(attributeAsTag)) {
+                            existingTags.push(attributeAsTag as Tag);
+                        }
+                    }
+                }
+            }
+        }
+        return existingTags;
+    }
+
+    private RemoveTag(e: Event) {
+        const span = e.target;
+        if (span && span instanceof HTMLSpanElement) {
+            const attributeName = htmlAttributeNameOf(A.DataC);
+            const attributeValue = span.getAttribute(attributeName);
+            if (attributeValue) {
+                const tagToRemove = parseInt(attributeValue, 10) as Tag;
+                if (!isNaN(tagToRemove)) {
+                    const existingTags = this.GetExistingTags();
+                    const newTags = existingTags.filter(existingTag => existingTag !== tagToRemove);
+                    const body = {
+                        ResourceId: this.resourceId,
+                        Tags: newTags
+                    };
+                    const link = this.GetLinkForNextPage();
+                    postResponse('/Admin/change_tags', JSON.stringify(body), true).then(response => {
+                        if (response.ok) {
+                            navigate(link);
+                        } else {
+                            console.error(response);
+                        }
+                    });
+                }
+            }
+        }
+    }
+
+    private AddTag(tagAsString: string) {
+        const tag = parseInt(tagAsString, 10) as Tag;
+        if (!isNaN(tag)) {
+            const existingTags = this.GetExistingTags();
+            existingTags.push(tag);
+            const body = {
+                ResourceId: this.resourceId,
+                Tags: existingTags
+            };
+            console.log(body);
+            const bodyString = JSON.stringify(body);
+            console.log(bodyString);
+            const link = this.GetLinkForNextPage();
+            postResponse('/Admin/change_tags', JSON.stringify(body), true).then(response => {
+                if (response.ok) {
+                    navigate(link);
+                } else {
+                    console.error(response);
+                }
+            });
+        }
     }
 
     static RegisterPage() {

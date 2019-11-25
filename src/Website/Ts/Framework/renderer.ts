@@ -141,7 +141,8 @@ enum A {
     Rows,
     DataC,
     DataF,
-    DataE
+    DataE,
+    DataT
 }
 
 enum EventType {
@@ -226,6 +227,8 @@ const htmlAttributeNameOf = (attribute: A) => {
             return 'f';
         case A.DataE:
             return 'e';
+        case A.DataT:
+            return 't';
         default:
             return '';
     }

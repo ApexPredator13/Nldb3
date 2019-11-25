@@ -151,7 +151,7 @@ export class HelpSelectItemsource implements Component {
                                             a: [[A.Type, 'checkbox'], [A.Checked, 'true']]
                                         },
                                         {
-                                            e: ['span', ' on the next page called \'This item was rerolled before it was collected\'. Check that! :)']
+                                            e: ['span', ' on the next page called \'This item was rerolled one or more times before pickup\'. Check that! :)']
                                         }
                                     ]
                                 },

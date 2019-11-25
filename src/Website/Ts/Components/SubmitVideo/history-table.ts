@@ -6,20 +6,33 @@ import { IsaacImage } from "../General/isaac-image";
 import { SubmittedPlayedCharacter } from "../../Models/submitted-played-character";
 import { SubmittedPlayedFloor } from "../../Models/submitted-played-floor";
 import { SubmittedGameplayEvent } from "../../Models/submitted-gameplay-event";
+import { ComponentWithSubscribers } from "../../Framework/ComponentBaseClasses/component-with-subscribers";
+import { ComponentWithModal } from "../../Framework/ComponentBaseClasses/component-with-modal";
+import { WarningRemovingCharacterFromHistory } from "./warning-removing-character-from-history";
+import { WarningRemovingFloorFromHistory } from "./warning-removing-floor-from-history";
+import { ResourceType } from "../../Enums/resource-type";
+import { YoutubePlayer } from "./youtube-player";
 
 type removeHistoryElement = {
     valid: boolean,
     characterIndex: number | null,
     floorIndex: number | null,
-    eventIndex: number | null
+    eventIndex: number | null,
+    eventType: ResourceType | null
 }
 
-export class HistoryTable implements Component {
+class HistoryTable<TSubscriber> extends ComponentWithSubscribers<removeHistoryElement, TSubscriber> implements Component {
     E: FrameworkElement;
 
     private dataForThisEpisode: SubmittedCompleteEpisode;
 
-    constructor(videoId: string) {
+    constructor(
+        caller: ThisType<TSubscriber>,
+        videoId: string,
+        removedItemProcessor: (removedElement: removeHistoryElement) => any,
+        private youtubePlayer: YoutubePlayer
+    ) {
+        super(caller, removedItemProcessor);
 
         this.dataForThisEpisode = {
             VideoId: videoId,
@@ -88,6 +101,15 @@ export class HistoryTable implements Component {
         }
     }
 
+    WeAreOnFirstFloor(): boolean {
+        const currentCharacter = this.GetCurrentCharacter();
+        if (currentCharacter.PlayedFloors.length === 1) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     private RemoveHistoryElement(e: Event) {
         const data = this.GetRemoveIndexData(e);
         console.log('remove history: ', data);
@@ -96,17 +118,43 @@ export class HistoryTable implements Component {
         }
 
         if (data.characterIndex !== null && data.floorIndex == null && data.eventIndex == null) {
-            // character was removed
-            this.dataForThisEpisode.PlayedCharacters.splice(data.characterIndex, 1);
+            // user wants to remove character: show confirmation prompt
+            const prompt = new WarningRemovingCharacterFromHistory<HistoryTable<TSubscriber>>(this, this.RemoveCharacter, data);
+            new ComponentWithModal(this.youtubePlayer).ShowModal(prompt, false);
         } else if (data.characterIndex !== null && data.floorIndex !== null && data.eventIndex == null) {
-            // floor was removed
-            this.dataForThisEpisode.PlayedCharacters[data.characterIndex].PlayedFloors.splice(data.floorIndex, 1);
+            // user wants to remove floor: show confirmation prompt
+            const prompt = new WarningRemovingFloorFromHistory<HistoryTable<TSubscriber>>(this, this.RemoveFloor, data);
+            new ComponentWithModal(this.youtubePlayer).ShowModal(prompt, false)
         } else if (data.characterIndex !== null && data.floorIndex !== null && data.eventIndex !== null) {
-            // event was removed
-            this.dataForThisEpisode.PlayedCharacters[data.characterIndex].PlayedFloors[data.floorIndex].GameplayEvents.splice(data.eventIndex, 1);
+            // user wants to remove event: just let him do it
+            this.RemoveEvent(data);
         }
+    }
 
-        this.ReloadHistory();
+    private RemoveCharacter(characterToRemove: removeHistoryElement | null) {
+        new ComponentWithModal().DismissModal();
+        if (characterToRemove && characterToRemove.characterIndex !== null) {
+            this.dataForThisEpisode.PlayedCharacters.splice(characterToRemove.characterIndex, 1);
+            this.ReloadHistory();
+            super.Emit(characterToRemove);
+        }
+    }
+
+    private RemoveFloor(floorToRemove: removeHistoryElement | null) {
+        new ComponentWithModal().DismissModal();
+        if (floorToRemove && floorToRemove.characterIndex !== null && floorToRemove.floorIndex !== null) {
+            this.dataForThisEpisode.PlayedCharacters[floorToRemove.characterIndex].PlayedFloors.splice(floorToRemove.floorIndex, 1);
+            this.ReloadHistory();
+            super.Emit(floorToRemove);
+        }
+    }
+
+    private RemoveEvent(eventToRemove: removeHistoryElement | null) {
+        if (eventToRemove && eventToRemove.characterIndex !== null && eventToRemove.floorIndex !== null && eventToRemove.eventIndex !== null) {
+            this.dataForThisEpisode.PlayedCharacters[eventToRemove.characterIndex].PlayedFloors[eventToRemove.floorIndex].GameplayEvents.splice(eventToRemove.eventIndex, 1);
+            this.ReloadHistory();
+            super.Emit(eventToRemove);
+        }
     }
 
     private GetRemoveIndexData(e: Event): removeHistoryElement {
@@ -116,7 +164,8 @@ export class HistoryTable implements Component {
             valid: false,
             characterIndex: null,
             eventIndex: null,
-            floorIndex: null
+            floorIndex: null,
+            eventType: null
         };
 
         if (!target || !(target instanceof HTMLDivElement)) {
@@ -126,20 +175,23 @@ export class HistoryTable implements Component {
         const characterAttributeName = htmlAttributeNameOf(A.DataC);
         const floorAttributeName = htmlAttributeNameOf(A.DataF);
         const eventAttributeName = htmlAttributeNameOf(A.DataE);
+        const eventTypeAttributeName = htmlAttributeNameOf(A.DataT);
 
         const characterIndex = target.getAttribute(characterAttributeName);
         const floorIndex = target.getAttribute(floorAttributeName);
         const eventIndex = target.getAttribute(eventAttributeName);
+        const eventType = target.getAttribute(eventTypeAttributeName);
 
-        if (!characterIndex && !floorIndex && !eventIndex) {
+        if (!characterIndex && !floorIndex && !eventIndex && !eventType) {
             return invalidResult;
         } else {
             e.stopPropagation();
             return {
                 valid: true,
-                characterIndex: characterIndex ? Number(characterIndex) : null,
-                eventIndex: eventIndex ? Number(eventIndex) : null,
-                floorIndex: floorIndex ? Number(floorIndex) : null
+                characterIndex: characterIndex ? parseInt(characterIndex, 10) : null,
+                eventIndex: eventIndex ? parseInt(eventIndex, 10) : null,
+                floorIndex: floorIndex ? parseInt(floorIndex, 10) : null,
+                eventType: eventType ? parseInt(eventType, 10) : null
             };
         }
     }
@@ -165,7 +217,8 @@ export class HistoryTable implements Component {
         }
 
         // reload history
-        post<History>('/api/resources/history', JSON.stringify(this.dataForThisEpisode)).then(history => {
+        post<History>('/api/resources/history', JSON.stringify(this.dataForThisEpisode)).then((history: History | null) => {
+            console.log('new history received', history);
             if (history) {
                 // recreate table rows
                 const newTableContent: FrameworkElement = {
@@ -237,7 +290,7 @@ export class HistoryTable implements Component {
                         c: events.map((event, eventIndex) => {
                             const eventElement: FrameworkElement = {
                                 e: ['div'],
-                                a: [[A.DataC, characterIndex.toString(10)], [A.DataF, floorIndex.toString(10)], [A.DataE, eventIndex.toString(10)], [A.Class, 'hand display-inline']],
+                                a: [[A.DataC, characterIndex.toString(10)], [A.DataF, floorIndex.toString(10)], [A.DataE, eventIndex.toString(10)], [A.Class, 'hand display-inline'], [A.DataT, event.image.type.toString(10)]],
                                 c: [new IsaacImage(event.image, undefined, undefined, false)],
                                 v: [[EventType.Click, e => this.RemoveHistoryElement(e)]]
                             };
@@ -255,4 +308,10 @@ export class HistoryTable implements Component {
         return row;
     }
 }
+
+export {
+    HistoryTable,
+    removeHistoryElement
+}
+
 

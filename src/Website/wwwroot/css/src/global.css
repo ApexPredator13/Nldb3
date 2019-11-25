@@ -101,3 +101,11 @@ hr {
 .u {
     text-decoration: underline;
 }
+.selected-tag {
+    padding: 0.3rem;
+    margin: 0.3rem;
+    cursor: pointer;
+    background-color: rgba(255,255,255,0.1);
+    border: 1px solid white;
+    border-radius: 0.3rem;
+}

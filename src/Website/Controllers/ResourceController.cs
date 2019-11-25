@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Website.Areas.Api.Models;
@@ -66,6 +68,44 @@ namespace Website.Controllers
         {
             var history = await _isaacRepository.GetHistory(episode);
             return history;
+        }
+
+
+        /*
+         used during 'submit episode' to preload bosses.
+         scans through enum names and finds a match. for example
+
+         'BasementOne' returns 'AppearsOnBasementOne'       for bosses
+         'BasementOne; returns 'ComesAfterBasementOne'      for floors
+
+         now all bosses and floors that have that tag can be loaded
+        */
+        [HttpGet("effect")]
+        public List<int> GetEffectNumber([FromQuery] params string[] name)
+        {
+            var result = new List<int>();
+            var enumType = typeof(Tag);
+            var effectNames = Enum.GetNames(enumType);
+
+            foreach (var n in name)
+            {
+                string? exists = effectNames.FirstOrDefault(x => x.ToLower().IndexOf(n.ToLower()) != -1);
+
+                if (exists != null)
+                {
+                    try
+                    {
+                        var enumValue = Convert.ToInt32((Tag)Enum.Parse(enumType, exists));
+                        result.Add(enumValue);
+                    }
+                    catch
+                    {
+                        Console.WriteLine("failed to parse enum value");
+                    }
+                }
+            }
+
+            return result;
         }
 
         //[HttpGet]

@@ -20,11 +20,15 @@
         }
     }
 
-    public getYoutubePlayer(): any {
+    GetYoutubePlayer(): any {
         return (window as any).youtubePlayer;
     }
 
-    public getCurrentTime(): number {
-        return Math.floor(this.getYoutubePlayer().getCurrentTime());
+    GetCurrentTime(): number {
+        return Math.floor(this.GetYoutubePlayer().getCurrentTime());
+    }
+
+    PauseVideo() {
+        this.GetYoutubePlayer().pauseVideo();
     }
 }

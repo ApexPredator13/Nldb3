@@ -356,6 +356,16 @@ const convertTagToString = (t: Tag): string => {
         case Tag.ComesAfterWombOne: return 'Comes After Womb 1';
         case Tag.ComesAfterWombTwo: return 'Comes After Womb 2';
         case Tag.ComesAfterWombXl: return 'Comes After Womb XL';
+        case Tag.TemporarySizeDown: return 'Temporary Size Down';
+        case Tag.TemporarySizeUp: return 'Temporary Size Up';
+        case Tag.SingleUse: return 'Single Use Item';
+        case Tag.DropsRandomConsumables: return 'Drops Random Consumables';
+        case Tag.SpawnsTrollBombs: return 'Spawns Troll Bombs';
+        case Tag.IsOrbital: return 'Is an Orbital';
+        case Tag.TargetsOrHomesInOnEnemies: return 'Auto-targets or homes in on enemies';
+        case Tag.ContactDamage: return 'Deals Contact Damage';
+        case Tag.BlocksEnemyShots: return 'Blocks Enemy Shots';
+        case Tag.SpawnsFire: return 'Spawns Fire';
         default: return '';
     }
 }

@@ -273,6 +273,16 @@
         ComesAfterWombOne,
         ComesAfterWombTwo,
         ComesAfterWombXl,
-        IsFirstFloor
+        IsFirstFloor,
+        TemporarySizeUp,
+        TemporarySizeDown,
+        SingleUse,
+        DropsRandomConsumables,
+        SpawnsTrollBombs,
+        IsOrbital,
+        TargetsOrHomesInOnEnemies,
+        ContactDamage,
+        BlocksEnemyShots,
+        SpawnsFire
     }
 }

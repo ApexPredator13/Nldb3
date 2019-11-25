@@ -5,6 +5,7 @@ import { SearchboxComponent } from "../General/searchbox";
 import { ComponentWithModal } from "../../Framework/ComponentBaseClasses/component-with-modal";
 import { YoutubePlayer } from "./youtube-player";
 import { HelpSelectItemsource } from "./help-select-itemsource";
+import { BackToMainSelection } from "./back-to-main-selection";
 
 export class WhereDidTheItemComeFrom<TSubscriber> extends ComponentWithModal implements Component {
     E: FrameworkElement;
@@ -13,9 +14,10 @@ export class WhereDidTheItemComeFrom<TSubscriber> extends ComponentWithModal imp
         subscriber: ThisType<TSubscriber>,
         itemSources: Promise<Array<IsaacResource> | null>,
         selectedItemSourceProcessor: (id: string) => any,
-        private youtubePlayer: YoutubePlayer
+        youtubePlayer: YoutubePlayer,
+        touchedItem: boolean
     ) {
-        super();
+        super(youtubePlayer);
 
         const commonSourcesBoxes = new Boxes(subscriber, 8, itemSources, null, false, 10);
         commonSourcesBoxes.Subscribe(selectedItemSourceProcessor);
@@ -26,7 +28,7 @@ export class WhereDidTheItemComeFrom<TSubscriber> extends ComponentWithModal imp
             e: ['div'],
             c: [
                 {
-                    e: ['h2', 'Where did the item come from?']
+                    e: ['h2', touchedItem ? 'What spawned the spacebar item NL touched and put down again?' : 'Where did the item come from?']
                 },
                 commonSourcesBoxes,
                 {
@@ -40,19 +42,21 @@ export class WhereDidTheItemComeFrom<TSubscriber> extends ComponentWithModal imp
                     e: ['p'],
                     c: [
                         {
+                            e: ['span', '❔ ']
+                        },
+                        {
                             e: ['a', 'What should I select??'],
-                            v: [[EventType.Click, () => this.ShowHelp()]],
+                            v: [[EventType.Click, () => super.ShowModal(new HelpSelectItemsource())]],
                             a: [[A.Class, 'hand u']]
-                        }
+                        },
+                        {
+                            e: ['br']
+                        },
+                        new BackToMainSelection<TSubscriber>(subscriber, selectedItemSourceProcessor)
                     ]
                 }
             ]
         }
-    }
-
-    private ShowHelp() {
-        this.youtubePlayer.getYoutubePlayer().pauseVideo();
-        super.ShowModal(new HelpSelectItemsource());
     }
 }
 
