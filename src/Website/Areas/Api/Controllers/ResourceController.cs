@@ -44,56 +44,56 @@ namespace Website.Areas.Api.Controllers
         //    return await _isaacRepository.GetResources(resource);
         //}
 
-        [HttpGet("effect")]
-        public List<int> GetEffectNumber([FromQuery] params string[] name)
-        {
-            var result = new List<int>();
-            var enumType = typeof(Tag);
-            var effectNames = Enum.GetNames(enumType);
+        //[HttpGet("effect")]
+        //public List<int> GetEffectNumber([FromQuery] params string[] name)
+        //{
+        //    var result = new List<int>();
+        //    var enumType = typeof(Tag);
+        //    var effectNames = Enum.GetNames(enumType);
 
-            foreach (var n in name)
-            {
-                string? exists = effectNames.FirstOrDefault(x => x.ToLower().IndexOf(n.ToLower()) != -1);
+        //    foreach (var n in name)
+        //    {
+        //        string? exists = effectNames.FirstOrDefault(x => x.ToLower().IndexOf(n.ToLower()) != -1);
 
-                if (exists != null)
-                {
-                    try
-                    {
-                        var enumValue = Convert.ToInt32((Tag)Enum.Parse(enumType, exists));
-                        result.Add(enumValue);
-                    }
-                    catch
-                    {
-                        Console.WriteLine("failed to parse enum value");
-                    }
-                }
-            }
+        //        if (exists != null)
+        //        {
+        //            try
+        //            {
+        //                var enumValue = Convert.ToInt32((Tag)Enum.Parse(enumType, exists));
+        //                result.Add(enumValue);
+        //            }
+        //            catch
+        //            {
+        //                Console.WriteLine("failed to parse enum value");
+        //            }
+        //        }
+        //    }
 
-            return result;
-        }
+        //    return result;
+        //}
 
-        [HttpGet("next-floorset/{id}")]
-        public async Task<List<IsaacResource>> GetNextFloorset([FromRoute] string id)
-        {
-            if (Enum.TryParse(typeof(Tag), $"ComesAfter{id}", out object? effect))
-            {
-                if (effect is null)
-                {
-                    return new List<IsaacResource>();
-                }
+        //[HttpGet("next-floorset/{id}")]
+        //public async Task<List<IsaacResource>> GetNextFloorset([FromRoute] string id)
+        //{
+        //    if (Enum.TryParse(typeof(Tag), $"ComesAfter{id}", out object? effect))
+        //    {
+        //        if (effect is null)
+        //        {
+        //            return new List<IsaacResource>();
+        //        }
 
-                var foundEffect = (Tag)effect;
-                return await _isaacRepository.GetResources(new GetResource()
-                {
-                    RequiredTags = new List<Tag> { foundEffect },
-                    ResourceType = ResourceType.Floor
-                });
-            }
-            else
-            {
-                return new List<IsaacResource>();
-            }
-        }
+        //        var foundEffect = (Tag)effect;
+        //        return await _isaacRepository.GetResources(new GetResource()
+        //        {
+        //            RequiredTags = new List<Tag> { foundEffect },
+        //            ResourceType = ResourceType.Floor
+        //        });
+        //    }
+        //    else
+        //    {
+        //        return new List<IsaacResource>();
+        //    }
+        //}
 
         [HttpGet("{id}/Type")]
         public async Task<int> GetResourceType([FromRoute] string id)

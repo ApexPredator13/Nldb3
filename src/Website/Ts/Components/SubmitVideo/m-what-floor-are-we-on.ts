@@ -3,11 +3,11 @@ import { IsaacResource } from "../../Models/isaac-resource";
 import { Boxes } from "../General/boxes";
 import { SearchboxComponent } from "../General/searchbox";
 
-export class WhatFloorAreWeOn<TSubscriber> implements Component {
+export class WhatFloorAreWeOn<TSubscriber extends Object> implements Component {
     E: FrameworkElement;
 
     constructor(
-        subscriber: ThisType<TSubscriber>,
+        subscriber: TSubscriber,
         firstFloors: Promise<Array<IsaacResource> | null>,
         allFloors: Promise<Array<IsaacResource> | null>,
         selectedFloorProcessor: (id: string) => any,

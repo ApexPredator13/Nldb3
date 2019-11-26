@@ -11,7 +11,7 @@ const getLastCharactersOfUrl = (numberOfCharacters: number) => {
 
 const setZIndex = (e: Event, zIndex: number | null) => {
     if (e.target && e.target instanceof HTMLElement) {
-        e.target.style.zIndex = zIndex ? zIndex.toString(10) : null;
+        e.target.style.zIndex = zIndex ? zIndex.toString(10) : '';
     }
 }
 

@@ -2,11 +2,11 @@
 import { IsaacResource } from "../../Models/isaac-resource";
 import { Boxes } from "../General/boxes";
 
-export class WhatCharacterWasChosen<TSubscriber> implements Component {
+export class WhatCharacterWasChosen<TSubscriber extends Object> implements Component {
     E: FrameworkElement;
 
     constructor(
-        subscriber: ThisType<TSubscriber>,
+        subscriber: TSubscriber,
         resources: Promise<Array<IsaacResource> | null>,
         selectedCharacterGoesTo: (chosenCharacter: string) => any
     ) {

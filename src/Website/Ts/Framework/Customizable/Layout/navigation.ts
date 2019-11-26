@@ -77,7 +77,6 @@ export class NavigationComponent implements Component {
 
     private async CreateUserSection(): Promise<FrameworkElement> {
         const user = await getUser();
-        console.info('(navigation) user is', user);
 
         if (!user) {
             const element: FrameworkElement = {

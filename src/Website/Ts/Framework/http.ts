@@ -36,8 +36,12 @@ async function request<T>(url: string, requestInit?: RequestInit, displayError =
             return null;
         }
 
-        return response.json() as Promise<T>;
-    } catch (e) {
+        try {
+            return await response.json();
+        } catch {
+            return null;
+        }
+    } catch {
         if (displayError) {
             new ComponentWithModal().ShowModal(new GenericError('You are either offline or the server is dead.'));
         }

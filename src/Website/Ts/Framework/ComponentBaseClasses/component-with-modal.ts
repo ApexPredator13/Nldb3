@@ -3,7 +3,6 @@ import { addClassIfNotExists, removeClassIfExists } from "../browser";
 import { YoutubePlayer } from "../../Components/SubmitVideo/youtube-player";
 
 const addDisplayNoneOnClick = (e: Event) => {
-    console.log('addDisplayNoneOnClick', e);
     const target = e.target;
     if (target && target instanceof HTMLDivElement && target.id === 'modal') {
         addClassIfNotExists(target, 'display-none');

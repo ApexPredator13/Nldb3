@@ -70,42 +70,54 @@ namespace Website.Controllers
             return history;
         }
 
-
-        /*
-         used during 'submit episode' to preload bosses.
-         scans through enum names and finds a match. for example
-
-         'BasementOne' returns 'AppearsOnBasementOne'       for bosses
-         'BasementOne; returns 'ComesAfterBasementOne'      for floors
-
-         now all bosses and floors that have that tag can be loaded
-        */
-        [HttpGet("effect")]
-        public List<int> GetEffectNumber([FromQuery] params string[] name)
+        [HttpGet("common-bosses-for-floor/{floorId}")]
+        public async Task<List<IsaacResource>> GetRequiredTagForCommonBosses([FromRoute] string floorId)
         {
-            var result = new List<int>();
-            var enumType = typeof(Tag);
-            var effectNames = Enum.GetNames(enumType);
-
-            foreach (var n in name)
+            if (Enum.TryParse(typeof(Tag), $"AppearsOn{floorId}", out object? tag))
             {
-                string? exists = effectNames.FirstOrDefault(x => x.ToLower().IndexOf(n.ToLower()) != -1);
-
-                if (exists != null)
+                if (tag is null)
                 {
-                    try
-                    {
-                        var enumValue = Convert.ToInt32((Tag)Enum.Parse(enumType, exists));
-                        result.Add(enumValue);
-                    }
-                    catch
-                    {
-                        Console.WriteLine("failed to parse enum value");
-                    }
+                    return new List<IsaacResource>();
                 }
-            }
 
-            return result;
+                var foundTag = (Tag)tag;
+                var foundBosses = await _isaacRepository.GetResources(new GetResource()
+                {
+                    RequiredTags = new List<Tag> { foundTag },
+                    ResourceType = ResourceType.Boss
+                });
+
+                return foundBosses;
+            }
+            else
+            {
+                return new List<IsaacResource>();
+            }
+        }
+
+        [HttpGet("next-floorset/{currentFloorId}")]
+        public async Task<List<IsaacResource>> GetNextFloorset([FromRoute] string currentFloorId)
+        {
+            if (Enum.TryParse(typeof(Tag), $"ComesAfter{currentFloorId}", out object? tag))
+            {
+                if (tag is null)
+                {
+                    return new List<IsaacResource>();
+                }
+
+                var foundTag = (Tag)tag;
+                var foundFloors = await _isaacRepository.GetResources(new GetResource()
+                {
+                    RequiredTags = new List<Tag> { foundTag },
+                    ResourceType = ResourceType.Floor
+                });
+
+                return foundFloors;
+            }
+            else
+            {
+                return new List<IsaacResource>();
+            }
         }
 
         //[HttpGet]

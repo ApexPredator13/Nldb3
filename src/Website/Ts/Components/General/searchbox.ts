@@ -4,13 +4,13 @@ import { ComponentWithSubscribers } from "../../Framework/ComponentBaseClasses/c
 import { ResourceType } from "../../Enums/resource-type";
 import { removeClassIfExists, addClassIfNotExists } from "../../Framework/browser";
 
-export class SearchboxComponent<TCaller> extends ComponentWithSubscribers<string, TCaller> implements Component {
+export class SearchboxComponent<TSubscriber extends Object> extends ComponentWithSubscribers<TSubscriber, string> implements Component {
 
     E: FrameworkElement;
     A: Array<AsyncComponentPart> | undefined;
 
-    constructor(caller: ThisType<TCaller>, private someSearchboxId: number, private data: Array<IsaacResource> | Promise<Array<IsaacResource> | null>, private displayResourceType: boolean) {
-        super(caller);
+    constructor(subscriber: TSubscriber, private someSearchboxId: number, private data: Array<IsaacResource> | Promise<Array<IsaacResource> | null>, private displayResourceType: boolean) {
+        super(subscriber);
 
         this.E = {
             e: ['div'],

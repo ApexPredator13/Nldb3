@@ -1,21 +1,19 @@
-﻿export class ComponentWithSubscribers<TEmitType, TThis> {
+﻿export class ComponentWithSubscribers<TSubscriber extends Object, TEmit> {
 
-    private Subscribers: Array<(id: TEmitType) => any>;
+    private Subscribers: Array<(id: TEmit) => any>;
 
-    constructor(private caller: ThisType<TThis>, ...subscribers: Array<(id: TEmitType) => any>) {
-        this.Subscribers = new Array<(id: TEmitType) => any>(...subscribers);
+    constructor(private caller: TSubscriber, ...subscribers: Array<(id: TEmit) => any>) {
+        this.Subscribers = new Array<(id: TEmit) => any>(...subscribers);
     }
 
-    Subscribe(fn: (id: TEmitType) => any) {
+    Subscribe(fn: (id: TEmit) => any) {
         this.Subscribers.push(fn);
     }
 
-    Emit(id: TEmitType) {
+    Emit(id: TEmit) {
         if (this.Subscribers.length > 0) {
             for (const subscriber of this.Subscribers) {
-                const boundFunction = subscriber.bind(this.caller);
-                console.log('emitting ', id);
-                boundFunction(id);
+                subscriber.call(this.caller, id);
             }
         }
     }

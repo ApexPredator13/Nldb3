@@ -2,10 +2,10 @@
 import { IsaacResource } from "../../Models/isaac-resource";
 import { Boxes } from "../General/boxes";
 
-export class WhatGameModeWasChosen<TSubscriber> implements Component {
+export class WhatGameModeWasChosen<TSubscriber extends Object> implements Component {
     E: FrameworkElement;
 
-    constructor(subscriber: ThisType<TSubscriber>, resources: Array<IsaacResource>, gameModeProcessor: (id: string) => any) {
+    constructor(subscriber: TSubscriber, resources: Array<IsaacResource>, gameModeProcessor: (id: string) => any) {
 
         const gameModeBoxes = new Boxes(subscriber, 2, resources, '/img/gameplay_events.png', false);
         gameModeBoxes.Subscribe(gameModeProcessor);

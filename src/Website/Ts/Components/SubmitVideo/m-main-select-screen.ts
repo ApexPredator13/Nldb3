@@ -2,11 +2,11 @@
 import { IsaacResource } from "../../Models/isaac-resource";
 import { Boxes } from "../General/boxes";
 
-export class MainSelectScreen<TSubscriber> implements Component {
+export class MainSelectScreen<TSubscriber extends Object> implements Component {
     E: FrameworkElement;
 
     constructor(
-        subscriber: ThisType<TSubscriber>,
+        subscriber: TSubscriber,
         events: Array<IsaacResource>,
         consumables: Array<IsaacResource>,
         selectionProcessor: (selectedEvent: string) => any

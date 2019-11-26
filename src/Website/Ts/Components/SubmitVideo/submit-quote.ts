@@ -1,6 +1,7 @@
 ﻿import { Component, FrameworkElement, A, EventType } from "../../Framework/renderer";
 import { Option } from '../General/option';
 import { post } from "../../Framework/http";
+import { YoutubePlayer } from "./youtube-player";
 
 export class SubmitQuote implements Component {
     E: FrameworkElement;
@@ -11,12 +12,13 @@ export class SubmitQuote implements Component {
     private selectedMinute: HTMLSelectElement | undefined;
     private selectedSecond: HTMLSelectElement | undefined;
     private specificTimeRadio: HTMLInputElement | undefined;
+    private videoTimeRadio: HTMLInputElement | undefined;
 
     private canEnableSubmitButton = true;
     private interval: number | undefined;
     private intervalCounter = 15;
 
-    constructor(private videoId: string) {
+    constructor(private videoId: string, private youtubePlayer: YoutubePlayer) {
         this.E = {
             e: ['div'],
             a: [[A.Id, 'quotes']],
@@ -77,7 +79,7 @@ export class SubmitQuote implements Component {
                                     a: [[A.Id, 'select-minute']],
                                     v: [[EventType.Input, () => { this.CheckSpecificTimeRadio(); this.CheckQuoteValid(); }]],
                                     c: [
-                                        new Option('-', '', true),
+                                        new Option('', '', true),
                                         ...Array.from(Array(180).keys()).map(index => new Option(index.toString(10), index.toString(10)))
                                     ]
                                 },
@@ -89,7 +91,7 @@ export class SubmitQuote implements Component {
                                     a: [[A.Id, 'select-second']],
                                     v: [[EventType.Input, () => { this.CheckSpecificTimeRadio(); this.CheckQuoteValid(); }]],
                                     c: [
-                                        new Option('-', '', true),
+                                        new Option('', '', true),
                                         ...Array.from(Array(59).keys()).map(index => new Option((index + 1).toString(10), (index + 1).toString(10)))
                                     ]
                                 },
@@ -140,9 +142,15 @@ export class SubmitQuote implements Component {
     }
 
     private CheckQuoteValid(): boolean {
+        const videoTimeRadio = this.GetVideoTimeRadio();
         const specificTimeRadio = this.GetSpecificTimeRadio();
         const minuteSelection = this.GetMinuteSelectElement();
         const secondSelection = this.GetSecondSelectElement();
+
+        if (!videoTimeRadio.checked && !specificTimeRadio.checked) {
+            this.DisableSubmitButton();
+            return false;
+        }
 
         if (specificTimeRadio.checked && (!minuteSelection.value || !secondSelection.value)) {
             this.DisableSubmitButton();
@@ -210,7 +218,8 @@ export class SubmitQuote implements Component {
         if (specificTimeRadio.checked) {
             at = (parseInt(minuteSelect.value, 10) * 60) + (parseInt(secondSelect.value, 10));
         } else {
-            at = (window as any).youtubePlayer.getCurrentTime();
+            at = this.youtubePlayer.GetCurrentTime();
+            console.log('current video time: ', at);
         }
 
         const data = new FormData();
@@ -220,21 +229,30 @@ export class SubmitQuote implements Component {
 
         const valid = this.CheckQuoteValid();
         if (valid) {
+            this.DisableSubmitButton();
             this.canEnableSubmitButton = false;
-            post('/Api/Quotes').then(() => {
+            post('/Api/Quotes', data).then(() => {
                 textarea.value = '';
                 minuteSelect.selectedIndex = 0;
                 secondSelect.selectedIndex = 0;
+                const radio1 = this.GetSpecificTimeRadio();
+                radio1.checked = false;
+                const radio2 = this.GetVideoTimeRadio();
+                radio2.checked = false;
                 this.canEnableSubmitButton = false;
                 this.interval = setInterval(() => {
                     this.intervalCounter--;
+                    const button = this.GetSubmitButton();
+                    button.innerText = `Quote Submitted! (Waiting... ${this.intervalCounter.toString(10)})`;
                     if (this.intervalCounter === 0) {
+                        button.innerText = 'Submit Quote';
                         clearInterval(this.interval);
                         this.intervalCounter = 15;
                         this.canEnableSubmitButton = true;
+                        this.DisableSubmitButton();
                     }
                 }, 1000);
-            }).catch(() => this.canEnableSubmitButton = true);
+            }).catch(() => { this.canEnableSubmitButton = true; this.EnableSubmitButton(); });
         }
     }
 
@@ -260,6 +278,19 @@ export class SubmitQuote implements Component {
                 throw 'no specific time radio found';
             }
             this.specificTimeRadio = radio;
+            return radio;
+        }
+    }
+
+    private GetVideoTimeRadio(): HTMLInputElement {
+        if (this.videoTimeRadio) {
+            return this.videoTimeRadio;
+        } else {
+            const radio = document.getElementById('current-video-timer');
+            if (!radio || !(radio instanceof HTMLInputElement)) {
+                throw 'no video time radio found';
+            }
+            this.videoTimeRadio = radio;
             return radio;
         }
     }

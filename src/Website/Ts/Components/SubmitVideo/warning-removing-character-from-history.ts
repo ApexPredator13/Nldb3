@@ -2,11 +2,11 @@
 import { Component, FrameworkElement, A, EventType } from "../../Framework/renderer";
 import { removeHistoryElement } from "./history-table";
 
-export class WarningRemovingCharacterFromHistory<TSubscriber> extends ComponentWithSubscribers<removeHistoryElement | null, TSubscriber> implements Component {
+export class WarningRemovingCharacterFromHistory<TSubscriber> extends ComponentWithSubscribers<TSubscriber, removeHistoryElement | null> implements Component {
     E: FrameworkElement;
 
     constructor(
-        caller: ThisType<TSubscriber>,
+        caller: TSubscriber,
         signalProcessor: (signal: removeHistoryElement | null) => any,
         private historyElementInQuestion: removeHistoryElement
     ) {
@@ -51,10 +51,8 @@ export class WarningRemovingCharacterFromHistory<TSubscriber> extends ComponentW
         const target = e.target;
         if (target && target instanceof HTMLButtonElement) {
             if (target.id === 'cancel') {
-                console.log('cancel');
                 super.Emit(null);
             } else if (target.id === 'confirm') {
-                console.log('confirm');
                 super.Emit(this.historyElementInQuestion);
             }
         }

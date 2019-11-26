@@ -581,8 +581,6 @@ export class EditResource extends ComponentWithForm implements Component {
                     postResponse('/Admin/change_tags', JSON.stringify(body), true).then(response => {
                         if (response.ok) {
                             navigate(link);
-                        } else {
-                            console.error(response);
                         }
                     });
                 }
@@ -599,15 +597,10 @@ export class EditResource extends ComponentWithForm implements Component {
                 ResourceId: this.resourceId,
                 Tags: existingTags
             };
-            console.log(body);
-            const bodyString = JSON.stringify(body);
-            console.log(bodyString);
             const link = this.GetLinkForNextPage();
             postResponse('/Admin/change_tags', JSON.stringify(body), true).then(response => {
                 if (response.ok) {
                     navigate(link);
-                } else {
-                    console.error(response);
                 }
             });
         }

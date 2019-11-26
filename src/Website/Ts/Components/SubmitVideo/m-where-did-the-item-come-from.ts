@@ -7,11 +7,11 @@ import { YoutubePlayer } from "./youtube-player";
 import { HelpSelectItemsource } from "./help-select-itemsource";
 import { BackToMainSelection } from "./back-to-main-selection";
 
-export class WhereDidTheItemComeFrom<TSubscriber> extends ComponentWithModal implements Component {
+export class WhereDidTheItemComeFrom<TSubscriber extends Object> extends ComponentWithModal implements Component {
     E: FrameworkElement;
 
     constructor(
-        subscriber: ThisType<TSubscriber>,
+        subscriber: TSubscriber,
         itemSources: Promise<Array<IsaacResource> | null>,
         selectedItemSourceProcessor: (id: string) => any,
         youtubePlayer: YoutubePlayer,

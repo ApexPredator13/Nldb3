@@ -87,10 +87,6 @@ export class SubmitTopic implements Component {
 
         const textarea = this.GetTextarea();
 
-        const formData = new FormData();
-        formData.append('video_id', this.videoId)
-        formData.append('topic', textarea.value);
-
         const canSubmit = this.ValidateInput();
         if (!canSubmit) {
             return;
@@ -99,8 +95,9 @@ export class SubmitTopic implements Component {
         this.canSubmit = false;
         this.DisableButton();
 
-        post('/Api/Topics', formData, true).then(() => {
+        post('/Api/Topics', JSON.stringify({ VideoId: this.videoId, Topic: textarea.value }), true).then(() => {
             textarea.value = '';
+            debugger;
             this.interval = setInterval(() => {
                 this.intervalCounter--;
                 this.GetTextareaCounter().innerText = ` (${this.intervalCounter}...)`;

@@ -101,7 +101,6 @@ const tagsAsIsaacResources = () => {
         } as IsaacResource;
         return res;
     });
-    console.log(resources);
     return resources;
 }
 

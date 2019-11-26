@@ -24,7 +24,7 @@ namespace Website.Controllers
         }
 
         [HttpPost, Authorize]
-        public async Task<ActionResult> Post(DiscussionTopic topic)
+        public async Task<ActionResult> Post([FromBody] DiscussionTopic topic)
         {
             var userId = _userManager.GetUserId(User);
 

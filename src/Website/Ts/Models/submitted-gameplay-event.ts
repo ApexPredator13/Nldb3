@@ -5,6 +5,6 @@ export interface SubmittedGameplayEvent {
     RelatedResource1: string,
     RelatedResource2?: string,
     RelatedResource3?: number,
-    Player: 1 | 2 | null,
+    Player?: 1 | 2,
     Rerolled?: boolean
 }

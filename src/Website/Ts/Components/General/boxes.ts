@@ -3,19 +3,19 @@ import { IsaacResource } from "../../Models/isaac-resource";
 import { IsaacImage } from "./isaac-image";
 import { ComponentWithSubscribers } from "../../Framework/ComponentBaseClasses/component-with-subscribers";
 
-export class Boxes<TCaller> extends ComponentWithSubscribers<string, TCaller> implements Component {
+export class Boxes<TSubscriber extends Object> extends ComponentWithSubscribers<TSubscriber, string> implements Component {
     E: FrameworkElement;
     A: Array<AsyncComponentPart>;
 
     constructor(
-        caller: ThisType<TCaller>,
+        subscriber: TSubscriber,
         private id: number,
         resourcesToDisplay: Array<IsaacResource> | Promise<Array<IsaacResource> | null>,
         imagePath?: string | null,
         upscale?: boolean,
         private limit?: number
     ) {
-        super(caller);
+        super(subscriber);
 
         this.E = {
             e: ['div'],

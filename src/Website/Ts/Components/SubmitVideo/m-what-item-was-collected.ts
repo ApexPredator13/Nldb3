@@ -6,8 +6,9 @@ import { BackToMainSelection } from "./back-to-main-selection";
 import { ComponentWithModal } from "../../Framework/ComponentBaseClasses/component-with-modal";
 import { HelpSelectItem } from "./help-select-item";
 import { HelpSelectTouchedItem } from "./help-select-touched-item";
+import { HelpSelectAbsorbedItem } from "./help-select-absorbed-item";
 
-export class WhatItemWasCollected<TSubscriber> extends ComponentWithModal implements Component {
+export class WhatItemWasCollected<TSubscriber extends Object> extends ComponentWithModal implements Component {
     E: FrameworkElement;
 
     constructor(
@@ -16,17 +17,32 @@ export class WhatItemWasCollected<TSubscriber> extends ComponentWithModal implem
         selectedItemProcessor: (id: string) => any,
         private itemWasRerolledCheckboxProcessor: (wasRerolled: boolean) => any,
         youtubePlayer: YoutubePlayer,
-        touched: boolean
+        touched: boolean,
+        absorbed: boolean
     ) {
         super(youtubePlayer);
         const itemSeachBox = new SearchboxComponent<TSubscriber>(subscriber, 10, items, false);
         itemSeachBox.Subscribe(selectedItemProcessor);
 
+        let h2Text = 'What item was collected?';
+        if (touched) {
+            h2Text = 'What item did NL touch and put down again?';
+        } else if (absorbed) {
+            h2Text = 'What item did NL absorb with another item?'
+        }
+
+        let help: Component = new HelpSelectItem();
+        if (touched) {
+            help = new HelpSelectTouchedItem();
+        } else if (absorbed) {
+            help = new HelpSelectAbsorbedItem();
+        }
+
         this.E = {
             e: ['div'],
             c: [
                 {
-                    e: ['h2', touched ? 'What item did NL touch and put down again?' : 'What item was collected?']
+                    e: ['h2', h2Text]
                 },
                 {
                     e: ['p'],
@@ -54,7 +70,7 @@ export class WhatItemWasCollected<TSubscriber> extends ComponentWithModal implem
                         {
                             e: ['a', 'I don\'t know what to select!'],
                             a: [[A.Class, 'u hand']],
-                            v: [[EventType.Click, () => super.ShowModal(touched ? new HelpSelectTouchedItem() : new HelpSelectItem())]]
+                            v: [[EventType.Click, () => super.ShowModal(help)]]
                         }
                     ]
                 },

@@ -1,10 +1,10 @@
 ﻿import { ComponentWithSubscribers } from "../../Framework/ComponentBaseClasses/component-with-subscribers";
 import { Component, FrameworkElement, A, EventType } from "../../Framework/renderer";
 
-export class BackToMainSelection<TSubscriber> extends ComponentWithSubscribers<string, TSubscriber> implements Component {
+export class BackToMainSelection<TSubscriber> extends ComponentWithSubscribers<TSubscriber, string> implements Component {
     E: FrameworkElement;
 
-    constructor(caller: ThisType<TSubscriber>, backToMainSignalProcessor: (signal: string) => any) {
+    constructor(caller: TSubscriber, backToMainSignalProcessor: (signal: string) => any) {
         super(caller, backToMainSignalProcessor);
 
         this.E = {

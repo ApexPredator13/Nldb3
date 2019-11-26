@@ -21,13 +21,13 @@ type removeHistoryElement = {
     eventType: ResourceType | null
 }
 
-class HistoryTable<TSubscriber> extends ComponentWithSubscribers<removeHistoryElement, TSubscriber> implements Component {
+class HistoryTable<TSubscriber extends Object> extends ComponentWithSubscribers<TSubscriber, removeHistoryElement> implements Component {
     E: FrameworkElement;
 
     private dataForThisEpisode: SubmittedCompleteEpisode;
 
     constructor(
-        caller: ThisType<TSubscriber>,
+        caller: TSubscriber,
         videoId: string,
         removedItemProcessor: (removedElement: removeHistoryElement) => any,
         private youtubePlayer: YoutubePlayer
@@ -112,7 +112,6 @@ class HistoryTable<TSubscriber> extends ComponentWithSubscribers<removeHistoryEl
 
     private RemoveHistoryElement(e: Event) {
         const data = this.GetRemoveIndexData(e);
-        console.log('remove history: ', data);
         if (!data.valid) {
             return;
         }
@@ -203,7 +202,6 @@ class HistoryTable<TSubscriber> extends ComponentWithSubscribers<removeHistoryEl
 
     private GetCurrentFloor(): SubmittedPlayedFloor {
         const currentCharacter = this.GetCurrentCharacter();
-        console.log('current floor requested', currentCharacter);
         const currentFloorIndex = currentCharacter.PlayedFloors.length - 1;
         return currentCharacter.PlayedFloors[currentFloorIndex];
     }
@@ -218,7 +216,6 @@ class HistoryTable<TSubscriber> extends ComponentWithSubscribers<removeHistoryEl
 
         // reload history
         post<History>('/api/resources/history', JSON.stringify(this.dataForThisEpisode)).then((history: History | null) => {
-            console.log('new history received', history);
             if (history) {
                 // recreate table rows
                 const newTableContent: FrameworkElement = {

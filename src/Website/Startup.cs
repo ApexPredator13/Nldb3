@@ -272,7 +272,7 @@ namespace Website
             //BackgroundJob.Enqueue<IMigrateOldDatabase>(migrator => migrator.MigrateUsersQuotesVideosAndRuns());
 
             RecurringJob.AddOrUpdate<ISqlDumper>(dumper => dumper.Dump(), Cron.Hourly());
-            RecurringJob.AddOrUpdate<IVideoRepository>(repo => repo.GetVideosThatNeedYoutubeUpdate(1, true), Cron.Minutely);
+            RecurringJob.AddOrUpdate<IVideoRepository>("update-videos", repo => repo.GetVideosThatNeedYoutubeUpdate(1, true), Cron.Hourly);
         }
     }
 }

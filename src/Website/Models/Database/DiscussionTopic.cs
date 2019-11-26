@@ -10,11 +10,9 @@ namespace Website.Models.Database
     public class DiscussionTopic
     {
         [Required]
-        [JsonProperty("video_id")]
         public string VideoId { get; set; } = string.Empty;
 
         [Required]
-        [JsonProperty("topic")]
         [StringLength(100, MinimumLength = 5)]
         public string Topic { get; set; } = string.Empty;
     }

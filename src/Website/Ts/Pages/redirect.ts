@@ -11,7 +11,7 @@ export class Redirect implements Component {
 
         setTimeout(() => {
             navigate(decodeURIComponent(parameters[0]));
-        }, 100);
+        }, 20);
     }
 
     static RegisterPage() {

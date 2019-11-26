@@ -109,12 +109,9 @@ const initRouter = () => {
 
         // delay enough so that initial popstate event that some browsers trigger on load will be skipped
         setTimeout(() => {
-            window.addEventListener('popstate', (e: PopStateEvent) => {
-                console.log('popstate!!!!!', e);
-                console.log(e);
+            window.addEventListener('popstate', () => {
                 const currentRoute = getCurrentRoute();
                 const page = getRequestedPageFromRoute(getCurrentRoute());
-                console.log('navigating after popstate', page);
                 navigate(currentRoute, undefined, page.page ? page.page.specificPageType : undefined, false, true);
             });
         }, 100);

@@ -1,10 +1,10 @@
 ﻿import { Component, FrameworkElement, A, EventType } from "../../Framework/renderer";
 import { ComponentWithSubscribers } from "../../Framework/ComponentBaseClasses/component-with-subscribers";
 
-export class DidNlShowTheSeed<TSubscriber> extends ComponentWithSubscribers<string, TSubscriber> implements Component {
+export class DidNlShowTheSeed<TSubscriber extends Object> extends ComponentWithSubscribers<TSubscriber, string> implements Component {
     E: FrameworkElement;
 
-    constructor(caller: ThisType<TSubscriber>, seedProcessor: (seed: string) => any) {
+    constructor(caller: TSubscriber, seedProcessor: (seed: string) => any) {
         super(caller, seedProcessor);
 
         this.E = {
@@ -38,7 +38,7 @@ export class DidNlShowTheSeed<TSubscriber> extends ComponentWithSubscribers<stri
                         {
                             e: ['button', 'Use this seed!'],
                             a: [[A.Disabled, 'true'], [A.Id, 'submit-seed-button']],
-                            v: [[EventType.Submit, e => this.SubmitSeed(e)]]
+                            v: [[EventType.Click, e => this.SubmitSeed(e)]]
                         }
                     ]
                 },
@@ -85,7 +85,6 @@ export class DidNlShowTheSeed<TSubscriber> extends ComponentWithSubscribers<stri
 
     private SubmitSeed(e: Event) {
         e.preventDefault();
-
         const seedIsValid = this.ValidateSeed();
 
         const target = e.target;

@@ -3,11 +3,11 @@ import { IsaacResource } from "../../Models/isaac-resource";
 import { Boxes } from "../General/boxes";
 import { SearchboxComponent } from "../General/searchbox";
 
-export class WasTheFloorCursed<TSubscriber> implements Component {
+export class WasTheFloorCursed<TSubscriber extends Object> implements Component {
     E: FrameworkElement;
 
     constructor(
-        subscriber: ThisType<TSubscriber>,
+        subscriber: TSubscriber,
         noCurse: Array<IsaacResource>,
         allCurses: Promise<Array<IsaacResource> | null>,
         selectedCurseProcessor: (id: string) => any
