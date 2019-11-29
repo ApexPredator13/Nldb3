@@ -1,7 +1,7 @@
 ﻿import { Component, FrameworkElement, A, render, htmlAttributeNameOf, EventType } from "../../Framework/renderer";
 import { SubmittedCompleteEpisode } from "../../Models/submitted-complete-episode";
 import { post } from "../../Framework/http";
-import { History, CharacterHistory, FloorHistory, EventHistory } from '../../Models/history';
+import { History } from '../../Models/history';
 import { IsaacImage } from "../General/isaac-image";
 import { SubmittedPlayedCharacter } from "../../Models/submitted-played-character";
 import { SubmittedPlayedFloor } from "../../Models/submitted-played-floor";
@@ -110,6 +110,10 @@ class HistoryTable<TSubscriber extends Object> extends ComponentWithSubscribers<
         }
     }
 
+    GetCollectedEpisodeData() {
+        return this.dataForThisEpisode;
+    }
+
     private RemoveHistoryElement(e: Event) {
         const data = this.GetRemoveIndexData(e);
         if (!data.valid) {
@@ -216,11 +220,87 @@ class HistoryTable<TSubscriber extends Object> extends ComponentWithSubscribers<
 
         // reload history
         post<History>('/api/resources/history', JSON.stringify(this.dataForThisEpisode)).then((history: History | null) => {
+
             if (history) {
+
+                const trs = new Array<FrameworkElement>();
+                for (let c = 0; c < history.characterHistory.length; ++c) {
+                    const character = history.characterHistory[c];
+
+                    for (let f = 0; f < character.floors.length; ++f) {
+                        const tds = new Array<FrameworkElement>();
+
+                        // add character icon on first floor
+                        if (f === 0) {
+                            tds.push({
+                                e: ['td'],
+                                a: [[A.DataC, c.toString(10)], [A.Class, 'hand display-inline']],
+                                c: [
+                                    new IsaacImage(character.characterImage, undefined, undefined, false)
+                                ],
+                                v: [[EventType.Click, e => this.RemoveHistoryElement(e)]]
+                            });
+                        } else {
+                            tds.push({
+                                e: ['td']
+                            });
+                        }
+
+                        // add floor icon
+                        const floor = character.floors[f];
+                        const events = floor.events;
+
+                        tds.push({
+                            e: ['td'],
+                            c: [
+                                {
+                                    e: ['div'],
+                                    a: [
+                                        [A.DataC, c.toString(10)],
+                                        [A.DataF, f.toString(10)],
+                                        [A.Class, 'hand display-inline']
+                                    ],
+                                    c: [
+                                        new IsaacImage(floor.floorImage, undefined, undefined, false)
+                                    ],
+                                    v: [[EventType.Click, e => this.RemoveHistoryElement(e)]]
+                                }
+                            ]
+                        });
+
+                        // add events
+                        tds.push({
+                            e: ['td'],
+                            c: events.map((event, e) => {
+                                const eventElement: FrameworkElement = {
+                                    e: ['div'],
+                                    a: [
+                                        [A.DataC, c.toString(10)],
+                                        [A.DataF, f.toString(10)],
+                                        [A.DataE, e.toString(10)],
+                                        [A.Class, 'hand display-inline'],
+                                        [A.DataT, event.image.type.toString(10)]
+                                    ],
+                                    c: [new IsaacImage(event.image, undefined, undefined, false)],
+                                    v: [[EventType.Click, e => this.RemoveHistoryElement(e)]]
+                                };
+                                return eventElement;
+                            })
+                        });
+
+                        trs.push({
+                            e: ['tr'],
+                            c: tds
+                        });
+                    }
+                }
+
+                console.log(trs);
+
                 // recreate table rows
                 const newTableContent: FrameworkElement = {
                     e: ['tbody'],
-                    c: history.characterHistory.map((character, index) => this.HistoryTableRow(character, index))
+                    c: trs
                 }
 
                 // replace table rows
@@ -231,78 +311,6 @@ class HistoryTable<TSubscriber extends Object> extends ComponentWithSubscribers<
                 }
             }
         });
-    }
-
-    private HistoryTableRow(character: CharacterHistory, characterIndex: number): FrameworkElement {
-
-        const rowData = character.floors.map((floor, index): [CharacterHistory | undefined, FloorHistory, Array<EventHistory>] => [index === 0 ? character : undefined, floor, floor.events])
-
-        const row: FrameworkElement = {
-            e: ['tr'],
-            c: rowData.flatMap(([character, floor, events], floorIndex) => {
-                const cells = new Array<FrameworkElement>();
-
-                // display character
-                if (character) {
-                    cells.push({
-                        e: ['td'],
-                        c: [
-                            {
-                                e: ['div'],
-                                a: [[A.DataC, characterIndex.toString(10)], [A.Class, 'hand display-inline']],
-                                c: [
-                                    new IsaacImage(character.characterImage, undefined, undefined, false)
-                                ],
-                                v: [[EventType.Click, e => this.RemoveHistoryElement(e)]]
-                            }
-                        ]
-                    });
-                } else {
-                    cells.push({ e: ['td'] });
-                }
-
-                // display floor
-                if (floor) {
-                    cells.push({
-                        e: ['td'],
-                        c: [
-                            {
-                                e: ['div'],
-                                a: [[A.DataC, characterIndex.toString(10)], [A.DataF, floorIndex.toString(10)], [A.Class, 'hand display-inline']],
-                                c: [
-                                    new IsaacImage(floor.floorImage, undefined, undefined, false)
-                                ],
-                                v: [[EventType.Click, e => this.RemoveHistoryElement(e)]]
-                            }
-                        ]
-                    });
-                } else {
-                    cells.push({ e: ['td'] });
-                }
-
-                // display events
-                if (events) {
-                    cells.push({
-                        e: ['td'],
-                        c: events.map((event, eventIndex) => {
-                            const eventElement: FrameworkElement = {
-                                e: ['div'],
-                                a: [[A.DataC, characterIndex.toString(10)], [A.DataF, floorIndex.toString(10)], [A.DataE, eventIndex.toString(10)], [A.Class, 'hand display-inline'], [A.DataT, event.image.type.toString(10)]],
-                                c: [new IsaacImage(event.image, undefined, undefined, false)],
-                                v: [[EventType.Click, e => this.RemoveHistoryElement(e)]]
-                            };
-                            return eventElement;
-                        })
-                    });
-                } else {
-                    cells.push({ e: ['td'] });
-                }
-
-                return cells;
-            })
-        };
-
-        return row;
     }
 }
 

@@ -280,5 +280,6 @@
     TargetsOrHomesInOnEnemies,
     ContactDamage,
     BlocksEnemyShots,
-    SpawnsFire
+    SpawnsFire,
+    ModifiesDealChance
 }

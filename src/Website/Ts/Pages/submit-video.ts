@@ -25,6 +25,17 @@ import { WhereDidTheItemComeFrom } from "../Components/SubmitVideo/m-where-did-t
 import { WhatItemWasCollected } from "../Components/SubmitVideo/m-what-item-was-collected";
 import { HowWasTheItemAbsorbed } from "../Components/SubmitVideo/m-how-was-the-item-absorbed";
 import { WhatBossWasFought } from "../Components/SubmitVideo/m-what-boss-was-fought";
+import { SelectWhatTrinketWasTaken } from "../Components/SubmitVideo/m-select-what-trinket-was-taken";
+import { SelectHowWasTheCharacterRerolled } from "../Components/SubmitVideo/m-select-how-was-the-character-rerolled";
+import { SelectWhatKilledNl } from "../Components/SubmitVideo/m-select-what-killed-nl";
+import { ConfirmNlDied } from "../Components/SubmitVideo/m-confirm-nl-died";
+import { DidNlDoAnotherRun } from "../Components/SubmitVideo/m-did-nl-do-another-run";
+import { ConfirmNlDidAVictoryLap } from "../Components/SubmitVideo/m-confirm-nl-did-a-victory-lap";
+import { ConfirmTheRunEnded } from "../Components/SubmitVideo/m-confirm-the-run-ended";
+import { ConfirmSubmitEpisode } from "../Components/SubmitVideo/m-confirm-submit-episode";
+import { SubmissionSucceeded } from "../Components/SubmitVideo/SubmissionSucceeded";
+import { ConfirmNlWon } from "../Components/SubmitVideo/m-confirm-nl-won";
+import { ConfirmDidNlDoAnotherRun } from "../Components/SubmitVideo/m-confirm-did-nl-do-another-run";
 
 enum StaticResourcesForMenu {
     MajorGameplayEvents = 1,
@@ -39,12 +50,14 @@ enum StaticResourcesForMenu {
     CommonBosses,
     NextFloorset,
     WasThereAnotherRun,
-    SubmitRun,
     SubmitFailed,
     RunSubmittedSuccessfully,
     DidBlackRuneAbsorbAnItem,
     DidBlackRuneAbsorbAnotherItem,
-    NoCurse
+    NoCurse,
+    ConfirmVictoryLap,
+    ConfirmRunEnded,
+    ConfirmAnotherRun
 }
 
 export class SubmitVideo implements Component {
@@ -55,6 +68,7 @@ export class SubmitVideo implements Component {
     private storedServerResources: Map<string, Array<IsaacResource>>;
     private staticResources: Map<StaticResourcesForMenu, Array<IsaacResource>>;
     private youtubePlayer: YoutubePlayer;
+    private videoId: string;
 
     private rightColumn: HTMLDivElement | undefined;
 
@@ -65,10 +79,10 @@ export class SubmitVideo implements Component {
     private initialMenu: WhatCharacterWasChosen<SubmitVideo>;
 
     constructor(parameters: Array<string>) {
-        const videoId = parameters[0];
+        this.videoId = parameters[0];
         const origin = getConfig().baseUrlWithoutTrailingSlash;
         this.youtubePlayer = new YoutubePlayer();
-        this.history = new HistoryTable<SubmitVideo>(this, videoId, this.ItemWasRemovedFromHistory, this.youtubePlayer);
+        this.history = new HistoryTable<SubmitVideo>(this, this.videoId, this.ItemWasRemovedFromHistory, this.youtubePlayer);
         this.currentPlayer = 1;
         this.storedServerResources = new Map<string, Array<IsaacResource>>();
         this.staticResources = new Map<StaticResourcesForMenu, Array<IsaacResource>>();
@@ -91,7 +105,7 @@ export class SubmitVideo implements Component {
                                     e: ['iframe'],
                                     a: [
                                         [A.Id, 'ytplayer'],
-                                        [A.Src, `https://www.youtube.com/embed/${videoId}?enablejsapi=1&origin=${origin}&rel=0&autoplay=1`],
+                                        [A.Src, `https://www.youtube.com/embed/${this.videoId}?enablejsapi=1&origin=${origin}&rel=0&autoplay=1`],
                                         [A.FrameBorder, '0']
                                     ]
                                 }
@@ -101,8 +115,8 @@ export class SubmitVideo implements Component {
                             e: ['div'],
                             a: [[A.Id, 'quotes-and-topic-wrapper']],
                             c: [
-                                new SubmitQuote(videoId, this.youtubePlayer),
-                                new SubmitTopic(videoId),
+                                new SubmitQuote(this.videoId, this.youtubePlayer),
+                                new SubmitTopic(this.videoId),
                                 this.history
                             ]
                         }
@@ -234,20 +248,29 @@ export class SubmitVideo implements Component {
         this.staticResources.set(StaticResourcesForMenu.CommonBosses, []);
         this.staticResources.set(StaticResourcesForMenu.NextFloorset, []);
         this.staticResources.set(StaticResourcesForMenu.ConfirmNlDied, [
-            { id: 'yes', name: 'Yes, NL died!', x: 1050, y: 0, w: 35, h: 30 } as IsaacResource,
-            { id: 'no', name: 'No, CANCEL!', x: 1085, y: 0, w: 35, h: 30 } as IsaacResource
+            { id: 'confirm', name: 'Yes, NL died!', x: 1050, y: 0, w: 35, h: 30 } as IsaacResource,
+            { id: 'cancel', name: 'No, CANCEL!', x: 1085, y: 0, w: 35, h: 30 } as IsaacResource
+        ]);
+        this.staticResources.set(StaticResourcesForMenu.ConfirmVictoryLap, [
+            { id: 'confirm', name: 'Yes, NL did a victory lap!', x: 1050, y: 0, w: 35, h: 30 } as IsaacResource,
+            { id: 'cancel', name: 'No, CANCEL!', x: 1085, y: 0, w: 35, h: 30 } as IsaacResource
+        ]);
+        this.staticResources.set(StaticResourcesForMenu.ConfirmAnotherRun, [
+            { id: 'confirm', name: 'Yes, NL did another run!', x: 1050, y: 0, w: 35, h: 30 } as IsaacResource,
+            { id: 'cancel', name: 'No, CANCEL!', x: 1085, y: 0, w: 35, h: 30 } as IsaacResource
+        ]);
+        this.staticResources.set(StaticResourcesForMenu.ConfirmRunEnded, [
+            { id: 'confirm', name: 'Yes, The video ended here!', x: 1050, y: 0, w: 35, h: 30 } as IsaacResource,
+            { id: 'cancel', name: 'No, CANCEL!', x: 1085, y: 0, w: 35, h: 30 } as IsaacResource
         ]);
         this.staticResources.set(StaticResourcesForMenu.ConfirmNlWon, [
-            { id: 'yes', name: 'Yes, NL won the run!', x: 1050, y: 0, w: 35, h: 30 } as IsaacResource,
-            { id: 'no', name: 'No, CANCEL!', x: 1085, y: 0, w: 35, h: 30 } as IsaacResource
+            { id: 'confirm', name: 'Yes, NL won the run!', x: 1050, y: 0, w: 35, h: 30 } as IsaacResource,
+            { id: 'cancel', name: 'No, CANCEL!', x: 1085, y: 0, w: 35, h: 30 } as IsaacResource
         ]);
         this.staticResources.set(StaticResourcesForMenu.WasThereAnotherRun, [
             { id: 'run', name: 'Yes, another run!', x: 1120, y: 0, w: 35, h: 35 } as IsaacResource,
             { id: 'victory-lap', name: 'Yes, a victory lap!', x: 1120, y: 0, w: 35, h: 35 } as IsaacResource,
             { id: 'end', name: 'No, the episode ended here!', x: 1050, y: 0, w: 35, h: 35 } as IsaacResource
-        ]);
-        this.staticResources.set(StaticResourcesForMenu.SubmitRun, [
-            { id: 'submit-episode', name: 'Submit Episode!', x: 1050, y: 0, w: 30, h: 30 } as IsaacResource
         ]);
         this.staticResources.set(StaticResourcesForMenu.SubmitFailed, [
             { id: 'submit-episode', name: 'Submit Episode!', x: 1120, y: 0, w: 30, h: 30 } as IsaacResource
@@ -309,13 +332,190 @@ export class SubmitVideo implements Component {
             case GameplayEventType.ItemTouched: this.ShowWhereDidTheTouchedItemComeFrom(); break;
             case GameplayEventType.AbsorbedItem: this.ShowHowWasTheItemAbsorbed(); break;
             case GameplayEventType.Bossfight: this.ShowSelectBoss(); break;
+            case GameplayEventType.Trinket: this.SelectTrinket(); break;
+            case GameplayEventType.CharacterReroll: this.ShowHowWasTheCharacterRerolled(); break;
+            case GameplayEventType.CharacterDied: this.ShowConfirmNlDied(); break;
+            case GameplayEventType.WonTheRun: this.ShowConfirmNlWon(); break;
+            case GameplayEventType.DownToTheNextFloor: this.ShowChooseFloor(); break;
         }
+    }
+
+    private ShowConfirmNlWon() {
+        const icons = this.GetStaticResource(StaticResourcesForMenu.ConfirmNlWon);
+        const menu = new ConfirmNlWon(this, this.NlWonConfirmed, icons);
+        this.Display(menu);
+    }
+
+    private NlWonConfirmed(choice: string) {
+        if (choice === 'confirm') {
+            this.ShowDidNlDoAnotherRun();
+        } else {
+            this.ShowMainSelectScreen();
+        }
+    }
+
+    private ShowConfirmNlDied() {
+        const icons = this.GetStaticResource(StaticResourcesForMenu.ConfirmNlDied);
+        const menu = new ConfirmNlDied(this, this.ShowWhatKilledNl, icons);
+        this.Display(menu);
+    }
+
+    private ShowWhatKilledNl(choice: string) {
+        if (choice === 'confirm') {
+            const enemies = this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.Enemy.toString(10)}`);
+            const menu = new SelectWhatKilledNl(this, this.EnemyWasSelected, enemies);
+            this.Display(menu);
+        } else {
+            this.ShowMainSelectScreen();
+        }
+    }
+
+    private EnemyWasSelected(enemyId: string) {
+        if (!enemyId) {
+            this.ShowMainSelectScreen();
+            return;
+        }
+
+        this.history.AddEvent({
+            EventType: GameplayEventType.CharacterDied,
+            RelatedResource1: enemyId
+        });
+
+        this.ShowDidNlDoAnotherRun();
+    }
+
+    private ShowDidNlDoAnotherRun() {
+        const icons = this.GetStaticResource(StaticResourcesForMenu.WasThereAnotherRun);
+        const menu = new DidNlDoAnotherRun(this, this.DidNlDoAnotherRunChoiceSelected, icons);
+        this.Display(menu);
+    }
+
+    private DidNlDoAnotherRunChoiceSelected(choice: string) {
+        if (choice === 'victory-lap') {
+            this.ShowConfirmNlDidAVictoryLap();
+        } else if (choice === 'run') {
+            this.ShowConfirmNlDidAnotherRun();
+        } else {
+            this.ShowConfirmRunEnded();
+        }
+    }
+
+    private ShowConfirmNlDidAnotherRun() {
+        const icons = this.GetStaticResource(StaticResourcesForMenu.ConfirmAnotherRun);
+        const menu = new ConfirmDidNlDoAnotherRun(this, this.ConfirmDidNlDoAnotherRun, icons);
+        this.Display(menu);
+    }
+
+    private ConfirmDidNlDoAnotherRun(choice: string) {
+        if (choice === 'confirm') {
+            this.ShowWhatCharacterWasChosenNext();
+        } else {
+            this.ShowDidNlDoAnotherRun();
+        }
+    }
+
+    private ShowConfirmNlDidAVictoryLap() {
+        const icons = this.GetStaticResource(StaticResourcesForMenu.ConfirmVictoryLap);
+        const menu = new ConfirmNlDidAVictoryLap(this, this.VictoryLapConfirmation, icons);
+        this.Display(menu);
+    }
+
+    private VictoryLapConfirmation(choice: string) {
+        if (choice === 'confirm') {
+            this.ShowChooseFloor();
+        } else {
+            this.ShowDidNlDoAnotherRun();
+        }
+    }
+
+    private ShowWhatCharacterWasChosenNext() {
+        const characters = this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.Character.toString(10)}`);
+        const menu = new WhatCharacterWasChosen(this, characters, this.CharacterWasChosen);
+        this.Display(menu);
+    }
+
+    private ShowConfirmRunEnded() {
+        const icons = this.GetStaticResource(StaticResourcesForMenu.ConfirmRunEnded)
+        const menu = new ConfirmTheRunEnded(this, this.ConfirmRunEndedChosen, icons);
+        this.Display(menu);
+    }
+
+    private ConfirmRunEndedChosen(choice: string) {
+        if (choice === 'confirm') {
+            this.ShowSubmitEpisode();
+        } else {
+            this.ShowDidNlDoAnotherRun();
+        }
+    }
+
+    private ShowSubmitEpisode() {
+        const menu = new ConfirmSubmitEpisode(this, this.RunSubmissionDone, this.history, false);
+        this.Display(menu);
+    }
+
+    private RunSubmissionDone(runSubmitted: boolean) {
+        if (runSubmitted) {
+            this.ShowSubmissionSucceeded();
+        } else {
+            this.ShowSubmissionFailed();
+        }
+    }
+
+    private ShowSubmissionFailed() {
+        const menu = new ConfirmSubmitEpisode(this, this.RunSubmissionDone, this.history, true);
+        this.Display(menu);
+    }
+
+    private ShowSubmissionSucceeded() {
+        const menu = new SubmissionSucceeded(this.videoId);
+        this.Display(menu);
+    }
+
+    private ShowHowWasTheCharacterRerolled() {
+        const characterRerollOptions = this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.CharacterReroll.toString(10)}`);
+        const menu = new SelectHowWasTheCharacterRerolled(this, this.CharacterRerollWasSelected, characterRerollOptions);
+        this.Display(menu);
+    }
+
+    private CharacterRerollWasSelected(rerollId: string) {
+        if (!rerollId) {
+            this.ShowMainSelectScreen();
+            return;
+        }
+
+        this.history.AddEvent({
+            EventType: GameplayEventType.CharacterReroll,
+            RelatedResource1: rerollId,
+            Player: this.currentPlayer
+        });
+
+        this.ShowMainSelectScreen();
+    }
+
+    private SelectTrinket() {
+        const trinkets = this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.Trinket.toString(10)}`);
+        const menu = new SelectWhatTrinketWasTaken(this, this.TrinketWasSelected, trinkets);
+        this.Display(menu);
+    }
+
+    private TrinketWasSelected(trinketId: string) {
+        if (!trinketId) {
+            this.ShowMainSelectScreen();
+            return;
+        }
+
+        this.history.AddEvent({
+            EventType: GameplayEventType.Trinket,
+            RelatedResource1: trinketId,
+            Player: this.currentPlayer
+        });
+        this.ShowMainSelectScreen();
     }
 
     private ShowSelectBoss() {
         const commonBosses = this.GetStaticResource(StaticResourcesForMenu.CommonBosses);
         const bosses = this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.Boss.toString(10)}`);
-        const menu = new WhatBossWasFought(this, this.BossfightWasSelected, commonBosses, bosses);
+        const menu = new WhatBossWasFought(this, this.BossfightWasSelected, commonBosses, bosses, this.youtubePlayer);
         this.Display(menu);
     }
 
@@ -401,7 +601,7 @@ export class SubmitVideo implements Component {
     private ShowChooseFloor() {
         const commonFloorsThatComeNext = this.GetStaticResource(StaticResourcesForMenu.NextFloorset);
         const allFloors = this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.Floor.toString(10)}`);
-        this.Display(new WhatFloorAreWeOn<SubmitVideo>(this, Promise.resolve(commonFloorsThatComeNext), allFloors, this.FloorWasChosen, true));
+        this.Display(new WhatFloorAreWeOn<SubmitVideo>(this, Promise.resolve(commonFloorsThatComeNext), allFloors, this.FloorWasChosen, false));
     }
 
     private ShowChooseFirstFloor() {

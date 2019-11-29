@@ -12,7 +12,7 @@ namespace Website.Services
     public interface IVideoRepository
     {
         Task SaveVideo(Video newVideo);
-        Task UpdateVideo(params string[] id);
+        Task UpdateVideoWithYoutubeData(params string[] id);
         Task SubmitEpisode(SubmittedCompleteEpisode episode, string userId, SubmissionType type = SubmissionType.New);
         Task SubmitLostEpisode(string videoId, string userId);
         Task<int> CountVideos(IsaacSearchOptions? request = null);

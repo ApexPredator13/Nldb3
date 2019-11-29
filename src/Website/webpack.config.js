@@ -48,7 +48,7 @@ module.exports = {
     externals: {
         moment: 'moment'
     },
-    devtool: 'inline-source-map',
+    //devtool: 'inline-source-map',
     optimization: {
         runtimeChunk: 'single',
         splitChunks: {

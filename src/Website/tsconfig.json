@@ -12,6 +12,7 @@
     "lib": [ "es5", "es6", "dom", "es7", "esnext" ],
     "moduleResolution": "node",
     "removeComments": true,
-    "sourceMap": true
+    "sourceMap": false,
+    "preserveConstEnums": false
   }
 }

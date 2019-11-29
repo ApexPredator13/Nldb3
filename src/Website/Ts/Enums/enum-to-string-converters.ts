@@ -85,7 +85,7 @@ const convertResourceTypeToString = (r: ResourceType): string => {
 const convertTagToString = (t: Tag): string => {
     switch (t) {
         case Tag.Unspecified: return 'Unspecified';
-        case Tag.ChangesDropBehavior: return 'Changes Drop Behavior';
+        case Tag.ChangesDropBehavior: return 'Changes Consumable Drop Behavior';
         case Tag.ChangesItemBehavior: return 'Changes Item Behavior';
         case Tag.ModifiesFamiliars: return 'Modifies Familiars';
         case Tag.CanSpawnFlies: return 'Can Spawn Flies';
@@ -366,6 +366,7 @@ const convertTagToString = (t: Tag): string => {
         case Tag.ContactDamage: return 'Deals Contact Damage';
         case Tag.BlocksEnemyShots: return 'Blocks Enemy Shots';
         case Tag.SpawnsFire: return 'Spawns Fire';
+        case Tag.ModifiesDealChance: return 'Modifies Angel/Devil Deal Chances';
         default: return '';
     }
 }

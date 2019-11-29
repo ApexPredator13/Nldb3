@@ -38,7 +38,7 @@ namespace Website.Data
             _logger = logger;
         }
 
-        public async Task UpdateVideo(params string[] id)
+        public async Task UpdateVideoWithYoutubeData(params string[] id)
         {
             var videoData = await GetYoutubeVideoData(id);
             if (videoData?.Items != null && videoData.Items.Count > 0)
@@ -71,7 +71,7 @@ namespace Website.Data
 
             if (updateVideosAfterwards)
             {
-                await UpdateVideo(result.ToArray());
+                await UpdateVideoWithYoutubeData(result.ToArray());
             }
 
             return result;

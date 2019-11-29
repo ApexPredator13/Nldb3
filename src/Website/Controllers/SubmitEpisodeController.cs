@@ -11,7 +11,7 @@ using Website.Services;
 
 namespace Website.Controllers
 {
-    [Authorize]
+    [Authorize, ApiController, Route("SubmitEpisode")]
     public class SubmitEpisodeController : Controller
     {
         public const string Controllername = "SubmitEpisode";
@@ -25,29 +25,9 @@ namespace Website.Controllers
             _userManager = userManager;
         }
 
-        [HttpGet]
-        public async Task<ActionResult> Index(string id)
-        {
-            var video = await _videoRepository.GetVideoById(id);
-            if (video is null)
-            {
-                return BadRequest();
-            }
-
-            await _videoRepository.UpdateVideo(id);
-
-            ViewData["Id"] = id;
-            return View();
-        }
-
         [HttpPost, Authorize]
         public async Task<ActionResult> Index([FromBody] SubmittedCompleteEpisode episode)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState.Values.First().Errors.First().ErrorMessage);
-            }
-
             var user = await _userManager.GetUserAsync(User);
 
             if (user is null)
