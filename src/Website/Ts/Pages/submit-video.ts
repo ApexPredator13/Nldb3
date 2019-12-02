@@ -10,7 +10,7 @@ import { addClassIfNotExists, removeClassIfExists } from "../Framework/browser";
 import { getConfig } from "../Framework/Customizable/config.development";
 import { get } from "../Framework/http";
 import { A, Component, EventType, FrameworkElement, render } from "../Framework/renderer";
-import { PageData, registerPage } from "../Framework/router";
+import { PageData, registerPage, setTitle } from "../Framework/router";
 import { IsaacResource } from "../Models/isaac-resource";
 import { SubmittedPlayedCharacter } from "../Models/submitted-played-character";
 import { SubmittedPlayedFloor } from "../Models/submitted-played-floor";
@@ -36,6 +36,15 @@ import { ConfirmSubmitEpisode } from "../Components/SubmitVideo/m-confirm-submit
 import { SubmissionSucceeded } from "../Components/SubmitVideo/SubmissionSucceeded";
 import { ConfirmNlWon } from "../Components/SubmitVideo/m-confirm-nl-won";
 import { ConfirmDidNlDoAnotherRun } from "../Components/SubmitVideo/m-confirm-did-nl-do-another-run";
+import { WasThereAStartingItem } from "../Components/SubmitVideo/m-was-there-a-starting-item";
+import { WasThereAnotherStartingItem } from "../Components/SubmitVideo/m-was-there-another-starting-item";
+import { WasThereAStartingTrinket } from "../Components/SubmitVideo/m-was-there-a-starting-trinket";
+import { WasThereAnotherStartingTrinket } from "../Components/SubmitVideo/m-was-there-another-starting-trinket";
+import { WhatPillWasTaken } from "../Components/SubmitVideo/m-what-pill-was-taken";
+import { WhatTarotCardWasUsed } from "../Components/SubmitVideo/m-what-tarot-card-was-used";
+import { WhatRuneWasUsed } from "../Components/SubmitVideo/m-what-rune-was-used";
+import { DidBlackRuneAbsorbAnItem } from "../Components/SubmitVideo/m-did-black-rune-absorb-an-item";
+import { WhatOtherConsumableWasUsed } from "../Components/SubmitVideo/m-what-other-consumable-was-used";
 
 enum StaticResourcesForMenu {
     MajorGameplayEvents = 1,
@@ -58,6 +67,11 @@ enum StaticResourcesForMenu {
     ConfirmVictoryLap,
     ConfirmRunEnded,
     ConfirmAnotherRun
+}
+
+const beforeUnloadEvent = (e: Event) => {
+    e.preventDefault();
+    (e.returnValue as any) = '';
 }
 
 export class SubmitVideo implements Component {
@@ -88,6 +102,12 @@ export class SubmitVideo implements Component {
         this.staticResources = new Map<StaticResourcesForMenu, Array<IsaacResource>>();
         this.CreateInitialStaticResources();
         this.initialMenu = new WhatCharacterWasChosen(this, this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.Character.toString(10)}`), this.CharacterWasChosen);
+
+        get<string>(`/Api/Videos/Title/${this.videoId}`).then(title => {
+            if (title) {
+                setTitle(`Submitting: ${title}`);
+            }
+        });
 
         this.E = {
             e: ['div'],
@@ -126,18 +146,34 @@ export class SubmitVideo implements Component {
                     e: ['div'],
                     a: [[A.Id, 'right-column']],
                     c: [
-                        this.initialMenu
+                        {
+                            e: ['div'],
+                            a: [[A.Id, 'player-and-seed-container']],
+                            c: [
+                                {
+                                    e: ['div', 'Current Player: 1'],
+                                    a: [[A.Id, 'current-player-container'], [A.Class, 'hand']],
+                                    v: [[EventType.Click, e => this.ChangePlayer(e)]]
+                                },
+                                {
+                                    e: ['div'],
+                                    a: [[A.Id, 'seed-container'], [A.Class, 'hand display-none']],
+                                    v: [[EventType.Click, () => this.ShowSelectSeed()]]
+                                }
+                            ]
+                        },
+                        {
+                            e: ['div'],
+                            a: [[A.Id, 'menu-container']],
+                            c: [
+                                this.initialMenu
+                            ]
+                        }
                     ]
-                },
-                {
-                    e: ['div', '1'],
-                    a: [[A.Id, 'current-player-container'], [A.Class, 'hand']],
-                    v: [[EventType.Click, e => this.ChangePlayer(e)]]
                 }
             ]
         }
     }
-
     
     private ItemWasRemovedFromHistory(removedElement: removeHistoryElement) {
         // user has confirmed that the character must be removed, and the history element already removed it.
@@ -166,14 +202,14 @@ export class SubmitVideo implements Component {
     private ChangePlayer(e: Event) {
         const target = e.target;
         if (target && target instanceof HTMLDivElement && target.id === 'current-player-container') {
-            if (target.innerText === '1') {
+            if (target.innerText === 'Current Player: 1') {
                 addClassIfNotExists(target, 'change-player-container-modifier');
                 this.currentPlayer = 2;
-                target.innerText = '2'
+                target.innerText = 'Current Player: 2'
             } else {
                 removeClassIfExists(target, 'change-player-container-modifier');
                 this.currentPlayer = 1;
-                target.innerText = '1';
+                target.innerText = 'Current Player: 1';
             }
         }
     }
@@ -192,7 +228,7 @@ export class SubmitVideo implements Component {
             return this.rightColumn;
         }
 
-        const rightColumn = document.getElementById('right-column');
+        const rightColumn = document.getElementById('menu-container');
         if (!rightColumn || !(rightColumn instanceof HTMLDivElement)) {
             throw 'right column does not exist';
         }
@@ -279,11 +315,10 @@ export class SubmitVideo implements Component {
             { id: 'run-submitted', name: 'View Results!', x: 735, y: 0, w: 30, h: 30 } as IsaacResource
         ]);
         this.staticResources.set(StaticResourcesForMenu.DidBlackRuneAbsorbAnItem, [
-            { id: 'no', name: 'It didn\'t absorb abything, move on!', x: 0, y: 0, w: 30, h: 30 } as IsaacResource
+            { id: 'no', name: 'No, move on!', x: 665, y: 0, w: 35, h: 35 } as IsaacResource
         ]);
         this.staticResources.set(StaticResourcesForMenu.DidBlackRuneAbsorbAnotherItem, [
-            { id: 'yes', name: 'Yes, more items were absorbed!', x: 0, y: 0, w: 30, h: 30 } as IsaacResource,
-            { id: 'no', name: 'No, that was it!', x: 0, y: 0, w: 30, h: 30 } as IsaacResource
+            { id: 'no', name: 'No, that was it!', x: 700, y: 0, w: 35, h: 35 } as IsaacResource
         ]);
         this.staticResources.set(StaticResourcesForMenu.NoCurse, [
             { id: 'NoCurse', name: 'No Curse!', x: 735, y: 0, w: 35, h: 35 } as IsaacResource
@@ -314,6 +349,8 @@ export class SubmitVideo implements Component {
     }
 
     private ProcessMainSelectScreenSelection(selectedEvent: string) {
+        this.HideSeedInputElement();
+
         if (!selectedEvent) {
             this.ShowMainSelectScreen();
             return;
@@ -337,6 +374,202 @@ export class SubmitVideo implements Component {
             case GameplayEventType.CharacterDied: this.ShowConfirmNlDied(); break;
             case GameplayEventType.WonTheRun: this.ShowConfirmNlWon(); break;
             case GameplayEventType.DownToTheNextFloor: this.ShowChooseFloor(); break;
+            case GameplayEventType.Pill: this.ShowChoosePill(); break;
+            case GameplayEventType.TarotCard: this.ShowChooseTarotCard(); break;
+            case GameplayEventType.Rune: this.ShowChooseRune(); break;
+            case GameplayEventType.OtherConsumable: this.ShowChooseOtherConsumable(); break;
+        }
+    }
+
+    private ShowChooseOtherConsumable() {
+        const consumables = this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.OtherConsumable.toString(10)}`);
+        const menu = new WhatOtherConsumableWasUsed(this, this.OtherConsumableChosen, consumables);
+        this.Display(menu);
+    }
+
+    private OtherConsumableChosen(consumableId: string) {
+        if (consumableId) {
+            this.history.AddEvent({
+                EventType: GameplayEventType.OtherConsumable,
+                Player: this.currentPlayer,
+                RelatedResource1: consumableId
+            });
+        }
+        this.ShowMainSelectScreen();
+    }
+
+    private ShowChooseRune() {
+        const runes = this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.Rune.toString(10)}`);
+        const menu = new WhatRuneWasUsed(this, this.RuneChosen, runes);
+        this.Display(menu);
+    }
+
+    private RuneChosen(runeId: string) {
+        if (runeId) {
+            this.history.AddEvent({
+                EventType: GameplayEventType.Rune,
+                Player: this.currentPlayer,
+                RelatedResource1: runeId
+            });
+
+            if (runeId === 'BlackRune') {
+                this.tempChosenItemSource = runeId;
+                this.ShowDidBlackRuneAbsorbAnItem();
+                return;
+            }
+        }
+        this.ShowMainSelectScreen();
+    }
+
+    private ShowDidBlackRuneAbsorbAnItem() {
+        const icon = this.GetStaticResource(StaticResourcesForMenu.DidBlackRuneAbsorbAnItem);
+        const menu = new DidBlackRuneAbsorbAnItem(this, this.BlackRuneAbsorbedAnItemChoiceMade, icon, true);
+        this.Display(menu);
+    }
+
+    private BlackRuneAbsorbedAnItemChoiceMade(choice: string) {
+        if (choice === 'no') {
+            this.history.AddEventIfLastEventWasNotOfType({
+                EventType: GameplayEventType.Rune,
+                RelatedResource1: 'BlackRune',
+                Player: this.currentPlayer
+            }, GameplayEventType.AbsorbedItem, 'Black Rune');
+            this.ShowMainSelectScreen();
+        } else {
+            const items = this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.Item.toString(10)}`);
+            const menu = new WhatItemWasCollected(this, items, this.BlackRuneAbsorbedAnItemChosen, this.ItemWasRerolled, this.youtubePlayer, false, true);
+            this.Display(menu);
+        }
+    }
+
+    private BlackRuneAbsorbedAnItemChosen(itemId: string) {
+        if (!itemId) {
+            this.ShowMainSelectScreen();
+        } else {
+            this.history.AddEvent({
+                EventType: GameplayEventType.AbsorbedItem,
+                RelatedResource1: itemId,
+                RelatedResource2: 'BlackRune',
+                Player: this.currentPlayer,
+                Rerolled: this.wasRerolled
+            });
+            this.ShowDidBlackRuneAbsorbAnotherItem();
+        }
+    }
+
+    private ShowDidBlackRuneAbsorbAnotherItem() {
+        const icon = this.GetStaticResource(StaticResourcesForMenu.DidBlackRuneAbsorbAnotherItem);
+        const menu = new DidBlackRuneAbsorbAnItem(this, this.BlackRuneAbsorbedAnItemChoiceMade, icon, false);
+        this.Display(menu);
+    }
+
+    private ShowChooseTarotCard() {
+        const tarotCards = this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.TarotCard.toString(10)}`);
+        const menu = new WhatTarotCardWasUsed(this, this.TarotCardChosen, tarotCards);
+        this.Display(menu);
+    }
+
+    private TarotCardChosen(tarotCardId: string) {
+        if (tarotCardId) {
+            this.history.AddEvent({
+                EventType: GameplayEventType.TarotCard,
+                Player: this.currentPlayer,
+                RelatedResource1: tarotCardId
+            });
+        }
+        this.ShowMainSelectScreen();
+    }
+
+    private ShowChoosePill() {
+        const pills = this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.Pill.toString(10)}`);
+        const menu = new WhatPillWasTaken(this, this.PillChosen, pills);
+        this.Display(menu);
+    }
+
+    private PillChosen(pillId: string) {
+        if (pillId) {
+            this.history.AddEvent({
+                EventType: GameplayEventType.Pill,
+                Player: this.currentPlayer,
+                RelatedResource1: pillId
+            });
+        }
+        this.ShowMainSelectScreen();
+    }
+
+    private ShowWasThereAStartingItem() {
+        const icon = this.GetStaticResource(StaticResourcesForMenu.NoStartingItems);
+        const items = this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.Item.toString(10)}`);
+        const menu = new WasThereAStartingItem(this, this.StartingItemChosen, icon, items, true);
+        this.Display(menu);
+    }
+
+    private StartingItemChosen(itemId: string) {
+        if (itemId === 'none') {
+            this.ShowWasThereAStartingTrinket();
+        } else {
+            this.history.AddEvent({
+                EventType: GameplayEventType.ItemCollected,
+                RelatedResource1: itemId,
+                RelatedResource2: 'StartingItem',
+                Player: this.currentPlayer,
+                Rerolled: false
+            });
+            this.ShowWasThereAnotherStartingItem();
+        }
+    }
+
+    private ShowWasThereAnotherStartingItem() {
+        const icons = this.GetStaticResource(StaticResourcesForMenu.MoreStartingItems);
+        const menu = new WasThereAnotherStartingItem(this, this.ShowChooseAnotherStartingItem, icons);
+        this.Display(menu);
+    }
+
+    private ShowChooseAnotherStartingItem(choice: string) {
+        if (choice === 'yes') {
+            const icon = this.GetStaticResource(StaticResourcesForMenu.NoStartingItems);
+            const items = this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.Item.toString(10)}`);
+            const menu = new WasThereAStartingItem(this, this.StartingItemChosen, icon, items, true);
+            this.Display(menu);
+        } else {
+            this.ShowWasThereAStartingTrinket();
+        }
+    }
+
+    private ShowWasThereAStartingTrinket() {
+        const icon = this.GetStaticResource(StaticResourcesForMenu.NoStartingTrinkets);
+        const trinkets = this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.Trinket.toString(10)}`);
+        const menu = new WasThereAStartingTrinket(this, this.StartingTrinketChosen, icon, trinkets, true);
+        this.Display(menu);
+    }
+
+    private StartingTrinketChosen(trinketId: string) {
+        if (trinketId === 'none') {
+            this.ShowMainSelectScreen();
+        } else {
+            this.history.AddEvent({
+                EventType: GameplayEventType.StartingTrinket,
+                RelatedResource1: trinketId,
+                Player: this.currentPlayer
+            });
+            this.ShowWasThereAnotherStartingTrinket();
+        }
+    }
+
+    private ShowWasThereAnotherStartingTrinket() {
+        const icons = this.GetStaticResource(StaticResourcesForMenu.MoreStartingTrinkets);
+        const menu = new WasThereAnotherStartingTrinket(this, this.ShowChooseAnotherStartingTrinket, icons);
+        this.Display(menu);
+    }
+
+    private ShowChooseAnotherStartingTrinket(choice: string) {
+        if (choice === 'yes') {
+            const icon = this.GetStaticResource(StaticResourcesForMenu.NoStartingTrinkets);
+            const items = this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.Trinket.toString(10)}`);
+            const menu = new WasThereAStartingTrinket(this, this.StartingTrinketChosen, icon, items, true);
+            this.Display(menu);
+        } else {
+            this.ShowMainSelectScreen();
         }
     }
 
@@ -556,6 +789,14 @@ export class SubmitVideo implements Component {
             return;
         }
 
+        if (this.tempChosenItemSource === 'BlackRune') {
+            this.history.AddEvent({
+                RelatedResource1: this.tempChosenItemSource,
+                EventType: GameplayEventType.Rune,
+                Player: this.currentPlayer
+            });
+        }
+
         this.history.AddEvent({
             RelatedResource1: absorbedItemId,
             RelatedResource2: this.tempChosenItemSource,
@@ -661,17 +902,23 @@ export class SubmitVideo implements Component {
     }
 
     private ShowSelectSeed() {
-        this.Display(new DidNlShowTheSeed<SubmitVideo>(this, this.SeedWasSelected))
+        this.Display(new DidNlShowTheSeed<SubmitVideo>(this, this.SeedWasSelected, this.UpdateSeedText))
     }
 
     private SeedWasSelected(seed: string) {
         // skipped seed will be empty string
         this.history.AddSeed(seed ? seed : null);
-        this.ShowMainSelectScreen();
+
+        if (this.history.WeAreOnFirstFloor() && !this.history.CharacterHasStartingItems()) {
+            this.ShowWasThereAStartingItem();
+        } else {
+            this.ShowMainSelectScreen();
+        }
     }
 
     private ShowMainSelectScreen() {
         this.Cleanup();
+        this.ShowSeedInputElement();
         const events = this.GetStaticResource(StaticResourcesForMenu.MajorGameplayEvents);
         const consumableEvents = this.GetStaticResource(StaticResourcesForMenu.UsedConsumables);
         this.Display(new MainSelectScreen<SubmitVideo>(this, events, consumableEvents, this.ProcessMainSelectScreenSelection))
@@ -714,6 +961,17 @@ export class SubmitVideo implements Component {
         this.Display(new WhereDidTheItemComeFrom<SubmitVideo>(this, itemSources, this.ShowWhatItemWasCollected, this.youtubePlayer, false));
     }
 
+    private UpdateSeedText(seed: string) {
+        const seedDiv = document.getElementById('seed-container');
+        if (seedDiv && seedDiv instanceof HTMLDivElement) {
+            if (seed) {
+                seedDiv.innerText = 'Seed: ' + seed;
+            } else {
+                seedDiv.innerText = 'Click to enter seed';
+            }
+        }
+    }
+
     private ShowWhatItemWasCollected(itemsourceId: string) {
         // itemsourceId = empty string if user clicked back button
         if (!itemsourceId) {
@@ -751,7 +1009,23 @@ export class SubmitVideo implements Component {
         this.ShowMainSelectScreen();
     }
 
+    private HideSeedInputElement = () => {
+        const seedContainer = document.getElementById('seed-container');
+        if (seedContainer && seedContainer instanceof HTMLDivElement) {
+            seedContainer.innerText = '';
+            addClassIfNotExists(seedContainer, 'display-none');
+        }
+    }
 
+    private ShowSeedInputElement = () => {
+        debugger;
+        const seedContainer = document.getElementById('seed-container');
+        if (seedContainer && seedContainer instanceof HTMLDivElement) {
+            const seed = this.history.GetSeed();
+            seedContainer.innerText = seed ? `Seed: ${seed}` : 'Click to enter seed';
+            removeClassIfExists(seedContainer, 'display-none');
+        }
+    }
 
     static RegisterPage() {
         const page: PageData = {
@@ -771,6 +1045,9 @@ export class SubmitVideo implements Component {
                     removeClassIfExists(main, 'w80');
                     addClassIfNotExists(main, 'w100');
                 }
+
+                // add beforeUnload event
+                window.addEventListener('beforeunload', beforeUnloadEvent);
             },
             beforeLeaving: () => {
                 // show nav bar again
@@ -785,6 +1062,9 @@ export class SubmitVideo implements Component {
                     removeClassIfExists(main, 'w100');
                     addClassIfNotExists(main, 'w80');
                 }
+
+                // remove beforeUnload event
+                window.removeEventListener('beforeunload', beforeUnloadEvent);
             },
             canLeave: () => confirm('warning! your progress will not be saved!')
         };

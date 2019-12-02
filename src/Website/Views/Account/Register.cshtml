@@ -1,4 +1,4 @@
-﻿@{ 
+﻿@{
     ViewData["Title"] = "New Account";
     string returnUrl = (string)ViewData["returnUrl"];
 }
@@ -35,6 +35,9 @@
     </div>
 </form>
 
+
 @section Scripts {
-    <script src="~/js/dist/validation.min.js" asp-append-version="true"></script>
+    <script src="~/js/dist/runtime.min.js"></script>
+    <script src="~/js/dist/aspnetcore_formvalidation.min.js"></script>
 }
+

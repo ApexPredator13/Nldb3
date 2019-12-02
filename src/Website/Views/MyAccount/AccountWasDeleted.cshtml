@@ -1,7 +1,13 @@
-﻿@{ 
+﻿@{
     ViewData["Title"] = "Account was deleted";
 }
 
 <h1>Your account has been deleted</h1>
 
 <a asp-controller="@HomeController.Controllername" asp-action="@nameof(HomeController.Index)">Back to the website</a>
+
+
+@section Scripts {
+    <script src="~/js/dist/runtime.min.js"></script>
+    <script src="~/js/dist/aspnetcore_formvalidation.min.js"></script>
+}

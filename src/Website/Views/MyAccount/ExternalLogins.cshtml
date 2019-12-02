@@ -1,4 +1,4 @@
-﻿@{ 
+﻿@{
     ViewData["Title"] = "External Logins";
     var currentLogins = (IList<Microsoft.AspNetCore.Identity.UserLoginInfo>)ViewData["CurrentLogins"];
     var otherLogins = (IList<Microsoft.AspNetCore.Authentication.AuthenticationScheme>)ViewData["OtherLogins"];
@@ -11,27 +11,27 @@
 
 
 <section class="myaccount-grid">
-    @foreach(var currentLogin in currentLogins)
+    @foreach (var currentLogin in currentLogins)
     {
         <div>
             @(currentLogin.ProviderDisplayName ?? currentLogin.LoginProvider)
             @switch ((currentLogin.ProviderDisplayName ?? currentLogin.LoginProvider).ToLower())
             {
-            case "facebook":
-                <partial name="_IconFacebookPartial" />
-                break;
-            case "twitter":
-                <partial name="_IconTwitterPartial" />
-                break;
-            case "google":
-                <partial name="_IconGooglePartial" />
-                break;
-            case "twitch":
-                <partial name="_IconTwitchPartial" />
-                break;
-            case "steam":
-                <partial name="_IconSteamPartial" />
-                break;
+                case "facebook":
+                    <partial name="_IconFacebookPartial" />
+                    break;
+                case "twitter":
+                    <partial name="_IconTwitterPartial" />
+                    break;
+                case "google":
+                    <partial name="_IconGooglePartial" />
+                    break;
+                case "twitch":
+                    <partial name="_IconTwitchPartial" />
+                    break;
+                case "steam":
+                    <partial name="_IconSteamPartial" />
+                    break;
             }
         </div>
         <div>
@@ -51,29 +51,29 @@
 <section class="myaccount-grid">
     @foreach (var otherLogin in otherLogins)
     {
-    <div>
-        @(otherLogin.DisplayName ?? otherLogin.Name)
-        @switch ((otherLogin.DisplayName ?? otherLogin.Name).ToLower())
-        {
-            case "facebook":
-                <partial name="_IconFacebookPartial" />
-                break;
-            case "twitter":
-                <partial name="_IconTwitterPartial" />
-                break;
-            case "google":
-                <partial name="_IconGooglePartial" />
-                break;
-            case "twitch":
-                <partial name="_IconTwitchPartial" />
-                break;
-            case "steam":
-                <partial name="_IconSteamPartial" />
-                break;
-        }
+        <div>
+            @(otherLogin.DisplayName ?? otherLogin.Name)
+            @switch ((otherLogin.DisplayName ?? otherLogin.Name).ToLower())
+            {
+                case "facebook":
+                    <partial name="_IconFacebookPartial" />
+                    break;
+                case "twitter":
+                    <partial name="_IconTwitterPartial" />
+                    break;
+                case "google":
+                    <partial name="_IconGooglePartial" />
+                    break;
+                case "twitch":
+                    <partial name="_IconTwitchPartial" />
+                    break;
+                case "steam":
+                    <partial name="_IconSteamPartial" />
+                    break;
+            }
 
 
-    </div>
+        </div>
         <div>
             <form method="get" asp-action="@nameof(MyAccountController.LinkLogin)" asp-controller="@MyAccountController.Controllername">
                 <input type="hidden" value="@otherLogin.Name" name="provider" />
@@ -84,3 +84,8 @@
 </section>
 
 
+
+@section Scripts {
+    <script src="~/js/dist/runtime.min.js"></script>
+    <script src="~/js/dist/aspnetcore_formvalidation.min.js"></script>
+}

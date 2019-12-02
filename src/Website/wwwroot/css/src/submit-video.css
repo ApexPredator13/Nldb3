@@ -12,6 +12,14 @@
 
 #right-column {
     width: 30%;
+    display: flex;
+    flex-direction: column;
+}
+
+#player-and-seed-container {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
 }
 
 #youtube-player-container {
@@ -93,9 +101,14 @@
 
 /* current player */
 #current-player-container {
-    position: absolute;
-    top: 0;
-    right: 0;
+    border-bottom-right-radius: 0.5rem;
+    background-color: rgba(255,255,255,0.1);
+    border-right: 1px solid rgba(255,255,255,0.1);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding: 0.2rem;
+}
+
+#seed-container {
     border-bottom-left-radius: 0.5rem;
     background-color: rgba(255,255,255,0.1);
     border-left: 1px solid rgba(255,255,255,0.1);

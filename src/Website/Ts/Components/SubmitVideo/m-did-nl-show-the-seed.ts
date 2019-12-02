@@ -4,8 +4,8 @@ import { ComponentWithSubscribers } from "../../Framework/ComponentBaseClasses/c
 export class DidNlShowTheSeed<TSubscriber extends Object> extends ComponentWithSubscribers<TSubscriber, string> implements Component {
     E: FrameworkElement;
 
-    constructor(caller: TSubscriber, seedProcessor: (seed: string) => any) {
-        super(caller, seedProcessor);
+    constructor(caller: TSubscriber, seedProcessor1: (seed: string) => any, seedProcessor2: (seed: string) => any) {
+        super(caller, seedProcessor1, seedProcessor2);
 
         this.E = {
             e: ['div'],

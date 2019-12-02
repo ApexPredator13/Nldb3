@@ -2,6 +2,7 @@
 import { ExistsIn } from "./exists-in";
 import { GameMode } from "./game-mode";
 import { Tag } from "./tags";
+import { GameplayEventType } from "./gameplay-event-type";
 
 const convertGameModeToString = (mode: GameMode): string => {
     switch (mode) {
@@ -78,6 +79,32 @@ const convertResourceTypeToString = (r: ResourceType): string => {
         case ResourceType.Trinket: return 'Trinket';
         case ResourceType.CharacterReroll: return 'Character Reroll';
         case ResourceType.OtherConsumable: return 'Other Consumable';
+        default: return '';
+    }
+}
+
+const convertGameplayEventTypeToString = (e: GameplayEventType): string => {
+    switch (e) {
+        case GameplayEventType.AbsorbedItem: return 'Absorbed Item';
+        case GameplayEventType.Bossfight: return 'Bossfight';
+        case GameplayEventType.CharacterDied: return 'Death of Character';
+        case GameplayEventType.CharacterReroll: return 'Character Reroll';
+        case GameplayEventType.Curse: return 'Curse';
+        case GameplayEventType.DownToTheNextFloor: return 'Down to the next floor';
+        case GameplayEventType.ItemCollected: return 'Collected Item';
+        case GameplayEventType.ItemTouched: return 'Touched Item';
+        case GameplayEventType.LastFloor: return 'Last Floor';
+        case GameplayEventType.LostTheRun: return 'Character lost the run';
+        case GameplayEventType.OtherConsumable: return 'Other Consumable';
+        case GameplayEventType.Pill: return 'Pill';
+        case GameplayEventType.Rune: return 'Rune';
+        case GameplayEventType.StartingTrinket: return 'Starting Trinket';
+        case GameplayEventType.TarotCard: return 'Tarot Card';
+        case GameplayEventType.TransformationComplete: return 'Transformation Complete';
+        case GameplayEventType.TransformationProgress: return 'Transformation Progress';
+        case GameplayEventType.Trinket: return 'Trinket';
+        case GameplayEventType.WonTheRun: return 'Character won the run';
+        case GameplayEventType.Unspecified: return 'Unspecified Event';
         default: return '';
     }
 }
@@ -375,6 +402,7 @@ export {
     convertGameModeToString,
     convertExistsInToString,
     convertResourceTypeToString,
-    convertTagToString
+    convertTagToString,
+    convertGameplayEventTypeToString
 }
 

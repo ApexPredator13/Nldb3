@@ -6,6 +6,7 @@ const configuration = 'development';
 
 module.exports = {
     entry: {
+        aspnetcore_formvalidation: './Ts/Framework/aspnetcore-formvalidation.ts',
         all_remaining_pages: './Ts/Pages/_all-pages.ts',
         all_admin_pages: './Ts/Pages/Admin/_all-admin-pages.ts',
         home: './Ts/Pages/home.ts',
@@ -48,7 +49,7 @@ module.exports = {
     externals: {
         moment: 'moment'
     },
-    //devtool: 'inline-source-map',
+    devtool: 'inline-source-map',
     optimization: {
         runtimeChunk: 'single',
         splitChunks: {

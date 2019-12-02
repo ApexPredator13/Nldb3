@@ -1,4 +1,4 @@
-﻿@{ 
+﻿@{
     ViewData["Title"] = "Registration Complete";
 }
 
@@ -9,3 +9,9 @@
 <p>
     <a asp-controller="@MyAccountController.Controllername" asp-action="@nameof(MyAccountController.Index)">View Profile settings</a>
 </p>
+
+
+@section Scripts {
+    <script src="~/js/dist/runtime.min.js"></script>
+    <script src="~/js/dist/aspnetcore_formvalidation.min.js"></script>
+}

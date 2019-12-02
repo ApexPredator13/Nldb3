@@ -1,4 +1,4 @@
-﻿@{ 
+﻿@{
     ViewData["Title"] = "Normal Login Added!";
 }
 
@@ -7,7 +7,12 @@
 <p>E-mail / password login is now enabled for your account.</p>
 
 <p>
-    An e-mail confirmation link should appear in your inbox any moment!<br/>
+    An e-mail confirmation link should appear in your inbox any moment!<br />
     Confirming your e-mail address will enable password reset as well.
 </p>
 
+
+@section Scripts {
+    <script src="~/js/dist/runtime.min.js"></script>
+    <script src="~/js/dist/aspnetcore_formvalidation.min.js"></script>
+}

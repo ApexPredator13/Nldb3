@@ -91,7 +91,6 @@ const setTitle = (title: string) => {
 
 const initRouter = () => {
     if (!(window as any).routerInit) {
-
         // register custom events
         registerPopupEvent();
         setGlobalChartOptions();
@@ -209,9 +208,16 @@ const getRequestedPageFromRoute = (route: string, specificPageType?: PageType): 
 }
 
 
-const navigate = (requestedRoute: string, preventDefault: Event | undefined = undefined, specificPageType: PageType | undefined = undefined, push = true, forceRender = false, scrollToTop = true) => {
-    if (preventDefault) {
-        preventDefault.preventDefault();
+const navigate = (
+    requestedRoute: string,
+    preventDefaultForEvent: Event | undefined = undefined,
+    specificPageType: PageType | undefined = undefined,
+    push = true,
+    forceRender = false,
+    scrollToTop = true
+) => {
+    if (preventDefaultForEvent) {
+        preventDefaultForEvent.preventDefault();
     }
 
     if (requestedRoute.startsWith('/')) {
@@ -219,10 +225,11 @@ const navigate = (requestedRoute: string, preventDefault: Event | undefined = un
     }
 
     const { found, page, parameters } = getRequestedPageFromRoute(requestedRoute, specificPageType);
-
+    console.log(`page found for "${requestedRoute}"? ${found}`, page);
     const currentRoute = getCurrentRoute();
 
     if (!found || !page || !parameters) {
+        console.log('page not found. registered pages:', getPages());
         return;
     }
 
@@ -315,7 +322,7 @@ const getCurrentRoute = () => {
     const config = getConfig();
     const url = window.location.href;
     const baseUrlLength = config.baseUrlWithoutTrailingSlash.length;
-    if (url.length <= baseUrlLength) {
+    if (url.length <= baseUrlLength || url.indexOf('?code=') !== -1) {
         return '/';
     } else {
         return url.substring(baseUrlLength);

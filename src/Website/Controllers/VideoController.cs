@@ -7,6 +7,7 @@ using Website.Services;
 
 namespace Website.Controllers
 {
+    [ApiController, Route("Api/Videos")]
     public class VideoController : Controller
     {
         public const string Controllername = "Video";
@@ -18,10 +19,25 @@ namespace Website.Controllers
             _videoRepository = videoRepository;
         }
 
-        public async Task<ViewResult> Index([FromRoute] string id)
+        //public async Task<ViewResult> Index([FromRoute] string id)
+        //{
+        //    var video = await _videoRepository.GetCompleteEpisode(id);
+        //    return View(video);
+        //}
+
+        [HttpGet("Title/{videoId}")]
+        public async Task<ActionResult<string>> GetVideoTitle([FromRoute] string videoId)
         {
-            var video = await _videoRepository.GetCompleteEpisode(id);
-            return View(video);
+            var searchResult = await _videoRepository.GetVideoTitle(videoId);
+
+            if (!string.IsNullOrEmpty(searchResult))
+            {
+                return Ok(searchResult);
+            }
+            else
+            {
+                return NotFound();
+            }
         }
     }
 }

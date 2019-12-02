@@ -1,4 +1,4 @@
-﻿@{ 
+﻿@{
     ViewData["Title"] = "Profile Settings";
     var messageExists = ViewData.TryGetValue("Message", out object message);
 }
@@ -9,7 +9,7 @@
 
 @if (messageExists)
 {
-    <p>@( (string)message )</p>
+    <p>@((string)message)</p>
 }
 
 <section class="myaccount-grid">
@@ -43,7 +43,7 @@
             <a style="display: inline-block" asp-controller="@MyAccountController.Controllername" asp-action="@nameof(MyAccountController.AddNormalLogin)" class="l">Add regular E-Mail / Password login to my account</a>
         </div>
     }
-    
+
     <partial name="_IconUsernamePartial" />
     <div>
         <a asp-controller="@MyAccountController.Controllername" asp-action="@nameof(MyAccountController.ChangeUsername)">Change username</a>
@@ -68,10 +68,10 @@
     <partial name="_IconHeartPartial" />
     <div>
         <a asp-controller="@MyAccountController.Controllername" asp-action="@nameof(MyAccountController.DownloadMyData)">
-           Download my Data
+            Download my Data
         </a>
     </div>
-    
+
 </section>
 
 <section class="myaccount-grid" id="danger-zone">
@@ -83,3 +83,8 @@
     </div>
 </section>
 
+
+@section Scripts {
+    <script src="~/js/dist/runtime.min.js"></script>
+    <script src="~/js/dist/aspnetcore_formvalidation.min.js"></script>
+}

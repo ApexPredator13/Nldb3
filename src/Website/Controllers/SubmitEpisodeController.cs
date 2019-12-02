@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Website.Areas.Api.Models;
 using Website.Models.Database.Enums;
 using Website.Models.SubmitEpisode;
 using Website.Services;
@@ -26,7 +24,7 @@ namespace Website.Controllers
         }
 
         [HttpPost, Authorize]
-        public async Task<ActionResult> Index([FromBody] SubmittedCompleteEpisode episode)
+        public async Task<ActionResult> SubmitEpisode(SubmittedCompleteEpisode episode)
         {
             var user = await _userManager.GetUserAsync(User);
 

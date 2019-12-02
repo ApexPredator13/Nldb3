@@ -12,6 +12,8 @@ import { WarningRemovingCharacterFromHistory } from "./warning-removing-characte
 import { WarningRemovingFloorFromHistory } from "./warning-removing-floor-from-history";
 import { ResourceType } from "../../Enums/resource-type";
 import { YoutubePlayer } from "./youtube-player";
+import { GameplayEventType } from "../../Enums/gameplay-event-type";
+import { convertResourceTypeToString } from "../../Enums/enum-to-string-converters";
 
 type removeHistoryElement = {
     valid: boolean,
@@ -70,6 +72,17 @@ class HistoryTable<TSubscriber extends Object> extends ComponentWithSubscribers<
     }
 
     AddFloor(floor: SubmittedPlayedFloor) {
+        
+        // add time to finished floor
+        const currentFloor = this.GetCurrentFloor();
+        if (currentFloor) {
+            const currentPlayerTime = this.youtubePlayer.GetCurrentTime();
+            const timeSoFar = this.RecordedFloorTimeSoFar();
+            const timeSpentOnThisFloor = currentPlayerTime - timeSoFar;
+            currentFloor.Duration = timeSpentOnThisFloor;
+        }
+
+        // then add the next
         const currentCharacter = this.GetCurrentCharacter();
         currentCharacter.PlayedFloors.push(floor);
         this.ReloadHistory();
@@ -77,19 +90,42 @@ class HistoryTable<TSubscriber extends Object> extends ComponentWithSubscribers<
 
     AddCurse(event: SubmittedGameplayEvent) {
         const currentFloor = this.GetCurrentFloor();
-        currentFloor.GameplayEvents.unshift(event);
+        if (currentFloor) {
+            currentFloor.GameplayEvents.unshift(event);
+        }
         this.ReloadHistory();
     }
 
     AddEvent(event: SubmittedGameplayEvent) {
         const currentFloor = this.GetCurrentFloor();
-        currentFloor.GameplayEvents.push(event);
+        if (currentFloor) {
+            currentFloor.GameplayEvents.push(event);
+        }
         this.ReloadHistory();
+    }
+
+    AddEventIfLastEventWasNotOfType(event: SubmittedGameplayEvent, eventType: GameplayEventType, resource1: string) {
+        const currentFloor = this.GetCurrentFloor();
+        if (currentFloor) {
+            if (currentFloor.GameplayEvents.length === 0) {
+                currentFloor.GameplayEvents.push(event);
+            } else {
+                const currentEvent = currentFloor.GameplayEvents[currentFloor.GameplayEvents.length - 1];
+                if (currentEvent.EventType !== eventType && currentEvent.RelatedResource1 !== resource1) {
+                    currentFloor.GameplayEvents.push(event);
+                }
+            }
+        }
     }
 
     AddSeed(seed: string | null) {
         const currentCharacter = this.GetCurrentCharacter();
         currentCharacter.Seed = seed;
+    }
+
+    GetSeed() {
+        const currentCharacter = this.GetCurrentCharacter();
+        return currentCharacter.Seed;
     }
 
     CurrentCharacterHasSeed(): boolean {
@@ -110,8 +146,28 @@ class HistoryTable<TSubscriber extends Object> extends ComponentWithSubscribers<
         }
     }
 
+    CharacterHasStartingItems(): boolean {
+        const currentCharacter = this.GetCurrentCharacter();
+        const events = currentCharacter.PlayedFloors.flatMap(floor => floor.GameplayEvents);
+        return events.some(event => event.EventType === GameplayEventType.ItemCollected && event.RelatedResource2 === 'StartingItem');
+    }
+
     GetCollectedEpisodeData() {
         return this.dataForThisEpisode;
+    }
+
+    private RecordedFloorTimeSoFar(): number {
+        const character = this.GetCurrentCharacter();
+        if (!character.PlayedFloors || character.PlayedFloors.length === 0) {
+            return 0;
+        }
+
+        const recordedFloorTimeSoFar = character.PlayedFloors
+            .map(floor => typeof (floor.Duration) === 'number' ? floor.Duration : 0)
+            .reduce((acc, curr) => acc += curr);
+
+        console.log('recorded floor time so far: ', recordedFloorTimeSoFar);
+        return recordedFloorTimeSoFar;
     }
 
     private RemoveHistoryElement(e: Event) {
@@ -120,11 +176,11 @@ class HistoryTable<TSubscriber extends Object> extends ComponentWithSubscribers<
             return;
         }
 
-        if (data.characterIndex !== null && data.floorIndex == null && data.eventIndex == null) {
+        if (data.characterIndex !== null && data.floorIndex === null && data.eventIndex === null) {
             // user wants to remove character: show confirmation prompt
             const prompt = new WarningRemovingCharacterFromHistory<HistoryTable<TSubscriber>>(this, this.RemoveCharacter, data);
             new ComponentWithModal(this.youtubePlayer).ShowModal(prompt, false);
-        } else if (data.characterIndex !== null && data.floorIndex !== null && data.eventIndex == null) {
+        } else if (data.characterIndex !== null && data.floorIndex !== null && data.eventIndex === null) {
             // user wants to remove floor: show confirmation prompt
             const prompt = new WarningRemovingFloorFromHistory<HistoryTable<TSubscriber>>(this, this.RemoveFloor, data);
             new ComponentWithModal(this.youtubePlayer).ShowModal(prompt, false)
@@ -204,8 +260,12 @@ class HistoryTable<TSubscriber extends Object> extends ComponentWithSubscribers<
         return this.dataForThisEpisode.PlayedCharacters[currentCharacterIndex];;
     }
 
-    private GetCurrentFloor(): SubmittedPlayedFloor {
+    private GetCurrentFloor(): SubmittedPlayedFloor | null {
         const currentCharacter = this.GetCurrentCharacter();
+        if (!currentCharacter.PlayedFloors || currentCharacter.PlayedFloors.length === 0) {
+            return null;
+        }
+
         const currentFloorIndex = currentCharacter.PlayedFloors.length - 1;
         return currentCharacter.PlayedFloors[currentFloorIndex];
     }
@@ -234,11 +294,21 @@ class HistoryTable<TSubscriber extends Object> extends ComponentWithSubscribers<
                         if (f === 0) {
                             tds.push({
                                 e: ['td'],
-                                a: [[A.DataC, c.toString(10)], [A.Class, 'hand display-inline']],
                                 c: [
-                                    new IsaacImage(character.characterImage, undefined, undefined, false)
+                                    {
+                                        e: ['div'],
+                                        a: [
+                                            [A.DataC, c.toString(10)],
+                                            [A.Class, 'hand display-inline'],
+                                            [A.Title, 'Click to remove character']
+                                        ],
+                                        c: [
+                                            new IsaacImage(character.characterImage, undefined, undefined, false)
+                                        ],
+                                        v: [[EventType.Click, e => this.RemoveHistoryElement(e)]]
+                                    }
                                 ],
-                                v: [[EventType.Click, e => this.RemoveHistoryElement(e)]]
+                                
                             });
                         } else {
                             tds.push({
@@ -258,7 +328,8 @@ class HistoryTable<TSubscriber extends Object> extends ComponentWithSubscribers<
                                     a: [
                                         [A.DataC, c.toString(10)],
                                         [A.DataF, f.toString(10)],
-                                        [A.Class, 'hand display-inline']
+                                        [A.Class, 'hand display-inline'],
+                                        [A.Title, 'Click to remove floor']
                                     ],
                                     c: [
                                         new IsaacImage(floor.floorImage, undefined, undefined, false)
@@ -279,7 +350,8 @@ class HistoryTable<TSubscriber extends Object> extends ComponentWithSubscribers<
                                         [A.DataF, f.toString(10)],
                                         [A.DataE, e.toString(10)],
                                         [A.Class, 'hand display-inline'],
-                                        [A.DataT, event.image.type.toString(10)]
+                                        [A.DataT, event.image.type.toString(10)],
+                                        [A.Title, `Click to remove ${convertResourceTypeToString(event.image.type).toLowerCase()}`]
                                     ],
                                     c: [new IsaacImage(event.image, undefined, undefined, false)],
                                     v: [[EventType.Click, e => this.RemoveHistoryElement(e)]]

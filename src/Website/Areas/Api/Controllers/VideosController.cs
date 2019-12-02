@@ -47,6 +47,12 @@ namespace Website.Areas.Api.Controllers
         {
             return await _videoRepository.GetMaxVideoStats();
         }
+
+        //[HttpGet("title/{videoId}")]
+        //public async Task<string> GetVideoTitle([FromRoute] string videoId)
+        //{
+        //    return await _videoRepository.GetVideoTitle(videoId);
+        //}
     }
 }
 

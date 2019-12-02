@@ -30,16 +30,20 @@ async function request<T>(url: string, requestInit?: RequestInit, displayError =
 
         if (!response.ok) {
             if (displayError) {
-                const errorMessage = await response.text();
+                const errorMessage = await response.clone().text();
                 new ComponentWithModal().ShowModal(new GenericError(errorMessage));
             }
             return null;
         }
 
         try {
-            return await response.json();
+            return await response.clone().json();
         } catch {
-            return null;
+            try {
+                return await response.text() as any;
+            } catch {
+                return null;
+            }
         }
     } catch {
         if (displayError) {

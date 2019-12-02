@@ -42,3 +42,11 @@
     color: orange;
     list-style-type: none;
 }
+.error-message {
+    position: absolute;
+    top: -20px;
+    color: orange;
+    text-align: left;
+    width: 400px;
+    font-size: 0.8rem;
+}
