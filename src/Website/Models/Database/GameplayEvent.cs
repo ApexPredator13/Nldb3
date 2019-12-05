@@ -44,5 +44,11 @@ namespace Website.Models.Database
 
         [JsonProperty("was_rerolled")]
         public bool WasRerolled { get; set; } = false;
+
+        [JsonProperty("played_character")]
+        public int PlayedCharacterId { get; set; }
+
+        [JsonProperty("played_floor")]
+        public int PlayedFloorId { get; set; }
     }
 }

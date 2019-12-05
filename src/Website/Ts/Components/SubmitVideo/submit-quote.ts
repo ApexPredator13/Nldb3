@@ -51,6 +51,7 @@ export class SubmitQuote implements Component {
                         },
                         {
                             e: ['div'],
+                            a: [[A.Id, 'quote-started-at-container']],
                             c: [
                                 {
                                     e: ['span', 'Quote started at:']

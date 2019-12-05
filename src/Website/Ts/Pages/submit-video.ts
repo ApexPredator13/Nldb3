@@ -45,6 +45,7 @@ import { WhatTarotCardWasUsed } from "../Components/SubmitVideo/m-what-tarot-car
 import { WhatRuneWasUsed } from "../Components/SubmitVideo/m-what-rune-was-used";
 import { DidBlackRuneAbsorbAnItem } from "../Components/SubmitVideo/m-did-black-rune-absorb-an-item";
 import { WhatOtherConsumableWasUsed } from "../Components/SubmitVideo/m-what-other-consumable-was-used";
+import * as Driver from 'driver.js';
 
 enum StaticResourcesForMenu {
     MajorGameplayEvents = 1,
@@ -151,8 +152,8 @@ export class SubmitVideo implements Component {
                             a: [[A.Id, 'player-and-seed-container']],
                             c: [
                                 {
-                                    e: ['div', 'Current Player: 1'],
-                                    a: [[A.Id, 'current-player-container'], [A.Class, 'hand']],
+                                    e: ['div', 'Player: 1'],
+                                    a: [[A.Id, 'current-player-container'], [A.Class, 'hand display-none']],
                                     v: [[EventType.Click, e => this.ChangePlayer(e)]]
                                 },
                                 {
@@ -202,14 +203,14 @@ export class SubmitVideo implements Component {
     private ChangePlayer(e: Event) {
         const target = e.target;
         if (target && target instanceof HTMLDivElement && target.id === 'current-player-container') {
-            if (target.innerText === 'Current Player: 1') {
+            if (target.innerText === 'Player: 1') {
                 addClassIfNotExists(target, 'change-player-container-modifier');
                 this.currentPlayer = 2;
-                target.innerText = 'Current Player: 2'
+                target.innerText = 'Player: 2'
             } else {
                 removeClassIfExists(target, 'change-player-container-modifier');
                 this.currentPlayer = 1;
-                target.innerText = 'Current Player: 1';
+                target.innerText = 'Player: 1';
             }
         }
     }
@@ -992,6 +993,10 @@ export class SubmitVideo implements Component {
         this.tempChosenCharacterId = undefined;
         this.tempChosenItemSource = undefined;
         this.wasRerolled = false;
+        const player = document.getElementById('current-player-container');
+        if (player && player instanceof HTMLDivElement) {
+            removeClassIfExists(player, 'display-none');
+        }
     }
 
     private ItemAndSourceWereSelected(itemId: string) {
@@ -1018,13 +1023,166 @@ export class SubmitVideo implements Component {
     }
 
     private ShowSeedInputElement = () => {
-        debugger;
         const seedContainer = document.getElementById('seed-container');
         if (seedContainer && seedContainer instanceof HTMLDivElement) {
             const seed = this.history.GetSeed();
             seedContainer.innerText = seed ? `Seed: ${seed}` : 'Click to enter seed';
             removeClassIfExists(seedContainer, 'display-none');
         }
+    }
+
+    LaunchMainMenuTutorial() {
+        this.youtubePlayer.PauseVideo();
+
+        const driver = new Driver({ allowClose: false });
+        driver.defineSteps([
+            {
+                element: '#b60',
+                popover: {
+                    title: 'Collected Item',
+                    description: 'If NL collects an item, click here!',
+                    position: 'left'
+                }
+            },
+            {
+                element: '#b61',
+                popover: {
+                    title: 'Touched Item',
+                    description: 'If NL only touches a spacebar item and puts it down again (to get transformation bonuses or to take it out of the item pool), click here!',
+                    position: 'left'
+                }
+            },
+            {
+                element: '#b62',
+                popover: {
+                    title: 'Bossfight',
+                    description: 'If NL encounters a boss, click here (even if he doesn\'t win or doesn\'t finish the fight!).',
+                    position: 'left'
+                }
+            },
+            {
+                element: '#b63',
+                popover: {
+                    title: 'Trinkets',
+                    description: 'If NL switches out his trinket, click here! Only trinkets that NL used for a while count!',
+                    position: 'left'
+                }
+            },
+            {
+                element: '#b64',
+                popover: {
+                    title: 'Character Reroll',
+                    description: 'Did NL use the D4 / D100 / the 6-Room or did "Missing No." trigger at the beginning of the floor? That\'s what this is for!',
+                    position: 'left'
+                }
+            },
+            {
+                element: '#b65',
+                popover: {
+                    title: 'Absorbed Items',
+                    description: 'This box is for items that got absorbed by Void or Black Rune!',
+                    position: 'left'
+                }
+            },
+            {
+                element: '#b66',
+                popover: {
+                    title: 'DIED!',
+                    description: 'If NL got killed and the run ended, click this box to choose how he got killed!',
+                    position: 'left'
+                }
+            },
+            {
+                element: '#b67',
+                popover: {
+                    title: 'WON!',
+                    description: 'Northernlion killed a final boss and won the run? click here!',
+                    position: 'left'
+                }
+            },
+            {
+                element: '#b68',
+                popover: {
+                    title: 'Down to the next floor!',
+                    description: 'This will take you to the "next floor" select screen. '
+                        + 'HINT: Try to choose the next floor when NL really enters the trap door - '
+                        + 'the current time of the youtube player will be saved as a timestamp to calculate floor timings! :) '
+                        + 'If a floor gets repeated (5-Room or Forget Me Now) also use this.',
+                    position: 'left'
+                }
+            },
+            {
+                element: '#box7',
+                popover: {
+                    description: 'If Northernlion uses a consumable, use one of these buttons.',
+                    title: 'Consumables',
+                    position: 'left'
+                }
+            },
+            {
+                element: '#current-player-container',
+                popover: {
+                    title: '2-Player Mode',
+                    description: 'If Northernlion plays as Jacob & Esau, use this button to switch between the two characters.' 
+                        + 'It\'s a little tricky but you can do it! :) Also, Isaac might get a real 2-player mode one day...',
+                    position: 'left',
+                }
+            },
+            {
+                element: '#seed-container',
+                popover: {
+                    title: 'Seed',
+                    description: 'Did Northernlion show the seed later in the video? click here to add / change the seed at any time.',
+                    position: 'left'
+                }
+            },
+            {
+                element: '#quotes',
+                popover: {
+                    title: 'Quotes',
+                    description: 'Northernlion is a funny dude. If he says something really funny, type it into the textbox and submit it!',
+                    position: 'top'
+                }
+            },
+            {
+                element: '#quote-started-at-container',
+                popover: {
+                    title: 'Quote Video Timestamp',
+                    description: 'Select when the quote happened in the video so that people can jump right to the quote on youtube! '
+                        + '"Current video time" will save the current time the youtube player is at right now. The second option lets you specify an exact time.',
+                    position: 'top'
+                }
+            },
+            {
+                element: '#submit-topic-container',
+                popover: {
+                    title: 'Topics / Tangents',
+                    description: 'This is for broad discussion topics and tangents NL went on. Maybe we can search NL videos by "tangents" in the future...?',
+                    position: 'top'
+                }
+            },
+            {
+                element: '#history-container',
+                popover: {
+                    title: 'History',
+                    description: 'All events you select will appear here in chronological order. If you added anything by accident, you can click individual events to remove them from the log! NOTE: '
+                        + 'Removing a floor or a character will also remove all events that happend on that floor, or everything that happened to that character! (a confirmation dialog will appear in those cases.)',
+                    position: 'top'
+                }
+            },
+            {
+                element: '#launch-tutorial',
+                popover: {
+                    title: 'Additional Help',
+                    description: 'On some pages there is more help available. Watch out for this link -  it might help you out if you get stuck or run into an edge case! And that\'s it! Thanks for taking the time to contribute and good luck!',
+                    position: 'left'
+                }
+            }
+        ]);
+
+        setTimeout(() => {
+            driver.start();
+        }, 100);
     }
 
     static RegisterPage() {

@@ -9,7 +9,7 @@ import { postResponse } from "../http";
 export class ComponentWithForm {
     private form: HTMLFormElement | undefined;
 
-    HandleSubmit(e: Event, postUrl: string, authorized: boolean, successUrl: string, pushState = true, scrollToTop = true) {
+    HandleSubmit(e: Event, postUrl: string, authorized: boolean, successUrl: string, pushState = true, scrollToTop = true, forceRender = false) {
         e.preventDefault();
 
         const formIsValid = this.ValidateForm(e);
@@ -26,7 +26,7 @@ export class ComponentWithForm {
                 postResponse(postUrl, formData, authorized)
                     .then(response => {
                         if (response.ok) {
-                            navigate(successUrl, undefined, undefined, pushState, false, scrollToTop);
+                            navigate(successUrl, undefined, undefined, pushState, forceRender, scrollToTop);
                         } else {
                             this.GetErrorMessage(response).then(msg => {
                                 new ComponentWithModal().ShowModal(new GenericError(msg))

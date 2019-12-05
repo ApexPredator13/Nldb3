@@ -3,6 +3,7 @@ import { ExistsIn } from "./exists-in";
 import { GameMode } from "./game-mode";
 import { Tag } from "./tags";
 import { GameplayEventType } from "./gameplay-event-type";
+import { SubmissionType } from "./submission-type";
 
 const convertGameModeToString = (mode: GameMode): string => {
     switch (mode) {
@@ -105,6 +106,16 @@ const convertGameplayEventTypeToString = (e: GameplayEventType): string => {
         case GameplayEventType.Trinket: return 'Trinket';
         case GameplayEventType.WonTheRun: return 'Character won the run';
         case GameplayEventType.Unspecified: return 'Unspecified Event';
+        default: return '';
+    }
+}
+
+const convertSubmissionTypeToString = (t: SubmissionType) => {
+    switch (t) {
+        case SubmissionType.Lost: return 'Lost';
+        case SubmissionType.New: return 'New';
+        case SubmissionType.Old: return 'Old';
+        case SubmissionType.Unknown: return 'Unknown';
         default: return '';
     }
 }
@@ -394,6 +405,7 @@ const convertTagToString = (t: Tag): string => {
         case Tag.BlocksEnemyShots: return 'Blocks Enemy Shots';
         case Tag.SpawnsFire: return 'Spawns Fire';
         case Tag.ModifiesDealChance: return 'Modifies Angel/Devil Deal Chances';
+        case Tag.IsFirstFloor: return 'Is First Floor';
         default: return '';
     }
 }
@@ -403,6 +415,7 @@ export {
     convertExistsInToString,
     convertResourceTypeToString,
     convertTagToString,
-    convertGameplayEventTypeToString
+    convertGameplayEventTypeToString,
+    convertSubmissionTypeToString
 }
 

@@ -41,11 +41,13 @@ namespace Website.Controllers
 
         private readonly IIsaacRepository _isaacRepository;
         private readonly IVideoRepository _videoRepository;
+        private readonly IBarGraphCreator _barGraphCreator;
 
-        public ResourceController(IIsaacRepository isaacRepository, IVideoRepository videoRepository)
+        public ResourceController(IIsaacRepository isaacRepository, IVideoRepository videoRepository, IBarGraphCreator barGraphCreator)
         {
             _isaacRepository = isaacRepository;
             _videoRepository = videoRepository;
+            _barGraphCreator = barGraphCreator;
         }
 
         [HttpGet("test")]
@@ -118,6 +120,72 @@ namespace Website.Controllers
             {
                 return new List<IsaacResource>();
             }
+        }
+
+        [HttpGet("{id}/Stats")]
+        public async Task<ActionResult<StatsPageResult>> Dataset([FromRoute] string id, [FromQuery] IsaacResourceSearchOptions searchOptions)
+        {
+            var resource = await _isaacRepository.GetResourceById(id, false);
+
+            if (resource is null)
+            {
+                return NotFound();
+            }
+
+            GameplayEventType? eventType = null;
+
+            if (resource.ResourceType == ResourceType.Transformation)
+            {
+                eventType = GameplayEventType.TransformationComplete;
+            }
+
+            var result = new StatsPageResult();
+            var availableStats = _isaacRepository.GetAvailableStats(resource);
+            var resourceNumber = _isaacRepository.GetResourceNumber(resource);
+
+            // history
+            if (availableStats.Contains(AvailableStats.History))
+            {
+                var dates = await _isaacRepository.GetEncounteredIsaacResourceTimestamps(id, resourceNumber, eventType);
+                result.History = await _barGraphCreator.ThroughoutTheLetsPlay(resource.Name, dates, searchOptions);
+            }
+
+            // 'found at' ranking
+            if (availableStats.Contains(AvailableStats.FoundAt))
+            {
+                var foundAtStats = await _isaacRepository.GetFoundAtRanking(id);
+                result.FoundAtStats = _barGraphCreator.IsaacResourceRanking(resource.Name, foundAtStats);
+            }
+
+            // character ranking
+            if (availableStats.Contains(AvailableStats.Character))
+            {
+                var characterStats = await _isaacRepository.GetCharacterRanking(id, resourceNumber);
+                result.CharacterStats = _barGraphCreator.IsaacResourceRanking(resource.Name, characterStats);
+            }
+
+            // curse ranking
+            if (availableStats.Contains(AvailableStats.Curse))
+            {
+                var curseStats = await _isaacRepository.GetCurseRanking(id, resourceNumber);
+                result.CurseStats = _barGraphCreator.IsaacResourceRanking(resource.Name, curseStats);
+            }
+
+            // floor ranking
+            if (availableStats.Contains(AvailableStats.Floor))
+            {
+                var floorStats = await _isaacRepository.GetFloorRanking(id, resourceNumber);
+                result.FloorStats = _barGraphCreator.IsaacResourceRanking(resource.Name, floorStats);
+            }
+
+            // transformation item ranking
+            if (availableStats.Contains(AvailableStats.TransformationItemRanking))
+            {
+                var itemRanking = await _isaacRepository.GetTransformationItemRanking(id);
+                result.TransformationItemRanking = _barGraphCreator.IsaacResourceRanking(resource.Name, itemRanking);
+            }
+
+            return result;
         }
 
         //[HttpGet]

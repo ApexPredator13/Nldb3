@@ -19,7 +19,7 @@ export class Boxes<TSubscriber extends Object> extends ComponentWithSubscribers<
 
         this.E = {
             e: ['div'],
-            a: [[A.Id, id.toString(10)]]
+            a: [[A.Id, `box${id.toString(10)}`]]
         }
 
         if (Array.isArray(resourcesToDisplay)) {
@@ -31,7 +31,7 @@ export class Boxes<TSubscriber extends Object> extends ComponentWithSubscribers<
 
     private CreateBoxes(resources: Promise<Array<IsaacResource> | null>, imagePath?: string, upscale?: boolean): Array<AsyncComponentPart> {
         const part: AsyncComponentPart = {
-            I: this.id.toString(),
+            I: `box${this.id.toString(10)}`,
             P: resources.then(resources => {
 
                 if (!resources) {
@@ -49,12 +49,12 @@ export class Boxes<TSubscriber extends Object> extends ComponentWithSubscribers<
                 const boxes: FrameworkElement = {
                     e: ['div'],
                     a: [[A.Class, 'box-container']],
-                    c: resources.map(resource => {
+                    c: resources.map((resource, index) => {
                         const width = resource.w > 65 ? `width: ${resource.w * (upscale ? 2 : 1)};` : '';
                         const padding = upscale ? ` padding: 0 20px 20px 20px` : ''
                         const box: FrameworkElement = {
                             e: ['div'],
-                            a: [[A.Class, 'box'], [A.DataId, resource.id], [A.Style, `${width}${padding}`]],
+                            a: [[A.Class, 'box'], [A.DataId, resource.id], [A.Style, `${width}${padding}`], [A.Id, `b${this.id.toString(10)}${index.toString(10)}`]],
                             v: [[EventType.Click, e => this.BoxClickEvent(e)]],
                             c: [
                                 {

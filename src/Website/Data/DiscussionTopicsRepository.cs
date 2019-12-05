@@ -11,18 +11,18 @@ namespace Website.Data
 {
     public class DiscussionTopicsRepository : IDiscussionTopicsRepository
     {
-        private readonly IDbConnector _connector;
+        private readonly INpgsql _npgsql;
 
-        public DiscussionTopicsRepository(IDbConnector connector)
+        public DiscussionTopicsRepository(INpgsql npgsql)
         {
-            _connector = connector;
+            _npgsql = npgsql;
         }
 
         public async Task<int> Create(DiscussionTopic topic, string userId)
         {
             var commandText = "INSERT INTO discussion_topics (video, topic, user_id, submitted_at) VALUES (@V, @T, @U, DEFAULT);";
 
-            using var connection = await _connector.Connect();
+            using var connection = await _npgsql.Connect();
             using var command = new NpgsqlCommand(commandText, connection);
             command.Parameters.AddWithValue("@V", NpgsqlDbType.Text, topic.VideoId);
             command.Parameters.AddWithValue("@T", NpgsqlDbType.Text, topic.Topic);
@@ -36,7 +36,7 @@ namespace Website.Data
             var commandText = "SELECT video, topic FROM discussion_topics WHERE video = @V;";
             var foundTopics = new List<DiscussionTopic>();
 
-            using var connection = await _connector.Connect();
+            using var connection = await _npgsql.Connect();
             using var command = new NpgsqlCommand(commandText, connection);
             command.Parameters.AddWithValue("@V", NpgsqlDbType.Text, videoId);
             using var r = await command.ExecuteReaderAsync();

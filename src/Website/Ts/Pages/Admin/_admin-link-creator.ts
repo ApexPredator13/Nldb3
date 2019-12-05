@@ -66,5 +66,25 @@ export class AdminLink {
     static DeleteResource(resourceType: ResourceType, resourceId: string) {
         return `/Admin/DeleteResource/${resourceType.toString(10)}/${resourceId}`;
     }
+
+    static AdminSubmissions() {
+        return '/Admin/Submissions';
+    }
+
+    static EditSubmission(videoId: string, submissionId: number) {
+        return `/Admin/EditSubmission/${videoId}/${submissionId}`;
+    }
+
+    static EditGameplayEvent(eventId: number) {
+        return `/Admin/EditGameplayEvent/${eventId.toString(10)}`;
+    }
+
+    static InsertGameplayEvent(videoId: string, submissionId: number, insertAfterEventId: number, playedCharacterId: number, playedFloorId: number, runNumber: number, floorNumber: number) {
+        return `/Admin/InsertGameplayEvent/${videoId}/${submissionId.toString(10)}/${insertAfterEventId.toString(10)}/${playedCharacterId.toString(10)}/${playedFloorId.toString(10)}/${runNumber.toString(10)}/${floorNumber.toString(10)}`
+    }
+
+    static DeleteEvent(videoId: string, submissionId: number, eventId: number) {
+        return `/Admin/DeleteEvent/${videoId}/${submissionId.toString(10)}/${eventId.toString(10)}`;
+    }
 }
 

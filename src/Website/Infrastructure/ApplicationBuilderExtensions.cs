@@ -72,7 +72,7 @@ namespace Website.Infrastructure
             configurationDbContext.SaveChanges();
         }
 
-        public static void CreateRequiredUserAccountsIfMissing(this IApplicationBuilder app)
+        public static void CreateRequiredUserAccountsIfMissing(this IApplicationBuilder app, bool resetTestaccount)
         {
             using var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope();
 
@@ -123,6 +123,17 @@ namespace Website.Infrastructure
                 };
 
                 var result = userManager.CreateAsync(removedUser).Result;
+            }
+
+            // clear test user account if required
+            if (resetTestaccount)
+            {
+                var testEmail = config["TestuserEmail"];
+                var testUser = userManager.FindByEmailAsync(testEmail).Result;
+                if (testUser != null)
+                {
+                    userManager.DeleteAsync(testUser).Wait();
+                }
             }
         }
 

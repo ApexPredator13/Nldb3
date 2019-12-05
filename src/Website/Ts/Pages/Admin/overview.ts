@@ -62,6 +62,16 @@ export class AdminOverviewPage implements Component {
                             v: [[EventType.Click, clickAddVideoLink]]
                         }
                     ]
+                },
+                {
+                    e: ['p'],
+                    c: [
+                        {
+                            e: ['a', 'Manage Submissions'],
+                            a: [[A.Href, AdminLink.AdminSubmissions()]],
+                            v: [[EventType.Click, e => navigate(AdminLink.AdminSubmissions(), e)]]
+                        }
+                    ]
                 }
             ]
         }

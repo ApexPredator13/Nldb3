@@ -16,21 +16,22 @@ using System.Xml;
 using Website.Models.Database;
 using Website.Models;
 using Microsoft.Extensions.Logging;
+using Website.Models.Admin;
 
 namespace Website.Data
 {
     public class VideoRepository : IVideoRepository
     {
-        private readonly IDbConnector _connector;
+        private readonly INpgsql _npgsql;
         private readonly IModRepository _modRepository;
         private readonly IIsaacRepository _isaacRepository;
         private readonly IConfiguration _config;
         private readonly IFormatProvider _formatProvider;
         private readonly ILogger<VideoRepository> _logger;
 
-        public VideoRepository(IDbConnector connector, IModRepository modRepository, IIsaacRepository isaacRepository, IConfiguration config, ILogger<VideoRepository> logger)
+        public VideoRepository(INpgsql npgsql, IModRepository modRepository, IIsaacRepository isaacRepository, IConfiguration config, ILogger<VideoRepository> logger)
         {
-            _connector = connector;
+            _npgsql = npgsql;
             _modRepository = modRepository;
             _isaacRepository = isaacRepository;
             _config = config;
@@ -47,13 +48,60 @@ namespace Website.Data
             }
         }
 
+        public async Task<List<AdminSubmission>> GetSubmissions(int limit, int offset)
+        {
+            var result = new List<AdminSubmission>();
+
+            var commandText =
+                "SELECT " +
+                    "s.id, " +
+                    "v.title, " +
+                    "s.s_type, " +
+                    "s.latest, " +
+                    "i.\"UserName\", " +
+                    "s.video " +
+                "FROM public.video_submissions s " +
+                "LEFT JOIN public.video_submissions_userdata u ON u.submission = s.id " +
+                "LEFT JOIN identity.\"AspNetUsers\" i ON i.\"Id\" = u.user_id " +
+                "LEFT JOIN public.videos v ON v.id = s.video " +
+                "ORDER BY id DESC " +
+                "LIMIT @Limit " +
+                "OFFSET @Offset;";
+
+            using var c = await _npgsql.Connect();
+            using var q = new NpgsqlCommand(commandText, c);
+            q.Parameters.AddWithValue("@Offset", NpgsqlDbType.Integer, offset);
+            q.Parameters.AddWithValue("@Limit", NpgsqlDbType.Integer, limit);
+            using var r = await q.ExecuteReaderAsync();
+
+            if (r.HasRows)
+            {
+                while (r.Read())
+                {
+                    int i = 0;
+
+                    result.Add(new AdminSubmission()
+                    {
+                        SubmissionId = r.GetInt32(i++),
+                        VideoTitle = r.IsDBNull(i++) ? null : r.GetString(i - 1),
+                        SubmissionType = r.IsDBNull(i++) ? SubmissionType.Unknown : (SubmissionType)r.GetInt32(i - 1),
+                        Latest = r.IsDBNull(i++) ? false : r.GetBoolean(i - 1),
+                        UserName = r.IsDBNull(i++) ? "[USERNAME NOT FOUND]" : r.GetString(i - 1),
+                        VideoId = r.GetString(i++)
+                    });
+                }
+            }
+
+            return result;
+        }
+
         public async Task<List<string>> GetVideosThatNeedYoutubeUpdate(int amount, bool updateVideosAfterwards = false)
         {
             _logger.LogInformation($"Getting videos that need youtube update: {amount.ToString()}, update right afterwards: {updateVideosAfterwards.ToString()}");
 
             var result = new List<string>();
             var commandText = "SELECT id FROM videos ORDER BY last_updated ASC NULLS FIRST LIMIT @Amount;";
-            using var connection = await _connector.Connect();
+            using var connection = await _npgsql.Connect();
             using var command = new NpgsqlCommand(commandText, connection);
             command.Parameters.AddWithValue("@Amount", NpgsqlDbType.Integer, amount);
             using var r = await command.ExecuteReaderAsync();
@@ -88,14 +136,14 @@ namespace Website.Data
 
         public async Task<DateTime> GetMostRecentVideoReleaseDate()
         {
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand("SELECT MAX(published) FROM videos;", c);
             return Convert.ToDateTime(await q.ExecuteScalarAsync());
         }
 
         public async Task<DateTime> GetFirstVideoReleaseDate()
         {
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand("SELECT MIN(published) FROM videos;", c);
             return Convert.ToDateTime(await q.ExecuteScalarAsync());
         }
@@ -116,7 +164,7 @@ namespace Website.Data
                 "SELECT COUNT(*) " +
                 "FROM x;";
 
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand(query, c);
             q.Parameters.AddWithValue("@ResourceId", NpgsqlDbType.Text, request.ResourceId);
             return Convert.ToInt32(await q.ExecuteScalarAsync());
@@ -169,7 +217,7 @@ namespace Website.Data
                 parameters.Add(new NpgsqlParameter("@Until", NpgsqlDbType.TimestampTz) { NpgsqlValue = request.Until.Value });
             }
 
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand(s.ToString(), c);
             q.Parameters.AddRange(parameters.ToArray());
 
@@ -178,7 +226,7 @@ namespace Website.Data
 
         public async Task<bool> VideoExists(string videoId)
         {
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand("SELECT id FROM videos WHERE id = @Id;", c);
             q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, videoId);
             using var r = await q.ExecuteReaderAsync();
@@ -205,7 +253,7 @@ namespace Website.Data
         {
             DateTime? result = null;
 
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand("SELECT published AT TIME ZONE 'UTC' FROM videos WHERE id = @Id; ", c);
             q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, videoId);
 
@@ -224,7 +272,7 @@ namespace Website.Data
         {
             string? result = null;
 
-            using (var c = await _connector.Connect())
+            using (var c = await _npgsql.Connect())
             {
                 using var q = new NpgsqlCommand("SELECT title FROM videos WHERE id = @Id; ", c);
                 q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, videoId);
@@ -242,7 +290,7 @@ namespace Website.Data
 
         public async Task<int> CountVideoSubmissions()
         {
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand("SELECT COUNT(*) FROM video_submissions; ", c);
             return Convert.ToInt32(await q.ExecuteScalarAsync());
         }
@@ -253,7 +301,7 @@ namespace Website.Data
                 "INSERT INTO videos (id, title, published, duration, needs_update, likes, dislikes, view_count, favorite_count, comment_count, tags, is_3d, is_hd, cc) " +
                 "VALUES (@Id, @Title, @Pub, @Dur, FALSE, @Likes, @Dislikes, @ViewCount, @Fav, @CC, @Tags, @Is3D, @IsHD, @Cap); ";
 
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand(commandText, c);
 
             q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, newVideo.Id);
@@ -287,7 +335,7 @@ namespace Website.Data
                     "comment_count = @CC, tags = @Tags, is_3d = @Is3D, is_hd = @IsHD, cc = @Cap, last_updated = LOCALTIMESTAMP " +
                 "WHERE id = @Id;";
 
-                using var c = await _connector.Connect();
+                using var c = await _npgsql.Connect();
                 using var q = new NpgsqlCommand(commandText, c);
 
                 q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, updatedVideo.Id);
@@ -318,7 +366,7 @@ namespace Website.Data
                 "INSERT INTO video_submissions_userdata (submission, user_id) VALUES (CURRVAL(pg_get_serial_sequence('video_submissions', 'id')), @U); " +
                 "COMMIT;";
 
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand(query, c);
 
             q.Parameters.AddWithValue("@V", NpgsqlDbType.Text, videoId);
@@ -330,7 +378,7 @@ namespace Website.Data
 
         public async Task<int?> GetVideoLength(string videoId)
         {
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand("SELECT duration FROM videos WHERE id = @Id", c);
             q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, videoId);
             using var r = await q.ExecuteReaderAsync();
@@ -569,7 +617,7 @@ namespace Website.Data
 
             s.Append("COMMIT; ");
 
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand(s.ToString(), c);
             q.Parameters.AddRange(parameters.ToArray());
             await q.ExecuteNonQueryAsync();
@@ -591,7 +639,7 @@ namespace Website.Data
                     "(AVG(dislikes))::REAL " +
                 "FROM videos;";
 
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand(query, c);
             using var r = await q.ExecuteReaderAsync();
 
@@ -622,7 +670,7 @@ namespace Website.Data
                 "LEFT JOIN thumbnails t ON t.video = v.id " +
                 "WHERE v.id = @Id; ";
 
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand(query, c);
             q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, videoId);
 
@@ -832,7 +880,7 @@ namespace Website.Data
 
 
             // Execute
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand(s.ToString(), c);
             q.Parameters.AddRange(p.ToArray());
 
@@ -908,7 +956,7 @@ namespace Website.Data
             s.Append("; ");
             s.Append("COMMIT; ");
 
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand(s.ToString(), c);
             q.Parameters.AddRange(parameters.ToArray());
 

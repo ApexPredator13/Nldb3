@@ -13,16 +13,16 @@ namespace Website.Data
 {
     public class QuoteRepository : IQuoteRepository
     {
-        private readonly IDbConnector _connector;
+        private readonly INpgsql _npgsql;
 
-        public QuoteRepository(IDbConnector connector)
+        public QuoteRepository(INpgsql npgsql)
         {
-            _connector = connector;
+            _npgsql = npgsql;
         }
 
         public async Task<int> CountQuotes()
         {
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand("SELECT COUNT(*) FROM quotes;", c);
             return Convert.ToInt32(await q.ExecuteScalarAsync());
         }
@@ -38,7 +38,7 @@ namespace Website.Data
                 "WHERE user_id = @UserId " +
                 "AND submitted_at >= @NowMinus15Seconds;";
 
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand(commandText, c);
             q.Parameters.AddWithValue("@UserId", NpgsqlDbType.Text, userId);
             q.Parameters.AddWithValue("@NowMinus15Seconds", NpgsqlDbType.TimestampTz, DateTime.Now - TimeSpan.FromSeconds(15));
@@ -55,7 +55,7 @@ namespace Website.Data
 
         public async Task<int> SaveQuote(SubmittedQuote quote, string userId)
         {
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand("INSERT INTO quotes (id, video, content, at, submitted_at) VALUES (DEFAULT, @V, @C, @A, DEFAULT) RETURNING id;", c);
             q.Parameters.AddWithValue("@V", NpgsqlDbType.Text, quote.VideoId);
             q.Parameters.AddWithValue("@C", NpgsqlDbType.Text, quote.Content);
@@ -79,7 +79,7 @@ namespace Website.Data
                 "AND quotes_userdata.quote = @I " +
                 "AND quotes_userdata.user_id = @U;";
 
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand(query, c);
             q.Parameters.AddWithValue("@I", NpgsqlDbType.Integer, quoteId);
             q.Parameters.AddWithValue("@U", NpgsqlDbType.Text, userId);
@@ -100,7 +100,7 @@ namespace Website.Data
                 "WHERE video = @V " +
                 "ORDER BY submitted_at ASC; ";
 
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand(query, c);
             q.Parameters.AddWithValue("@V", NpgsqlDbType.Text, videoId);
 
@@ -146,7 +146,7 @@ namespace Website.Data
             var ids = quotes.Select(x => (x.Id, $"@{x.Id}X")).ToList();
             var commandText = $"SELECT quote, vote FROM quote_votes WHERE user_id = @U AND quote IN ({string.Join(", ", ids.Select(x => x.Item2))});";
 
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var qVotes = new NpgsqlCommand(commandText, c);
             qVotes.Parameters.AddWithValue("@U", NpgsqlDbType.Text, userId);
             foreach (var id in ids)
@@ -179,7 +179,7 @@ namespace Website.Data
                 "LEFT JOIN identity.\"AspNetUsers\" u ON u.\"Id\" = d.user_id " +
                 "WHERE q.id = @I ";
 
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand(query, c);
             q.Parameters.AddWithValue("@I", NpgsqlDbType.Integer, id);
 
@@ -219,7 +219,7 @@ namespace Website.Data
                 "AND quote_votes.quote = @Q " +
                 "RETURNING id;";
 
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand(query, c);
             q.Parameters.AddWithValue("@V", NpgsqlDbType.Integer, (int)vote.Vote);
             q.Parameters.AddWithValue("@U", NpgsqlDbType.Text, userId);
@@ -237,7 +237,7 @@ namespace Website.Data
                 "LEFT JOIN identity.\"AspNetUsers\" u ON u.\"Id\" = v.user_id " +
                 "WHERE v.user_id = @U;";
 
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand(query, c);
             q.Parameters.AddWithValue("@U", NpgsqlDbType.Text, userId);
 
@@ -263,7 +263,7 @@ namespace Website.Data
 
         public async Task<int> DeleteVote(int voteId, string userId)
         {
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand("DELETE FROM quote_votes WHERE id = @I AND user_id = @U;", c);
             q.Parameters.AddWithValue("@I", NpgsqlDbType.Integer, voteId);
             q.Parameters.AddWithValue("@U", NpgsqlDbType.Text, userId);
@@ -280,7 +280,7 @@ namespace Website.Data
                 "LEFT JOIN identity.\"AspNetUsers\" u ON u.\"Id\" = d.user_id " +
                 "ORDER BY RANDOM() LIMIT @Limit;";
             
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand(commandText, c);
             q.Parameters.AddWithValue("@Limit", NpgsqlDbType.Integer, amount);
             using var r = await q.ExecuteReaderAsync();
@@ -319,7 +319,7 @@ namespace Website.Data
                 "LEFT JOIN identity.\"AspNetUsers\" u ON u.\"Id\" = d.user_id " +
                 "ORDER BY q.submitted_at DESC LIMIT @Limit;";
 
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand(commandText, c);
             q.Parameters.AddWithValue("@Limit", NpgsqlDbType.Integer, amount);
             using var r = await q.ExecuteReaderAsync();
@@ -359,7 +359,7 @@ namespace Website.Data
                 "WHERE LOWER(q.content) LIKE LOWER(@Search)" +
                 "ORDER BY q.submitted_at DESC;";
 
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand(commandText, c);
             q.Parameters.AddWithValue("@Search", NpgsqlDbType.Text, $"%{searchTerm}%");
             using var r = await q.ExecuteReaderAsync();

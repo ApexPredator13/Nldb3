@@ -9,10 +9,10 @@ namespace Website.Data
 {
     public class DbManager : IDbManager
     {
-        private readonly IDbConnector _connector;
+        private readonly INpgsql _connector;
         private readonly IWebHostEnvironment _env;
 
-        public DbManager(IDbConnector connector, IWebHostEnvironment env)
+        public DbManager(INpgsql connector, IWebHostEnvironment env)
         {
             _connector = connector;
             _env = env;

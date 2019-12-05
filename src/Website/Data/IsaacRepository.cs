@@ -16,11 +16,11 @@ namespace Website.Data
 {
     public class IsaacRepository : IIsaacRepository
     {
-        private readonly IDbConnector _connector;
+        private readonly INpgsql _npgsql;
 
-        public IsaacRepository(IDbConnector connector)
+        public IsaacRepository(INpgsql npgsql)
         {
-            _connector = connector;
+            _npgsql = npgsql;
         }
 
         private NpgsqlBox CreateBoxCoordinatesFromScreenCoordinates(int x, int y, int w, int h)
@@ -29,7 +29,7 @@ namespace Website.Data
 
         public async Task<ResourceType> GetResourceTypeFromId(string id)
         {
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand("SELECT type FROM isaac_resources WHERE id = @Id;", c);
             q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, id);
             using var r = await q.ExecuteReaderAsync();
@@ -47,7 +47,7 @@ namespace Website.Data
 
         public async Task<int> ChangeDisplayOrder(ChangeDisplayOrder displayOrder)
         {
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand("UPDATE isaac_resources SET display_order = @NewOrder WHERE id = @Id;", c);
             q.Parameters.AddWithValue("@NewOrder", NpgsqlDbType.Integer, displayOrder.DisplayOrder ?? (object)DBNull.Value);
             q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, displayOrder.ResourceId);
@@ -67,7 +67,7 @@ namespace Website.Data
                 "GROUP BY r.id " +
                 "ORDER BY item_count DESC, r.name ASC;";
 
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand(query, c);
             q.Parameters.AddWithValue("@TransformationId", NpgsqlDbType.Text, transformationId);
             using var r = await q.ExecuteReaderAsync();
@@ -113,7 +113,7 @@ namespace Website.Data
                 $"GROUP BY r.id " +
                 $"ORDER BY floor_count DESC, r.name ASC;";
 
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand(query, c);
             q.Parameters.AddWithValue("@ResourceId", NpgsqlDbType.Text, resourceId);
             using var r = await q.ExecuteReaderAsync();
@@ -160,7 +160,7 @@ namespace Website.Data
                 "GROUP BY r.id " +
                 "ORDER BY curse_count DESC, r.name ASC;";
 
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand(query, c);
             q.Parameters.AddWithValue("@ResourceId", NpgsqlDbType.Text, resourceId);
             using var r = await q.ExecuteReaderAsync();
@@ -206,7 +206,7 @@ namespace Website.Data
                 "GROUP BY r.id " +
                 "ORDER BY gc_count DESC, r.name ASC;";
 
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand(query, c);
             q.Parameters.AddWithValue("@ResourceId", NpgsqlDbType.Text, resourceId);
             using var r = await q.ExecuteReaderAsync();
@@ -250,7 +250,7 @@ namespace Website.Data
                 "GROUP BY r.id " +
                 "ORDER BY r2c DESC, r.id ASC;";
 
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand(query, c);
             q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, itemId);
             using var r = await q.ExecuteReaderAsync();
@@ -284,7 +284,7 @@ namespace Website.Data
 
         public async Task<string?> GetResourceNameFromId(string id)
         {
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand("SELECT name FROM isaac_resources WHERE id = @Id;", c);
             q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, id);
             using var r = await q.ExecuteReaderAsync();
@@ -306,7 +306,7 @@ namespace Website.Data
             string resourceNumberString = resourceNumber is 1 ? "resource_one" : "resource_two";
             string eventTypeFragment = eventType.HasValue ? "AND event_type = @EventType" : string.Empty;
 
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand($"SELECT v.published FROM gameplay_events g LEFT JOIN videos v ON v.id = g.video WHERE g.{resourceNumberString} = @Id {eventTypeFragment} ORDER BY v.published ASC;", c);
             q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, isaacResourceId);
             if (eventType.HasValue)
@@ -358,7 +358,7 @@ namespace Website.Data
             sb.Append(");");
 
 
-            using var con = await _connector.Connect();
+            using var con = await _npgsql.Connect();
             using var q = new NpgsqlCommand(sb.ToString(), con);
             q.Parameters.AddRange(p.ToArray());
             using var r = await q.ExecuteReaderAsync();
@@ -397,7 +397,7 @@ namespace Website.Data
         {
             var query = "SELECT 1 FROM isaac_resources WHERE x && @X IS TRUE;";
 
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand(query, c);
             q.Parameters.AddWithValue("@X", NpgsqlDbType.Box, CreateBoxCoordinatesFromScreenCoordinates(x, y, w, h));
 
@@ -418,7 +418,7 @@ namespace Website.Data
                 "WHERE s.video = @VideoId" +
                 $"{(submissionId is null ? string.Empty : " AND id = @SubmissionId")}; ";
 
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand(query, c);
             q.Parameters.AddWithValue("@VideoId", NpgsqlDbType.Text, videoId);
             if (submissionId != null) q.Parameters.AddWithValue("@SubmissionId", NpgsqlDbType.Integer, submissionId.Value);
@@ -446,6 +446,72 @@ namespace Website.Data
             return result;
         }
 
+        public async Task<PlayedCharacter?> GetPlayedCharacterById(int playedCharacterId)
+        {
+            PlayedCharacter? result = default;
+
+            string query =
+                "SELECT " +
+                    "pc.id, pc.action, pc.run_number, pc.submission, pc.seed, " +
+                    "c.id, c.name, c.type, c.exists_in, c.x, c.game_mode, c.color, c.display_order, c.difficulty, c.tags, " +
+                    "d.id, d.name, d.type, d.exists_in, d.x, d.game_mode, d.color, d.display_order, d.difficulty, d.tags " +
+                "FROM played_characters pc " +
+                "LEFT JOIN isaac_resources c ON c.id = pc.game_character " +
+                "LEFT JOIN isaac_resources d ON d.id = pc.died_from " +
+                $"WHERE id = @Id;";
+
+            using var c = await _npgsql.Connect();
+            using var q = new NpgsqlCommand(query, c);
+            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Integer, playedCharacterId);
+            using var r = await q.ExecuteReaderAsync();
+
+            if (r.HasRows)
+            {
+                r.Read();
+                int i = 0;
+                result = new PlayedCharacter
+                {
+                    Id = r.GetInt32(i++),
+                    Action = r.GetInt32(i++),
+                    RunNumber = r.GetInt32(i++),
+                    Submission = r.GetInt32(i++),
+                    Seed = r.IsDBNull(i++) ? null : r.GetString(i - 1),
+                    GameCharacter = new IsaacResource()
+                    {
+                        Id = r.GetString(i++),
+                        Name = r.GetString(i++),
+                        ResourceType = (ResourceType)r.GetInt32(i++),
+                        ExistsIn = (ExistsIn)r.GetInt32(i++),
+                        CssCoordinates = (NpgsqlBox)r[i++],
+                        GameMode = (GameMode)r.GetInt32(i++),
+                        Color = r.GetString(i++),
+                        DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
+                        Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
+                        Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Tag)x).ToList(),
+                    }
+                };
+
+                if (!r.IsDBNull(i))
+                {
+                    result.DiedFrom = new IsaacResource()
+                    {
+                        Id = r.GetString(i++),
+                        Name = r.GetString(i++),
+                        ResourceType = (ResourceType)r.GetInt32(i++),
+                        ExistsIn = (ExistsIn)r.GetInt32(i++),
+                        CssCoordinates = (NpgsqlBox)r[i++],
+                        GameMode = (GameMode)r.GetInt32(i++),
+                        Color = r.GetString(i++),
+                        DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
+                        Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
+                        Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Tag)x).ToList()
+                    };
+                }
+            }
+
+            return result;
+        }
+
         public async Task<List<PlayedCharacter>>GetPlayedCharactersForVideo(string videoId, int? submissionId = null)
         {
             var result = new List<PlayedCharacter>();
@@ -462,7 +528,7 @@ namespace Website.Data
                 "GROUP BY pc.submission, pc.id, c.id, d.id " +
                 "ORDER BY pc.run_number ASC, pc.action ASC; ";
 
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand(query, c);
             q.Parameters.AddWithValue("@VideoId", NpgsqlDbType.Text, videoId);
             if (submissionId != null) q.Parameters.AddWithValue("@SubmissionId", NpgsqlDbType.Integer, submissionId.Value);
@@ -520,6 +586,73 @@ namespace Website.Data
             return result;
         }
 
+        public async Task<PlayedFloor?> GetPlayedFloorById(int id)
+        {
+            PlayedFloor? result = default;
+
+            string query =
+                "SELECT " +
+                    "pf.id, pf.action, pf.run_number, pf.floor_number, pf.submission, pf.duration, " +
+                    "f.id, f.name, f.type, f.exists_in, f.x, f.game_mode, f.color, f.display_order, f.difficulty, f.tags, " +
+                    "d.id, d.name, d.type, d.exists_in, d.x, d.game_mode, d.color, d.display_order, d.difficulty, d.tags " +
+                "FROM played_floors pf " +
+                "LEFT JOIN isaac_resources f ON f.id = pf.floor " +
+                "LEFT JOIN isaac_resources d ON d.id = pf.died_from " +
+                "WHERE id = @Id;";
+
+            using var c = await _npgsql.Connect();
+            using var q = new NpgsqlCommand(query, c);
+            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Integer, id);
+            using var r = await q.ExecuteReaderAsync();
+
+            if (r.HasRows)
+            {
+                r.Read();
+                int i = 0;
+                result = new PlayedFloor()
+                {
+                    Id = r.GetInt32(i++),
+                    Action = r.GetInt32(i++),
+                    RunNumber = r.GetInt32(i++),
+                    FloorNumber = r.GetInt32(i++),
+                    Submission = r.GetInt32(i++),
+                    Duration = r.GetInt32(i++),
+                    Floor = new IsaacResource()
+                    {
+                        Id = r.GetString(i++),
+                        Name = r.GetString(i++),
+                        ResourceType = (ResourceType)r.GetInt32(i++),
+                        ExistsIn = (ExistsIn)r.GetInt32(i++),
+                        CssCoordinates = (NpgsqlBox)r[i++],
+                        GameMode = (GameMode)r.GetInt32(i++),
+                        Color = r.GetString(i++),
+                        DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
+                        Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
+                        Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Tag)x).ToList()
+                    }
+                };
+
+                if (!r.IsDBNull(i))
+                {
+                    result.DiedFrom = new IsaacResource()
+                    {
+                        Id = r.GetString(i++),
+                        Name = r.GetString(i++),
+                        ResourceType = (ResourceType)r.GetInt32(i++),
+                        ExistsIn = (ExistsIn)r.GetInt32(i++),
+                        CssCoordinates = (NpgsqlBox)r[i++],
+                        GameMode = (GameMode)r.GetInt32(i++),
+                        Color = r.GetString(i++),
+                        DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
+                        Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
+                        Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Tag)x).ToList()
+                    };
+                }
+            }
+
+            return result;
+        }
+
         public async Task<List<PlayedFloor>> GetFloorsForVideo(string videoId, int? submissionId = null)
         {
             var result = new List<PlayedFloor>();
@@ -536,7 +669,7 @@ namespace Website.Data
                 "GROUP BY pf.id, f.id, d.id " +
                 "ORDER BY pf.run_number ASC, pf.action ASC; ";
 
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand(query, c);
             q.Parameters.AddWithValue("@VideoId", NpgsqlDbType.Text, videoId);
             if (submissionId != null) q.Parameters.AddWithValue("@SubmissionId", NpgsqlDbType.Integer, submissionId.Value);
@@ -595,13 +728,85 @@ namespace Website.Data
             return result;
         }
 
+        public async Task<GameplayEvent?> GetGameplayEventById(int id)
+        {
+            GameplayEvent? result = default;
+
+            var query =
+                "SELECT " +
+                    "e.id, e.event_type, e.action, e.resource_three, e.run_number, e.player, e.floor_number, e.submission, e.was_rerolled, e.played_character, e.played_floor, " +
+                    "r1.id, r1.name, r1.type, r1.exists_in, r1.x, r1.game_mode, r1.color, r1.display_order, r1.difficulty, r1.tags, " +
+                    "r2.id, r2.name, r2.type, r2.exists_in, r2.x, r2.game_mode, r2.color, r2.display_order, r2.difficulty, r2.tags " +
+                "FROM gameplay_events e " +
+                "LEFT JOIN isaac_resources r1 ON r1.id = e.resource_one " +
+                "LEFT JOIN isaac_resources r2 ON r2.id = e.resource_two " +
+                $"WHERE e.id = @Id;";
+
+            var c = await _npgsql.Connect();
+            var q = new NpgsqlCommand(query, c);
+            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Integer, id);
+            var r = await q.ExecuteReaderAsync();
+
+            if (r.HasRows)
+            {
+                r.Read();
+                int i = 0;
+                result = new GameplayEvent()
+                {
+                    Id = r.GetInt32(i++),
+                    EventType = (GameplayEventType)r.GetInt32(i++),
+                    Action = r.GetInt32(i++),
+                    Resource3 = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
+                    RunNumber = r.GetInt32(i++),
+                    Player = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
+                    FloorNumber = r.GetInt32(i++),
+                    Submission = r.GetInt32(i++),
+                    WasRerolled = r.GetBoolean(i++),
+                    PlayedCharacterId = r.GetInt32(i++),
+                    PlayedFloorId = r.GetInt32(i++),
+                    Resource1 = new IsaacResource()
+                    {
+                        Id = r.GetString(i++),
+                        Name = r.GetString(i++),
+                        ResourceType = (ResourceType)r.GetInt32(i++),
+                        ExistsIn = (ExistsIn)r.GetInt32(i++),
+                        CssCoordinates = (NpgsqlBox)r[i++],
+                        GameMode = (GameMode)r.GetInt32(i++),
+                        Color = r.GetString(i++),
+                        DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
+                        Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
+                        Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Tag)x).ToList(),
+                    }
+                };
+
+                if (!r.IsDBNull(i))
+                {
+                    result.Resource2 = new IsaacResource()
+                    {
+                        Id = r.GetString(i++),
+                        Name = r.GetString(i++),
+                        ResourceType = (ResourceType)r.GetInt32(i++),
+                        ExistsIn = (ExistsIn)r.GetInt32(i++),
+                        CssCoordinates = (NpgsqlBox)r[i++],
+                        GameMode = (GameMode)r.GetInt32(i++),
+                        Color = r.GetString(i++),
+                        DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
+                        Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
+                        Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Tag)x).ToList()
+                    };
+                }
+            }
+
+            return result;
+        }
+
         public async Task<List<GameplayEvent>> GetGameplayEventsForVideo(string videoId, int? submissionId = null)
         {
             var result = new List<GameplayEvent>();
 
             var query =
                 "SELECT " +
-                    "e.id, e.event_type, e.action, e.resource_three, e.run_number, e.player, e.floor_number, e.submission, e.was_rerolled, " +
+                    "e.id, e.event_type, e.action, e.resource_three, e.run_number, e.player, e.floor_number, e.submission, e.was_rerolled, e.played_character, e.played_floor, " +
                     "r1.id, r1.name, r1.type, r1.exists_in, r1.x, r1.game_mode, r1.color, r1.display_order, r1.difficulty, r1.tags, " +
                     "r2.id, r2.name, r2.type, r2.exists_in, r2.x, r2.game_mode, r2.color, r2.display_order, r2.difficulty, r2.tags " +
                 "FROM gameplay_events e " +
@@ -611,7 +816,7 @@ namespace Website.Data
                 "GROUP BY e.submission, e.id, r1.id, r2.id " +
                 "ORDER BY e.run_number ASC, e.action ASC;";
 
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand(query, c);
             q.Parameters.AddWithValue("@VideoId", NpgsqlDbType.Text, videoId);
             if (submissionId != null) q.Parameters.AddWithValue("@SubmissionId", NpgsqlDbType.Integer, submissionId.Value);
@@ -634,6 +839,8 @@ namespace Website.Data
                         FloorNumber = r.GetInt32(i++),
                         Submission = r.GetInt32(i++),
                         WasRerolled = r.GetBoolean(i++),
+                        PlayedCharacterId = r.GetInt32(i++),
+                        PlayedFloorId = r.GetInt32(i++),
                         Resource1 = new IsaacResource()
                         {
                             Id = r.GetString(i++),
@@ -675,7 +882,7 @@ namespace Website.Data
 
         public async Task<int> UpdateExistsIn(string id, ExistsIn newExistsIn)
         {
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand("UPDATE isaac_resources SET exists_in = @E WHERE id = @I;", c);
             q.Parameters.AddWithValue("@E", NpgsqlDbType.Integer, (int)newExistsIn);
             q.Parameters.AddWithValue("@I", NpgsqlDbType.Text, id);
@@ -684,7 +891,7 @@ namespace Website.Data
 
         public async Task<int> UpdateGameMode(string id, GameMode newGameMode)
         {
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand("UPDATE isaac_resources SET game_mode = @G WHERE id = @I;", c);
             q.Parameters.AddWithValue("@G", NpgsqlDbType.Integer, (int)newGameMode);
             q.Parameters.AddWithValue("@I", NpgsqlDbType.Text, id);
@@ -693,7 +900,7 @@ namespace Website.Data
 
         public async Task<int> UpdateName(string id, string newName)
         {
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand("UPDATE isaac_resources SET name = @N WHERE id = @I;", c);
             q.Parameters.AddWithValue("@N", NpgsqlDbType.Text, newName);
             q.Parameters.AddWithValue("@I", NpgsqlDbType.Text, id);
@@ -702,7 +909,7 @@ namespace Website.Data
 
         public async Task<int> UpdateId(string oldId, string newId)
         {
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand("UPDATE isaac_resources SET id = @NewId WHERE id = @OldId;", c);
             q.Parameters.AddWithValue("@NewId", NpgsqlDbType.Text, newId);
             q.Parameters.AddWithValue("@OldId", NpgsqlDbType.Text, oldId);
@@ -715,7 +922,7 @@ namespace Website.Data
                 ? "SELECT COUNT(*) FROM isaac_resources;"
                 : "SELECT COUNT(*) FROM isaac_resources WHERE type = @Type;";
 
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand(query, c);
 
             if (type != ResourceType.Unspecified)
@@ -729,7 +936,7 @@ namespace Website.Data
 
         public async Task<string?> GetFirstResourceIdFromName(string name)
         {
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand("SELECT id FROM isaac_resources WHERE name = @Name", c);
             q.Parameters.AddWithValue("@Name", NpgsqlDbType.Text, name);
             return Convert.ToString(await q.ExecuteScalarAsync());
@@ -741,7 +948,7 @@ namespace Website.Data
             string query = "INSERT INTO isaac_resources (id, name, type, exists_in, x, game_mode, color, mod, display_order, difficulty, tags) VALUES (" +
                 "@I, @N, @D, @E, @X, @M, @C, @L, @O, @U, @T) RETURNING id;";
 
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand(query, c);
             q.Parameters.AddWithValue("@I", NpgsqlDbType.Text, resource.Id);
             q.Parameters.AddWithValue("@N", NpgsqlDbType.Text, resource.Name);
@@ -760,7 +967,7 @@ namespace Website.Data
 
         public async Task<int> UpdateIconCoordinates(string resourceId, int x, int y, int w, int h)
         {
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand("UPDATE isaac_resources SET x = @X WHERE id = @I;", c);
             q.Parameters.AddWithValue("@X", NpgsqlDbType.Box, CreateBoxCoordinatesFromScreenCoordinates(x, y, w, h));
             q.Parameters.AddWithValue("@I", NpgsqlDbType.Text, resourceId);
@@ -877,7 +1084,7 @@ namespace Website.Data
             CreateOrderByStatementForRequest(s, request);
 
             // ...Execute
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand(s.ToString(), c);
             q.Parameters.AddRange(parameters.ToArray());
 
@@ -960,7 +1167,7 @@ namespace Website.Data
 
             s.Append(" WHERE i.id = @Id; ");
 
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand(s.ToString(), c);
             q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, id);
 
@@ -1021,7 +1228,7 @@ namespace Website.Data
 
         public async Task<int> DeleteResource(string resourceId)
         {
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand("DELETE FROM isaac_resources WHERE id = @Id; ", c);
             q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, resourceId);
             return await q.ExecuteNonQueryAsync();
@@ -1030,7 +1237,7 @@ namespace Website.Data
 
         public async Task<bool> ResourceExists(string resourceId)
         {
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand("SELECT id FROM isaac_resources WHERE id = @Id;", c);
             q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, resourceId);
             using var r = await q.ExecuteReaderAsync();
@@ -1043,7 +1250,7 @@ namespace Website.Data
                 "INSERT INTO transformative_resources (id, isaac_resource, transformation, counts_multiple_times, requires_title_content, valid_from, valid_until, steps_needed) " +
                 $"VALUES (DEFAULT, @IR, @TR, @CM, @RT, {(model.ValidFrom.HasValue ? "@VF" : "DEFAULT")}, {(model.ValidUntil.HasValue ? "@VU" : "DEFAULT")}, @SN) RETURNING id;";
 
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand(query, c);
             q.Parameters.AddWithValue("@IR", NpgsqlDbType.Text, model.ResourceId);
             q.Parameters.AddWithValue("@TR", NpgsqlDbType.Text, model.TransformationId);
@@ -1059,7 +1266,7 @@ namespace Website.Data
         public async Task<int> DeleteSubmission(int submissionId)
         {
             var commandText = "DELETE FROM video_submissions WHERE id = @Id;";
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand(commandText, c);
             q.Parameters.AddWithValue("@Id", NpgsqlDbType.Integer, submissionId);
             return await q.ExecuteNonQueryAsync();
@@ -1069,7 +1276,7 @@ namespace Website.Data
         {
             bool hasEffects = false;
 
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand($"SELECT 1 FROM isaac_resources WHERE id = @Resource AND tags @> @RequiredEffects; ", c);
             q.Parameters.AddWithValue("@Resource", NpgsqlDbType.Text, resourceId);
             q.Parameters.AddWithValue("@RequiredEffects", NpgsqlDbType.Array | NpgsqlDbType.Integer, effects.Select(x => (int)x).ToArray());
@@ -1088,7 +1295,7 @@ namespace Website.Data
         {
             var result = new List<(string, bool, int)>();
 
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand(
                 "SELECT t.isaac_resource, t.transformation, t.counts_multiple_times, t.requires_title_content, t.valid_from, t.valid_until, t.steps_needed " +
                 "FROM transformative_resources t " +
@@ -1120,7 +1327,7 @@ namespace Website.Data
 
         public async Task<int> AddTag(string id, Tag tag)
         {
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand("UPDATE isaac_resources SET tags = tags || ARRAY[@T] WHERE id = @Id;", c);
             q.Parameters.AddWithValue("@T", NpgsqlDbType.Integer, (int)tag);
             q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, id);
@@ -1129,7 +1336,7 @@ namespace Website.Data
 
         public async Task<int> ClearTags(string id)
         {
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand("UPDATE isaac_resources SET tags = NULL WHERE id = @Id;", c);
             q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, id);
             return await q.ExecuteNonQueryAsync();
@@ -1171,7 +1378,7 @@ namespace Website.Data
 
         public async Task<int> UpdateColor(ChangeColor changeColor)
         {
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand("UPDATE isaac_resources SET color = @Color WHERE id = @Id;", c);
             q.Parameters.AddWithValue("@Color", NpgsqlDbType.Text, changeColor.Color);
             q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, changeColor.ResourceId);
@@ -1180,11 +1387,14 @@ namespace Website.Data
 
         public async Task<int> UpdateMod(ChangeMod changeMod)
         {
-            using var c = await _connector.Connect();
+            using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand("UPDATE isaac_resources SET mod = @ModId WHERE id = @ResourceId;", c);
             q.Parameters.AddWithValue("@ModId", NpgsqlDbType.Integer, changeMod.ModId ?? (object)DBNull.Value);
             q.Parameters.AddWithValue("@ResourceId", NpgsqlDbType.Text, changeMod.ResourceId);
             return await q.ExecuteNonQueryAsync();
         }
+
     }
 }
+
+

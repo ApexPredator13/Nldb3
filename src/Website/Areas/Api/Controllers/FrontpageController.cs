@@ -14,10 +14,10 @@ namespace Website.Areas.Api.Controllers
     [Area("api"), Route("[area]/frontpage"), ApiController]
     public class FrontpageController : Controller
     {
-        private readonly IDbConnector _connector;
+        private readonly INpgsql _connector;
         private readonly IConfiguration _config;
 
-        public FrontpageController(IDbConnector connector, IConfiguration config)
+        public FrontpageController(INpgsql connector, IConfiguration config)
         {
             _config = config;
             _connector = connector;

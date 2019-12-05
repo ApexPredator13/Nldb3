@@ -1,5 +1,6 @@
 ﻿export enum SubmissionType {
     Lost,
     Old,
-    New
+    New,
+    Unknown
 }

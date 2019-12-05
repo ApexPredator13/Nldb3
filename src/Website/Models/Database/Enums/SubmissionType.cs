@@ -4,6 +4,7 @@
     {
         Lost,
         Old,
-        New
+        New,
+        Unknown
     }
 }

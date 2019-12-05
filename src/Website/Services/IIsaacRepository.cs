@@ -49,5 +49,8 @@ namespace Website.Services
         Task<bool> ResourceExists(string resourceId);
         Task<int> ClearTags(string id);
         Task<int> ChangeDisplayOrder(ChangeDisplayOrder displayOrder);
+        Task<GameplayEvent?> GetGameplayEventById(int id);
+        Task<PlayedCharacter?> GetPlayedCharacterById(int playedCharacterId);
+        Task<PlayedFloor?> GetPlayedFloorById(int id);
     }
 }

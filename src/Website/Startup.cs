@@ -53,10 +53,11 @@ namespace Website
             services.AddTransient<ISqlDumper, SqlDumper>();
             services.AddSingleton<IHttpClientProvider, HttpClientProvider>();
 
-            services.AddTransient<IDbConnector, DbConnector>();
+            services.AddTransient<INpgsql, Data.Npgsql>();
             services.AddTransient<IDbManager, DbManager>();
             services.AddTransient<IMigrateOldDatabase, MigrateOldDatabase>();
             services.AddTransient<IIsaacIconManager, IsaacIconManager>();
+            services.AddTransient<IEditSubmissionRepository, EditSubmissionRepository>();
 
             services.AddTransient<IIsaacRepository, IsaacRepository>();
             services.AddTransient<IModRepository, ModRepository>();
@@ -267,7 +268,7 @@ namespace Website
 
             app.ApplyEntityFrameworkDatabaseMigrations();
             app.CreateIdentityserverEntriesIfNecessary(true);
-            app.CreateRequiredUserAccountsIfMissing();
+            app.CreateRequiredUserAccountsIfMissing(true);
 
             //BackgroundJob.Enqueue<IMigrateOldDatabase>(migrator => migrator.MigrateUsersQuotesVideosAndRuns());
 

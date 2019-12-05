@@ -19,6 +19,7 @@
   "dependencies": {
     "array-flat-polyfill": "^1.0.1",
     "chart.js": "^2.9.2",
+    "driver.js": "^0.9.8",
     "oidc-client": "^1.9.1"
   }
 }

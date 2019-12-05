@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Website.Models.Admin;
+using Website.Models.Database;
 using Website.Services;
 
 namespace Website.Controllers
@@ -15,13 +16,15 @@ namespace Website.Controllers
         private readonly IModRepository _modRepository;
         private readonly IIsaacRepository _isaacRepository;
         private readonly IIsaacIconManager _iconManager;
+        private readonly IEditSubmissionRepository _editSubmissionRepository;
 
-        public AdminController(IVideoRepository videoRepository, IModRepository modRepository, IIsaacRepository isaacRepository, IIsaacIconManager iconManager)
+        public AdminController(IVideoRepository videoRepository, IModRepository modRepository, IIsaacRepository isaacRepository, IIsaacIconManager iconManager, IEditSubmissionRepository editSubmissionRepository)
         {
             _videoRepository = videoRepository;
             _modRepository = modRepository;
             _isaacRepository = isaacRepository;
             _iconManager = iconManager;
+            _editSubmissionRepository = editSubmissionRepository;
         }
 
         [HttpPost("save_or_update_videos")]
@@ -262,6 +265,150 @@ namespace Website.Controllers
             else
             {
                 return BadRequest("game mode was not updated successfully");
+            }
+        }
+
+        [HttpGet("Submissions/{limit:int}/{offset:int}")]
+        public async Task<List<AdminSubmission>> ViewSubmissions([FromRoute] int limit, [FromRoute] int offset)
+        {
+            return await _videoRepository.GetSubmissions(limit, offset);
+        }
+
+        [HttpGet("Submissions/{videoId}/{submissionId:int}/Events")]
+        public async Task<List<GameplayEvent>> GetGameplayEventsForSubmission([FromRoute] string videoId, [FromRoute] int submissionId)
+        {
+            return await _isaacRepository.GetGameplayEventsForVideo(videoId, submissionId);
+        }
+
+        [HttpGet("Submissions/{videoId}/{submissionId:int}/Floors")]
+        public async Task<List<PlayedFloor>> GetFloorsForSubmission([FromRoute] string videoId, [FromRoute] int submissionId)
+        {
+            return await _isaacRepository.GetFloorsForVideo(videoId, submissionId);
+        }
+
+        [HttpGet("Submissions/{videoId}/{submissionId:int}/Characters")]
+        public async Task<List<PlayedCharacter>> GetPlayedCharactersForSubmission([FromRoute] string videoId, [FromRoute] int submissionId)
+        {
+            return await _isaacRepository.GetPlayedCharactersForVideo(videoId, submissionId);
+        }
+
+        [HttpGet("PlayedCharacter/{playedCharacterId:int}")]
+        public async Task<ActionResult<PlayedCharacter>> GetPlayedCharacterById([FromRoute] int playedCharacterId)
+        {
+            var character = await _isaacRepository.GetPlayedCharacterById(playedCharacterId);
+
+            if (character is null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                return character;
+            }
+        }
+
+        [HttpGet("PlayedFloor/{playedFloorId:int}")]
+        public async Task<ActionResult<PlayedFloor>> GetPlayedFloorById([FromRoute] int playedFloorId)
+        {
+            var floor = await _isaacRepository.GetPlayedFloorById(playedFloorId);
+
+            if (floor is null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                return floor;
+            }
+        }
+
+        [HttpGet("GameplayEvent/{gameplayEventId:int}")]
+        public async Task<ActionResult<GameplayEvent>> GetGameplayEventById([FromRoute] int gameplayEventId)
+        {
+            var gameplayEvent = await _isaacRepository.GetGameplayEventById(gameplayEventId);
+
+            if (gameplayEvent is null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                return gameplayEvent;
+            }
+        }
+
+        [HttpPost("update_gameplay_event_type")]
+        public async Task<ActionResult> UpdateGameplayEventType([FromForm] UpdateGameplayEventType updateGameplayEventType)
+        {
+            var dbChanges = await _editSubmissionRepository.UpdateGameplayEventType(updateGameplayEventType);
+
+            if (dbChanges > 0)
+            {
+                return Ok();
+            }
+            else
+            {
+                return BadRequest("The event type was not updated successfully");
+            }
+        }
+
+        [HttpPost("update_gameplay_event_player")]
+        public async Task<ActionResult> UpdateGameplayEventPlayer([FromForm] UpdateGameplayEventPlayer updateGameplayEventPlayer)
+        {
+            var dbChanges = await _editSubmissionRepository.UpdateGameplayEventPlayer(updateGameplayEventPlayer);
+
+            if (dbChanges > 0)
+            {
+                return Ok();
+            }
+            else
+            {
+                return BadRequest("Player was not updated successfully");
+            }
+        }
+
+        [HttpPost("update_gameplay_event_rerolled")]
+        public async Task<ActionResult> UpdateGameplayEventRerolled([FromForm] UpdateGameplayEventWasRerolled updateGameplayEventRerolled)
+        {
+            var dbChanges = await _editSubmissionRepository.UpdateGameplayEventWasRerolled(updateGameplayEventRerolled);
+
+            if (dbChanges > 0)
+            {
+                return Ok();
+            }
+            else
+            {
+                return BadRequest("Player was not updated successfully");
+            }
+        }
+
+        [HttpPost("insert_gameplay_event")]
+        public async Task<ActionResult> InsertGameplayEvent([FromForm] InsertGameplayEvent insert)
+        {
+            var dbChanges = await _editSubmissionRepository.InsertGameplayEventAfterEvent(insert);
+
+            if (dbChanges > 0)
+            {
+                return Ok();
+            }
+            else
+            {
+                return BadRequest("Event could not be inserted");
+            }
+        }
+
+        [HttpPost("delete_gameplay_event")]
+        public async Task<ActionResult> DeleteGameplayEvent([FromForm] DeleteGameplayEvent delete)
+        {
+            var dbChanges = await _editSubmissionRepository.DeleteGameplayEvent(delete);
+
+            if (dbChanges > 0)
+            {
+                return Ok();
+            }
+            else
+            {
+                return BadRequest("Event could not be deleted");
             }
         }
     }

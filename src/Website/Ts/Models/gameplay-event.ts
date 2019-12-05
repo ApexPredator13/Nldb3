@@ -13,5 +13,7 @@ export interface GameplayEvent {
     player: number | null;
     floor_number: number;
     submission: number;
+    played_character: number;
+    played_floor: number;
 }
 

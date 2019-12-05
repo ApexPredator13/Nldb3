@@ -14,6 +14,11 @@ import { RedirectNextResource } from "./redirect-next-resource";
 import { CreateIsaacResource } from "./create-isaac-resource";
 import { DeleteResource } from "./delete-resource";
 import { ResourceDeleted } from "./resource-deleted";
+import { SubmissionsOverview } from "./submissions_overview";
+import { EditSubmission } from "./edit-submission";
+import { EditGameplayEvent } from "./edit-gameplay-event";
+import { InsertGameplayEvent } from "./insert-gameplay-event";
+import { DeleteEvent } from "./delete-event";
 
 (() => {
     AdminOverviewPage.RegisterPage();
@@ -32,5 +37,10 @@ import { ResourceDeleted } from "./resource-deleted";
     CreateIsaacResource.RegisterPage();
     DeleteResource.RegisterPage();
     ResourceDeleted.RegisterPage();
+    SubmissionsOverview.RegisterPage();
+    EditSubmission.RegisterPage();
+    EditGameplayEvent.RegisterPage();
+    InsertGameplayEvent.RegisterPage();
+    DeleteEvent.RegisterPage();
 })();
 

@@ -94,3 +94,8 @@ form .fc {
 .fc input, .fc select {
     grid-area: input;
 }
+fieldset {
+    background-color: rgba(255,255,255,0.1);
+    border: none;
+    margin: 1rem;
+}

@@ -1,10 +1,11 @@
 ﻿import { ExistsIn } from "../../Enums/exists-in";
-import { convertExistsInToString, convertGameModeToString, convertResourceTypeToString, convertTagToString } from "../../Enums/enum-to-string-converters";
+import { convertExistsInToString, convertGameModeToString, convertResourceTypeToString, convertTagToString, convertGameplayEventTypeToString } from "../../Enums/enum-to-string-converters";
 import { Option } from '../General/option';
 import { GameMode } from "../../Enums/game-mode";
 import { ResourceType } from "../../Enums/resource-type";
 import { Tag } from "../../Enums/tags";
 import { IsaacResource } from "../../Models/isaac-resource";
+import { GameplayEventType } from "../../Enums/gameplay-event-type";
 
 const gameModeOptionList = (selectedOption?: GameMode) => {
     return [
@@ -82,6 +83,20 @@ const resourceTypeOptionList = (resourceType?: ResourceType) => {
     ];
 }
 
+const gameplayEventTypeOptionList = (selectedGameplayEventType: GameplayEventType) => {
+    return Object.keys(GameplayEventType).filter(x => {
+        const num = Number(x);
+        if (isNaN(num)) {
+            return false;
+        }
+        return true;
+    }).map(x => {
+        const num = Number(x) as GameplayEventType;
+        const option = new Option(x, convertGameplayEventTypeToString(num), typeof (selectedGameplayEventType) === 'number' && selectedGameplayEventType === num);
+        return option;
+    });
+}
+
 const tagsAsIsaacResources = () => {
     const resources = Object.keys(Tag).filter(x => {
         const num = Number(x);
@@ -125,6 +140,7 @@ export {
     gameModeOptionList,
     resourceTypeOptionList,
     tagsOptionList,
-    tagsAsIsaacResources
+    tagsAsIsaacResources,
+    gameplayEventTypeOptionList
 }
 
