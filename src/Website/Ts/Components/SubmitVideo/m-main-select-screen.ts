@@ -2,9 +2,12 @@
 import { IsaacResource } from "../../Models/isaac-resource";
 import { Boxes } from "../General/boxes";
 import { SubmitVideo } from "../../Pages/submit-video";
+import { removeClassIfExists, addClassIfNotExists } from "../../Framework/browser";
 
 export class MainSelectScreen<TSubscriber extends Object> implements Component {
     E: FrameworkElement;
+
+    static HighlightTutorial = true;
 
     constructor(
         subscriber: TSubscriber,
@@ -36,17 +39,24 @@ export class MainSelectScreen<TSubscriber extends Object> implements Component {
                     c: [
                         {
                             e: ['a', 'Launch Tutorial!'],
-                            a: [[A.Class, 'u hand'], [A.Id, 'launch-tutorial']],
-                            v: [[EventType.Click, () => {
+                            a: [[A.Class, 'u hand' + (MainSelectScreen.HighlightTutorial ? ' orange' : ' gray')], [A.Id, 'launch-tutorial']],
+                            v: [[EventType.Click, e => {
+                                MainSelectScreen.HighlightTutorial = false;
+
                                 if (subscriber instanceof SubmitVideo) {
                                     subscriber.LaunchMainMenuTutorial();
+                                }
+                                const target = e.target;
+                                if (target && target instanceof HTMLAnchorElement) {
+                                    removeClassIfExists(target, 'orange');
+                                    addClassIfNotExists(target, 'gray');
                                 }
                             }]]
                         }
                     ]
                 }
             ]
-        }
+        };
     }
 }
 

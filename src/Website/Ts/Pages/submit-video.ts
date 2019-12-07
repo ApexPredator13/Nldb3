@@ -3,7 +3,7 @@ import { WhatCharacterWasChosen } from "../Components/SubmitVideo/m-what-charact
 import { WhatGameModeWasChosen } from "../Components/SubmitVideo/m-what-game-mode-was-played";
 import { SubmitQuote } from "../Components/SubmitVideo/submit-quote";
 import { SubmitTopic } from "../Components/SubmitVideo/submit-topic";
-import { YoutubePlayer } from "../Components/SubmitVideo/youtube-player";
+import { YoutubePlayer, YoutubePlayerState } from "../Components/SubmitVideo/youtube-player";
 import { GameMode } from "../Enums/game-mode";
 import { ResourceType } from "../Enums/resource-type";
 import { addClassIfNotExists, removeClassIfExists } from "../Framework/browser";
@@ -46,6 +46,10 @@ import { WhatRuneWasUsed } from "../Components/SubmitVideo/m-what-rune-was-used"
 import { DidBlackRuneAbsorbAnItem } from "../Components/SubmitVideo/m-did-black-rune-absorb-an-item";
 import { WhatOtherConsumableWasUsed } from "../Components/SubmitVideo/m-what-other-consumable-was-used";
 import * as Driver from 'driver.js';
+import { WhatOtherEventHappened } from "../Components/SubmitVideo/m-what-other-event-happened";
+import { HowDidNlRerollHisCharacter } from "../Components/SubmitVideo/m-how-did-nl-reroll-his-character";
+import { WhatTransformationDidNlRerollInto } from "../Components/SubmitVideo/m-what-transformation-did-nl-reroll-into";
+import { WhatCharacterDidNlChangeInto } from "../Components/SubmitVideo/m-what-character-did-nl-change-into";
 
 enum StaticResourcesForMenu {
     MajorGameplayEvents = 1,
@@ -86,10 +90,13 @@ export class SubmitVideo implements Component {
     private videoId: string;
 
     private rightColumn: HTMLDivElement | undefined;
+    private playPauseSpan: HTMLSpanElement | undefined;
 
     private tempChosenCharacterId: string | undefined;
     private tempChosenItemSource: string | undefined;
     private wasRerolled = false;
+
+    playPauseInterval: number | undefined;
 
     private initialMenu: WhatCharacterWasChosen<SubmitVideo>;
 
@@ -104,6 +111,13 @@ export class SubmitVideo implements Component {
         this.CreateInitialStaticResources();
         this.initialMenu = new WhatCharacterWasChosen(this, this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.Character.toString(10)}`), this.CharacterWasChosen);
 
+        // make sure play/pause icon is accurate at the beginning and throughout the session
+        this.playPauseInterval = setInterval(() => this.SetPlayPauseIcon(), 2000);
+        setTimeout(() => this.SetPlayPauseIcon(), 500);
+        setTimeout(() => this.SetPlayPauseIcon(), 1000);
+        setTimeout(() => this.SetPlayPauseIcon(), 1500);
+
+        // change title
         get<string>(`/Api/Videos/Title/${this.videoId}`).then(title => {
             if (title) {
                 setTitle(`Submitting: ${title}`);
@@ -152,6 +166,22 @@ export class SubmitVideo implements Component {
                             a: [[A.Id, 'player-and-seed-container']],
                             c: [
                                 {
+                                    e: ['div'],
+                                    a: [[A.Id, 'player-controls']],
+                                    c: [
+                                        {
+                                            e: ['span', '⏪'],
+                                            a: [[A.Id, 'rewind'], [A.Class, 'hand'], [A.Title, 'Go back 5 seconds']],
+                                            v: [[EventType.Click, () => this.RewindClicked()]]
+                                        },
+                                        {
+                                            e: ['span', '▶️'],
+                                            a: [[A.Id, 'play-pause'], [A.Class, 'hand'], [A.Title, 'Play / Pause']],
+                                            v: [[EventType.Click, () => this.PlayPauseClicked()]]
+                                        }
+                                    ]
+                                },
+                                {
                                     e: ['div', 'Player: 1'],
                                     a: [[A.Id, 'current-player-container'], [A.Class, 'hand display-none']],
                                     v: [[EventType.Click, e => this.ChangePlayer(e)]]
@@ -175,6 +205,44 @@ export class SubmitVideo implements Component {
             ]
         }
     }
+
+    private RewindClicked() {
+        this.youtubePlayer.Seek(-5);
+    }
+
+    private PlayPauseClicked() {
+        const currentState = this.youtubePlayer.GetPlayerState();
+        if (currentState === YoutubePlayerState.CurrentlyPlaying) {
+            this.youtubePlayer.PauseVideo();
+        } else {
+            this.youtubePlayer.PlayVideo();
+        }
+
+        setTimeout(() => this.SetPlayPauseIcon(), 100);
+    }
+
+    private SetPlayPauseIcon() {
+        const currentState = this.youtubePlayer.GetPlayerState();
+        let playPause: HTMLSpanElement | undefined;
+
+        if (this.playPauseSpan) {
+            playPause = this.playPauseSpan;
+        } else {
+            const findPlayPauseResult = document.getElementById('play-pause');
+            if (findPlayPauseResult && findPlayPauseResult instanceof HTMLSpanElement) {
+                this.playPauseSpan = findPlayPauseResult;
+                playPause = findPlayPauseResult;
+            }
+        }
+
+        if (playPause) {
+            if (currentState === YoutubePlayerState.CurrentlyPlaying) {
+                playPause.innerText = '⏸️';
+            } else {
+                playPause.innerText = '▶️';
+            }
+        }
+    }
     
     private ItemWasRemovedFromHistory(removedElement: removeHistoryElement) {
         // user has confirmed that the character must be removed, and the history element already removed it.
@@ -185,9 +253,13 @@ export class SubmitVideo implements Component {
         }
 
         // user has confirmed that a floor must be removed, and the history element already removed the floor.
-        // ask the user to select a floor again
+        // ask the user to select a floor again if the first floor must be re-selected, or show the main menu if another floor exists already.
         if (removedElement.characterIndex !== null && removedElement.floorIndex !== null && removedElement.eventIndex === null) {
-            this.ShowChooseFloor();
+            if (this.history.CharacterHasNoFloorsSelected()) {
+                this.ShowChooseFloor();
+            } else {
+                this.ShowMainSelectScreen();
+            }
             return;
         }
 
@@ -248,7 +320,8 @@ export class SubmitVideo implements Component {
             { id: GameplayEventType.AbsorbedItem.toString(10), name: 'Sucked Up Item', x: 350, y: 0, w: 35, h: 35 } as IsaacResource,
             { id: GameplayEventType.CharacterDied.toString(10), name: 'Northernlion DIED', x: 35, y: 0, w: 35, h: 35 } as IsaacResource,
             { id: GameplayEventType.WonTheRun.toString(10), name: 'Northernlion WON', x: 1155, y: 0, w: 35, h: 35 } as IsaacResource,
-            { id: GameplayEventType.DownToTheNextFloor.toString(10), name: 'Down to the next floor!', x: 105, y: 0, w: 35, h: 35 } as IsaacResource
+            { id: GameplayEventType.DownToTheNextFloor.toString(10), name: 'Down to the next floor!', x: 105, y: 0, w: 35, h: 35 } as IsaacResource,
+            { id: GameplayEventType.Clicker.toString(10), name: 'Other Events', x: 1190, y: 0, w: 35, h: 35 } as IsaacResource
         ]);
 
         this.staticResources.set(StaticResourcesForMenu.UsedConsumables, [
@@ -379,7 +452,75 @@ export class SubmitVideo implements Component {
             case GameplayEventType.TarotCard: this.ShowChooseTarotCard(); break;
             case GameplayEventType.Rune: this.ShowChooseRune(); break;
             case GameplayEventType.OtherConsumable: this.ShowChooseOtherConsumable(); break;
+            case GameplayEventType.Clicker: this.ShowWhatOtherEventHappened(); break;
+            case GameplayEventType.RerollTransform: this.ShowWhatOtherEventHappened(); break;
+            default: this.ShowMainSelectScreen(); break;
         }
+    }
+
+    private ShowWhatOtherEventHappened() {
+        const menu = new WhatOtherEventHappened(this, this.OtherEventTypeSelected);
+        this.Display(menu);
+    }
+
+    private OtherEventTypeSelected(eventType: string) {
+        if (!eventType) {
+            this.ShowMainSelectScreen();
+            return;
+        }
+
+        if (eventType === 'reroll-transform') {
+            this.ShowHowDidNlRerollHisCharacter();
+        } else if (eventType === 'clicker') {
+            this.ShowWhatCharacterDidNlChangeInto();
+        }
+    }
+
+    private ShowWhatCharacterDidNlChangeInto() {
+        const characters = get<Array<IsaacResource>>(`/Api/Resources/?ResourceType=${ResourceType.Character.toString(10)}`);
+        const menu = new WhatCharacterDidNlChangeInto(this, this.ClickerCharacterSelected, characters);
+        this.Display(menu);
+    }
+
+    private ClickerCharacterSelected(characterId: string) {
+        if (characterId) {
+            this.history.AddEvent({
+                EventType: GameplayEventType.Clicker,
+                RelatedResource1: 'Clicker',
+                RelatedResource2: characterId,
+                Player: this.currentPlayer
+            });
+        }
+        this.ShowMainSelectScreen();
+    }
+
+    private ShowHowDidNlRerollHisCharacter() {
+        const rerolls = get<Array<IsaacResource>>(`/Api/Resources/?ResourceType=${ResourceType.Unspecified.toString(10)}&RequiredTags=${Tag.CanRerollCharacter.toString(10)}`);
+        const menu = new HowDidNlRerollHisCharacter(this, this.CharacterRerollBeforeTransformationChosen, rerolls);
+        this.Display(menu);
+    }
+
+    private CharacterRerollBeforeTransformationChosen(characterRerollId: string) {
+        this.tempChosenItemSource = characterRerollId;
+        const transformations = get<Array<IsaacResource>>(`/Api/Resources/?ResourceType=${ResourceType.Transformation}`);
+        const menu = new WhatTransformationDidNlRerollInto(this, this.RerolledTransformationSelected, transformations);
+        this.Display(menu);
+    }
+
+    private RerolledTransformationSelected(transformationId: string) {
+        if (transformationId && this.tempChosenItemSource) {
+            this.history.AddEvent({
+                EventType: GameplayEventType.RerollTransform,
+                RelatedResource1: this.copyString(this.tempChosenItemSource),
+                RelatedResource2: transformationId,
+                Player: this.currentPlayer
+            });
+        }
+        this.ShowMainSelectScreen();
+    }
+
+    private copyString(s: string): string {
+        return (' ' + s).slice(1);
     }
 
     private ShowChooseOtherConsumable() {
@@ -792,7 +933,7 @@ export class SubmitVideo implements Component {
 
         if (this.tempChosenItemSource === 'BlackRune') {
             this.history.AddEvent({
-                RelatedResource1: this.tempChosenItemSource,
+                RelatedResource1: this.copyString(this.tempChosenItemSource),
                 EventType: GameplayEventType.Rune,
                 Player: this.currentPlayer
             });
@@ -800,7 +941,7 @@ export class SubmitVideo implements Component {
 
         this.history.AddEvent({
             RelatedResource1: absorbedItemId,
-            RelatedResource2: this.tempChosenItemSource,
+            RelatedResource2: this.copyString(this.tempChosenItemSource),
             EventType: GameplayEventType.AbsorbedItem,
             Player: this.currentPlayer,
             Rerolled: this.wasRerolled
@@ -949,7 +1090,7 @@ export class SubmitVideo implements Component {
                 EventType: GameplayEventType.ItemTouched,
                 Player: this.currentPlayer,
                 RelatedResource1: itemId,
-                RelatedResource2: this.tempChosenItemSource,
+                RelatedResource2: this.copyString(this.tempChosenItemSource),
                 Rerolled: this.wasRerolled
             });
         }
@@ -968,7 +1109,7 @@ export class SubmitVideo implements Component {
             if (seed) {
                 seedDiv.innerText = 'Seed: ' + seed;
             } else {
-                seedDiv.innerText = 'Click to enter seed';
+                seedDiv.innerText = 'Enter seed';
             }
         }
     }
@@ -1005,7 +1146,7 @@ export class SubmitVideo implements Component {
                 EventType: GameplayEventType.ItemCollected,
                 Player: this.currentPlayer,
                 RelatedResource1: itemId,
-                RelatedResource2: this.tempChosenItemSource,
+                RelatedResource2: this.copyString(this.tempChosenItemSource),
                 Rerolled: this.wasRerolled
             };
             this.history.AddEvent(event);
@@ -1026,7 +1167,7 @@ export class SubmitVideo implements Component {
         const seedContainer = document.getElementById('seed-container');
         if (seedContainer && seedContainer instanceof HTMLDivElement) {
             const seed = this.history.GetSeed();
-            seedContainer.innerText = seed ? `Seed: ${seed}` : 'Click to enter seed';
+            seedContainer.innerText = seed ? `Seed: ${seed}` : 'Enter seed';
             removeClassIfExists(seedContainer, 'display-none');
         }
     }
@@ -1112,6 +1253,16 @@ export class SubmitVideo implements Component {
                 }
             },
             {
+                element: '#b69',
+                popover: {
+                    title: 'Other Events',
+                    description: 'Everything that doesn\'t fit anywhere else. Currently used for: Transformations '
+                        + 'that happened when rerolling the character (for example becoming \'Lord of the Flies\' after using the D100) and changing the '
+                        + 'character with the "Clicker".',
+                    position: 'left'
+                }
+            },
+            {
                 element: '#box7',
                 popover: {
                     description: 'If Northernlion uses a consumable, use one of these buttons.',
@@ -1134,6 +1285,15 @@ export class SubmitVideo implements Component {
                     title: 'Seed',
                     description: 'Did Northernlion show the seed later in the video? click here to add / change the seed at any time.',
                     position: 'left'
+                }
+            },
+            {
+                element: '#player-controls',
+                popover: {
+                    title: 'Player Controls',
+                    description: 'Sometimes it\'s convenient to go back a couple seconds or pause the video without messing with the youtube player directly. ⏪ takes you '
+                        + 'back 5 seconds, ▶️ and ⏸️ play and pause the video.',
+                    position: 'bottom'
                 }
             },
             {
@@ -1223,6 +1383,15 @@ export class SubmitVideo implements Component {
 
                 // remove beforeUnload event
                 window.removeEventListener('beforeunload', beforeUnloadEvent);
+
+                // clear interval
+                if (page.Component instanceof SubmitVideo && typeof (page.Component.playPauseInterval)) {
+                    try {
+                        clearInterval(page.Component.playPauseInterval);
+                    } catch {
+                        console.warn('failed to clear interval');
+                    }
+                }
             },
             canLeave: () => confirm('warning! your progress will not be saved!')
         };

@@ -52,7 +52,7 @@ export class HelpSelectBoss implements Component {
                     ]
                 },
                 {
-                    e: ['p', 'Ultra Greed and Ultra Greedier if '],
+                    e: ['p'],
                     c: [
                         {
                             e: ['span', 'Since it\'s just random waves of enemies that happen to include bosses, don\'t add any bossfights to the floors.']

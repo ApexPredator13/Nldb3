@@ -65,7 +65,7 @@ class HistoryTable<TSubscriber extends Object> extends ComponentWithSubscribers<
             ]
         };
     }
-
+    
     AddCharacter(character: SubmittedPlayedCharacter) {
         this.dataForThisEpisode.PlayedCharacters.push(character);
         this.ReloadHistory();
@@ -140,6 +140,15 @@ class HistoryTable<TSubscriber extends Object> extends ComponentWithSubscribers<
     WeAreOnFirstFloor(): boolean {
         const currentCharacter = this.GetCurrentCharacter();
         if (currentCharacter.PlayedFloors.length === 1) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    CharacterHasNoFloorsSelected(): boolean {
+        const currentCharacter = this.GetCurrentCharacter();
+        if (!currentCharacter.PlayedFloors || currentCharacter.PlayedFloors.length === 0) {
             return true;
         } else {
             return false;

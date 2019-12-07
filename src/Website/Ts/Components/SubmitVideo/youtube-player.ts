@@ -1,4 +1,13 @@
-﻿export class YoutubePlayer {
+﻿enum YoutubePlayerState {
+    NotStartet = -1,
+    Ended,
+    CurrentlyPlaying,
+    Paused,
+    Buffering,
+    VideoPositioned
+}
+
+class YoutubePlayer {
 
     static youtubeScriptCreated = false;
 
@@ -28,7 +37,32 @@
         return Math.floor(this.GetYoutubePlayer().getCurrentTime());
     }
 
-    PauseVideo() {
+    PauseVideo(): void {
         this.GetYoutubePlayer().pauseVideo();
     }
+
+    PlayVideo(): void {
+        this.GetYoutubePlayer().playVideo();
+    }
+
+    Seek(amount: number): void {
+        const currentTime = this.GetCurrentTime();
+
+        let newTime = currentTime + (amount);
+        if (newTime < 0) {
+            newTime = 0;
+        }
+
+        this.GetYoutubePlayer().seekTo(newTime, true);
+    }
+
+    GetPlayerState(): YoutubePlayerState {
+        return this.GetYoutubePlayer().getPlayerState();
+    }
 }
+
+export {
+    YoutubePlayer,
+    YoutubePlayerState
+}
+

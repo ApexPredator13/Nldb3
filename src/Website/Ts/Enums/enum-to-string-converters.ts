@@ -106,6 +106,8 @@ const convertGameplayEventTypeToString = (e: GameplayEventType): string => {
         case GameplayEventType.Trinket: return 'Trinket';
         case GameplayEventType.WonTheRun: return 'Character won the run';
         case GameplayEventType.Unspecified: return 'Unspecified Event';
+        case GameplayEventType.Clicker: return 'Clicker';
+        case GameplayEventType.RerollTransform: return 'Transformation after Character Reroll';
         default: return '';
     }
 }

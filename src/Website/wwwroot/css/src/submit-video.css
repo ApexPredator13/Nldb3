@@ -100,7 +100,7 @@
 
 
 /* current player */
-#current-player-container {
+#current-player-container, #player-controls, #seed-container {
     border-bottom-right-radius: 0.5rem;
     background-color: rgba(255,255,255,0.1);
     border-right: 1px solid rgba(255,255,255,0.1);
@@ -108,12 +108,13 @@
     padding: 0.2rem;
 }
 
-#seed-container {
+#current-player-container {
     border-bottom-left-radius: 0.5rem;
-    background-color: rgba(255,255,255,0.1);
-    border-left: 1px solid rgba(255,255,255,0.1);
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-    padding: 0.2rem;
+}
+
+#seed-container {
+    border-bottom-right-radius: initial;
+    border-bottom-left-radius: 0.5rem;
 }
 
 .change-player-container-modifier {

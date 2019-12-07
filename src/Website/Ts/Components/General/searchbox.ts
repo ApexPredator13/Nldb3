@@ -22,7 +22,7 @@ export class SearchboxComponent<TSubscriber extends Object> extends ComponentWit
                     c: [
                         {
                             e: ['input'],
-                            a: [[A.Type, 'text'], [A.Class, 'dd-searchbox']],
+                            a: [[A.Type, 'text'], [A.Class, 'dd-searchbox'], [A.Placeholder, 'filter...']],
                             v: [[EventType.Input, e => this.Filter(e)]]
                         }
                     ]

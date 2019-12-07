@@ -21,6 +21,8 @@
         WonTheRun,
         LostTheRun,
         ItemTouched,
-        StartingTrinket
+        StartingTrinket,
+        Clicker,
+        RerollTransform
     }
 }
