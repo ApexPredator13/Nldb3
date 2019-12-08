@@ -1,19 +1,19 @@
-﻿import { Component, FrameworkElement, A, render, htmlAttributeNameOf, EventType } from "../../Framework/renderer";
-import { SubmittedCompleteEpisode } from "../../Models/submitted-complete-episode";
+﻿import { convertResourceTypeToString } from "../../Enums/enum-to-string-converters";
+import { GameplayEventType } from "../../Enums/gameplay-event-type";
+import { ResourceType } from "../../Enums/resource-type";
+import { ComponentWithModal } from "../../Framework/ComponentBaseClasses/component-with-modal";
+import { ComponentWithSubscribers } from "../../Framework/ComponentBaseClasses/component-with-subscribers";
 import { post } from "../../Framework/http";
+import { A, Component, EventType, FrameworkElement, htmlAttributeNameOf, render } from "../../Framework/renderer";
 import { History } from '../../Models/history';
-import { IsaacImage } from "../General/isaac-image";
+import { SubmittedCompleteEpisode } from "../../Models/submitted-complete-episode";
+import { SubmittedGameplayEvent } from "../../Models/submitted-gameplay-event";
 import { SubmittedPlayedCharacter } from "../../Models/submitted-played-character";
 import { SubmittedPlayedFloor } from "../../Models/submitted-played-floor";
-import { SubmittedGameplayEvent } from "../../Models/submitted-gameplay-event";
-import { ComponentWithSubscribers } from "../../Framework/ComponentBaseClasses/component-with-subscribers";
-import { ComponentWithModal } from "../../Framework/ComponentBaseClasses/component-with-modal";
+import { IsaacImage } from "../General/isaac-image";
 import { WarningRemovingCharacterFromHistory } from "./warning-removing-character-from-history";
 import { WarningRemovingFloorFromHistory } from "./warning-removing-floor-from-history";
-import { ResourceType } from "../../Enums/resource-type";
 import { YoutubePlayer } from "./youtube-player";
-import { GameplayEventType } from "../../Enums/gameplay-event-type";
-import { convertResourceTypeToString } from "../../Enums/enum-to-string-converters";
 
 type removeHistoryElement = {
     valid: boolean,
@@ -29,12 +29,12 @@ class HistoryTable<TSubscriber extends Object> extends ComponentWithSubscribers<
     private dataForThisEpisode: SubmittedCompleteEpisode;
 
     constructor(
-        caller: TSubscriber,
+        subscriber: TSubscriber,
         videoId: string,
         removedItemProcessor: (removedElement: removeHistoryElement) => any,
         private youtubePlayer: YoutubePlayer
     ) {
-        super(caller, removedItemProcessor);
+        super(subscriber, removedItemProcessor);
 
         this.dataForThisEpisode = {
             VideoId: videoId,
@@ -395,9 +395,6 @@ class HistoryTable<TSubscriber extends Object> extends ComponentWithSubscribers<
     }
 }
 
-export {
-    HistoryTable,
-    removeHistoryElement
-}
+export { HistoryTable, removeHistoryElement };
 
 

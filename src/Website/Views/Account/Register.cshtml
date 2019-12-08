@@ -9,31 +9,35 @@
 
 @Html.ValidationSummary()
 
-<form method="post" asp-route-returnUrl="@returnUrl">
-    <div>
-        <label asp-for="Username"></label>
-        <input type="text" asp-for="Username" data-required />
-        <div class="error-message"></div>
-    </div>
-    <div>
-        <label asp-for="Email"></label>
-        <input type="text" asp-for="Email" data-required data-email />
-        <div class="error-message"></div>
-    </div>
-    <div>
-        <label asp-for="Password"></label>
-        <input type="password" asp-for="Password" data-required />
-        <div class="error-message"></div>
-    </div>
-    <div>
-        <label asp-for="PasswordConfirm"></label>
-        <input type="password" asp-for="PasswordConfirm" data-required />
-        <div class="error-message"></div>
-    </div>
-    <div>
-        <button type="submit">Register</button>
-    </div>
-</form>
+<div style="max-width: 1200px; margin: 0 auto;">
+    <form method="post" asp-route-returnUrl="@returnUrl">
+        <section class="form-area">
+            <div class="fc">
+                <label asp-for="Username" class="use-first-two-grid-cells"></label>
+                <input type="text" asp-for="Username" data-required />
+                <div class="error-message"></div>
+            </div>
+            <div class="fc">
+                <label asp-for="Email" class="use-first-two-grid-cells"></label>
+                <input type="text" asp-for="Email" data-required data-email />
+                <div class="error-message"></div>
+            </div>
+            <div class="fc">
+                <label asp-for="Password" class="use-first-two-grid-cells"></label>
+                <input type="password" asp-for="Password" data-required />
+                <div class="error-message"></div>
+            </div>
+            <div class="fc">
+                <label asp-for="PasswordConfirm" class="use-first-two-grid-cells"></label>
+                <input type="password" asp-for="PasswordConfirm" data-required />
+                <div class="error-message"></div>
+            </div>
+            <div>
+                <button type="submit">Register</button>
+            </div>
+        </section>
+    </form>
+</div>
 
 
 @section Scripts {

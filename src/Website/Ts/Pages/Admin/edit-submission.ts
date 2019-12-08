@@ -54,6 +54,22 @@ export class EditSubmission implements Component {
                     e: ['hr']
                 },
                 {
+                    e: ['h1', 'Delete Submission'],
+                },
+                {
+                    e: ['p'],
+                    c: [
+                        {
+                            e: ['a', 'Delete Submission'],
+                            a: [[A.Href, AdminLink.DeleteSubmission(parseInt(this.submissionId, 10))]],
+                            v: [[EventType.Click, e => navigate(AdminLink.DeleteSubmission(parseInt(this.submissionId, 10)), e)]]
+                        }
+                    ]
+                },
+                {
+                    e: ['hr']
+                },
+                {
                     e: ['p'],
                     c: [
                         {

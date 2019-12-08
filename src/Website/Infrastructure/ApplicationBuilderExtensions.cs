@@ -128,6 +128,12 @@ namespace Website.Infrastructure
             // clear test user account if required
             if (resetTestaccount)
             {
+                var x = userManager.FindByNameAsync("Graxn").Result;
+                if (x != null)
+                {
+                    userManager.DeleteAsync(x).Wait();
+                }
+
                 var testEmail = config["TestuserEmail"];
                 var testUser = userManager.FindByEmailAsync(testEmail).Result;
                 if (testUser != null)

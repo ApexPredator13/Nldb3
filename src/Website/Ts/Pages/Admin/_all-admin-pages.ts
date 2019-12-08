@@ -19,6 +19,7 @@ import { EditSubmission } from "./edit-submission";
 import { EditGameplayEvent } from "./edit-gameplay-event";
 import { InsertGameplayEvent } from "./insert-gameplay-event";
 import { DeleteEvent } from "./delete-event";
+import { DeleteSubmission } from "./delete-submission";
 
 (() => {
     AdminOverviewPage.RegisterPage();
@@ -42,5 +43,6 @@ import { DeleteEvent } from "./delete-event";
     EditGameplayEvent.RegisterPage();
     InsertGameplayEvent.RegisterPage();
     DeleteEvent.RegisterPage();
+    DeleteSubmission.RegisterPage();
 })();
 

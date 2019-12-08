@@ -10,6 +10,7 @@
   "license": "ISC",
   "devDependencies": {
     "@types/chart.js": "^2.7.55",
+    "@types/youtube": "0.0.38",
     "clean-webpack-plugin": "^2.0.1",
     "ts-loader": "^5.3.3",
     "typescript": "3.7.2",

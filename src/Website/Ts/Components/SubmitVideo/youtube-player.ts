@@ -1,21 +1,14 @@
-﻿enum YoutubePlayerState {
-    NotStartet = -1,
-    Ended,
-    CurrentlyPlaying,
-    Paused,
-    Buffering,
-    VideoPositioned
-}
-
-class YoutubePlayer {
+﻿export class YoutubePlayer {
 
     static youtubeScriptCreated = false;
 
-    constructor() {
+    private playerReady = false;
+    private createPlayerInterval: number | undefined;
+    private player: YT.Player | undefined;
+
+    constructor(private videoId: string) {
         // create youtube player callback function
-        (window as any).onYouTubeIframeAPIReady = () => {
-            (window as any).youtubePlayer = new (window as any).YT.Player('ytplayer', {});
-        }
+        (window as any).onYouTubeIframeAPIReady = () => this.CreatePlayer();
 
         // load iframe script if necessary
         if (!YoutubePlayer.youtubeScriptCreated) {
@@ -26,43 +19,76 @@ class YoutubePlayer {
                 scriptTags[0].parentNode.insertBefore(youtubeScriptTag, scriptTags[0]);
             }
             YoutubePlayer.youtubeScriptCreated = true;
+        } else {
+            // if script already exists, just create the player
+            setTimeout(() => this.CreatePlayer(), 2000);
         }
     }
 
-    GetYoutubePlayer(): any {
-        return (window as any).youtubePlayer;
+    private CreatePlayer() {
+        this.createPlayerInterval = setInterval(() => {
+            // youtube player creation fails at page load. gotta retry a couple times.
+            if (!this.player || (this.player as any).b === null) {
+                this.player = new YT.Player('ytplayer', { videoId: this.videoId });
+            } else {
+                this.playerReady = true;
+                clearInterval(this.createPlayerInterval);
+                this.createPlayerInterval = undefined;
+            }
+        }, 200);
+    }
+
+    private GetYoutubePlayer(): YT.Player | undefined {
+        return this.playerReady ? this.player : undefined;
     }
 
     GetCurrentTime(): number {
-        return Math.floor(this.GetYoutubePlayer().getCurrentTime());
+        const player = this.GetYoutubePlayer();
+        if (player) {
+            return Math.floor(player.getCurrentTime());
+        }
+        return 0;
     }
 
     PauseVideo(): void {
-        this.GetYoutubePlayer().pauseVideo();
+        const player = this.GetYoutubePlayer();
+        if (player) {
+            player.pauseVideo();
+        }
     }
 
     PlayVideo(): void {
-        this.GetYoutubePlayer().playVideo();
-    }
-
-    Seek(amount: number): void {
-        const currentTime = this.GetCurrentTime();
-
-        let newTime = currentTime + (amount);
-        if (newTime < 0) {
-            newTime = 0;
+        const player = this.GetYoutubePlayer();
+        if (player) {
+            player.playVideo();
         }
-
-        this.GetYoutubePlayer().seekTo(newTime, true);
     }
 
-    GetPlayerState(): YoutubePlayerState {
-        return this.GetYoutubePlayer().getPlayerState();
+    Seek(to: number): void {
+        const player = this.GetYoutubePlayer();
+        if (player) {
+            const currentTime = this.GetCurrentTime();
+            let newTime = currentTime + (to);
+            if (newTime < 0) {
+                newTime = 0;
+            }
+            player.seekTo(newTime, true);
+        }
     }
-}
 
-export {
-    YoutubePlayer,
-    YoutubePlayerState
+    GetPlayerState(): YT.PlayerState {
+        const player = this.GetYoutubePlayer();
+        if (player) {
+            return player.getPlayerState();
+        }
+        return YT.PlayerState.UNSTARTED;
+    }
+
+    DestroyIframe(): void {
+        const player = this.GetYoutubePlayer();
+        if (player) {
+            player.destroy();
+        }
+    }
 }
 

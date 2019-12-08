@@ -1,10 +1,22 @@
-﻿@{
+﻿@inject Microsoft.AspNetCore.Identity.UserManager<Microsoft.AspNetCore.Identity.IdentityUser> userManager
+
+@{
     ViewData["Title"] = "Username Change";
+
+    var user = await userManager.GetUserAsync(User);
+    var userName = user?.UserName ?? string.Empty;
 }
 
 @model ChangeUsernameModel
 
 <h1>Username Change</h1>
+
+@if (!string.IsNullOrWhiteSpace(userName))
+{
+    <p>
+        Your current username is: "@userName".
+    </p>
+}
 
 <form method="post">
     <section class="myaccount-grid">

@@ -84,6 +84,7 @@ export class NavigationComponent implements Component {
                 c: [
                     {
                         e: ['a', 'Login / Register'],
+                        a: [[A.Href, '/Account/Login']],
                         v: [[EventType.Click, e => { e.preventDefault(); signin(); }]]
                     }
                 ]
@@ -91,16 +92,26 @@ export class NavigationComponent implements Component {
             return element;
         } else {
             const userProfileLinks = new Array<FrameworkElement>();
-            userProfileLinks.push({
-                e: ['a', 'Logout'],
-                a: [[A.Href, '/Account/Logout']]
-            });
+            userProfileLinks.push(
+                {
+                    e: ['a', 'Logout'],
+                    a: [[A.Href, '/Account/Logout']]
+                },
+                {
+                    e: ['span', ' | ']
+                },
+                {
+                    e: ['a', 'Account Settings'],
+                    a: [[A.Href, '/MyAccount']]
+                }
+            );
 
             if (isAdmin(user)) {
                 loadAdminPages().then(() => {
                     const link = document.getElementById('admin-link');
                     removeClassIfExists(link, 'display-none');
-                })
+                });
+
                 userProfileLinks.push(
                     {
                         e: ['br']

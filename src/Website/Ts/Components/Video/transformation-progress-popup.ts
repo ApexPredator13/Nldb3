@@ -40,6 +40,12 @@ export class TransformationProgressPopup implements Component {
                     },
                     {
                         e: ['span', `${event.r3.toString(10)} / 3 items necessary for ${event.r2.name}`]
+                    },
+                    {
+                        e: ['br']
+                    },
+                    {
+                        e: ['span', 'collected during regular gamplay']
                     }
                 ]
             }

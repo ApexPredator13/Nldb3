@@ -92,6 +92,20 @@ export class HelpSelectItem implements Component {
                 {
                     e: ['hr']
                 },
+                {
+                    e: ['h4', 'What are "Chest Item" and "Dark Room Item"?']
+                },
+                {
+                    e: ['p'],
+                    c: [
+                        {
+                            e: ['span', 'Items on those floors that are dropped by chests or exploded slot machines.']
+                        }
+                    ]
+                },
+                {
+                    e: ['hr']
+                },
                 new DismissModal()
             ]
         }

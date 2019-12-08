@@ -19,6 +19,13 @@ namespace Website.Data
             _isaac = isaac;
         }
 
+        public async Task<int> DeleteSubmission(int submissionId)
+        {
+            return await _npgsql.NonQuery(
+                "DELETE FROM video_submissions WHERE id = @Id",
+                _npgsql.Parameter("@Id", NpgsqlDbType.Integer, submissionId));
+        }
+
         public async Task<int> UpdateGameplayEventType(UpdateGameplayEventType updateGameplayEventType)
         {
             var commandText = "UPDATE gameplay_events SET event_type = @NewEventType WHERE id = @Id;";

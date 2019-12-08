@@ -37,6 +37,20 @@ export class HelpSelectBoss implements Component {
                     e: ['hr']
                 },
                 {
+                    e: ['h4', 'What about bosses that appear as regular enemies later in the game?']
+                },
+                {
+                    e: ['p'],
+                    c: [
+                        {
+                            e: ['span', 'Those don\'t count. Only bosses in bossrooms should be added.']
+                        }
+                    ]
+                },
+                {
+                    e: ['hr']
+                },
+                {
                     e: ['h4'],
                     c: [
                         {

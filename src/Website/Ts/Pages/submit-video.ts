@@ -3,7 +3,7 @@ import { WhatCharacterWasChosen } from "../Components/SubmitVideo/m-what-charact
 import { WhatGameModeWasChosen } from "../Components/SubmitVideo/m-what-game-mode-was-played";
 import { SubmitQuote } from "../Components/SubmitVideo/submit-quote";
 import { SubmitTopic } from "../Components/SubmitVideo/submit-topic";
-import { YoutubePlayer, YoutubePlayerState } from "../Components/SubmitVideo/youtube-player";
+import { YoutubePlayer } from "../Components/SubmitVideo/youtube-player";
 import { GameMode } from "../Enums/game-mode";
 import { ResourceType } from "../Enums/resource-type";
 import { addClassIfNotExists, removeClassIfExists } from "../Framework/browser";
@@ -103,7 +103,7 @@ export class SubmitVideo implements Component {
     constructor(parameters: Array<string>) {
         this.videoId = parameters[0];
         const origin = getConfig().baseUrlWithoutTrailingSlash;
-        this.youtubePlayer = new YoutubePlayer();
+        this.youtubePlayer = new YoutubePlayer(this.videoId);
         this.history = new HistoryTable<SubmitVideo>(this, this.videoId, this.ItemWasRemovedFromHistory, this.youtubePlayer);
         this.currentPlayer = 1;
         this.storedServerResources = new Map<string, Array<IsaacResource>>();
@@ -113,9 +113,6 @@ export class SubmitVideo implements Component {
 
         // make sure play/pause icon is accurate at the beginning and throughout the session
         this.playPauseInterval = setInterval(() => this.SetPlayPauseIcon(), 2000);
-        setTimeout(() => this.SetPlayPauseIcon(), 500);
-        setTimeout(() => this.SetPlayPauseIcon(), 1000);
-        setTimeout(() => this.SetPlayPauseIcon(), 1500);
 
         // change title
         get<string>(`/Api/Videos/Title/${this.videoId}`).then(title => {
@@ -140,7 +137,7 @@ export class SubmitVideo implements Component {
                                     e: ['iframe'],
                                     a: [
                                         [A.Id, 'ytplayer'],
-                                        [A.Src, `https://www.youtube.com/embed/${this.videoId}?enablejsapi=1&origin=${origin}&rel=0&autoplay=1`],
+                                        [A.Src, `https://www.youtube.com/embed/${this.videoId}?enablejsapi=1&origin=${origin}&rel=0&autoplay=0`],
                                         [A.FrameBorder, '0']
                                     ]
                                 }
@@ -212,7 +209,7 @@ export class SubmitVideo implements Component {
 
     private PlayPauseClicked() {
         const currentState = this.youtubePlayer.GetPlayerState();
-        if (currentState === YoutubePlayerState.CurrentlyPlaying) {
+        if (currentState === YT.PlayerState.PLAYING) {
             this.youtubePlayer.PauseVideo();
         } else {
             this.youtubePlayer.PlayVideo();
@@ -236,7 +233,7 @@ export class SubmitVideo implements Component {
         }
 
         if (playPause) {
-            if (currentState === YoutubePlayerState.CurrentlyPlaying) {
+            if (currentState === YT.PlayerState.PLAYING) {
                 playPause.innerText = '⏸️';
             } else {
                 playPause.innerText = '▶️';
@@ -999,7 +996,12 @@ export class SubmitVideo implements Component {
             FloorId: floorId,
             GameplayEvents: new Array<SubmittedGameplayEvent>()
         });
-        this.ShowWasTheFloorCursed();
+
+        if (floorId.toLowerCase().endsWith('xl')) {
+            this.CurseWasSelected('CurseOfTheLabyrinth');
+        } else {
+            this.ShowWasTheFloorCursed();
+        }
 
         // now that we know the floor, preload common bosses for this floor
         get<Array<IsaacResource>>(`/Api/Resources/common-bosses-for-floor/${floorId}`, false, false).then(bossesForThisFloor => {
@@ -1384,13 +1386,13 @@ export class SubmitVideo implements Component {
                 // remove beforeUnload event
                 window.removeEventListener('beforeunload', beforeUnloadEvent);
 
-                // clear interval
                 if (page.Component instanceof SubmitVideo && typeof (page.Component.playPauseInterval)) {
-                    try {
-                        clearInterval(page.Component.playPauseInterval);
-                    } catch {
-                        console.warn('failed to clear interval');
-                    }
+                    // clear interval
+                    clearInterval(page.Component.playPauseInterval);
+                    console.warn('failed to clear interval');
+
+                    // destroy youtube player
+                    page.Component.youtubePlayer.DestroyIframe();
                 }
             },
             canLeave: () => confirm('warning! your progress will not be saved!')

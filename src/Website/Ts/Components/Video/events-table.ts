@@ -180,7 +180,9 @@ export class EventsTableComponent implements Component {
 
         for (const event of floor.events) {
             if (event.event_type === GameplayEventType.TransformationComplete && event.r2) {
-                transformationComplete.push(new IsaacImage(event, 2, new TransformationCompletePopup(event)));
+                transformationComplete.push(new IsaacImage(event, 2, new TransformationCompletePopup(event, false)));
+            } else if (event.event_type === GameplayEventType.RerollTransform) {
+                transformationComplete.push(new IsaacImage(event, 2, new TransformationCompletePopup(event, true)));
             }
         }
 

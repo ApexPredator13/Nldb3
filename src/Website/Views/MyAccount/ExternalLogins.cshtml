@@ -11,42 +11,54 @@
 
 
 <section class="myaccount-grid">
-    @foreach (var currentLogin in currentLogins)
+    @if (currentLogins.Count is 0)
     {
-        <div>
-            @(currentLogin.ProviderDisplayName ?? currentLogin.LoginProvider)
-            @switch ((currentLogin.ProviderDisplayName ?? currentLogin.LoginProvider).ToLower())
-            {
-                case "facebook":
-                    <partial name="_IconFacebookPartial" />
-                    break;
-                case "twitter":
-                    <partial name="_IconTwitterPartial" />
-                    break;
-                case "google":
-                    <partial name="_IconGooglePartial" />
-                    break;
-                case "twitch":
-                    <partial name="_IconTwitchPartial" />
-                    break;
-                case "steam":
-                    <partial name="_IconSteamPartial" />
-                    break;
-            }
-        </div>
-        <div>
-            <form method="post" asp-controller="@MyAccountController.Controllername" asp-action="@nameof(MyAccountController.RemoveExternalLogin)">
-                <input type="hidden" value="@currentLogin.LoginProvider" name="@nameof(RemoveLoginModel.LoginProvider)" />
-                <input type="hidden" value="@currentLogin.ProviderKey" name="@nameof(RemoveLoginModel.ProviderKey)" />
-
-                @if (showRemoveButton)
-                {
-                    <button type="submit">Remove Login</button>
-                }
-            </form>
-        </div>
+        <p>No external logins are currently used.</p>
     }
+    else
+    {
+        foreach (var currentLogin in currentLogins)
+        {
+            <div>
+                @(currentLogin.ProviderDisplayName ?? currentLogin.LoginProvider)
+                @switch ((currentLogin.ProviderDisplayName ?? currentLogin.LoginProvider).ToLower())
+                {
+                    case "facebook":
+                        <partial name="_IconFacebookPartial" />
+                        break;
+                    case "twitter":
+                        <partial name="_IconTwitterPartial" />
+                        break;
+                    case "google":
+                        <partial name="_IconGooglePartial" />
+                        break;
+                    case "twitch":
+                        <partial name="_IconTwitchPartial" />
+                        break;
+                    case "steam":
+                        <partial name="_IconSteamPartial" />
+                        break;
+                }
+            </div>
+            <div>
+                <form method="post" asp-controller="@MyAccountController.Controllername" asp-action="@nameof(MyAccountController.RemoveExternalLogin)">
+                    <input type="hidden" value="@currentLogin.LoginProvider" name="@nameof(RemoveLoginModel.LoginProvider)" />
+                    <input type="hidden" value="@currentLogin.ProviderKey" name="@nameof(RemoveLoginModel.ProviderKey)" />
+
+                    @if (showRemoveButton)
+                    {
+                        <button type="submit">Remove Login</button>
+                    }
+                </form>
+            </div>
+        }
+    }
+
 </section>
+
+<hr/>
+
+<h3>You can add additional logins to your account:</h3>
 
 <section class="myaccount-grid">
     @foreach (var otherLogin in otherLogins)

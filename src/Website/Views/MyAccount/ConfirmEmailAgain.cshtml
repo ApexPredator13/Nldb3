@@ -8,7 +8,7 @@
 
 @Html.ValidationSummary()
 
-<form>
+<form asp-controller="@MyAccountController.Controllername" asp-action="@nameof(MyAccountController.ConfirmEmailAgainLinkSent)" method="post">
     <button type="submit">Send confirmation link</button>
 </form>
 

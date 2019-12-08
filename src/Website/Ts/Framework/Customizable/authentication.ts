@@ -1,4 +1,4 @@
-﻿import { User, UserManager, UserManagerSettings } from 'oidc-client';
+﻿import { User, UserManager, UserManagerSettings, InMemoryWebStorage, WebStorageStateStore } from 'oidc-client';
 import { removeHashAndQuerystring, getHashFromUrl } from '../browser';
 import { getConfig } from './config.development';
 
@@ -22,7 +22,8 @@ const getUserManager = (): UserManager => {
         scope: 'openid profile role',
         loadUserInfo: true,
         post_logout_redirect_uri: baseUrlOfThisWebsite,
-        revokeAccessTokenOnSignout: true
+        revokeAccessTokenOnSignout: true,
+        userStore: new WebStorageStateStore({ store: new InMemoryWebStorage() })
     };
 
     var userManager = new UserManager(settings);

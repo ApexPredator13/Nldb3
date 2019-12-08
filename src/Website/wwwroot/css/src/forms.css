@@ -83,7 +83,7 @@ button[disabled=false] {
 form .fc {
     display: grid;
     grid-template-columns: 0.5fr 0.5fr 1fr 1fr;
-    grid-template-areas: ". label input .";
+    grid-template-areas: ". label input error";
     grid-gap: 0.2rem;
     margin: 0.5rem;
 }
@@ -93,6 +93,9 @@ form .fc {
 }
 .fc input, .fc select {
     grid-area: input;
+}
+.fc .error-message {
+    grid-area: error;
 }
 fieldset {
     background-color: rgba(255,255,255,0.1);

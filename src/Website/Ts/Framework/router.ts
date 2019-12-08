@@ -279,6 +279,7 @@ const navigate = (
             if (!requestedRoute.startsWith('/')) {
                 requestedRoute = '/' + requestedRoute;
             }
+            console.log('pushing state', requestedRoute);
             history.pushState(undefined, '', requestedRoute);
 
             // save this url as last url

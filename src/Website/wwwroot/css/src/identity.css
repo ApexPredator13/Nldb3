@@ -1,4 +1,16 @@
-﻿.myaccount-grid {
+﻿.form-area {
+    width: 95%;
+    max-width: 1000px;
+    background-color: rgba(255,255,255,0.1);
+    margin: 2rem auto;
+    border-radius: 1rem;
+    padding: 1rem 0;
+}
+.form-area .use-first-two-grid-cells {
+    grid-column-start: 1;
+    grid-column-end: 3;
+}
+.myaccount-grid {
     display: grid;
     grid-template-columns: 0.5fr 1fr;
     grid-row-gap: 0.7rem;
@@ -43,10 +55,7 @@
     list-style-type: none;
 }
 .error-message {
-    position: absolute;
-    top: -20px;
     color: orange;
     text-align: left;
-    width: 400px;
     font-size: 0.8rem;
 }

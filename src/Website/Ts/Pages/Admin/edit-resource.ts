@@ -1,7 +1,6 @@
 ﻿import { FrameworkElement, Component, AsyncComponentPart, A, EventType, htmlAttributeNameOf } from "../../Framework/renderer";
 import { PageData, registerPage, navigate } from "../../Framework/router";
 import { get, postResponse } from "../../Framework/http";
-import { Link } from "../_link-creator";
 import { AdminLink } from "./_admin-link-creator";
 import { IsaacImage } from "../../Components/General/isaac-image";
 import { IsaacResource } from "../../Models/isaac-resource";
@@ -75,7 +74,7 @@ export class EditResource extends ComponentWithForm implements Component {
     }
 
     private GetLinkForNextPage() {
-        return this.stay ? Link.Redirect(AdminLink.EditResource(this.resourceId)) : AdminLink.ResourceOverview(this.resourceType ? this.resourceType : ResourceType.Boss);
+        return this.stay ? AdminLink.EditResource(this.resourceId) : AdminLink.ResourceOverview(this.resourceType ? this.resourceType : ResourceType.Boss);
     }
 
     CreatePage(): Array<AsyncComponentPart> {
@@ -113,7 +112,7 @@ export class EditResource extends ComponentWithForm implements Component {
                                 },
                                 {
                                     e: ['form'],
-                                    v: [[EventType.Submit, e => super.HandleSubmit(e, '/Admin/change_resource_name', true, this.GetLinkForNextPage(), this.stay ? false : true, false)]],
+                                    v: [[EventType.Submit, e => super.HandleSubmit(e, '/Admin/change_resource_name', true, this.GetLinkForNextPage(), this.stay ? false : true, false, this.stay ? true : false)]],
                                     a: [[A.Method, 'post']],
                                     c: [
                                         {
@@ -202,7 +201,7 @@ export class EditResource extends ComponentWithForm implements Component {
                                         },
                                         {
                                             e: ['form'],
-                                            v: [[EventType.Submit, e => super.HandleSubmit(e, '/Admin/change_icon', true, this.GetLinkForNextPage(), this.stay ? false : true, false)]],
+                                            v: [[EventType.Submit, e => super.HandleSubmit(e, '/Admin/change_icon', true, this.GetLinkForNextPage(), this.stay ? false : true, false, this.stay ? true : false)]],
                                             a: [[A.Enctype, 'multipart/form-data'], [A.Method, 'post']],
                                             c: [
                                                 {
@@ -262,7 +261,7 @@ export class EditResource extends ComponentWithForm implements Component {
                                         {
                                             e: ['form'],
                                             a: [[A.Method, 'post']],
-                                            v: [[EventType.Submit, e => super.HandleSubmit(e, '/Admin/change_exists_in', true, this.GetLinkForNextPage(), this.stay ? false : true, false)]],
+                                            v: [[EventType.Submit, e => super.HandleSubmit(e, '/Admin/change_exists_in', true, this.GetLinkForNextPage(), this.stay ? false : true, false, this.stay ? true : false)]],
                                             c: [
                                                 {
                                                     e: ['input'],
@@ -319,7 +318,7 @@ export class EditResource extends ComponentWithForm implements Component {
                                         {
                                             e: ['form'],
                                             a: [[A.Method, 'post']],
-                                            v: [[EventType.Submit, e => super.HandleSubmit(e, '/Admin/change_mod', true, this.GetLinkForNextPage(), this.stay ? false : true, false)]],
+                                            v: [[EventType.Submit, e => super.HandleSubmit(e, '/Admin/change_mod', true, this.GetLinkForNextPage(), this.stay ? false : true, false, this.stay ? true : false)]],
                                             c: [
                                                 {
                                                     e: ['input'],
@@ -368,7 +367,7 @@ export class EditResource extends ComponentWithForm implements Component {
                                         {
                                             e: ['form'],
                                             a: [[A.Method, 'post']],
-                                            v: [[EventType.Submit, e => super.HandleSubmit(e, '/Admin/change_color', true, this.GetLinkForNextPage(), this.stay ? false : true, false)]],
+                                            v: [[EventType.Submit, e => super.HandleSubmit(e, '/Admin/change_color', true, this.GetLinkForNextPage(), this.stay ? false : true, false, this.stay ? true : false)]],
                                             c: [
                                                 {
                                                     e: ['input'],
@@ -409,7 +408,7 @@ export class EditResource extends ComponentWithForm implements Component {
                                         {
                                             e: ['form'],
                                             a: [[A.Method, 'post']],
-                                            v: [[EventType.Submit, e => super.HandleSubmit(e, '/Admin/change_display_order', true, this.GetLinkForNextPage(), this.stay ? false : true, false)]],
+                                            v: [[EventType.Submit, e => super.HandleSubmit(e, '/Admin/change_display_order', true, this.GetLinkForNextPage(), this.stay ? false : true, false, this.stay ? true : false)]],
                                             c: [
                                                 {
                                                     e: ['input'],
@@ -456,7 +455,7 @@ export class EditResource extends ComponentWithForm implements Component {
                                         {
                                             e: ['form'],
                                             a: [[A.Method, 'post']],
-                                            v: [[EventType.Submit, e => super.HandleSubmit(e, '/Admin/change_game_mode', true, this.GetLinkForNextPage(), this.stay ? false : true, false)]],
+                                            v: [[EventType.Submit, e => super.HandleSubmit(e, '/Admin/change_game_mode', true, this.GetLinkForNextPage(), this.stay ? false : true, false, this.stay ? true : false)]],
                                             c: [
                                                 {
                                                     e: ['input'],
@@ -504,7 +503,7 @@ export class EditResource extends ComponentWithForm implements Component {
                                         {
                                             e: ['a', 'Next Resource'],
                                             a: [[A.Href, AdminLink.RedirectNextResource(resource.resource_type, resource.id)]],
-                                            v: [[EventType.Click, e => navigate(AdminLink.RedirectNextResource(resource.resource_type, resource.id), e)]]
+                                            v: [[EventType.Click, e => navigate(AdminLink.RedirectNextResource(resource.resource_type, resource.id), e, undefined, false)]]
                                         }
                                     ]
                                 },
@@ -580,7 +579,7 @@ export class EditResource extends ComponentWithForm implements Component {
                     const link = this.GetLinkForNextPage();
                     postResponse('/Admin/change_tags', JSON.stringify(body), true).then(response => {
                         if (response.ok) {
-                            navigate(link);
+                            navigate(link, e, undefined, false, true, true);
                         }
                     });
                 }
@@ -600,7 +599,7 @@ export class EditResource extends ComponentWithForm implements Component {
             const link = this.GetLinkForNextPage();
             postResponse('/Admin/change_tags', JSON.stringify(body), true).then(response => {
                 if (response.ok) {
-                    navigate(link);
+                    navigate(link, undefined, undefined, false, true, true);
                 }
             });
         }

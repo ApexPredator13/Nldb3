@@ -411,5 +411,20 @@ namespace Website.Controllers
                 return BadRequest("Event could not be deleted");
             }
         }
+
+        [HttpPost("delete_submission")]
+        public async Task<ActionResult> DeleteSubmission([FromForm] DeleteSubmission deleteSubmission)
+        {
+            var dbChanges = await _editSubmissionRepository.DeleteSubmission(deleteSubmission.SubmissionId);
+
+            if (dbChanges > 0)
+            {
+                return Ok();
+            }
+            else
+            {
+                return BadRequest("Submission was not deleted");
+            }
+        }
     }
 }

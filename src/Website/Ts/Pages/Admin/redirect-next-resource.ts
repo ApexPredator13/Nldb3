@@ -26,7 +26,7 @@ export class RedirectNextResource implements Component {
             for (let resource of resources) {
                 if (loadNextResource) {
                     const link = AdminLink.EditResource(resource.id);
-                    navigate(link);
+                    navigate(link, undefined, undefined, false, true, true);
                     break;
                 }
                 if (resource.id === nextResourceId) {

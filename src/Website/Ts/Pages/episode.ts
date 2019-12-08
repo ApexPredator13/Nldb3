@@ -71,7 +71,7 @@ export class EpisodePage implements Component {
                             e: ['hr']
                         },
                         {
-                            e: ['h2', 'Achieved Transformation Progress']
+                            e: ['h2', 'Naturally Achieved Transformation Progress']
                         },
                         new TransformationProgress(this.videoData, 0),
                         {

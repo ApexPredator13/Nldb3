@@ -86,5 +86,9 @@ export class AdminLink {
     static DeleteEvent(videoId: string, submissionId: number, eventId: number) {
         return `/Admin/DeleteEvent/${videoId}/${submissionId.toString(10)}/${eventId.toString(10)}`;
     }
+
+    static DeleteSubmission(submissionId: number) {
+        return `/Admin/DeleteSubmission/${submissionId.toString(10)}`;
+    }
 }
 

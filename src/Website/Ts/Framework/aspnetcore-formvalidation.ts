@@ -64,6 +64,18 @@ const evaluateForm = (target: HTMLInputElement | HTMLTextAreaElement, markAsTouc
         return;
     }
 
+    if (!form.hasAttribute('data-event-set')) {
+        form.setAttribute('data-event-set', 'true');
+        form.addEventListener('submit', () => {
+            const buttons = form.getElementsByTagName('button');
+            if (buttons && buttons.length > 0) {
+                for (let i = 0; i < buttons.length; ++i) {
+                    buttons[i].disabled = true;
+                }
+            }
+        });
+    }
+
     let formIsValid = true;
     const inputElements: HTMLCollectionOf<HTMLInputElement> = form.getElementsByTagName("input");
     const textAreaElements: HTMLCollectionOf<HTMLTextAreaElement> = form.getElementsByTagName("textarea");

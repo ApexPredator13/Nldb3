@@ -284,6 +284,9 @@
         ContactDamage,
         BlocksEnemyShots,
         SpawnsFire,
-        ModifiesDealChance
+        ModifiesDealChance,
+        StealsConsumables,
+        SetsEnemiesOnFire,
+        Farting
     }
 }

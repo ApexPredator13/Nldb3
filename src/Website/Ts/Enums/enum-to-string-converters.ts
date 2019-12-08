@@ -408,6 +408,9 @@ const convertTagToString = (t: Tag): string => {
         case Tag.SpawnsFire: return 'Spawns Fire';
         case Tag.ModifiesDealChance: return 'Modifies Angel/Devil Deal Chances';
         case Tag.IsFirstFloor: return 'Is First Floor';
+        case Tag.StealsConsumables: return 'Steals Consumables';
+        case Tag.SetsEnemiesOnFire: return 'Sets Enemies on Fire';
+        case Tag.Farting: return 'Farting';
         default: return '';
     }
 }

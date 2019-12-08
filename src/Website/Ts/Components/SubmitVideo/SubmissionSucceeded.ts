@@ -1,5 +1,6 @@
 ﻿import { Component, FrameworkElement, A, EventType } from "../../Framework/renderer";
-import { navigate } from "../../Framework/router";
+import { navigate, PageType } from "../../Framework/router";
+import { Link } from "../../Pages/_link-creator";
 
 export class SubmissionSucceeded implements Component {
     E: FrameworkElement;
@@ -20,7 +21,7 @@ export class SubmissionSucceeded implements Component {
                         {
                             e: ['a', 'Results'],
                             a: [[A.Class, 'u hand']],
-                            v: [[EventType.Click, e => navigate(`/${videoId}`, e)]]
+                            v: [[EventType.Click, e => navigate(Link.Episode(videoId), e, PageType.Episode)]]
                         }
                     ]
                 }

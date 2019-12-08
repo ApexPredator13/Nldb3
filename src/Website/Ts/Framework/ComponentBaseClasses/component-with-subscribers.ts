@@ -2,7 +2,7 @@
 
     private Subscribers: Array<(id: TEmit) => any>;
 
-    constructor(private caller: TSubscriber, ...subscribers: Array<(id: TEmit) => any>) {
+    constructor(private subscriber: TSubscriber, ...subscribers: Array<(id: TEmit) => any>) {
         this.Subscribers = new Array<(id: TEmit) => any>(...subscribers);
     }
 
@@ -13,7 +13,7 @@
     Emit(id: TEmit) {
         if (this.Subscribers.length > 0) {
             for (const subscriber of this.Subscribers) {
-                subscriber.call(this.caller, id);
+                subscriber.call(this.subscriber, id);
             }
         }
     }
