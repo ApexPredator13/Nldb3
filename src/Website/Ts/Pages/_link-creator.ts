@@ -71,5 +71,9 @@ export class Link {
     static SubmitVideo(videoId: string) {
         return `/SubmitVideo/${videoId}`;
     }
+
+    static IsaacResource(resourceId: string) {
+        return `/${resourceId}`;
+    }
 }
 

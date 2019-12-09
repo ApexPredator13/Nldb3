@@ -1,5 +1,5 @@
 ﻿import { Component, FrameworkElement, AsyncComponentPart, A } from "../Framework/renderer";
-import { initRouter, PageData, registerPage, setTitle, PageType, extractParametersFromRoute } from "../Framework/router";
+import { initRouter, PageData, registerPage, setTitle, PageType, extractParametersFromRoute, setGlobalPageType } from "../Framework/router";
 import { get } from "../Framework/http";
 import { Video } from "../Models/video";
 import { EventsTableComponent } from "../Components/Video/events-table";
@@ -30,6 +30,7 @@ export class EpisodePage implements Component {
 
         // load video
         this.videoData = get<Video>(`/api/videos/${this.videoId}`);
+
         this.videoData.then(video => setTitle(video ? video.title : 'failed to load video'));
 
         this.E = {
@@ -137,6 +138,7 @@ export class EpisodePage implements Component {
 
 
 (() => {
+    setGlobalPageType(PageType.Episode);
     EpisodePage.RegisterPage();
     initRouter();
 })();

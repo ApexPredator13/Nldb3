@@ -50,7 +50,7 @@ export class Boxes<TSubscriber extends Object> extends ComponentWithSubscribers<
                     e: ['div'],
                     a: [[A.Class, 'box-container']],
                     c: resources.map((resource, index) => {
-                        const width = resource.w > 65 ? `width: ${resource.w * (upscale ? 2 : 1)};` : '';
+                        const width = resource.w > 65 ? `width: ${resource.w * (upscale ? 2 : 1)}px;` : '';
                         const padding = upscale ? ` padding: 0 20px 20px 20px` : ''
                         const box: FrameworkElement = {
                             e: ['div'],

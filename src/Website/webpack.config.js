@@ -13,7 +13,8 @@ module.exports = {
         downloads: './Ts/Pages/downloads.ts',
         episodes: './Ts/Pages/episodes.ts',
         resource_overview: './Ts/Pages/resource-overview.ts',
-        episode: './Ts/Pages/episode.ts'
+        episode: './Ts/Pages/episode.ts',
+        resource: './Ts/Pages/resource.ts'
     },
     output: {
         path: path.resolve(__dirname, 'wwwroot', 'js', 'dist'),

@@ -45,7 +45,7 @@
 
     @* check if a isaac resource was requested *@
     case string isaacResource when await _isaacRepository.ResourceExists(path.Substring(1)):
-        <script src="~/js/dist/home.min.js"></script>
+        <script src="~/js/dist/resource.min.js"></script>
         break;
 
     @* if nothing was found, just return 'Home' *@

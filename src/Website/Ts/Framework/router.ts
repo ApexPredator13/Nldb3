@@ -342,7 +342,8 @@ export {
     getPages,
     getCurrentRoute,
     extractParametersFromRoute,
-    addAfterRenderActionToPage
+    addAfterRenderActionToPage,
+    setGlobalPageType
 }
 
 

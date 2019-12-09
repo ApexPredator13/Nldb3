@@ -17,36 +17,13 @@ namespace Website.Controllers
     public class ResourceController : Controller
     {
         public const string Controllername = "Resource";
-        public static readonly Dictionary<string, ResourceType> OverviewPageNames = new Dictionary<string, ResourceType>() {
-            { "bosses", ResourceType.Boss },
-            { "items", ResourceType.Item},
-            { "itemsources", ResourceType.ItemSource},
-            { "characters", ResourceType.Character},
-            { "curses", ResourceType.Curse},
-            { "other", ResourceType.OtherEvent},
-            { "floors", ResourceType.Floor},
-            { "pills", ResourceType.Pill},
-            { "runes", ResourceType.Rune},
-            { "tarotcards", ResourceType.TarotCard},
-            { "tarot_cards", ResourceType.TarotCard},
-            { "enemies", ResourceType.Enemy},
-            { "transformations", ResourceType.Transformation},
-            { "trinkets", ResourceType.Trinket},
-            { "rerolls", ResourceType.CharacterReroll},
-            { "characterrerolls", ResourceType.CharacterReroll},
-            { "character_rerolls", ResourceType.CharacterReroll},
-            { "otherconsumables", ResourceType.OtherConsumable},
-            { "other_consumables", ResourceType.OtherConsumable},
-        };
-
+        
         private readonly IIsaacRepository _isaacRepository;
-        private readonly IVideoRepository _videoRepository;
         private readonly IBarGraphCreator _barGraphCreator;
 
-        public ResourceController(IIsaacRepository isaacRepository, IVideoRepository videoRepository, IBarGraphCreator barGraphCreator)
+        public ResourceController(IIsaacRepository isaacRepository, IBarGraphCreator barGraphCreator)
         {
             _isaacRepository = isaacRepository;
-            _videoRepository = videoRepository;
             _barGraphCreator = barGraphCreator;
         }
 
