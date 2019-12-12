@@ -1,6 +1,4 @@
-﻿type renderFunction = (element: FrameworkElement | Component) => HTMLElement | null;
-
-interface FrameworkElement {
+﻿interface FrameworkElement {
     /** tag name */
     e: [keyof HTMLElementTagNameMap, string?],
 
@@ -22,7 +20,28 @@ interface Component {
     A?: Array<AsyncComponentPart>
 }
 
-const render: renderFunction = elementOrComponent => {
+const storeComponentPromise = (p: Promise<any>) => {
+    if (!(window as any).p) {
+        (window as any).p = new Array<Promise<any>>(p);
+    } else {
+        console.log('storing async component promise', p);
+        (window as any).p.push(p);
+    }
+}
+
+const getComponentPromises = () => {
+    if ((window as any).p) {
+        return (window as any).p as Array<Promise<any>>;
+    } else {
+        return new Array<Promise<any>>();
+    }
+}
+
+const clearComponentPromises = () => {
+    (window as any).p = new Array<Promise<any>>();
+}
+
+const render = (elementOrComponent: FrameworkElement | Component): HTMLElement | null => {
 
     // queue up the async parts of the component if it has any
     const component = elementOrComponent as Component;
@@ -31,6 +50,7 @@ const render: renderFunction = elementOrComponent => {
             const promise = component.A[i].P;
             const parentId = component.A[i].I;
             const append = component.A[i].A;
+
 
             promise.then(e => {
                 const html = render(e);
@@ -44,6 +64,8 @@ const render: renderFunction = elementOrComponent => {
                     }
                 }
             });
+
+            storeComponentPromise(promise);
         }
     }
 
@@ -268,6 +290,8 @@ export {
     Component,
     EventType,
     render,
-    htmlAttributeNameOf
+    htmlAttributeNameOf,
+    getComponentPromises,
+    clearComponentPromises
 }
 

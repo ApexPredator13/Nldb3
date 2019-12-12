@@ -1,4 +1,4 @@
-﻿import { render, Component } from './renderer';
+﻿import { render, Component, clearComponentPromises, getComponentPromises } from './renderer';
 import { NavigationComponent } from './Customizable/Layout/navigation';
 import { MainComponent } from './Customizable/Layout/main';
 import { OtherElements } from './Customizable/Layout/other';
@@ -59,7 +59,7 @@ const getPages = () => {
     return pages;
 }
 
-const setGlobalPageType = (pageType: PageType | undefined) => {
+const setOnLoadPageType = (pageType: PageType | undefined) => {
     (window as any).page_type = pageType;
 }
 
@@ -72,7 +72,7 @@ let registrationCount = 0;
 const registerPage = (pageData: PageData) => {
     // save page type globally, so that it's available on first page load
     if (registrationCount === 0) {
-        setGlobalPageType(pageData.specificPageType);
+        setOnLoadPageType(pageData.specificPageType);
     }
 
     registrationCount++;
@@ -287,6 +287,8 @@ const navigate = (
         }
 
         const component = new page.Component(parameters);
+
+        clearComponentPromises();
         const renderedPage = render(component);
 
         if (renderedPage) {
@@ -294,26 +296,22 @@ const navigate = (
             parent.innerHTML = '';
 
             if (page.afterRender) {
-                const observer = new MutationObserver(() => {
-                    if (page.afterRender) {
-                        page.afterRender();
-                    }
-                    observer.disconnect();
-                });
-                observer.observe(parent, { childList: true });
+                const afterRenderPromises = getComponentPromises();
+                if (afterRenderPromises.length === 0) {
+                    page.afterRender();
+                } else {
+                    Promise.all(afterRenderPromises).then(() => {
+                        if (page.afterRender) {
+                            page.afterRender();
+                        }
+                    });
+                }
             }
 
             parent.appendChild(renderedPage);
             if (scrollToTop) {
                 window.scrollTo(0, 0);
             }
-
-
-            setTimeout(() => {
-                if (page.afterRender) {
-                    page.afterRender();
-                }
-            }, 300);
         }
     }
 };
@@ -343,7 +341,7 @@ export {
     getCurrentRoute,
     extractParametersFromRoute,
     addAfterRenderActionToPage,
-    setGlobalPageType
+    setOnLoadPageType
 }
 
 

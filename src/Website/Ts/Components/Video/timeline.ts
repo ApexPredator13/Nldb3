@@ -53,8 +53,8 @@ export class Timeline extends ComponentWithPopup implements Component {
                     const percentage = (100 * floorLength) / videoLength;
 
                     floorUpperElements.push({
-                        e: ['div', i % 2 === 0 ? `↦${floor.floor.name}` : ''],
-                        a: [[A.Style, `width: ${percentage}%`], [A.Class, 'timeline-floorname l']]
+                        e: ['div', i % 2 === 0 ? (`↦${floor.floor.name}` + (floor.died_from !== null ? ' (†)' : '')) : ''],
+                        a: [[A.Style, `width: ${percentage}%`], [A.Class, 'timeline-floorname l' + (floor.died_from !== null ? ' orange' : '')]]
                     });
                     
                     let floorStartsAt = 0;
@@ -72,8 +72,8 @@ export class Timeline extends ComponentWithPopup implements Component {
                     floorElements.push(floorElement);
 
                     floorLowerElements.push({
-                        e: ['div', i % 2 !== 0 ? `↦${floor.floor.name}` : ''],
-                        a: [[A.Style, `width: ${percentage}%`], [A.Class, 'timeline-floorname l']]
+                        e: ['div', i % 2 !== 0 ? (`↦${floor.floor.name}` + (floor.died_from !== null ? ' (†)' : '')) : ''],
+                        a: [[A.Style, `width: ${percentage}%`], [A.Class, 'timeline-floorname l' + (floor.died_from !== null ? ' orange' : '')]]
                     });
                 }
 

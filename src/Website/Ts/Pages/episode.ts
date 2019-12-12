@@ -1,5 +1,5 @@
 ﻿import { Component, FrameworkElement, AsyncComponentPart, A } from "../Framework/renderer";
-import { initRouter, PageData, registerPage, setTitle, PageType, extractParametersFromRoute, setGlobalPageType } from "../Framework/router";
+import { initRouter, PageData, registerPage, setTitle, PageType, extractParametersFromRoute, setOnLoadPageType } from "../Framework/router";
 import { get } from "../Framework/http";
 import { Video } from "../Models/video";
 import { EventsTableComponent } from "../Components/Video/events-table";
@@ -138,7 +138,7 @@ export class EpisodePage implements Component {
 
 
 (() => {
-    setGlobalPageType(PageType.Episode);
+    setOnLoadPageType(PageType.Episode);
     EpisodePage.RegisterPage();
     initRouter();
 })();

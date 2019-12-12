@@ -116,7 +116,11 @@ namespace Website.Controllers
                 eventType = GameplayEventType.TransformationComplete;
             }
 
-            var result = new StatsPageResult();
+            var result = new StatsPageResult()
+            {
+                Resource = resource
+            };
+
             var availableStats = _isaacRepository.GetAvailableStats(resource);
             var resourceNumber = _isaacRepository.GetResourceNumber(resource);
 

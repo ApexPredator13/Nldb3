@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Website.Models.Database;
+using Website.Models.Database.Enums;
 
 namespace Website.Models.Resource
 {
@@ -25,5 +26,8 @@ namespace Website.Models.Resource
 
         [JsonProperty("videos")]
         public NldbVideoResult? Videos { get; set; }
+
+        [JsonProperty("resource")]
+        public IsaacResource Resource { get; set; } = new IsaacResource();
     }
 }

@@ -1353,7 +1353,7 @@ namespace Website.Data
                 ResourceType.Enemy => new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History, AvailableStats.Floor },
                 ResourceType.Floor => new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History },
                 ResourceType.Item => new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.FoundAt, AvailableStats.History, AvailableStats.Floor },
-                ResourceType.ItemSource => new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History, AvailableStats.Floor },
+                ResourceType.ItemSource => new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History },
                 ResourceType.OtherConsumable => new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History, AvailableStats.Floor },
                 ResourceType.OtherEvent => new List<AvailableStats>() { AvailableStats.History },
                 ResourceType.Pill => new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History, AvailableStats.Floor },
