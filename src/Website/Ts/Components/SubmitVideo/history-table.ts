@@ -1,4 +1,4 @@
-﻿import { convertResourceTypeToString } from "../../Enums/enum-to-string-converters";
+﻿import { resourceTypeToString } from "../../Enums/enum-to-string-converters";
 import { GameplayEventType } from "../../Enums/gameplay-event-type";
 import { ResourceType } from "../../Enums/resource-type";
 import { ComponentWithModal } from "../../Framework/ComponentBaseClasses/component-with-modal";
@@ -360,7 +360,7 @@ class HistoryTable<TSubscriber extends Object> extends ComponentWithSubscribers<
                                         [A.DataE, e.toString(10)],
                                         [A.Class, 'hand display-inline'],
                                         [A.DataT, event.image.type.toString(10)],
-                                        [A.Title, `Click to remove ${convertResourceTypeToString(event.image.type).toLowerCase()}`]
+                                        [A.Title, `Click to remove ${resourceTypeToString(event.image.type).toLowerCase()}`]
                                     ],
                                     c: [new IsaacImage(event.image, undefined, undefined, false)],
                                     v: [[EventType.Click, e => this.RemoveHistoryElement(e)]]

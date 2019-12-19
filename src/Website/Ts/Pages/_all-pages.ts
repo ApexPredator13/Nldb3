@@ -16,4 +16,5 @@ import { Resource } from "./resource";
     EpisodePage.RegisterPage();
     Redirect.RegisterPage();
     SubmitVideo.RegisterPage();
+    Resource.RegisterPage();
 })();

@@ -20,24 +20,8 @@ module.exports = {
         path: path.resolve(__dirname, 'wwwroot', 'js', 'dist'),
         filename: '[name].min.js'
     },
-    module: {
-        rules: [
-            {
-                test: /\.ts$/,
-                use: [
-                    {
-                        loader: 'ts-loader',
-                    }
-                ],
-                exclude: [
-                    path.resolve(__dirname, 'node_modules'),
-                    path.resolve(__dirname, 'wwwroot')
-                ]
-            }
-        ]
-    },
     resolve: {
-        extensions: [ '.ts', '.css', '.js' ]
+        extensions: [ '.js' ]
     },
     plugins: [
         new CleanWebpackPlugin(),
@@ -50,7 +34,6 @@ module.exports = {
     externals: {
         moment: 'moment'
     },
-    devtool: 'inline-source-map',
     optimization: {
         runtimeChunk: 'single',
         splitChunks: {

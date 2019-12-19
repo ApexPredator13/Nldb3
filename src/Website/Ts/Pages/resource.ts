@@ -7,6 +7,7 @@ import { IsaacImage } from "../Components/General/isaac-image";
 import { ChartData, Chart, ChartDataSets } from "chart.js";
 import { IsaacResource } from "../Models/isaac-resource";
 import { SearchboxComponent } from "../Components/General/searchbox";
+import { VideosComponent } from "../Components/General/videos";
 
 export class Resource implements Component {
     E: FrameworkElement;
@@ -266,7 +267,8 @@ export class Resource implements Component {
                                 new IsaacImage(result.resource, undefined, undefined, true)
                             ]
                         },
-                        ...chartSections
+                        ...chartSections,
+                        new VideosComponent(`Videos where "${result.resource.name}" appears:`, undefined, result.resource.resource_type, undefined, undefined, result.resource.id)
                     ]
                 };
             })

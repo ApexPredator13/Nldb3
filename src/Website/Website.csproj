@@ -114,6 +114,38 @@
 
   <ItemGroup>
     <None Include="bundleconfig.json" />
+    <None Include="Ts\Components\Navigation\nav-section.js" />
+    <None Include="Ts\Framework\Customizable\Layout\modal-content.js" />
+    <None Include="Ts\Framework\forms.js" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <TypeScriptCompile Include="Ts\Components\Admin\option-lists.js" />
+    <TypeScriptCompile Include="Ts\Components\General\boxes.js" />
+    <TypeScriptCompile Include="Ts\Components\General\isaac-image.js" />
+    <TypeScriptCompile Include="Ts\Components\General\modal-contents.js" />
+    <TypeScriptCompile Include="Ts\Components\General\searchbox.js" />
+    <TypeScriptCompile Include="Ts\Components\General\Videos.js" />
+    <TypeScriptCompile Include="Ts\Components\Home\rank.js" />
+    <TypeScriptCompile Include="Ts\Components\Home\stat.js" />
+    <TypeScriptCompile Include="Ts\Components\Home\topic.js" />
+    <TypeScriptCompile Include="Ts\Components\Video\consumable-popup.js" />
+    <TypeScriptCompile Include="Ts\Components\Video\events-table.js" />
+    <TypeScriptCompile Include="Ts\Enums\enum-to-string-converters.js" />
+    <TypeScriptCompile Include="Ts\Framework\aspnetcore-formvalidation.js" />
+    <TypeScriptCompile Include="Ts\Framework\browser.js" />
+    <TypeScriptCompile Include="Ts\Framework\Customizable\authentication.js" />
+    <TypeScriptCompile Include="Ts\Framework\Customizable\config.development.js" />
+    <TypeScriptCompile Include="Ts\Framework\Customizable\config.js" />
+    <TypeScriptCompile Include="Ts\Framework\Customizable\config.production.js" />
+    <TypeScriptCompile Include="Ts\Framework\Customizable\global-chart-options.js" />
+    <TypeScriptCompile Include="Ts\Framework\Customizable\Layout\main.js" />
+    <TypeScriptCompile Include="Ts\Framework\Customizable\Layout\navigation.js" />
+    <TypeScriptCompile Include="Ts\Framework\http.js" />
+    <TypeScriptCompile Include="Ts\Framework\renderer.js" />
+    <TypeScriptCompile Include="Ts\Framework\router.js" />
+    <TypeScriptCompile Include="Ts\Pages\_link-creator.js" />
   </ItemGroup>
 
 </Project>

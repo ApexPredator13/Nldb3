@@ -4,7 +4,7 @@ import { GameplayEvent } from "../../Models/gameplay-event";
 import { PageData, registerPage } from "../../Framework/router";
 import { ComponentWithForm } from "../../Framework/ComponentBaseClasses/component-with-form";
 import { AdminLink } from "./_admin-link-creator";
-import { convertGameplayEventTypeToString } from "../../Enums/enum-to-string-converters";
+import { gameplayEventTypeToString } from "../../Enums/enum-to-string-converters";
 import { gameplayEventTypeOptionList } from "../../Components/Admin/option-lists";
 
 export class EditGameplayEvent extends ComponentWithForm implements Component {
@@ -42,7 +42,7 @@ export class EditGameplayEvent extends ComponentWithForm implements Component {
                     e: ['div'],
                     c: [
                         {
-                            e: ['h2', `Change Event Type (currently: ${convertGameplayEventTypeToString(event.event_type)})`]
+                            e: ['h2', `Change Event Type (currently: ${gameplayEventTypeToString(event.event_type)})`]
                         },
                         {
                             e: ['form'],
