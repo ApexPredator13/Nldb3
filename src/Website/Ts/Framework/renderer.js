@@ -1,7 +1,7 @@
-﻿import { addClassIfNotExists, removeClassIfExists } from "../../dist/browser";
+﻿import { addClassIfNotExists, removeClassIfExists } from "./browser";
 
 const NEW_ELEMENT = 1;
-const EVENT_LISTENER = 2;
+const EVENT_LISTENER = 99;
 const CHILD_START = 3;
 const TEXT_NODE = 4;
 const CHILD_END = 5;
@@ -23,12 +23,12 @@ const SPAN = 2;
 const BR = 3;
 const MAIN = 4;
 const NAV = 5;
-const P = 6;
+const PARAGRAPH = 6;
 const A = 7;
-const H1 = 8;
-const H2 = 9;
-const H3 = 10;
-const H4 = 11;
+const HEADER1 = 8;
+const HEADER2 = 9;
+const HEADER3 = 10;
+const HEADER4 = 11;
 const STRONG = 12;
 const HR = 13;
 const IMG = 14;
@@ -47,10 +47,6 @@ function HtmlBuffer() {
         replace: false,
         id: 'main'
     };
-}
-
-HtmlBuffer.prototype.print = function () {
-    console.log('sync: ', this.buffer, ' | async:', this.async);
 }
 
 const HtmlMaker = function () {
@@ -79,20 +75,25 @@ function Render(content, id = 'main', displayHtmlAfterRender = true, replaceCont
     let currentElement;
 
     while (this.buffer.index < this.buffer.data.length) {
-        switch (this.buffer.data[this.buffer.index++]) {
+
+        const currentData = this.buffer.data[this.buffer.index++];
+
+        switch (currentData) {
 
             case NEW_ELEMENT:
                 let elementType;
-                switch (this.buffer.data[this.buffer.index++]) {
+                let elementNumber = this.buffer.data[this.buffer.index++];
+
+                switch (elementNumber) {
                     case DIV: elementType = 'div'; break;
                     case SPAN: elementType = 'span'; break;
                     case BR: elementType = 'br'; break;
                     case MAIN: elementType = 'main'; break;
                     case NAV: elementType = 'nav'; break;
-                    case H1: elementType = 'h1'; break;
-                    case H2: elementType = 'h2'; break;
-                    case H3: elementType = 'h3'; break;
-                    case H4: elementType = 'h4'; break;
+                    case HEADER1: elementType = 'h1'; break;
+                    case HEADER2: elementType = 'h2'; break;
+                    case HEADER3: elementType = 'h3'; break;
+                    case HEADER4: elementType = 'h4'; break;
                     case HR: elementType = 'hr'; break;
                     case STRONG: elementType = 'strong'; break;
                     case IMG: elementType = 'img'; break;
@@ -107,17 +108,34 @@ function Render(content, id = 'main', displayHtmlAfterRender = true, replaceCont
                     case SELECT: elementType = 'select'; break;
                     case OPTION: elementType = 'option'; break;
                     case CANVAS: elementType = 'canvas'; break;
-                    default: elementType = 'div'; break;
+                    case PARAGRAPH: elementType = 'p'; break;
+                    case A: elementType = 'a'; break;
+                    default:
+                        console.warn('unknown element: ' + elementNumber + ', defaulting to DIV!');
+                        elementType = 'div';
+                        break;
                 }
+
                 currentElement = document.createElement(elementType);
                 renderedElements.push(currentElement);
                 break;
 
             case CHILD_START:
-                const children = Render.call(this);
-                for (const child of children) {
-                    currentElement.appendChild(child);
+                const createdChildren = Render.call(this);
+
+                try {
+                    for (const createdChild of createdChildren) {
+                        currentElement.appendChild(createdChild);
+                    }
+                } catch (e) {
+                    debugger;
+                    if (e instanceof TypeError) {
+                        console.warn('chould not append:', createdChildren);
+                        console.warn('to', currentElement);
+                        console.error(e);
+                    }
                 }
+                
                 break;
 
             case TEXT_NODE:
@@ -126,6 +144,10 @@ function Render(content, id = 'main', displayHtmlAfterRender = true, replaceCont
                 break;
 
             case CHILD_END:
+                if (renderedElements.length === 0) {
+                    console.warn('trying to return empty child');
+                    debugger;
+                }
                 return renderedElements;
 
             case ID:
@@ -133,7 +155,7 @@ function Render(content, id = 'main', displayHtmlAfterRender = true, replaceCont
                 break;
 
             case CLASS:
-                currentElement.classList.add(...this.buffer.data[this.buffer.index++]);
+                currentElement.classList.add(...(this.buffer.data[this.buffer.index++]));
                 break;
 
             case ATTRIBUTES:
@@ -141,12 +163,12 @@ function Render(content, id = 'main', displayHtmlAfterRender = true, replaceCont
                 for (const key of Object.keys(attributes)) {
                     currentElement.setAttribute(key, attributes[key])
                 }
+                break;
 
             case EVENT_LISTENER:
-                const functionIndex = this.buffer.index.valueOf();
-                const type = this.buffer.data[functionIndex];
-                const event = this.buffer.data[functionIndex + 1];
-                const subscribers = this.buffer.data[functionIndex + 2];
+                const type = this.buffer.data[this.buffer.index++];
+                const event = this.buffer.data[this.buffer.index++];
+                const subscribers = this.buffer.data[this.buffer.index++];
 
                 currentElement.addEventListener(type, e => {
                     const result = event(e);
@@ -157,7 +179,6 @@ function Render(content, id = 'main', displayHtmlAfterRender = true, replaceCont
                     }
                 });
 
-                this.buffer.index += 3;
                 break;
 
             case POPUP_START:
@@ -183,23 +204,24 @@ function Render(content, id = 'main', displayHtmlAfterRender = true, replaceCont
                 break;
 
             case POPUP_END:
+                debugger;
                 return currentElement;
+
+            default:
+                debugger;
+                console.error('current data:', typeof(currentData), currentData);
+                throw new TypeError('render event not handled!');
         }
     }
-
-    console.log('rendered elements', renderedElements);
 
     const fragment = document.createDocumentFragment();
     for (let i = 0; i < renderedElements.length; ++i) {
         fragment.appendChild(renderedElements[i]);
     }
 
-    console.log('rendered fragment', fragment);
-
 
     if (displayHtmlAfterRender) {
         const container = document.getElementById(this.buffer.id || id);
-        console.log('container', container);
         if (container) {
             if (replaceContent) {
                 container.innerHTML = '';
@@ -283,7 +305,17 @@ function attr(a) {
 
 function cl(...classNames) {
     return function () {
-        this.buffer.data.push(CLASS, classNames);
+
+        const classesToAdd = classNames.filter(classname => {
+            if (classname) {
+                return true;
+            }
+            return false;
+        });
+
+        if (classesToAdd && classesToAdd.length > 0) {
+            this.buffer.data.push(CLASS, classesToAdd);
+        }
     }
 }
 
@@ -325,8 +357,8 @@ function event(type, fn, ...subscribers) {
 function Parent(type, ...contents) {
     return function () {
         this.buffer.data.push(NEW_ELEMENT, type);
-        for (const c of contents) {
-            c.call(this);
+        for (let i = 0; i < contents.length; ++i) {
+            contents[i].call(this);
         }
     }
 }
@@ -368,11 +400,11 @@ function Div(...contents) {
 }
 
 function p(...contents) {
-    return Child.call(this, P, ...contents);
+    return Child.call(this, PARAGRAPH, ...contents);
 }
 
 function P(...contents) {
-    return Parent.call(this, P, ...contents);
+    return Parent.call(this, PARAGRAPH, ...contents);
 }
 
 function a(...contents) {
@@ -396,27 +428,31 @@ function br(...contents) {
 }
 
 function h1(...contents) {
-    return Child.call(this, H1, ...contents);
+    return Child.call(this, HEADER1, ...contents);
 }
 
 function H1(...contents) {
-    return Parent.call(this, H1, ...contents);
+    return Parent.call(this, HEADER1, ...contents);
 }
 
 function h2(...contents) {
-    return Child.call(this, H2, ...contents);
+    return Child.call(this, HEADER2, ...contents);
 }
 
 function h3(...contents) {
-    return Child.call(this, H3, ...contents);
+    return Child.call(this, HEADER3, ...contents);
 }
 
 function h4(...contents) {
-    return Child.call(this, H4, ...contents);
+    return Child.call(this, HEADER4, ...contents);
 }
 
 function hr(...contents) {
     return Child.call(this, HR, ...contents);
+}
+
+function Hr(...contents) {
+    return Parent.call(this, HR, ...contents);
 }
 
 function button(...contents) {
@@ -451,13 +487,21 @@ function Table(...contents) {
     return Parent.call(this, TABLE, ...contents);
 }
 
+function table(...contents) {
+    return Child.call(this, TABLE, ...contents);
+}
+
 function select(...contents) {
     return Child.call(this, SELECT, ...contents);
 }
 
 function option(text, value, selected, ...contents) {
     return function () {
-        const attributes = selected ? { value: value, selected: selected ? 'true' } : { value: value };
+        const attributes = { value: value };
+        if (selected) {
+            attributes.selected = 'true';
+        }
+
         this.buffer.data.push(CHILD_START, NEW_ELEMENT, OPTION, ATTRIBUTES, attributes, TEXT_NODE, text);
         for (let i = 0; i < contents.length; ++i) {
             contents[i].call(this);
@@ -554,5 +598,7 @@ export {
     tbody,
     thead,
     Table,
-    canvas
+    canvas,
+    table,
+    Hr
 }

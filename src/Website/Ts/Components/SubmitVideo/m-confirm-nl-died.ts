@@ -1,6 +1,6 @@
 ﻿import { Component, FrameworkElement } from "../../Framework/renderer";
 import { IsaacResource } from "../../Models/isaac-resource";
-import { Boxes } from "../General/boxes";
+import { Boxes } from "../General/renderBoxes";
 import { BackToMainSelection } from "./back-to-main-selection";
 
 export class ConfirmNlDied<TSubscriber> implements Component {

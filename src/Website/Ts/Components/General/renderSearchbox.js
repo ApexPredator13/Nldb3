@@ -1,7 +1,7 @@
 ﻿import { Render, Div, cl, div, input, attr, event, span, t, style } from "../../Framework/renderer";
 import { removeClassIfExists, addClassIfNotExists } from "../../Framework/browser";
 
-export function Searchbox(subs, searchboxId, resources, displayType) {
+export function renderSearchbox(subs, searchboxId, resources, displayType) {
     new Render([
         Div(
             event('mouseover', e => focusOnMouseover(e)),

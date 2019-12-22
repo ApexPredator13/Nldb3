@@ -1,7 +1,7 @@
 ﻿import { Render, div, Div, id, tr, td, t, attr, popup, cl, h3, hr, br, span, do_nothing, strong, Table, thead, th } from "../../Framework/renderer";
 import { isaacImage } from "../General/isaac-image";
 
-export function renderEventsTable(videoPromise, submissionIndex, containerId) {
+function renderEventsTable(videoPromise, submissionIndex, containerId) {
     const tableContainer = 'video-page-tables';
 
     // draw container
@@ -141,31 +141,35 @@ function transformationProgress(playedFloor, upscale) {
 
                 isaacImage(event, 1),
                 popup({ top: 10, left: 0 },
-                    Div(
-                        upscale ? cl('c') : cl('c', 'downscale'),
-
-                        h3(
-                            t('Transformation Progress')
-                        ),
-                        hr(),
-                        isaacImage(event, 1, upscale),
-                        br(),
-                        span(
-                            t(`${event.r1.name} collected`)
-                        ),
-                        br(),
-                        hr(),
-                        span(
-                            t(`${event.r3.toString(10)} / 3 items necessary for ${event.r2.name}`)
-                        ),
-                        br(),
-                        span(
-                            t('collected during regular gamplay')
-                        )
-                    )
+                    transformationPopupContent(upscale, event)
                 )
             )
         });
+}
+
+function transformationPopupContent(upscale, event) {
+    return Div(
+        upscale ? cl('c') : cl('c', 'downscale'),
+
+        h3(
+            t('Transformation Progress')
+        ),
+        hr(),
+        isaacImage(event, 1, upscale),
+        br(),
+        span(
+            t(`${event.r1.name} collected`)
+        ),
+        br(),
+        hr(),
+        span(
+            t(`${event.r3.toString(10)} / 3 items necessary for ${event.r2.name}`)
+        ),
+        br(),
+        span(
+            t('collected during regular gamplay')
+        )
+    )
 }
 
 function transformationComplete(playedFloor) {
@@ -309,4 +313,9 @@ function runHeader(playedCharacter) {
             attr({ colspan: '6', style: 'background-color: rgba(255,255,255,0.1)' })
         )
     )
+}
+
+export {
+    transformationPopupContent,
+    renderEventsTable
 }

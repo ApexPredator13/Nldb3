@@ -4,17 +4,17 @@
     {
         Unspecified,
         CharacterDied,
-        ItemCollected,  // 2
+        ItemCollected,
         DownToTheNextFloor,
-        Bossfight, // 4
+        Bossfight,
         Pill,
         TarotCard,
         Rune,
         Trinket,
         Curse,
         OtherConsumable,
-        TransformationComplete, // 11
-        TransformationProgress, // 12
+        TransformationComplete,
+        TransformationProgress,
         LastFloor,
         AbsorbedItem,
         CharacterReroll,

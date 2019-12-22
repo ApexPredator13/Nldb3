@@ -1,4 +1,4 @@
-﻿import { div, attr, cl, h3 } from "../../Framework/renderer";
+﻿import { div, attr, cl, h3, t, event } from "../../Framework/renderer";
 import { navigate } from "../../Framework/router";
 
 function statImage(xOffset, yOffset, link, pageType) {

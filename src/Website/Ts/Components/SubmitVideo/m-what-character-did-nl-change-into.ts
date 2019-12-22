@@ -1,5 +1,5 @@
 ﻿import { Component, FrameworkElement } from "../../Framework/renderer";
-import { Boxes } from "../General/boxes";
+import { Boxes } from "../General/renderBoxes";
 import { IsaacResource } from "../../Models/isaac-resource";
 import { BackToMainSelection } from "./back-to-main-selection";
 

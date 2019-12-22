@@ -1,4 +1,4 @@
-﻿import { a, href, cl, div, span, t } from "../../Framework/renderer";
+﻿import { a, href, cl, div, span, t, event, style } from "../../Framework/renderer";
 import { navigate } from "../../Framework/router";
 
 export function navSection(px, url, text) {

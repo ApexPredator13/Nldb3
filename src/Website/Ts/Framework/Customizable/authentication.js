@@ -1,6 +1,6 @@
 ﻿import { User, UserManager, UserManagerSettings, InMemoryWebStorage, WebStorageStateStore } from 'oidc-client';
 import { removeHashAndQuerystring, getHashFromUrl } from '../browser';
-import { getConfig } from './config';
+import { getConfig } from './config.development';
 
 function getUserManager() {
     if (window.userManager) {
@@ -77,6 +77,10 @@ const signout = () => {
 }
 
 const isAdmin = (user) => {
+    if (!user || !user.profile) {
+        return false;
+    }
+
     const roleClaimName = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role';
     if (user.profile[roleClaimName] === 'admin') {
         return true;

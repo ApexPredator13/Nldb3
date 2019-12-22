@@ -1,6 +1,6 @@
 ﻿import { Component, FrameworkElement, EventType, A } from "../../Framework/renderer";
 import { IsaacResource } from "../../Models/isaac-resource";
-import { Boxes } from "../General/boxes";
+import { Boxes } from "../General/renderBoxes";
 import { SubmitVideo } from "../../Pages/submit-video";
 import { removeClassIfExists, addClassIfNotExists } from "../../Framework/browser";
 

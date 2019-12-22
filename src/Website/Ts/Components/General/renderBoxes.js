@@ -1,26 +1,22 @@
-﻿import { Div, Render, t, cl, div, attr } from "../../Framework/renderer";
+﻿import { Div, Render, t, cl, div, attr, id, event } from "../../Framework/renderer";
 import { isaacImage } from "./isaac-image";
 
-export function boxes(subs, id, resources, imagePath = '/img/isaac.png', upscale = true, limit = null) {
-
-    new Render([
-        Div(id(`box${id}`))
-    ]);
+export function renderBoxes(containerId, subs, boxId, resources, imagePath = '/img/isaac.png', upscale = true, limit = null) {
 
     if (Array.isArray(resources)) {
-        createBoxes(subs, id, resources, imagePath, upscale, limit);
+        createBoxes(containerId, subs, id, resources, imagePath, upscale, limit);
     } else {
-        resources.then(r => createBoxes(subs, id, r, imagePath, upscale, limit));
+        resources.then(r => createBoxes(containerId, subs, id, r, imagePath, upscale, limit));
     }
 }
 
-function createBoxes(subs, id, resources, imagePath, upscale, limit) {
+function createBoxes(containerId, subs, id, resources, imagePath, upscale, limit) {
     if (!resources || resources.length === 0) {
         new Render([
             Div(
                 t('No resources found.')
             )
-        ]);
+        ], containerId, true, false);
         return;
     }
 
@@ -31,6 +27,7 @@ function createBoxes(subs, id, resources, imagePath, upscale, limit) {
     new Render([
         Div(
             cl('box-container'),
+            id(`box${id}`),
             ...(resources.map((resource, index) => {
 
                 const width = resource.w > 65 ? `width: ${resource.w * (upscale ? 2 : 1)}px;` : '';
@@ -48,7 +45,7 @@ function createBoxes(subs, id, resources, imagePath, upscale, limit) {
                 )
             }))
         )
-    ], `box${id}`);
+    ], containerId, true, false);
 }
 
 const boxClickEvent = (e, ...subs) => {

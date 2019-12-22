@@ -1,7 +1,7 @@
 ﻿import { Component, FrameworkElement } from "../../Framework/renderer";
 import { IsaacResource } from "../../Models/isaac-resource";
 import { BackToMainSelection } from "./back-to-main-selection";
-import { Boxes } from "../General/boxes";
+import { Boxes } from "../General/renderBoxes";
 
 export class WhatOtherConsumableWasUsed<TSubscriber> implements Component {
     E: FrameworkElement;

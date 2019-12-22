@@ -1,6 +1,6 @@
 ﻿import { Component, FrameworkElement } from "../../Framework/renderer";
 import { IsaacResource } from "../../Models/isaac-resource";
-import { Boxes } from "../General/boxes";
+import { Boxes } from "../General/renderBoxes";
 
 export class WhatCharacterWasChosen<TSubscriber extends Object> implements Component {
     E: FrameworkElement;

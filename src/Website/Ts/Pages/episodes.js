@@ -1,30 +1,29 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-var videos_1 = require("../Components/General/videos");
-var router_1 = require("../Framework/router");
-var EpisodesPage = /** @class */ (function () {
-    function EpisodesPage() {
-        this.E = {
-            e: ['div'],
-            c: [new videos_1.VideosComponent('A list of all Isaac episodes')]
-        };
-    }
-    EpisodesPage.Link = function () {
-        return 'Episodes';
-    };
-    EpisodesPage.RegisterPage = function () {
-        var page = {
-            Component: EpisodesPage,
-            Title: 'Isaac Episodes',
-            Url: ['Episodes']
-        };
-        router_1.registerPage(page);
-    };
-    return EpisodesPage;
-}());
-exports.EpisodesPage = EpisodesPage;
-(function () {
-    EpisodesPage.RegisterPage();
-    router_1.initRouter();
+﻿import { Render, Div } from "../Framework/renderer";
+import { Videos } from "../Components/General/renderVideos";
+import { registerPage, initRouter } from "../Framework/router";
+
+function episodesPage() {
+    new Render([
+        Div(id('videos-x'))
+    ]);
+
+    Videos('videos-x', 'A list of all Isaac episodes');
+}
+
+function registerEpisodesPage() {
+    registerPage(episodesPage, 'Isaac Episodes', ['Episodes']);
+}
+
+export {
+    episodesPage,
+    registerEpisodesPage
+}
+
+(() => {
+    registerEpisodesPage();
+    initRouter();
 })();
-//# sourceMappingURL=episodes.js.map
+
+
+
+

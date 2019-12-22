@@ -1,7 +1,7 @@
 ﻿import { Component, FrameworkElement } from "../../Framework/renderer";
 import { IsaacResource } from "../../Models/isaac-resource";
-import { Boxes } from "../General/boxes";
-import { SearchboxComponent } from "../General/searchbox";
+import { Boxes } from "../General/renderBoxes";
+import { SearchboxComponent } from "../General/renderSearchbox";
 
 export class WhatFloorAreWeOn<TSubscriber extends Object> implements Component {
     E: FrameworkElement;

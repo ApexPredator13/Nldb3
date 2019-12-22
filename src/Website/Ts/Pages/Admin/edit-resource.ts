@@ -11,7 +11,7 @@ import { Option } from "../../Components/General/option";
 import { BackToOverviewLinks } from "../../Components/Admin/back-to-overview-links";
 import { saveToLocalStorage, getFromLocalStorage } from "../../Framework/browser";
 import { ComponentWithForm } from "../../Framework/ComponentBaseClasses/component-with-form";
-import { SearchboxComponent } from "../../Components/General/searchbox";
+import { SearchboxComponent } from "../../Components/General/renderSearchbox";
 import { Tag } from "../../Enums/tags";
 import { ResourceType } from "../../Enums/resource-type";
 

@@ -115,6 +115,8 @@
   <ItemGroup>
     <None Include="bundleconfig.json" />
     <None Include="Ts\Components\Navigation\nav-section.js" />
+    <None Include="Ts\Framework\Customizable\config.development.js" />
+    <None Include="Ts\Framework\Customizable\config.production.js" />
     <None Include="Ts\Framework\Customizable\Layout\modal-content.js" />
     <None Include="Ts\Framework\forms.js" />
   </ItemGroup>
@@ -122,29 +124,40 @@
 
   <ItemGroup>
     <TypeScriptCompile Include="Ts\Components\Admin\option-lists.js" />
-    <TypeScriptCompile Include="Ts\Components\General\boxes.js" />
+    <TypeScriptCompile Include="Ts\Components\General\renderBoxes.js" />
     <TypeScriptCompile Include="Ts\Components\General\isaac-image.js" />
     <TypeScriptCompile Include="Ts\Components\General\modal-contents.js" />
-    <TypeScriptCompile Include="Ts\Components\General\searchbox.js" />
-    <TypeScriptCompile Include="Ts\Components\General\Videos.js" />
+    <TypeScriptCompile Include="Ts\Components\General\renderSearchbox.js" />
+    <TypeScriptCompile Include="Ts\Components\General\renderVideos.js" />
     <TypeScriptCompile Include="Ts\Components\Home\rank.js" />
     <TypeScriptCompile Include="Ts\Components\Home\stat.js" />
     <TypeScriptCompile Include="Ts\Components\Home\topic.js" />
-    <TypeScriptCompile Include="Ts\Components\Video\consumable-popup.js" />
     <TypeScriptCompile Include="Ts\Components\Video\events-table.js" />
+    <TypeScriptCompile Include="Ts\Components\Video\item-pickup-chart.js" />
+    <TypeScriptCompile Include="Ts\Components\Video\played-characters.js" />
+    <TypeScriptCompile Include="Ts\Components\Video\sorted-by-sources.js" />
+    <TypeScriptCompile Include="Ts\Components\Video\time-spent-on-each-floor.js" />
+    <TypeScriptCompile Include="Ts\Components\Video\timeline.js" />
+    <TypeScriptCompile Include="Ts\Components\Video\transformation-progress-chart.js" />
+    <TypeScriptCompile Include="Ts\Components\Video\transformation-progress.js" />
+    <TypeScriptCompile Include="Ts\Components\Video\video-stats.js" />
     <TypeScriptCompile Include="Ts\Enums\enum-to-string-converters.js" />
     <TypeScriptCompile Include="Ts\Framework\aspnetcore-formvalidation.js" />
     <TypeScriptCompile Include="Ts\Framework\browser.js" />
     <TypeScriptCompile Include="Ts\Framework\Customizable\authentication.js" />
-    <TypeScriptCompile Include="Ts\Framework\Customizable\config.development.js" />
-    <TypeScriptCompile Include="Ts\Framework\Customizable\config.js" />
-    <TypeScriptCompile Include="Ts\Framework\Customizable\config.production.js" />
     <TypeScriptCompile Include="Ts\Framework\Customizable\global-chart-options.js" />
     <TypeScriptCompile Include="Ts\Framework\Customizable\Layout\main.js" />
     <TypeScriptCompile Include="Ts\Framework\Customizable\Layout\navigation.js" />
     <TypeScriptCompile Include="Ts\Framework\http.js" />
     <TypeScriptCompile Include="Ts\Framework\renderer.js" />
     <TypeScriptCompile Include="Ts\Framework\router.js" />
+    <TypeScriptCompile Include="Ts\Pages\downloads.js" />
+    <TypeScriptCompile Include="Ts\Pages\episode.js" />
+    <TypeScriptCompile Include="Ts\Pages\episodes.js" />
+    <TypeScriptCompile Include="Ts\Pages\home.js" />
+    <TypeScriptCompile Include="Ts\Pages\resource-overview.js" />
+    <TypeScriptCompile Include="Ts\Pages\resource.js" />
+    <TypeScriptCompile Include="Ts\Pages\_all-pages.js" />
     <TypeScriptCompile Include="Ts\Pages\_link-creator.js" />
   </ItemGroup>
 

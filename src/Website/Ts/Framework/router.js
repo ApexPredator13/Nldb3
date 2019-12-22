@@ -1,5 +1,5 @@
-﻿import { Navigation } from './Customizable/Layout/navigation';
-import { MainContainer } from './Customizable/Layout/main';
+﻿import { renderNavigation } from './Customizable/Layout/navigation';
+import { renderMainContainer } from './Customizable/Layout/main';
 import { setGlobalChartOptions } from './Customizable/global-chart-options';
 import { getConfig } from './Customizable/config.development';
 
@@ -27,7 +27,7 @@ const getPages = () => {
     return window.p;
 }
 
-function registerPage(appendTo, page, title, url, pageType, afterRender, beforeLeaving, canLeave) {
+function registerPage(page, title, url, pageType, afterRender, beforeLeaving, canLeave) {
     if (registrationCount++ === 0) {
         setOnLoadPageType(pageType);
     }
@@ -35,7 +35,6 @@ function registerPage(appendTo, page, title, url, pageType, afterRender, beforeL
     const pages = getPages();
     if (!pages.some(page => JSON.stringify(page.url) === JSON.stringify(url))) {
         pages.push({
-            appendTo: appendTo,
             page: page,
             title: title,
             url: url,
@@ -54,12 +53,13 @@ function setTitle(title) {
 
 const initRouter = () => {
     if (!window.routerInit) {
-        // register custom events
+        window.routerInit = true;
+
         setGlobalChartOptions();
 
         // render layout
-        MainContainer();
-        Navigation();
+        renderNavigation();
+        renderMainContainer();
 
         // delay enough so that initial popstate event that some browsers trigger on load will be skipped
         setTimeout(() => {
@@ -75,7 +75,6 @@ const initRouter = () => {
         const pageType = getOnLoadPageType();
         navigate(currentRoute, undefined, pageType, false, true);
     }
-    window.routerInit = true;
 };
 
 
@@ -124,6 +123,7 @@ const getRequestedPageFromRoute = (route, specificPageType) => {
                 for (const validPageUrl of validPageUrls) {
                     if (routeFragment.toLowerCase() === validPageUrl.toLowerCase()) {
                         match = true;
+                        parameters.push(validPageUrl);
                         break;
                     }
                 }
@@ -167,7 +167,7 @@ const navigate = (requestedRoute, preventDefaultForEvent, specificPageType, push
     }
 
     const { found, page, parameters } = getRequestedPageFromRoute(requestedRoute, specificPageType);
-    console.log(`page found for "${requestedRoute}"? ${found}`, page);
+    console.log(`page found for "${requestedRoute}"? ${found}`, page, parameters);
     const currentRoute = getCurrentRoute();
 
     if (!found || !page || !parameters) {
@@ -214,7 +214,7 @@ const navigate = (requestedRoute, preventDefaultForEvent, specificPageType, push
     }
 
     // render new page
-    page.page();
+    page.page(parameters);
 
     // handle pushState
     if (push) {
@@ -257,7 +257,9 @@ export {
     getPages,
     getCurrentRoute,
     setOnLoadPageType,
-    getOnLoadPageType
+    getOnLoadPageType,
+    PAGE_TYPE_EPISODE,
+    PAGE_TYPE_ISAAC_RESOURCE
 }
 
 

@@ -1,6 +1,6 @@
 ﻿import { FrameworkElement, Component } from "../../Framework/renderer";
 import { IsaacResource } from "../../Models/isaac-resource";
-import { Boxes } from "../General/boxes";
+import { Boxes } from "../General/renderBoxes";
 
 export class WhatGameModeWasChosen<TSubscriber extends Object> implements Component {
     E: FrameworkElement;

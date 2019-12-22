@@ -1,7 +1,8 @@
-﻿import { Div, div, Render, Tbody, td, a, th, cl, id, t, tr, thead, H1, p, P, do_nothing, select, option, attr, input, Table, tbody } from "../../Framework/renderer";
+﻿import { Div, div, Render, Tbody, td, a, th, cl, id, t, tr, thead, H1, p, P, do_nothing, select, option, attr, input, Table, tbody, modal } from "../../Framework/renderer";
 import { get } from "../../Framework/http";
 import { addClassIfNotExists, removeClassIfExists } from "../../Framework/browser";
 import { getUser } from "../../Framework/Customizable/authentication";
+import { notLoggedIn } from "./modal-contents";
 
 const DEFAULT_AMOUNT_PER_PAGE = 50;
 
@@ -58,7 +59,7 @@ export function Videos(containerId, header, description, resourceType, from, to,
         addClassIfNotExists(e.target, 'progress');
         getUser().then(user => {
             if (!user) {
-                super.ShowModal(new NotLoggedInModal(), true);
+                modal(false, notLoggedIn());
             } else {
                 navigate(new Link().SubmitVideo(videoId))
             }

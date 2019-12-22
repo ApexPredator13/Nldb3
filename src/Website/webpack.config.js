@@ -6,15 +6,15 @@ const configuration = 'development';
 
 module.exports = {
     entry: {
-        aspnetcore_formvalidation: './Ts/Framework/aspnetcore-formvalidation.ts',
-        all_remaining_pages: './Ts/Pages/_all-pages.ts',
-        all_admin_pages: './Ts/Pages/Admin/_all-admin-pages.ts',
-        home: './Ts/Pages/home.ts',
-        downloads: './Ts/Pages/downloads.ts',
-        episodes: './Ts/Pages/episodes.ts',
-        resource_overview: './Ts/Pages/resource-overview.ts',
-        episode: './Ts/Pages/episode.ts',
-        resource: './Ts/Pages/resource.ts'
+        aspnetcore_formvalidation: './Ts/Framework/aspnetcore-formvalidation.js',
+        all_remaining_pages: './Ts/Pages/_all-pages.js',
+        //all_admin_pages: './Ts/Pages/Admin/_all-admin-pages.js',
+        home: './Ts/Pages/home.js',
+        downloads: './Ts/Pages/downloads.js',
+        episodes: './Ts/Pages/episodes.js',
+        resource_overview: './Ts/Pages/resource-overview.js',
+        episode: './Ts/Pages/episode.js',
+        resource: './Ts/Pages/resource.js'
     },
     output: {
         path: path.resolve(__dirname, 'wwwroot', 'js', 'dist'),
@@ -26,11 +26,12 @@ module.exports = {
     plugins: [
         new CleanWebpackPlugin(),
         new webpack.NormalModuleReplacementPlugin(
-            /[.a-zA-Z|\/|\\]*config.(production|development).ts/,
-            configuration === 'production' ? './config.production.ts' : './config.development.ts'
+            /Framework[\//]Customizable[\//]config.development.js/,
+            configuration === 'production' ? './config.production.js' : './config.development.js'
         )
     ],
-    mode: 'production',
+    devtool: 'inline-source-map',
+    mode: 'development',
     externals: {
         moment: 'moment'
     },

@@ -1,12 +1,12 @@
-﻿import { Render, Main, id, cl } from '../../renderer'
+﻿import { cl, id, Main, Render } from '../../renderer';
 
-export function MainContainer() {
+export function renderMainContainer() {
     new Render([
         Main(
             id('main'),
             cl('w80')
         )
-    ], 'body')
+    ], 'body', true, false);
 }
 
 //export class MainComponent implements Component {

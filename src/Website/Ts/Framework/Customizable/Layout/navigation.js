@@ -1,4 +1,4 @@
-﻿import { Render, Nav, cl, id, div, p, P, t, h3, strong, br, do_nothing } from "../../renderer";
+﻿import { Render, Nav, cl, id, div, p, P, t, h3, strong, br, do_nothing, a, href, event } from "../../renderer";
 import { navSection } from "../../../Components/Navigation/nav-section";
 import { Link, RO_ITEMS, RO_BOSSES, RO_CHARACTERS, RO_ITEMSOURCES, RO_FLOORS, RO_TRANS, RO_REROLL, RO_CURSES, RO_PILLS, RO_RUNES, RO_TAROT, RO_TRINKET, RO_OC } from "../../../Pages/_link-creator";
 import { getUser, signin, isAdmin, loadAdminPages } from "../authentication";
@@ -7,11 +7,12 @@ import { navigate } from "../../router";
 const authContainerId = 'nav-auth-container'
 const navSectionClass = 'nav-section';
 
-export function Navigation() {
-
-    Promise.resolve(() => {
-        // render basic navigation
-        new Render(nav(), 'body');
+export function renderNavigation() {
+    new Promise(resolve => {
+        const n = nav();
+        console.log(n);
+        new Render([n], 'body', true, false);
+        resolve();
     }).then(() => {
         // after that, try to load the logged in user
         getUser().then(user => {
@@ -37,7 +38,7 @@ function userNotLoggedIn() {
         a(
             t('Login / Register'),
             href('/Account/Login'),
-            event(e => { e.preventDefault(); signin(); })
+            event('click', e => { e.preventDefault(); signin(); })
         )
     );
 }
@@ -80,9 +81,12 @@ function nav() {
     const link = new Link();
 
     return Nav(
-        cl('w20'), id('nav'),
+        cl('w20'),
+        id('nav'),
         div(
-            cl(navSectionClass), id(authContainerId),
+            cl(navSectionClass),
+            id(authContainerId),
+
             p(
                 t('Checking login state...')
             )

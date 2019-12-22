@@ -12,10 +12,11 @@ const RO_TRINKET     = 'Trinkets';
 const RO_OC          = 'OtherConsumables';
 const RO_TRANS       = 'Transformations';
 
-export function Link() {
+function Link() {
     this.Home = () => '';
     this.Downloads = () => '/Downloads';
     this.Episode = videoId => `/${videoId}`;
+    this.Episodes = () => '/Episodes';
     this.ResourceOverview = type => `/${type}`;
     this.SubmitVideo = id => `/SubmitVideo/${id}`;
     this.IsaacResource = id => `/${id}`;
