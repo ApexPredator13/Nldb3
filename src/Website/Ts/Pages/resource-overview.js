@@ -75,10 +75,9 @@ function resourceOverviewPage(parameters) {
         ], 'resources');
 
         // draw box sets into containers
-        let i = 0;
         for (const resourceSet of sortedResources) {
             if (resourceSet[1].length > 0) {
-                renderBoxes(resourceSet[0], [navigateToResource], ++i, resourceSet[1]);
+                renderBoxes(resourceSet[0], [navigateToResource], resourceSet[1]);
             }
         }
     });

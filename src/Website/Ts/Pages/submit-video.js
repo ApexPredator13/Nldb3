@@ -9,9 +9,8 @@ import { ResourceType } from "../Enums/resource-type";
 import { addClassIfNotExists, removeClassIfExists } from "../Framework/browser";
 import { getConfig } from "../Framework/Customizable/config.development";
 import { get } from "../Framework/http";
-import { A, Component, EventType, FrameworkElement, render } from "../Framework/renderer";
+import { A, Component, EventType, FrameworkElement, render, Render, Div, id, div, a, iframe, attr, span, t, P, event, h2, H2, cl, hr, Hr, style } from "../Framework/renderer";
 import { PageData, registerPage, setTitle } from "../Framework/router";
-import { IsaacResource } from "../Models/isaac-resource";
 import { SubmittedPlayedCharacter } from "../Models/submitted-played-character";
 import { SubmittedPlayedFloor } from "../Models/submitted-played-floor";
 import { Tag } from "../Enums/tags";
@@ -50,475 +49,785 @@ import { WhatOtherEventHappened } from "../Components/SubmitVideo/m-what-other-e
 import { HowDidNlRerollHisCharacter } from "../Components/SubmitVideo/m-how-did-nl-reroll-his-character";
 import { WhatTransformationDidNlRerollInto } from "../Components/SubmitVideo/m-what-transformation-did-nl-reroll-into";
 import { WhatCharacterDidNlChangeInto } from "../Components/SubmitVideo/m-what-character-did-nl-change-into";
+import { PlayerControls } from "../Components/SubmitVideo/player-controls";
+import { CurrentPlayer } from "../Components/SubmitVideo/current-player";
+import { ChangeSeed } from "../Components/SubmitVideo/change-seed";
+import '../Framework/Customizable/typedefs';
+import { Boxes } from "../Components/General/renderBoxes";
 
-enum StaticResourcesForMenu {
-    MajorGameplayEvents = 1,
-    UsedConsumables,
-    GameModes,
-    NoStartingItems,
-    NoStartingTrinkets,
-    MoreStartingItems,
-    MoreStartingTrinkets,
-    ConfirmNlDied,
-    ConfirmNlWon,
-    CommonBosses,
-    NextFloorset,
-    WasThereAnotherRun,
-    SubmitFailed,
-    RunSubmittedSuccessfully,
-    DidBlackRuneAbsorbAnItem,
-    DidBlackRuneAbsorbAnotherItem,
-    NoCurse,
-    ConfirmVictoryLap,
-    ConfirmRunEnded,
-    ConfirmAnotherRun
-}
+const MAJOR_GAMEPLAY_EVENTS = 1;
+const USED_CONSUMABLES = 2;
+const GAME_MODES = 3;
+const NO_STARTING_ITEMS = 4;
+const NO_STARTING_TRINKETS = 5;
+const MORE_STARTING_ITEMS = 6;
+const MORE_STARTING_TRINKETS = 7;
+const CONFIRM_NL_DIED = 8;
+const CONFIRM_NL_WON = 9;
+const COMMON_BOSSES = 10;
+const NEXT_FLOORSET = 11;
+const WAS_THERE_ANOTHER_RUN = 12;
+const SUBMIT_FAILED = 13;
+const RUN_SUBMITTED_SUCCESSFULLY = 14;
+const DID_BLACK_RUN_ABSORB_AN_ITEM = 15;
+const NO_CURSE = 16;
+const CONFIRM_VICTORY_LAP = 17;
+const CONFIRM_RUN_ENDED = 18;
+const CONFIRM_ANOTHER_RUN = 19;
+const DID_BLACK_RUN_ABSORB_ANOTHER_ITEM = 20;
 
-const beforeUnloadEvent = (e: Event) => {
-    e.preventDefault();
-    (e.returnValue as any) = '';
-}
 
-export class SubmitVideo implements Component {
-    E: FrameworkElement;
+//const beforeUnloadEvent = e => {
+//    e.preventDefault();
+//    e.returnValue = '';
+//}
 
-    private history: HistoryTable<SubmitVideo>;
-    private currentPlayer: 1 | 2;
-    private storedServerResources: Map<string, Array<IsaacResource>>;
-    private staticResources: Map<StaticResourcesForMenu, Array<IsaacResource>>;
-    private youtubePlayer: YoutubePlayer;
-    private videoId: string;
 
-    private rightColumn: HTMLDivElement | undefined;
-    private playPauseSpan: HTMLSpanElement | undefined;
+/**
+ * the 'Submit Video' page
+ * 
+ * @constructor
+ * @param {string[]} parameters - route parameters. parameters[0] is the youtube video ID
+ */
+export function SubmitVideoPage(parameters) {
 
-    private tempChosenCharacterId: string | undefined;
-    private tempChosenItemSource: string | undefined;
-    private wasRerolled = false;
+    /** @type {string} */
+    this.loading = 'loading resources...';
 
-    playPauseInterval: number | undefined;
+    /** @type {boolean} */
+    this.highlightTutorial = true;
 
-    private initialMenu: WhatCharacterWasChosen<SubmitVideo>;
+    /** @type {string} */
+    this.videoId = parameters[0];
 
-    constructor(parameters: Array<string>) {
-        this.videoId = parameters[0];
-        const origin = getConfig().baseUrlWithoutTrailingSlash;
-        this.youtubePlayer = new YoutubePlayer(this.videoId);
-        this.history = new HistoryTable<SubmitVideo>(this, this.videoId, this.ItemWasRemovedFromHistory, this.youtubePlayer);
-        this.currentPlayer = 1;
-        this.storedServerResources = new Map<string, Array<IsaacResource>>();
-        this.staticResources = new Map<StaticResourcesForMenu, Array<IsaacResource>>();
-        this.CreateInitialStaticResources();
-        this.initialMenu = new WhatCharacterWasChosen(this, this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.Character.toString(10)}`), this.CharacterWasChosen);
+    /** @type {number} */
+    this.playerOneOrTwo = 1;
 
-        // make sure play/pause icon is accurate at the beginning and throughout the session
-        this.playPauseInterval = setInterval(() => this.SetPlayPauseIcon(), 2000);
+    /** @type {boolean} */
+    this.wasRerolled = false;
 
-        // change title
-        get<string>(`/Api/Videos/Title/${this.videoId}`).then(title => {
-            if (title) {
-                setTitle(`Submitting: ${title}`);
-            }
-        });
+    /** @type {Map<string,IsaacResource[]>} */
+    this.storedServerResources = new Map();
 
-        this.E = {
-            e: ['div'],
-            a: [[A.Id, 'menu-wrapper']],
-            c: [
-                {
-                    e: ['div'],
-                    a: [[A.Id, 'left-column']],
-                    c: [
-                        {
-                            e: ['div'],
-                            a: [[A.Id, 'youtube-player-container']],
-                            c: [
-                                {
-                                    e: ['iframe'],
-                                    a: [
-                                        [A.Id, 'ytplayer'],
-                                        [A.Src, `https://www.youtube.com/embed/${this.videoId}?enablejsapi=1&origin=${origin}&rel=0&autoplay=0`],
-                                        [A.FrameBorder, '0']
-                                    ]
-                                }
-                            ]
-                        },
-                        {
-                            e: ['div'],
-                            a: [[A.Id, 'quotes-and-topic-wrapper']],
-                            c: [
-                                new SubmitQuote(this.videoId, this.youtubePlayer),
-                                new SubmitTopic(this.videoId),
-                                this.history
-                            ]
-                        }
-                    ]
-                },
-                {
-                    e: ['div'],
-                    a: [[A.Id, 'right-column']],
-                    c: [
-                        {
-                            e: ['div'],
-                            a: [[A.Id, 'player-and-seed-container']],
-                            c: [
-                                {
-                                    e: ['div'],
-                                    a: [[A.Id, 'player-controls']],
-                                    c: [
-                                        {
-                                            e: ['span', '⏪'],
-                                            a: [[A.Id, 'rewind'], [A.Class, 'hand'], [A.Title, 'Go back 5 seconds']],
-                                            v: [[EventType.Click, () => this.RewindClicked()]]
-                                        },
-                                        {
-                                            e: ['span', '▶️'],
-                                            a: [[A.Id, 'play-pause'], [A.Class, 'hand'], [A.Title, 'Play / Pause']],
-                                            v: [[EventType.Click, () => this.PlayPauseClicked()]]
-                                        }
-                                    ]
-                                },
-                                {
-                                    e: ['div', 'Player: 1'],
-                                    a: [[A.Id, 'current-player-container'], [A.Class, 'hand display-none']],
-                                    v: [[EventType.Click, e => this.ChangePlayer(e)]]
-                                },
-                                {
-                                    e: ['div'],
-                                    a: [[A.Id, 'seed-container'], [A.Class, 'hand display-none']],
-                                    v: [[EventType.Click, () => this.ShowSelectSeed()]]
-                                }
-                            ]
-                        },
-                        {
-                            e: ['div'],
-                            a: [[A.Id, 'menu-container']],
-                            c: [
-                                this.initialMenu
-                            ]
-                        }
-                    ]
-                }
-            ]
-        }
-    }
+    /** @type {Map<number,IsaacResource[]>} */
+    this.staticResources = new Map();
 
-    private RewindClicked() {
-        this.youtubePlayer.Seek(-5);
-    }
+    /** @type {YoutubePlayer} */
+    this.youtubePlayer = new YoutubePlayer(this.videoId);
 
-    private PlayPauseClicked() {
-        const currentState = this.youtubePlayer.GetPlayerState();
-        if (currentState === YT.PlayerState.PLAYING) {
-            this.youtubePlayer.PauseVideo();
-        } else {
-            this.youtubePlayer.PlayVideo();
-        }
+    /** @type {string} */
+    this.historyTableContainerId = 'history-table-container-xx';
 
-        setTimeout(() => this.SetPlayPauseIcon(), 100);
-    }
+    /** @type {string} */
+    this.quotesAndTopicsContainerId = 'quotes-and-topic-wrapper';
 
-    private SetPlayPauseIcon() {
-        const currentState = this.youtubePlayer.GetPlayerState();
-        let playPause: HTMLSpanElement | undefined;
+    /** @type {string} */
+    this.playerAndSeedContainerId = 'player-and-seed-container';
 
-        if (this.playPauseSpan) {
-            playPause = this.playPauseSpan;
-        } else {
-            const findPlayPauseResult = document.getElementById('play-pause');
-            if (findPlayPauseResult && findPlayPauseResult instanceof HTMLSpanElement) {
-                this.playPauseSpan = findPlayPauseResult;
-                playPause = findPlayPauseResult;
-            }
-        }
+    /** @type {string} */
+    this.menuContainerId = 'menu-container';
 
-        if (playPause) {
-            if (currentState === YT.PlayerState.PLAYING) {
-                playPause.innerText = '⏸️';
-            } else {
-                playPause.innerText = '▶️';
-            }
-        }
-    }
+    /** @type {string|null} */
+    this.tempValue = null;
     
-    private ItemWasRemovedFromHistory(removedElement: removeHistoryElement) {
-        // user has confirmed that the character must be removed, and the history element already removed it.
-        // ask the user to select a character again
+    // renders initial page
+    const origin = getConfig().baseUrlWithoutTrailingSlash;
+    new Render([
+        Div(
+            id('menu-wrapper'),
+
+            div(
+                id('left-column'),
+
+                div(
+                    id('youtube-player-container'),
+
+                    iframe(
+                        attr({
+                            id: 'ytplayer',
+                            src: `https://www.youtube.com/embed/${this.videoId}?enablejsapi=1&origin=${origin}&rel=0&autoplay=0`,
+                            frameborder: '0'
+                        })
+                    )
+                ),
+                div(
+                    id(this.quotesAndTopicsContainerId),
+                )
+            ),
+            div(
+                id('right-column'),
+
+                div(
+                    id(this.playerAndSeedContainerId)
+                ),
+                div(
+                    id(this.menuContainerId)
+                )
+            )
+        )
+    ]);
+
+    /** @type {YoutubePlayer} */
+    this.youtubePlayer = new YoutubePlayer(this.videoId);
+
+    /** @type {HistoryTable} */
+    this.history = new HistoryTable(this, this.videoId, this.historyTableContainerId, this.youtubePlayer, this.itemWasRemovedFromHistory);
+
+    /** @type {PlayerControls} */
+    this.playerControls = new PlayerControls(this.playerAndSeedContainerId, this.youtubePlayer);
+
+    /** @type {CurrentPlayer} */
+    this.currentPlayerHandler = new CurrentPlayer(this, this.playerAndSeedContainerId, this.changePlayer);
+
+    /** @type {ChangeSeed} */
+    this.seedHandler = new ChangeSeed(this, this.playerAndSeedContainerId, this.youtubePlayer, this.seedHasChanged, this.history);
+
+
+    // hard-coded resources for menus
+    this.staticResources.set(MAJOR_GAMEPLAY_EVENTS, [
+        { id: GameplayEventType.ItemCollected.toString(10), name: 'Item Collected', x: 70, y: 0, w: 35, h: 35 },
+        { id: GameplayEventType.ItemTouched.toString(10), name: 'Item Touched', x: 595, y: 0, w: 35, h: 35 },
+        { id: GameplayEventType.Bossfight.toString(10), name: 'Bossfight', x: 140, y: 0, w: 35, h: 35 },
+        { id: GameplayEventType.Trinket.toString(10), name: 'Trinket Taken', x: 280, y: 0, w: 35, h: 35 },
+        { id: GameplayEventType.CharacterReroll.toString(10), name: 'Character Reroll', x: 385, y: 0, w: 35, h: 35 },
+        { id: GameplayEventType.AbsorbedItem.toString(10), name: 'Sucked Up Item', x: 350, y: 0, w: 35, h: 35 },
+        { id: GameplayEventType.CharacterDied.toString(10), name: 'Northernlion DIED', x: 35, y: 0, w: 35, h: 35 },
+        { id: GameplayEventType.WonTheRun.toString(10), name: 'Northernlion WON', x: 1155, y: 0, w: 35, h: 35 },
+        { id: GameplayEventType.DownToTheNextFloor.toString(10), name: 'Down to the next floor!', x: 105, y: 0, w: 35, h: 35 },
+        { id: GameplayEventType.Clicker.toString(10), name: 'Other Events', x: 1190, y: 0, w: 35, h: 35 }
+    ]);
+
+    this.staticResources.set(USED_CONSUMABLES, [
+        { id: GameplayEventType.Pill.toString(10), name: 'Pill', x: 175, y: 0, w: 35, h: 35 },
+        { id: GameplayEventType.TarotCard.toString(10), name: 'Tarot Card', x: 210, y: 0, w: 35, h: 35 },
+        { id: GameplayEventType.Rune.toString(10), name: 'Rune', x: 245, y: 0, w: 35, h: 35 },
+        { id: GameplayEventType.OtherConsumable.toString(10), name: 'Other Consumable', x: 315, y: 0, w: 35, h: 35 }
+    ]);
+
+    this.staticResources.set(GAME_MODES, [
+        { id: GameMode.HardAndNormal.toString(10), name: 'Normal Game', x: 840, y: 0, w: 35, h: 35 },
+        { id: GameMode.GreedAndGreedier.toString(10), name: 'Greed Mode!', x: 875, y: 0, w: 35, h: 35 },
+        { id: GameMode.SpecialChallenge.toString(10), name: 'A Special Challenge', x: 910, y: 0, w: 35, h: 35 },
+        { id: GameMode.CommunityChallenge.toString(10), name: 'Community-Requested Challenge', x: 980, y: 0, w: 35, h: 35 },
+        { id: GameMode.SpecialSeed.toString(10), name: 'A Special Seed', x: 945, y: 0, w: 35, h: 35 },
+        { id: GameMode.Unspecified.toString(10), name: 'Something else / from a mod', x: 1015, y: 0, w: 35, h: 35 }
+    ]);
+
+    this.staticResources.set(NO_STARTING_ITEMS, [
+        { id: 'none', name: 'No, continue!', x: 700, y: 0, w: 35, h: 35 },
+    ]);
+
+    this.staticResources.set(NO_STARTING_TRINKETS, [
+        { id: 'none', name: 'No, continue!', x: 665, y: 0, w: 35, h: 35 },
+    ]);
+    this.staticResources.set(MORE_STARTING_ITEMS, [
+        { id: 'yes', name: 'Yes, there were more!', x: 595, y: 0, w: 30, h: 30 },
+        { id: 'no', name: 'No, that was it!', x: 700, y: 0, w: 35, h: 35 }
+    ]);
+    this.staticResources.set(MORE_STARTING_TRINKETS, [
+        { id: 'yes', name: 'Yes, there was another trinket!', x: 280, y: 0, w: 30, h: 30 },
+        { id: 'no', name: 'No, that was it!', x: 665, y: 0, w: 35, h: 35 }
+    ]);
+    this.staticResources.set(COMMON_BOSSES, []);
+    this.staticResources.set(NEXT_FLOORSET, []);
+    this.staticResources.set(CONFIRM_NL_DIED, [
+        { id: 'confirm', name: 'Yes, NL died!', x: 1050, y: 0, w: 35, h: 30 },
+        { id: 'cancel', name: 'No, CANCEL!', x: 1085, y: 0, w: 35, h: 30 }
+    ]);
+    this.staticResources.set(CONFIRM_VICTORY_LAP, [
+        { id: 'confirm', name: 'Yes, NL did a victory lap!', x: 1050, y: 0, w: 35, h: 30 },
+        { id: 'cancel', name: 'No, CANCEL!', x: 1085, y: 0, w: 35, h: 30 }
+    ]);
+    this.staticResources.set(CONFIRM_ANOTHER_RUN, [
+        { id: 'confirm', name: 'Yes, NL did another run!', x: 1050, y: 0, w: 35, h: 30 },
+        { id: 'cancel', name: 'No, CANCEL!', x: 1085, y: 0, w: 35, h: 30 }
+    ]);
+    this.staticResources.set(CONFIRM_RUN_ENDED, [
+        { id: 'confirm', name: 'Yes, The video ended here!', x: 1050, y: 0, w: 35, h: 30 },
+        { id: 'cancel', name: 'No, CANCEL!', x: 1085, y: 0, w: 35, h: 30 }
+    ]);
+    this.staticResources.set(CONFIRM_NL_WON, [
+        { id: 'confirm', name: 'Yes, NL won the run!', x: 1050, y: 0, w: 35, h: 30 },
+        { id: 'cancel', name: 'No, CANCEL!', x: 1085, y: 0, w: 35, h: 30 }
+    ]);
+    this.staticResources.set(WAS_THERE_ANOTHER_RUN, [
+        { id: 'run', name: 'Yes, another run!', x: 1120, y: 0, w: 35, h: 35 },
+        { id: 'victory-lap', name: 'Yes, a victory lap!', x: 1120, y: 0, w: 35, h: 35 },
+        { id: 'end', name: 'No, the episode ended here!', x: 1050, y: 0, w: 35, h: 35 }
+    ]);
+    this.staticResources.set(SUBMIT_FAILED, [
+        { id: 'submit-episode', name: 'Submit Episode!', x: 1120, y: 0, w: 30, h: 30 }
+    ]);
+    this.staticResources.set(RUN_SUBMITTED_SUCCESSFULLY, [
+        { id: 'run-submitted', name: 'View Results!', x: 735, y: 0, w: 30, h: 30 }
+    ]);
+    this.staticResources.set(DID_BLACK_RUN_ABSORB_AN_ITEM, [
+        { id: 'no', name: 'No, move on!', x: 665, y: 0, w: 35, h: 35 }
+    ]);
+    this.staticResources.set(DID_BLACK_RUN_ABSORB_ANOTHER_ITEM, [
+        { id: 'no', name: 'No, that was it!', x: 700, y: 0, w: 35, h: 35 }
+    ]);
+    this.staticResources.set(NO_CURSE, [
+        { id: 'NoCurse', name: 'No Curse!', x: 735, y: 0, w: 35, h: 35 }
+    ]);
+
+
+    // render initial menu
+    this.menu_WhatCharacterWasChosen();
+
+
+    // replaces the 'loading...' page title with the correct one
+    get(`/Api/Videos/Title/${this.videoId}`).then(title => {
+        if (title) {
+            setTitle(`Submitting: ${title}`);
+        }
+    });
+}
+
+
+
+
+
+
+
+SubmitVideoPage.prototype = {
+
+    /**
+     * changes the player to player 1 or player 2
+     * @param {number} player
+     */
+    changePlayer: function (player) {
+        this.playerOneOrTwo = player;
+    },
+
+
+    /**
+     * decides what happens when an element was removed from history
+     * @param {RemoveHistoryElement} removedElement
+     */
+    itemWasRemovedFromHistory: function(removedElement) {
         if (removedElement.characterIndex !== null && removedElement.floorIndex === null && removedElement.eventIndex === null) {
-            this.Display(this.initialMenu);
-            return;
-        }
-
-        // user has confirmed that a floor must be removed, and the history element already removed the floor.
-        // ask the user to select a floor again if the first floor must be re-selected, or show the main menu if another floor exists already.
-        if (removedElement.characterIndex !== null && removedElement.floorIndex !== null && removedElement.eventIndex === null) {
-            if (this.history.CharacterHasNoFloorsSelected()) {
-                this.ShowChooseFloor();
+            // character was removed
+            this.menu_WhatCharacterWasChosen();
+        } else if (removedElement.characterIndex !== null && removedElement.floorIndex !== null && removedElement.eventIndex === null) {
+            // floor was removed
+            if (this.history.characterHasNoFloorsSelected()) {
+                this.menu_ChooseFirstFloor();
             } else {
-                this.ShowMainSelectScreen();
+                this.menu_main();
             }
-            return;
-        }
-
-        // generic events are safe to remove, except for the curse. here the 'select curse' menu must be displayed again
-        if (removedElement.characterIndex !== null && removedElement.floorIndex !== null && removedElement.eventIndex !== null && removedElement.eventType !== null) {
+        } else if ((removedElement.characterIndex !== null && removedElement.floorIndex !== null && removedElement.eventIndex !== null && removedElement.eventType !== null) {
+            // generic gameplay event was removed
+            // generic events are safe to remove, except for the curse. here the 'select curse' menu must be displayed again
             if (removedElement.eventType === ResourceType.Curse) {
-                this.ShowWasTheFloorCursed();
+                this.menu_WasTheFloorCursed();
                 return;
             }
         }
-    }
+    },
 
-    private ChangePlayer(e: Event) {
-        const target = e.target;
-        if (target && target instanceof HTMLDivElement && target.id === 'current-player-container') {
-            if (target.innerText === 'Player: 1') {
-                addClassIfNotExists(target, 'change-player-container-modifier');
-                this.currentPlayer = 2;
-                target.innerText = 'Player: 2'
-            } else {
-                removeClassIfExists(target, 'change-player-container-modifier');
-                this.currentPlayer = 1;
-                target.innerText = 'Player: 1';
-            }
+
+    /** 
+     *  When the seed was changed by the user: 
+     *  - displays the 'Was there a starting item?' menu if necessary
+     *  - displays the 'Main Menu' if it's not necessary
+     */
+    seedHasChanged: function () {
+        if (this.history.weAreOnFirstFloor() && !this.history.characterHasStartingItems()) {
+            this.menu_WasThereAStartingItem();
+        } else {
+            this.menu_MainSelectScreen();
         }
+    },
+
+
+    cleanup: function () {
+        this.tempValue = null;
+        this.wasRerolled = false;
+        const player = document.getElementById('current-player-container');
+        removeClassIfExists(player, 'display-none');
+        this.seedHandler.showSeedInputElement();
+    },
+
+
+    backToMainMenu: function() {
+        return div(
+            hr(),
+            span(
+                t('← ')
+            ),
+            span(
+                t('Back to selection'),
+                cl('u', 'hand'),
+                event('click', () => this.menu_main())
+            )
+        );
     }
 
-    private Display(component: Component) {
-        const html = render(component);
-        if (html) {
-            const menuContainer = this.getRightColumn();
-            menuContainer.innerHTML = '';
-            menuContainer.appendChild(html);
-        }
-    }
 
-    private getRightColumn() {
-        if (this.rightColumn) {
-            return this.rightColumn;
-        }
-
-        const rightColumn = document.getElementById('menu-container');
-        if (!rightColumn || !(rightColumn instanceof HTMLDivElement)) {
-            throw 'right column does not exist';
-        }
-
-        this.rightColumn = rightColumn;
-        return rightColumn;
-    }
-
-    private CreateInitialStaticResources() {
-        this.staticResources.set(StaticResourcesForMenu.MajorGameplayEvents, [
-            { id: GameplayEventType.ItemCollected.toString(10), name: 'Item Collected', x: 70, y: 0, w: 35, h: 35 } as IsaacResource,
-            { id: GameplayEventType.ItemTouched.toString(10), name: 'Item Touched', x: 595, y: 0, w: 35, h: 35 } as IsaacResource,
-            { id: GameplayEventType.Bossfight.toString(10), name: 'Bossfight', x: 140, y: 0, w: 35, h: 35 } as IsaacResource,
-            { id: GameplayEventType.Trinket.toString(10), name: 'Trinket Taken', x: 280, y: 0, w: 35, h: 35 } as IsaacResource,
-            { id: GameplayEventType.CharacterReroll.toString(10), name: 'Character Reroll', x: 385, y: 0, w: 35, h: 35 } as IsaacResource,
-            { id: GameplayEventType.AbsorbedItem.toString(10), name: 'Sucked Up Item', x: 350, y: 0, w: 35, h: 35 } as IsaacResource,
-            { id: GameplayEventType.CharacterDied.toString(10), name: 'Northernlion DIED', x: 35, y: 0, w: 35, h: 35 } as IsaacResource,
-            { id: GameplayEventType.WonTheRun.toString(10), name: 'Northernlion WON', x: 1155, y: 0, w: 35, h: 35 } as IsaacResource,
-            { id: GameplayEventType.DownToTheNextFloor.toString(10), name: 'Down to the next floor!', x: 105, y: 0, w: 35, h: 35 } as IsaacResource,
-            { id: GameplayEventType.Clicker.toString(10), name: 'Other Events', x: 1190, y: 0, w: 35, h: 35 } as IsaacResource
-        ]);
-
-        this.staticResources.set(StaticResourcesForMenu.UsedConsumables, [
-            { id: GameplayEventType.Pill.toString(10), name: 'Pill', x: 175, y: 0, w: 35, h: 35 } as IsaacResource,
-            { id: GameplayEventType.TarotCard.toString(10), name: 'Tarot Card', x: 210, y: 0, w: 35, h: 35 } as IsaacResource,
-            { id: GameplayEventType.Rune.toString(10), name: 'Rune', x: 245, y: 0, w: 35, h: 35 } as IsaacResource,
-            { id: GameplayEventType.OtherConsumable.toString(10), name: 'Other Consumable', x: 315, y: 0, w: 35, h: 35 } as IsaacResource
-        ]);
-
-        this.staticResources.set(StaticResourcesForMenu.GameModes, [
-            { id: GameMode.HardAndNormal.toString(10), name: 'Normal Game', x: 840, y: 0, w: 35, h: 35 } as IsaacResource,
-            { id: GameMode.GreedAndGreedier.toString(10), name: 'Greed Mode!', x: 875, y: 0, w: 35, h: 35 } as IsaacResource,
-            { id: GameMode.SpecialChallenge.toString(10), name: 'A Special Challenge', x: 910, y: 0, w: 35, h: 35 } as IsaacResource,
-            { id: GameMode.CommunityChallenge.toString(10), name: 'Community-Requested Challenge', x: 980, y: 0, w: 35, h: 35 } as IsaacResource,
-            { id: GameMode.SpecialSeed.toString(10), name: 'A Special Seed', x: 945, y: 0, w: 35, h: 35 } as IsaacResource,
-            { id: GameMode.Unspecified.toString(10), name: 'Something else / from a mod', x: 1015, y: 0, w: 35, h: 35 } as IsaacResource
-        ]);
-
-        this.staticResources.set(StaticResourcesForMenu.NoStartingItems, [
-            { id: 'none', name: 'No, continue!', x: 700, y: 0, w: 35, h: 35 } as IsaacResource,
-        ]);
-
-        this.staticResources.set(StaticResourcesForMenu.NoStartingTrinkets, [
-            { id: 'none', name: 'No, continue!', x: 665, y: 0, w: 35, h: 35 } as IsaacResource,
-        ]);
-        this.staticResources.set(StaticResourcesForMenu.MoreStartingItems, [
-            { id: 'yes', name: 'Yes, there were more!', x: 595, y: 0, w: 30, h: 30 } as IsaacResource,
-            { id: 'no', name: 'No, that was it!', x: 700, y: 0, w: 35, h: 35 } as IsaacResource
-        ]);
-        this.staticResources.set(StaticResourcesForMenu.MoreStartingTrinkets, [
-            { id: 'yes', name: 'Yes, there was another trinket!', x: 280, y: 0, w: 30, h: 30 } as IsaacResource,
-            { id: 'no', name: 'No, that was it!', x: 665, y: 0, w: 35, h: 35 } as IsaacResource
-        ]);
-        this.staticResources.set(StaticResourcesForMenu.CommonBosses, []);
-        this.staticResources.set(StaticResourcesForMenu.NextFloorset, []);
-        this.staticResources.set(StaticResourcesForMenu.ConfirmNlDied, [
-            { id: 'confirm', name: 'Yes, NL died!', x: 1050, y: 0, w: 35, h: 30 } as IsaacResource,
-            { id: 'cancel', name: 'No, CANCEL!', x: 1085, y: 0, w: 35, h: 30 } as IsaacResource
-        ]);
-        this.staticResources.set(StaticResourcesForMenu.ConfirmVictoryLap, [
-            { id: 'confirm', name: 'Yes, NL did a victory lap!', x: 1050, y: 0, w: 35, h: 30 } as IsaacResource,
-            { id: 'cancel', name: 'No, CANCEL!', x: 1085, y: 0, w: 35, h: 30 } as IsaacResource
-        ]);
-        this.staticResources.set(StaticResourcesForMenu.ConfirmAnotherRun, [
-            { id: 'confirm', name: 'Yes, NL did another run!', x: 1050, y: 0, w: 35, h: 30 } as IsaacResource,
-            { id: 'cancel', name: 'No, CANCEL!', x: 1085, y: 0, w: 35, h: 30 } as IsaacResource
-        ]);
-        this.staticResources.set(StaticResourcesForMenu.ConfirmRunEnded, [
-            { id: 'confirm', name: 'Yes, The video ended here!', x: 1050, y: 0, w: 35, h: 30 } as IsaacResource,
-            { id: 'cancel', name: 'No, CANCEL!', x: 1085, y: 0, w: 35, h: 30 } as IsaacResource
-        ]);
-        this.staticResources.set(StaticResourcesForMenu.ConfirmNlWon, [
-            { id: 'confirm', name: 'Yes, NL won the run!', x: 1050, y: 0, w: 35, h: 30 } as IsaacResource,
-            { id: 'cancel', name: 'No, CANCEL!', x: 1085, y: 0, w: 35, h: 30 } as IsaacResource
-        ]);
-        this.staticResources.set(StaticResourcesForMenu.WasThereAnotherRun, [
-            { id: 'run', name: 'Yes, another run!', x: 1120, y: 0, w: 35, h: 35 } as IsaacResource,
-            { id: 'victory-lap', name: 'Yes, a victory lap!', x: 1120, y: 0, w: 35, h: 35 } as IsaacResource,
-            { id: 'end', name: 'No, the episode ended here!', x: 1050, y: 0, w: 35, h: 35 } as IsaacResource
-        ]);
-        this.staticResources.set(StaticResourcesForMenu.SubmitFailed, [
-            { id: 'submit-episode', name: 'Submit Episode!', x: 1120, y: 0, w: 30, h: 30 } as IsaacResource
-        ]);
-        this.staticResources.set(StaticResourcesForMenu.RunSubmittedSuccessfully, [
-            { id: 'run-submitted', name: 'View Results!', x: 735, y: 0, w: 30, h: 30 } as IsaacResource
-        ]);
-        this.staticResources.set(StaticResourcesForMenu.DidBlackRuneAbsorbAnItem, [
-            { id: 'no', name: 'No, move on!', x: 665, y: 0, w: 35, h: 35 } as IsaacResource
-        ]);
-        this.staticResources.set(StaticResourcesForMenu.DidBlackRuneAbsorbAnotherItem, [
-            { id: 'no', name: 'No, that was it!', x: 700, y: 0, w: 35, h: 35 } as IsaacResource
-        ]);
-        this.staticResources.set(StaticResourcesForMenu.NoCurse, [
-            { id: 'NoCurse', name: 'No Curse!', x: 735, y: 0, w: 35, h: 35 } as IsaacResource
-        ]);
-    }
-
-    private GetStaticResource(type: StaticResourcesForMenu): Array<IsaacResource> {
+    /**
+     * returns resources that were hard-coded into the page and don't exist on the server
+     * @param {number} type - the type of resource that should be returned
+     * @returns {Promise<IsaacResource[]>}
+     */
+    getStaticResource: function(type) {
         const staticResources = this.staticResources.get(type);
         if (!staticResources) {
             throw `static resource is missing: ${type.toString(10)}`
         }
-        return staticResources;
-    }
+        return Promise.resolve(staticResources);
+    },
 
-    private async GetServerResource(url: string): Promise<Array<IsaacResource> | null> {
-        const storedResources = this.storedServerResources.get(url);
-        if (storedResources) {
-            return storedResources;
+
+    /**
+     * returns resources that were loaded from the server (or returns them from cache)
+     * @param {string} url - the url to load the resources from
+     * @returns {Promise<IsaacResource[]>}
+     */
+    getServerResource: function(url) {
+        const cachedResources = this.storedServerResources.get(url);
+        if (cachedResources) {
+            return Promise.resolve(cachedResources);
         }
 
-        const loadedResources = await get<Array<IsaacResource>>(url);
+        return get(url).then(resources => {
+            this.storedServerResources.set(url, resources);
+            return resources;
+        });
+    },
 
-        if (loadedResources) {
-            this.storedServerResources.set(url, loadedResources);
+
+    /**
+     * helper function to easily render HTML content into the main menu container
+     * @param {...any} contents
+     */
+    display: function (...contents) {
+        new Render([
+            ...contents
+        ], this.menuContainerId, true, true)
+    },
+
+
+    /** displays the 'What Character was Chosen?' menu */
+    menu_WhatCharacterWasChosen: function () {
+        this.display(
+            H2(t('What character was chosen?')),
+            Div(id('cb'))
+        );
+        new Boxes(this, 'cb', this.process_CharacterWasChosen, this.getServerResource(`/Api/Resources/?ResourceType=2`))
+    },
+
+
+    /**
+     * processes a chosen character and decides what to display next
+     * @param {string} characterId
+     */
+    process_CharacterWasChosen: function (characterId) {
+        this.tempValue = characterId;
+        this.menu_WhatGameModeWasChosen();
+    },
+
+
+    /** displays the 'What Game Mode was Chosen?' menu */
+    menu_WhatGameModeWasChosen: function () {
+        this.display(
+            H2(t('What game mode was chosen?')),
+            Div(id('gm'))
+        );
+        new Boxes(this, 'gm', this.process_GameModeWasChosen, this.getStaticResource(GAME_MODES), 1, false, '/img/gameplay_events.png');
+    },
+
+
+    /**
+     * processes the chosen game mode and decides what to display next
+     * @param {string} gameMode
+     */
+    process_GameModeWasChosen: function (gameMode) {
+        if (!this.tempValue || !gameMode) {
+            this.menu_WhatCharacterWasChosen();
+        } else {
+            const mode = parseInt(gameMode, 10);
+            const chosenCharacter = {
+                CharacterId: this.tempValue,
+                GameMode: mode,
+                Seed: undefined,
+                PlayedFloors: []
+            }
+            this.history.addCharacter(chosenCharacter);
+            this.menu_ChooseFirstFloor();
         }
+    },
 
-        return loadedResources;
+
+    /** displays the 'Choose what Other Event happened' menu */
+    menu_WhatOtherEventHappened: function () {
+        this.display(
+            H2(t('What other event happened?')),
+            P(
+                span(
+                    t('NL used the CLICKER'),
+                    cl('u', 'hand'),
+                    event('click', () => this.menu_WhatOtherEventHappened('clicker'))
+                )
+            ),
+            P(
+                span(
+                    t('NL REROLLED his character, and a TRANSFORMATION happened'),
+                    cl('u', 'hand'),
+                    event('click', () => this.menu_WhatOtherEventHappened('reroll-transform'))
+                )
+            ),
+            this.backToMainMenu()
+        );
+    },
+
+
+    /**
+     * processes the 'Other Event' selection and chooses what will be displayed next
+     * @param {string} otherEvent
+     */
+    process_OtherGameplayEventWasChosen: function(otherEvent) {
+        if (otherEvent === 'reroll-transform') {
+            this.menu_HowDidNlRerollHisCharacterBeforeTransforming();
+        } else if (otherEvent === 'clicker') {
+            this.ShowWhatCharacterDidNlChangeInto();
+        } else {
+            this.menu_main();
+        }
+    },
+
+
+    /** displays the 'What character did NL change into after using the clicker?' menu */
+    menu_WhatCharacterDidNlChangeInto: function () {
+        this.display(
+            H2(t('What character did NL change into after using the clicker?')),
+            Div(id('clicker'), t(this.loading)),
+            this.backToMainMenu()
+        );
+        new Boxes(this, 'clicker', this.process_ClickerCharacterChosen, this.getServerResource(`/Api/Resources/?ResourceType=2`), 1, false);
+    },
+
+
+    /**
+     * processes the character that NL turned into after using the clicker, then goes back to the main menu
+     * @param {string} characterId
+     */
+    process_ClickerCharacterChosen: function (characterId) {
+        this.history.AddEvent({
+            EventType: 20,
+            RelatedResource1: 'Clicker',
+            RelatedResource2: characterId,
+            Player: this.playerOneOrTwo
+        });
+        this.menu_main();
+    },
+
+
+    /** displays the 'How did NL reroll his character before he got a transformation?' menu */
+    menu_HowDidNlRerollHisCharacterBeforeTransforming: function () {
+        this.display(
+            H2(t('How did NL reroll his character?')),
+            Div(id('rr'), t(this.loading)),
+            this.backToMainMenu()
+        );
+        new Boxes(this, 'rr', this.process_RerollBeforeTransformingChosen, get(`/Api/Resources/?ResourceType=0&RequiredTags=124`), 1, false);
+    },
+
+
+    /**
+     * processes the that triggered a transformation and decides what to display next
+     * @param {string} rerollId
+     */
+    process_RerollBeforeTransformingChosen: function (rerollId) {
+        this.tempValue = rerollId;
+        this.menu_WhatTransformationDidNlRerollInto();
+    },
+
+
+    /** displays the 'What Transformation did NL reroll into?' */
+    menu_WhatTransformationDidNlRerollInto: function () {
+        this.display(
+            H2(t('What transformation did NL reroll into?')),
+            Div(id('tra'), t(this.loading)),
+            this.backToMainMenu()
+        );
+        new Boxes(this, 'tra', fn, this.getServerResource(`/Api/Resources/?ResourceType=12`), 1, false);
+    },
+
+
+    /**
+     * processes the reroll that triggered a transformation and decides what to display next
+     * @param {string} transformationId
+     */
+    process_RerolledTransformationSelected: function (transformationId) {
+        if (this.tempValue) {
+            this.history.addEvent({
+                EventType: 21,
+                RelatedResource1: this.copyString(this.tempValue),
+                RelatedResource2: transformationId,
+                Player: this.playerOneOrTwo
+            });
+        }
+        this.menu_main();
     }
 
-    private ProcessMainSelectScreenSelection(selectedEvent: string) {
-        this.HideSeedInputElement();
+
+    menu_ChooseFirstFloor: function () {
+
+    },
+
+
+    /**
+     * @param {string} s
+     * @returns {string}
+     */
+    copyString: function (s) {
+        return (' ' + s).slice(1);
+    },
+
+    /** Displays the main select screen that will be displayed after every gameplay event choice */
+    menu_main: function () {
+        this.cleanup();
+        const gameplayEvents = this.getStaticResource(MAJOR_GAMEPLAY_EVENTS);
+        const consumableEvents = this.getStaticResource(USED_CONSUMABLES);
+
+        this.display(
+            H2(t('What happened?')),
+            Div(id('ge')),
+            H2(t('What was used?')),
+            Div(id('ce')),
+            Hr(),
+            P(
+                span(
+                    t('Launch Tutorial!'),
+                    style(this.highlightTutorial ? 'color: orange' : 'color: darkgray'),
+                    id('launch-tutorial'),
+                    event('click', () => {
+                        this.highlightTutorial = false;
+                        this.launchTutorial();
+                    })
+                )
+            )
+        );
+
+        new Boxes(this, 'ge', this.processMainMenuSelection, gameplayEvents, 1, false, '/img/gameplay_events.png');
+        new Boxes(this, 'ce', this.processMainMenuSelection, consumableEvents, 2, false, '/img/gameplay_events.png');
+    },
+
+
+    /**
+     * Processes the selection made in the main menu and displays the correct menu depending on the choice
+     * @param {string} selectedEvent - the box that was clicked in the main menu
+     */
+    processMainMenuSelection: function (selectedEvent) {
+        this.seedHandler.hideSeedInputElement();
 
         if (!selectedEvent) {
-            this.ShowMainSelectScreen();
+            this.menu_main();
             return;
         }
 
         const selection = parseInt(selectedEvent, 10);
-        if (isNaN(selection)) {
-            this.ShowMainSelectScreen();
-            return;
-        }
 
-        const gameplayEvent = selection as GameplayEventType;
-
-        switch (gameplayEvent) {
-            case GameplayEventType.ItemCollected: this.ShowWhereDidTheItemComeFrom(); break;
-            case GameplayEventType.ItemTouched: this.ShowWhereDidTheTouchedItemComeFrom(); break;
-            case GameplayEventType.AbsorbedItem: this.ShowHowWasTheItemAbsorbed(); break;
-            case GameplayEventType.Bossfight: this.ShowSelectBoss(); break;
-            case GameplayEventType.Trinket: this.SelectTrinket(); break;
-            case GameplayEventType.CharacterReroll: this.ShowHowWasTheCharacterRerolled(); break;
-            case GameplayEventType.CharacterDied: this.ShowConfirmNlDied(); break;
-            case GameplayEventType.WonTheRun: this.ShowConfirmNlWon(); break;
-            case GameplayEventType.DownToTheNextFloor: this.ShowChooseFloor(); break;
-            case GameplayEventType.Pill: this.ShowChoosePill(); break;
-            case GameplayEventType.TarotCard: this.ShowChooseTarotCard(); break;
-            case GameplayEventType.Rune: this.ShowChooseRune(); break;
-            case GameplayEventType.OtherConsumable: this.ShowChooseOtherConsumable(); break;
-            case GameplayEventType.Clicker: this.ShowWhatOtherEventHappened(); break;
-            case GameplayEventType.RerollTransform: this.ShowWhatOtherEventHappened(); break;
+        switch (selection) {
+            case 2: this.ShowWhereDidTheItemComeFrom(); break;
+            case 18: this.ShowWhereDidTheTouchedItemComeFrom(); break;
+            case 14: this.ShowHowWasTheItemAbsorbed(); break;
+            case 4: this.ShowSelectBoss(); break;
+            case 8: this.SelectTrinket(); break;
+            case 15: this.ShowHowWasTheCharacterRerolled(); break;
+            case 1: this.ShowConfirmNlDied(); break;
+            case 16: this.ShowConfirmNlWon(); break;
+            case 3: this.ShowChooseFloor(); break;
+            case 5: this.ShowChoosePill(); break;
+            case 6: this.ShowChooseTarotCard(); break;
+            case 7: this.ShowChooseRune(); break;
+            case 10: this.ShowChooseOtherConsumable(); break;
+            case 20: this.ShowWhatOtherEventHappened(); break;
+            case 21: this.ShowWhatOtherEventHappened(); break;
             default: this.ShowMainSelectScreen(); break;
         }
-    }
+    },
 
-    private ShowWhatOtherEventHappened() {
-        const menu = new WhatOtherEventHappened(this, this.OtherEventTypeSelected);
-        this.Display(menu);
-    }
 
-    private OtherEventTypeSelected(eventType: string) {
-        if (!eventType) {
-            this.ShowMainSelectScreen();
-            return;
-        }
+    /** the main menu tutorial, powered by Driver.js */
+    launchTutorial: function () {
+        this.youtubePlayer.pauseVideo();
 
-        if (eventType === 'reroll-transform') {
-            this.ShowHowDidNlRerollHisCharacter();
-        } else if (eventType === 'clicker') {
-            this.ShowWhatCharacterDidNlChangeInto();
-        }
-    }
+        const driver = new Driver({ allowClose: false });
+        driver.defineSteps([
+            {
+                element: '#b60',
+                popover: {
+                    title: 'Collected Item',
+                    description: 'If NL collects an item, click here!',
+                    position: 'left'
+                }
+            },
+            {
+                element: '#b61',
+                popover: {
+                    title: 'Touched Item',
+                    description: 'If NL only touches a spacebar item and puts it down again (to get transformation bonuses or to take it out of the item pool), click here!',
+                    position: 'left'
+                }
+            },
+            {
+                element: '#b62',
+                popover: {
+                    title: 'Bossfight',
+                    description: 'If NL encounters a boss, click here (even if he doesn\'t win or doesn\'t finish the fight!).',
+                    position: 'left'
+                }
+            },
+            {
+                element: '#b63',
+                popover: {
+                    title: 'Trinkets',
+                    description: 'If NL switches out his trinket, click here! Only trinkets that NL used for a while count!',
+                    position: 'left'
+                }
+            },
+            {
+                element: '#b64',
+                popover: {
+                    title: 'Character Reroll',
+                    description: 'Did NL use the D4 / D100 / the 6-Room or did "Missing No." trigger at the beginning of the floor? That\'s what this is for!',
+                    position: 'left'
+                }
+            },
+            {
+                element: '#b65',
+                popover: {
+                    title: 'Absorbed Items',
+                    description: 'This box is for items that got absorbed by Void or Black Rune!',
+                    position: 'left'
+                }
+            },
+            {
+                element: '#b66',
+                popover: {
+                    title: 'DIED!',
+                    description: 'If NL got killed and the run ended, click this box to choose how he got killed!',
+                    position: 'left'
+                }
+            },
+            {
+                element: '#b67',
+                popover: {
+                    title: 'WON!',
+                    description: 'Northernlion killed a final boss and won the run? click here!',
+                    position: 'left'
+                }
+            },
+            {
+                element: '#b68',
+                popover: {
+                    title: 'Down to the next floor!',
+                    description: 'This will take you to the "next floor" select screen. '
+                        + 'HINT: Try to choose the next floor when NL really enters the trap door - '
+                        + 'the current time of the youtube player will be saved as a timestamp to calculate floor timings! :) '
+                        + 'If a floor gets repeated (5-Room or Forget Me Now) also use this.',
+                    position: 'left'
+                }
+            },
+            {
+                element: '#b69',
+                popover: {
+                    title: 'Other Events',
+                    description: 'Everything that doesn\'t fit anywhere else. Currently used for: Transformations '
+                        + 'that happened when rerolling the character (for example becoming \'Lord of the Flies\' after using the D100) and changing the '
+                        + 'character with the "Clicker".',
+                    position: 'left'
+                }
+            },
+            {
+                element: '#box7',
+                popover: {
+                    description: 'If Northernlion uses a consumable, use one of these buttons.',
+                    title: 'Consumables',
+                    position: 'left'
+                }
+            },
+            {
+                element: '#current-player-container',
+                popover: {
+                    title: '2-Player Mode',
+                    description: 'If Northernlion plays as Jacob & Esau, use this button to switch between the two characters.'
+                        + 'It\'s a little tricky but you can do it! :) Also, Isaac might get a real 2-player mode one day...',
+                    position: 'left',
+                }
+            },
+            {
+                element: '#seed-container',
+                popover: {
+                    title: 'Seed',
+                    description: 'Did Northernlion show the seed later in the video? click here to add / change the seed at any time.',
+                    position: 'left'
+                }
+            },
+            {
+                element: '#player-controls',
+                popover: {
+                    title: 'Player Controls',
+                    description: 'Sometimes it\'s convenient to go back a couple seconds or pause the video without messing with the youtube player directly. ⏪ takes you '
+                        + 'back 5 seconds, ▶️ and ⏸️ play and pause the video.',
+                    position: 'bottom'
+                }
+            },
+            {
+                element: '#quotes',
+                popover: {
+                    title: 'Quotes',
+                    description: 'Northernlion is a funny dude. If he says something really funny, type it into the textbox and submit it!',
+                    position: 'top'
+                }
+            },
+            {
+                element: '#quote-started-at-container',
+                popover: {
+                    title: 'Quote Video Timestamp',
+                    description: 'Select when the quote happened in the video so that people can jump right to the quote on youtube! '
+                        + '"Current video time" will save the current time the youtube player is at right now. The second option lets you specify an exact time.',
+                    position: 'top'
+                }
+            },
+            {
+                element: '#submit-topic-container',
+                popover: {
+                    title: 'Topics / Tangents',
+                    description: 'This is for broad discussion topics and tangents NL went on. Maybe we can search NL videos by "tangents" in the future...?',
+                    position: 'top'
+                }
+            },
+            {
+                element: '#history-container',
+                popover: {
+                    title: 'History',
+                    description: 'All events you select will appear here in chronological order. If you added anything by accident, you can click individual events to remove them from the log! NOTE: '
+                        + 'Removing a floor or a character will also remove all events that happend on that floor, or everything that happened to that character! (a confirmation dialog will appear in those cases.)',
+                    position: 'top'
+                }
+            },
+            {
+                element: '#launch-tutorial',
+                popover: {
+                    title: 'Additional Help',
+                    description: 'On some pages there is more help available. Watch out for this link -  it might help you out if you get stuck or run into an edge case! And that\'s it! Thanks for taking the time to contribute and good luck!',
+                    position: 'left'
+                }
+            }
+        ]);
 
-    private ShowWhatCharacterDidNlChangeInto() {
-        const characters = get<Array<IsaacResource>>(`/Api/Resources/?ResourceType=${ResourceType.Character.toString(10)}`);
-        const menu = new WhatCharacterDidNlChangeInto(this, this.ClickerCharacterSelected, characters);
-        this.Display(menu);
+        setTimeout(() => {
+            driver.start();
+        }, 100);
     }
+}
 
-    private ClickerCharacterSelected(characterId: string) {
-        if (characterId) {
-            this.history.AddEvent({
-                EventType: GameplayEventType.Clicker,
-                RelatedResource1: 'Clicker',
-                RelatedResource2: characterId,
-                Player: this.currentPlayer
-            });
-        }
-        this.ShowMainSelectScreen();
-    }
+class SubmitVideo implements Component {
+    
 
-    private ShowHowDidNlRerollHisCharacter() {
-        const rerolls = get<Array<IsaacResource>>(`/Api/Resources/?ResourceType=${ResourceType.Unspecified.toString(10)}&RequiredTags=${Tag.CanRerollCharacter.toString(10)}`);
-        const menu = new HowDidNlRerollHisCharacter(this, this.CharacterRerollBeforeTransformationChosen, rerolls);
-        this.Display(menu);
-    }
-
-    private CharacterRerollBeforeTransformationChosen(characterRerollId: string) {
-        this.tempChosenItemSource = characterRerollId;
-        const transformations = get<Array<IsaacResource>>(`/Api/Resources/?ResourceType=${ResourceType.Transformation}`);
-        const menu = new WhatTransformationDidNlRerollInto(this, this.RerolledTransformationSelected, transformations);
-        this.Display(menu);
-    }
-
-    private RerolledTransformationSelected(transformationId: string) {
-        if (transformationId && this.tempChosenItemSource) {
-            this.history.AddEvent({
-                EventType: GameplayEventType.RerollTransform,
-                RelatedResource1: this.copyString(this.tempChosenItemSource),
-                RelatedResource2: transformationId,
-                Player: this.currentPlayer
-            });
-        }
-        this.ShowMainSelectScreen();
-    }
-
-    private copyString(s: string): string {
-        return (' ' + s).slice(1);
-    }
 
     private ShowChooseOtherConsumable() {
         const consumables = this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.OtherConsumable.toString(10)}`);
@@ -946,37 +1255,10 @@ export class SubmitVideo implements Component {
         this.ShowMainSelectScreen();
     }
 
-    private CharacterWasChosen(id: string) {
-        // save chosen character temporarily: need seed and game mode. character will be saved after game mode was chosen also
-        this.tempChosenCharacterId = id;    
-        this.ShowChooseGameMode();
-    }
+    
 
-    private ShowChooseGameMode() {
-        const gameModeComponent = new WhatGameModeWasChosen<SubmitVideo>(this, this.GetStaticResource(StaticResourcesForMenu.GameModes), this.GameModeWasChosen);
-        this.Display(gameModeComponent);
-    }
+    
 
-    private GameModeWasChosen(gameMode: string) {
-        // character must be chosen before selecting game mode, re-render selection if necessary
-        if (!this.tempChosenCharacterId) {
-            this.Display(this.initialMenu);
-            return;
-        }
-
-        // save character
-        const mode = parseInt(gameMode, 10) as GameMode;
-        const chosenCharacter: SubmittedPlayedCharacter = {
-            CharacterId: this.tempChosenCharacterId,
-            GameMode: mode,
-            Seed: undefined,
-            PlayedFloors: new Array<SubmittedPlayedFloor>()
-        }
-        this.history.AddCharacter(chosenCharacter);
-
-        // next: choose what floor we started on
-        this.ShowChooseFirstFloor();
-    }
 
     private ShowChooseFloor() {
         const commonFloorsThatComeNext = this.GetStaticResource(StaticResourcesForMenu.NextFloorset);
@@ -1049,24 +1331,9 @@ export class SubmitVideo implements Component {
         this.Display(new DidNlShowTheSeed<SubmitVideo>(this, this.SeedWasSelected, this.UpdateSeedText))
     }
 
-    private SeedWasSelected(seed: string) {
-        // skipped seed will be empty string
-        this.history.AddSeed(seed ? seed : null);
+    
 
-        if (this.history.WeAreOnFirstFloor() && !this.history.CharacterHasStartingItems()) {
-            this.ShowWasThereAStartingItem();
-        } else {
-            this.ShowMainSelectScreen();
-        }
-    }
-
-    private ShowMainSelectScreen() {
-        this.Cleanup();
-        this.ShowSeedInputElement();
-        const events = this.GetStaticResource(StaticResourcesForMenu.MajorGameplayEvents);
-        const consumableEvents = this.GetStaticResource(StaticResourcesForMenu.UsedConsumables);
-        this.Display(new MainSelectScreen<SubmitVideo>(this, events, consumableEvents, this.ProcessMainSelectScreenSelection))
-    }
+    
 
     
 
@@ -1105,16 +1372,7 @@ export class SubmitVideo implements Component {
         this.Display(new WhereDidTheItemComeFrom<SubmitVideo>(this, itemSources, this.ShowWhatItemWasCollected, this.youtubePlayer, false));
     }
 
-    private UpdateSeedText(seed: string) {
-        const seedDiv = document.getElementById('seed-container');
-        if (seedDiv && seedDiv instanceof HTMLDivElement) {
-            if (seed) {
-                seedDiv.innerText = 'Seed: ' + seed;
-            } else {
-                seedDiv.innerText = 'Enter seed';
-            }
-        }
-    }
+    
 
     private ShowWhatItemWasCollected(itemsourceId: string) {
         // itemsourceId = empty string if user clicked back button
@@ -1132,15 +1390,7 @@ export class SubmitVideo implements Component {
         this.wasRerolled = wasRerolled;
     }
 
-    private Cleanup() {
-        this.tempChosenCharacterId = undefined;
-        this.tempChosenItemSource = undefined;
-        this.wasRerolled = false;
-        const player = document.getElementById('current-player-container');
-        if (player && player instanceof HTMLDivElement) {
-            removeClassIfExists(player, 'display-none');
-        }
-    }
+
 
     private ItemAndSourceWereSelected(itemId: string) {
         if (itemId && this.tempChosenItemSource) {
@@ -1157,22 +1407,7 @@ export class SubmitVideo implements Component {
         this.ShowMainSelectScreen();
     }
 
-    private HideSeedInputElement = () => {
-        const seedContainer = document.getElementById('seed-container');
-        if (seedContainer && seedContainer instanceof HTMLDivElement) {
-            seedContainer.innerText = '';
-            addClassIfNotExists(seedContainer, 'display-none');
-        }
-    }
-
-    private ShowSeedInputElement = () => {
-        const seedContainer = document.getElementById('seed-container');
-        if (seedContainer && seedContainer instanceof HTMLDivElement) {
-            const seed = this.history.GetSeed();
-            seedContainer.innerText = seed ? `Seed: ${seed}` : 'Enter seed';
-            removeClassIfExists(seedContainer, 'display-none');
-        }
-    }
+    
 
     LaunchMainMenuTutorial() {
         this.youtubePlayer.PauseVideo();

@@ -1,4 +1,4 @@
-﻿import { img, src, Div, cl, h1, t, hr, p, span, a, button, hideModal, event } from "../../Framework/renderer";
+﻿import { img, src, Div, cl, h1, t, hr, p, span, a, button, hideModal, event, div } from "../../Framework/renderer";
 import { signin } from "../../Framework/Customizable/authentication";
 
 function biblethump() {
@@ -37,6 +37,12 @@ function notLoggedIn() {
                 t('before proceeding.')
             )
         ),
+        dismissModalSection()
+    )
+}
+
+function dismissModalSection() {
+    return div(
         hr(),
         button(
             t('Dismiss'),
@@ -47,7 +53,8 @@ function notLoggedIn() {
 
 export {
     biblethump,
-    notLoggedIn
+    notLoggedIn,
+    dismissModalSection
 }
 
 

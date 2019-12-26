@@ -4,11 +4,14 @@ import { postResponse } from "./http";
 import { navigate } from "./router";
 import { modalContent } from "./Customizable/Layout/modal-content";
 
-const ATTR_ERROR_REQUIRED = 'error-required';
-const ATTR_ERROR_MINLENGTH = 'error-minlength';
-const ATTR_ERROR_MAXLENGTH = 'error-maxlength';
+const ATTR_ERROR_REQUIRED = 'requiredError';
+const ATTR_ERROR_MINLENGTH = 'minlengthError';
+const ATTR_ERROR_MAXLENGTH = 'maxlengthError';
 
-export function FormHelper() {
+/**
+ * @constructor
+ */
+function FormHelper() {
 
     this.form = null;
 
@@ -98,14 +101,18 @@ export function FormHelper() {
     this.disableSubmitButton = function (form) {
         const buttons = form.getElementsByTagName('button');
         for (let i = 0; i < buttons.length; ++i) {
-            buttons[i].disabled = true;
+            if (buttons[i].getAttribute('type') === 'submit') {
+                buttons[i].disabled = true;
+            }
         }
     }
 
     this.enableSubmitButton = function (form) {
         const buttons = form.getElementsByTagName('button');
         for (let i = 0; i < buttons.length; ++i) {
-            buttons[i].disabled = false;
+            if (buttons[i].getAttribute('type') === 'submit') {
+                buttons[i].disabled = false;
+            }
         }
     }
 
@@ -198,4 +205,13 @@ export function FormHelper() {
 
 
 
+
+
+
+export {
+    FormHelper,
+    ATTR_ERROR_REQUIRED,
+    ATTR_ERROR_MINLENGTH,
+    ATTR_ERROR_MAXLENGTH
+}
 

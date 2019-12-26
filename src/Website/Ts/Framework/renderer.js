@@ -10,13 +10,6 @@ const POPUP_START = 7;
 const POPUP_END = 8;
 const ID = 9;
 const CLASS = 10;
-const TD = 11;
-const TH = 12;
-const TBODY = 13;
-const THEAD = 14;
-const TABLE = 15;
-const SELECT = 16;
-const OPTION = 17;
 
 const DIV = 1;
 const SPAN = 2;
@@ -36,6 +29,18 @@ const BUTTON = 15;
 const INPUT = 16;
 const TR = 17;
 const CANVAS = 18;
+const TD = 19;
+const TH = 20;
+const TBODY = 21;
+const THEAD = 22;
+const TABLE = 23;
+const SELECT = 24;
+const OPTION = 25;
+const UL = 26;
+const LI = 27;
+const IFRAME = 28;
+const TEXTAREA = 29;
+const FORM = 30;
 
 const do_nothing = function () { };
 
@@ -109,7 +114,12 @@ function Render(content, id = 'main', displayHtmlAfterRender = true, replaceCont
                     case OPTION: elementType = 'option'; break;
                     case CANVAS: elementType = 'canvas'; break;
                     case PARAGRAPH: elementType = 'p'; break;
+                    case UL: elementType = 'ul'; break;
+                    case LI: elementType = 'li'; break;
                     case A: elementType = 'a'; break;
+                    case IFRAME: elementType = 'iframe'; break;
+                    case TEXTAREA: elementType = 'textarea'; break;
+                    case FORM: elementType = 'form'; break;
                     default:
                         console.warn('unknown element: ' + elementNumber + ', defaulting to DIV!');
                         elementType = 'div';
@@ -342,9 +352,11 @@ function popup(distances, popupCreator) {
 }
 
 function modal(hideOnClickAnywhere, ...content) {
-    let modalContainer = document.getElementById('modal') || createAndGetModalContainer();
+    const modalContainer = document.getElementById('modal') || createAndGetModalContainer();
     modalContainer.innerHTML = '';
-    new Render(content, 'modal');
+    new Render([content], 'modal');
+    addClassIfNotExists('modal-container', modalContainer.firstChild);
+    ensureModalContentHasClass();
     showModal(hideOnClickAnywhere);
 }
 
@@ -403,6 +415,18 @@ function p(...contents) {
     return Child.call(this, PARAGRAPH, ...contents);
 }
 
+function form(...contents) {
+    return Child.call(this, FORM, ...contents);
+}
+
+function ul(...contents) {
+    return Child.call(this, UL, ...contents);
+}
+
+function li(...contents) {
+    return Child.call(this, LI, ...contents);
+}
+
 function P(...contents) {
     return Parent.call(this, PARAGRAPH, ...contents);
 }
@@ -413,6 +437,14 @@ function a(...contents) {
 
 function div(...contents) {
     return Child.call(this, DIV, ...contents);
+}
+
+function textarea(...contents) {
+    return Child.call(this, TEXTAREA, ...contents);
+}
+
+function iframe(...contents) {
+    return Child.call(this, IFRAME, ...contents);
 }
 
 function span(...contents) {
@@ -437,6 +469,10 @@ function H1(...contents) {
 
 function h2(...contents) {
     return Child.call(this, HEADER2, ...contents);
+}
+
+function H2(...contents) {
+    return Parent.call(this, HEADER2, ...contents);
 }
 
 function h3(...contents) {
@@ -600,5 +636,11 @@ export {
     Table,
     canvas,
     table,
-    Hr
+    Hr,
+    ul,
+    li,
+    iframe,
+    textarea,
+    form,
+    H2
 }

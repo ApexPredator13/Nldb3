@@ -1,60 +1,101 @@
 ﻿import { Div, Render, t, cl, div, attr, id, event } from "../../Framework/renderer";
 import { isaacImage } from "./isaac-image";
+import "../../framework/customizable/typedefs"
 
-export function renderBoxes(containerId, subs, boxId, resources, imagePath = '/img/isaac.png', upscale = true, limit = null) {
+/**
+ * renders a bunch of clickable boxes from IsaacResource[], HistoryImage[] or GameplayEvent[]
+ * @constructor
+ * @param {any} caller - the THIS context of the subscriber
+ * @param {string} containerId - the container into which the boxes will be rendered into
+ * @param {function(string):*} subs - subscribers that will be notified when a box was clicked
+ * @param {IsaacResource[]|HistoryImage[]|GameplayEvent[]|Promise<IsaacResource[]>|Promise<HistoryImage[]>|Promise<GameplayEvent[]>} resources - the resources that should be displayed
+ * @param {string=} [imagePath] - custom image path can be provided here
+ * @param {boolean=} [upscale] - upscales the image
+ * @param {number=} [limit] - limits the resources to the provided amount
+ * @param {replaceContent=} [replaceContent] - if true, replaces content in the container
+ * @param {number} id - the ID of the boxes, if more than one set is displayed at once
+ */
+function Boxes(caller, containerId, subs, resources, id = 1, upscale = true, imagePath = '/img/isaac.png', limit = null, replaceContent = true) {
+
+    this.caller = caller;
+    this.subs = subs;
+    this.containerId = containerId;
+    this.imagePath = imagePath;
+    this.upscale = upscale;
+    this.limit = limit;
+    this.id = id;
 
     if (Array.isArray(resources)) {
-        createBoxes(containerId, subs, id, resources, imagePath, upscale, limit);
+        this.createBoxes(resources);
     } else {
-        resources.then(r => createBoxes(containerId, subs, id, r, imagePath, upscale, limit));
+        resources.then(r => this.createBoxes(r));
     }
 }
 
-function createBoxes(containerId, subs, id, resources, imagePath, upscale, limit) {
-    if (!resources || resources.length === 0) {
+
+
+Boxes.prototype = {
+
+    /**
+     * renders all isaac resources
+     * @param {IsaacResource[]|HistoryImage[]|GameplayEvent[]} resources
+     */
+    createBoxes: function (resources) {
+        if (!resources || resources.length === 0) {
+            new Render([
+                Div(
+                    t('No resources found.')
+                )
+            ], this.containerId, true, false);
+            return;
+        }
+
+        if (this.limit) {
+            resources = resources.slice(0, this.limit);
+        }
+
         new Render([
             Div(
-                t('No resources found.')
+                cl('box-container'),
+                id(`box${this.id}`),
+                ...resources.map((resource, index) => {
+
+                    const width = resource.w > 65 ? `width: ${resource.w * (upscale ? 2 : 1)}px;` : '';
+                    const padding = upscale ? ` padding: 0 20px 20px 20px` : '';
+                    const s = `${width}${padding}`;
+
+                    return div(
+                        attr({ i: resource.id, style: s, class: 'box', id: `b${this.id}${index}` }),
+                        event('click', this.boxClickEvent),
+
+                        div(
+                            t(resource.name)
+                        ),
+                        isaacImage(resource, null, this.upscale, this.imagePath)
+                    )
+                })
             )
-        ], containerId, true, false);
-        return;
-    }
+        ], this.containerId, true, this.replaceContent);
+    },
 
-    if (limit) {
-        resources = resources.slice(0, limit);
-    }
 
-    new Render([
-        Div(
-            cl('box-container'),
-            id(`box${id}`),
-            ...(resources.map((resource, index) => {
-
-                const width = resource.w > 65 ? `width: ${resource.w * (upscale ? 2 : 1)}px;` : '';
-                const padding = upscale ? ` padding: 0 20px 20px 20px` : '';
-                const s = `${width}${padding}`;
-
-                return div(
-                    attr({ i: resource.id, style: s, class: 'box', id: `b${id}${index}` }),
-                    event('click', e => boxClickEvent(e, ...subs)),
-
-                    div(
-                        t(resource.name)
-                    ),
-                    isaacImage(resource, null, upscale, imagePath)
-                )
-            }))
-        )
-    ], containerId, true, false);
-}
-
-const boxClickEvent = (e, ...subs) => {
-    const targetWithId = e.target.className === 'box' ? e.target : e.target.parentElement;
-    const attributeValue = targetWithId.getAttribute('i');
-    if (attributeValue) {
-        for (const sub of subs) {
-            sub(attributeValue);
+    /**
+     * notifies all subscribers about what box was clicked
+     * @param {Event} e - the raw click event
+     */
+    boxClickEvent: function (e) {
+        const targetWithId = e.target.className === 'box' ? e.target : e.target.parentElement;
+        const attributeValue = targetWithId.getAttribute('i');
+        if (attributeValue) {
+            for (const sub of this.subs) {
+                sub.call(this.caller, attributeValue);
+            }
         }
     }
 }
 
+
+
+export {
+    Boxes
+}

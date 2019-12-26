@@ -61,7 +61,7 @@ const getUser = async () => {
         }
 
         return user;
-    } catch {
+    } catch (e) {
         return null;
     }
 }

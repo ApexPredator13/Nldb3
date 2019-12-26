@@ -45,14 +45,14 @@ async function request(url, requestInit, displayError = true) {
 
         try {
             return await response.clone().json();
-        } catch {
+        } catch (e) {
             try {
                 return await response.text();
-            } catch {
+            } catch (e) {
                 return null;
             }
         }
-    } catch {
+    } catch (e) {
         if (displayError) {
             console.error('error');
         }
