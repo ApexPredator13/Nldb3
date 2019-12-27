@@ -2,7 +2,7 @@
 
 namespace Website.Infrastructure
 {
-    public class ImportantDates
+    public static class ImportantDates
     {
         public static readonly DateTime vanillaStart = new DateTime(2011, 9, 29, 2, 57, 30, DateTimeKind.Utc);
         public static readonly DateTime vanillaEnd = new DateTime(2012, 5, 26, 15, 0, 8, DateTimeKind.Utc);
@@ -24,5 +24,37 @@ namespace Website.Infrastructure
         public const string ColorAfterbirthPlus = "green";
         public const string ColorAntibirth = "#7a1616";
         public const string ColorRepentance = "#3765a1";
+
+        public static DateTime GetStartFromString(string description)
+        {
+            switch (description.ToLower())
+            {
+                case "vanilla": return vanillaStart;
+                case "wotl":
+                case "wrathofthelamb": return wotlStart;
+                case "cr":
+                case "communityremix": return crStart;
+                case "rebirth": return rebirthStart;
+                case "afterbirth": return afterbirthStart;
+                case "afterbirthplus": return afterbirthPlusStart;
+                case "antibirth": return antibirthStart;
+                default: return vanillaStart;
+            }
+        }
+
+        public static DateTime GetEndFromString(string description)
+        {
+            switch (description.ToLower())
+            {
+                case "vanilla": return vanillaEnd;
+                case "wotl":
+                case "wrathofthelamb": return wotlEnd;
+                case "cr":
+                case "communityremix": return crEnd;
+                case "rebirth": return rebirthEnd;
+                case "afterbirth": return afterbirthEnd;
+                default: return vanillaEnd;
+            }
+        }
     }
 }

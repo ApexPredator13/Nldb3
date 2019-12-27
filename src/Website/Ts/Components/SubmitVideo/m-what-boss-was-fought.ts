@@ -1,8 +1,7 @@
 ﻿import { Component, FrameworkElement, A, EventType } from "../../Framework/renderer";
-import { Boxes } from "../General/renderBoxes";
+import { Boxes } from "../General/Boxes";
 import { IsaacResource } from "../../Models/isaac-resource";
-import { SearchboxComponent } from "../General/renderSearchbox";
-import { BackToMainSelection } from "./back-to-main-selection";
+import { SearchboxComponent } from "../Gen../General/Searchboxport { BackToMainSelection } from "./back-to-main-selection";
 import { HelpSelectBoss } from "./help-select-boss";
 import { ComponentWithModal } from "../../Framework/ComponentBaseClasses/component-with-modal";
 import { YoutubePlayer } from "./youtube-player";

@@ -1,5 +1,5 @@
 ﻿import { Render, Div } from "../Framework/renderer";
-import { Videos } from "../Components/General/renderVideos";
+import { Videos } from "../Components/General/Videos";
 import { registerPage, initRouter } from "../Framework/router";
 
 function episodesPage() {

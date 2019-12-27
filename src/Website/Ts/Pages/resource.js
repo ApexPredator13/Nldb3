@@ -3,7 +3,7 @@ import { registerPage, setOnLoadPageType, initRouter, setTitle, PAGE_TYPE_ISAAC_
 import { get } from "../Framework/http";
 import { isaacImage } from "../Components/General/isaac-image";
 import { ChartData, Chart } from "chart.js";
-import { Videos } from "../Components/General/renderVideos";
+import { Videos } from "../Components/General/Videos";
 
 let chartsData, charts, originalBodyBackground, backgroundVisible, optionsLoaded, resourceId, allResources;
 const pageContainerId = 'page-container';

@@ -128,11 +128,11 @@
 
   <ItemGroup>
     <TypeScriptCompile Include="Ts\Components\Admin\option-lists.js" />
-    <TypeScriptCompile Include="Ts\Components\General\renderBoxes.js" />
+    <TypeScriptCompile Include="Ts\Components\General\Boxes.js" />
     <TypeScriptCompile Include="Ts\Components\General\isaac-image.js" />
     <TypeScriptCompile Include="Ts\Components\General\modal-contents.js" />
-    <TypeScriptCompile Include="Ts\Components\General\renderSearchbox.js" />
-    <TypeScriptCompile Include="Ts\Components\General\renderVideos.js" />
+    <TypeScriptCompile Include="Ts\Components\General\Searchbox.js" />
+    <TypeScriptCompile Include="Ts\Components\General\Videos.js" />
     <TypeScriptCompile Include="Ts\Components\Home\rank.js" />
     <TypeScriptCompile Include="Ts\Components\Home\stat.js" />
     <TypeScriptCompile Include="Ts\Components\Home\topic.js" />

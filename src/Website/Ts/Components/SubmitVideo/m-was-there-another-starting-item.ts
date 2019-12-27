@@ -1,6 +1,6 @@
 ﻿import { Component, FrameworkElement } from "../../Framework/renderer";
 import { IsaacResource } from "../../Models/isaac-resource";
-import { Boxes } from "../General/renderBoxes";
+import { Boxes } from "../General/Boxes";
 
 export class WasThereAnotherStartingItem<TSubscriber> implements Component {
     E: FrameworkElement;

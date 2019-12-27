@@ -1,9 +1,7 @@
 ﻿import { Component, FrameworkElement } from "../../Framework/renderer";
 import { IsaacResource } from "../../Models/isaac-resource";
-import { Boxes } from "../General/renderBoxes";
-import { SearchboxComponent } from "../General/renderSearchbox";
-
-export class WasThereAStartingItem<TSubscriber> implements Component {
+import { Boxes } from "../General/Boxes";
+import { SearchboxComponent } from "../Gen../General/Searchboxexport class WasThereAStartingItem<TSubscriber> implements Component {
     E: FrameworkElement;
 
     constructor(

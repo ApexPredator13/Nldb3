@@ -13,8 +13,8 @@ namespace Website.Models
         public string? Search { get; set; } = null;
         public int Page { get; set; } = 1;
         public int Amount { get; set; } = 50;
-        public DateTime? From { get; set; } = null;
-        public DateTime? Until { get; set; } = null;
+        public string? From { get; set; } = null;
+        public string? Until { get; set; } = null;
         public string? ResourceId { get; set; } = null;
         public ResourceType ResourceType { get; set; } = ResourceType.Unspecified;
     }

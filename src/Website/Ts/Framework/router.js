@@ -27,7 +27,7 @@ const getPages = () => {
     return window.p;
 }
 
-function registerPage(page, title, url, pageType, afterRender, beforeLeaving, canLeave) {
+function registerPage(page, title, url, pageType, beforeLeaving, canLeave) {
     if (registrationCount++ === 0) {
         setOnLoadPageType(pageType);
     }
@@ -39,7 +39,6 @@ function registerPage(page, title, url, pageType, afterRender, beforeLeaving, ca
             title: title,
             url: url,
             pageType: pageType,
-            afterRender: afterRender,
             beforeLeaving: beforeLeaving,
             canLeave: canLeave
         });

@@ -76,6 +76,7 @@ ChangeSeed.prototype = {
      */
     seedWasSelected: function (seed) {
         this.history.addSeed(seed ? seed : null);
+        this.updateSeedText(seed);
         this.subscriberFunction.call(this.caller);
     },
 

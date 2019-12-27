@@ -17,6 +17,7 @@ using Website.Models.Database;
 using Website.Models;
 using Microsoft.Extensions.Logging;
 using Website.Models.Admin;
+using Website.Infrastructure;
 
 namespace Website.Data
 {
@@ -203,7 +204,7 @@ namespace Website.Data
                     s.Append(" AND");
                 }
                 s.Append(" published >= @From");
-                parameters.Add(new NpgsqlParameter("@From", NpgsqlDbType.TimestampTz) { NpgsqlValue = request.From.Value });
+                parameters.Add(new NpgsqlParameter("@From", NpgsqlDbType.TimestampTz) { NpgsqlValue = ImportantDates.GetStartFromString(request.From) });
                 requireAnd = true;
             }
 
@@ -214,7 +215,7 @@ namespace Website.Data
                     s.Append(" AND");
                 }
                 s.Append(" published <= @Until");
-                parameters.Add(new NpgsqlParameter("@Until", NpgsqlDbType.TimestampTz) { NpgsqlValue = request.Until.Value });
+                parameters.Add(new NpgsqlParameter("@Until", NpgsqlDbType.TimestampTz) { NpgsqlValue = ImportantDates.GetEndFromString(request.Until) });
             }
 
             using var c = await _npgsql.Connect();
@@ -833,7 +834,7 @@ namespace Website.Data
 
                 s.Append(" v.published >= @From");
                 requireAnd = true;
-                p.Add(new NpgsqlParameter("@From", NpgsqlDbType.TimestampTz) { NpgsqlValue = request.From.Value });
+                p.Add(new NpgsqlParameter("@From", NpgsqlDbType.TimestampTz) { NpgsqlValue = ImportantDates.GetStartFromString(request.From) });
             }
 
             if (request.Until != null)
@@ -844,7 +845,7 @@ namespace Website.Data
                 }
 
                 s.Append(" v.published <= @Until");
-                p.Add(new NpgsqlParameter("@Until", NpgsqlDbType.TimestampTz) { NpgsqlValue = request.Until });
+                p.Add(new NpgsqlParameter("@Until", NpgsqlDbType.TimestampTz) { NpgsqlValue = ImportantDates.GetEndFromString(request.Until) });
             }
 
             // GROUP BY

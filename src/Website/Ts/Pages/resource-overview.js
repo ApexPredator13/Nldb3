@@ -1,7 +1,7 @@
 ﻿import { Render, Div, h1, t, do_nothing, p, div, hr, h3, id } from "../Framework/renderer";
 import { registerPage, initRouter, navigate, PAGE_TYPE_ISAAC_RESOURCE } from "../Framework/router";
 import { get } from "../Framework/http";
-import { renderBoxes } from "../Components/General/renderBoxes";
+import { renderBoxes } from "../Components/General/Boxes";
 import { Link } from "./_link-creator";
 
 function resourceOverviewPage(parameters) {

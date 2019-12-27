@@ -1,6 +1,6 @@
 ﻿import { Component, FrameworkElement } from "../../Framework/renderer";
 import { IsaacResource } from "../../Models/isaac-resource";
-import { SearchboxComponent } from "../General/renderSearchbox";
+import { SearchboxComponent } from "../General/Searchbox";
 import { BackToMainSelection } from "./back-to-main-selection";
 
 export class SelectWhatKilledNl<TSubscriber> implements Component {
