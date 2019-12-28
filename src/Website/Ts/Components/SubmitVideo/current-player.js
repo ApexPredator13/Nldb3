@@ -1,5 +1,5 @@
 ﻿import { SubmitVideoPage } from "../../pages/submit-video.js"
-import { Render, Div, t, id, cl } from "../../Framework/renderer";
+import { Render, Div, t, id, cl, event } from "../../Framework/renderer";
 import { addClassIfNotExists, removeClassIfExists } from "../../Framework/browser";
 
 /**

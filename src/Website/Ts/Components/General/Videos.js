@@ -1,9 +1,10 @@
-﻿import { Div, div, Render, Tbody, td, a, th, cl, id, t, tr, thead, H1, p, P, do_nothing, select, option, attr, input, Table, tbody, modal } from "../../Framework/renderer";
+﻿import { Div, div, Render, Tbody, td, a, th, cl, id, t, tr, thead, H1, p, P, do_nothing, select, option, attr, input, Table, tbody, modal, event } from "../../Framework/renderer";
 import { get } from "../../Framework/http";
 import { addClassIfNotExists, removeClassIfExists } from "../../Framework/browser";
 import { getUser } from "../../Framework/Customizable/authentication";
 import { notLoggedIn } from "./modal-contents";
 import { Link } from "../../Pages/_link-creator";
+import { navigate } from "../../Framework/router";
 
 
 /**
@@ -47,16 +48,16 @@ function Videos(containerId, header, description, from = null, to = null, resour
             p(
                 t('Items per Page: '),
                 select(
-                    event('input', this.selectAmountEvent),
+                    event('input', e => this.selectAmountEvent(e)),
 
-                    option(t('50'), attr({ value: '50', selected: 'true' })),
-                    option(t('100'), attr({ value: '100' })),
-                    option(t('150'), attr({ value: '150' })),
-                    option(t('200'), attr({ value: '200' }))
+                    option('50', '50', true),
+                    option('100', '100', false),
+                    option('150', '150', false),
+                    option('200', '200', false)
                 ),
                 input(
                     attr({ type: 'text', id: 'search', placeholder: 'search...' }),
-                    event('input', this.searchEvent)
+                    event('input', () => this.searchEvent())
                 )
             )
         ),
@@ -64,11 +65,13 @@ function Videos(containerId, header, description, from = null, to = null, resour
         Div(id(this.paginationId)),
 
         Table(
+            id(this.videoTableId),
+
             thead(
                 tr(
                     th(
                         t('Title'),
-                        attr({ class: 'hand', r: '1' }),
+                        attr({ class: 'hand', r: '1', title: 'Video Title' }),
                         event('click', () => {
                             this.orderBy = 1;
                             this.reloadVideos(true);
@@ -77,7 +80,7 @@ function Videos(containerId, header, description, from = null, to = null, resour
                     ),
                     th(
                         t('Duration'),
-                        attr({ class: 'hand', r: '3' }),
+                        attr({ class: 'hand', r: '3', title: 'Video duration' }),
                         event('click', () => {
                             this.orderBy = 3;
                             this.reloadVideos(true);
@@ -86,7 +89,7 @@ function Videos(containerId, header, description, from = null, to = null, resour
                     ),
                     th(
                         t('Release Date ⇓'),
-                        attr({ class: 'hand', r: '2' }),
+                        attr({ class: 'hand', r: '2', title: 'Video Release Date' }),
                         event('click', () => {
                             this.orderBy = 2;
                             this.reloadVideos(true);
@@ -95,7 +98,7 @@ function Videos(containerId, header, description, from = null, to = null, resour
                     ),
                     th(
                         t('👍'),
-                        attr({ class: 'hand', r: '4' }),
+                        attr({ class: 'hand', r: '4', title: 'Number of Likes' }),
                         event('click', () => {
                             this.orderBy = 4;
                             this.reloadVideos(true);
@@ -104,7 +107,7 @@ function Videos(containerId, header, description, from = null, to = null, resour
                     ),
                     th(
                         t('👎'),
-                        attr({ class: 'hand', r: '5' }),
+                        attr({ class: 'hand', r: '5', title: 'Number of Dislikes' }),
                         event('click', () => {
                             this.orderBy = 5;
                             this.reloadVideos(true);
@@ -112,8 +115,17 @@ function Videos(containerId, header, description, from = null, to = null, resour
                         })
                     ),
                     th(
+                        t('👎/👍'),
+                        attr({ class: 'hand', r: '9', title: 'Like/Dislike Ratio (percent of dislikes)' }),
+                        event('click', () => {
+                            this.orderBy = 9;
+                            this.reloadVideos(true);
+                            this.lastOrderedBy = 9;
+                        })
+                    ),
+                    th(
                         t('Views'),
-                        attr({ class: 'hand', r: '6' }),
+                        attr({ class: 'hand', r: '6', title: 'View Count' }),
                         event('click', () => {
                             this.orderBy = 6;
                             this.reloadVideos(true);
@@ -122,7 +134,7 @@ function Videos(containerId, header, description, from = null, to = null, resour
                     ),
                     th(
                         t('Comm'),
-                        attr({ class: 'hand', r: '8' }),
+                        attr({ class: 'hand', r: '8', title: 'Comment Count' }),
                         event('click', () => {
                             this.orderBy = 8;
                             this.reloadVideos(true);
@@ -130,7 +142,8 @@ function Videos(containerId, header, description, from = null, to = null, resour
                         })
                     ),
                     th(
-                        t('HD')
+                        t('HD'),
+                        attr({ title: 'Is at least 720p?' })
                     ),
                     th()
                 )
@@ -138,6 +151,10 @@ function Videos(containerId, header, description, from = null, to = null, resour
             tbody()
         )
     ], containerId);
+
+    this.searchInputElement = document.getElementById('search');
+
+    console.log(document.getElementById(this.videoTableId));
 
     this.reloadVideos(false);
 }
@@ -150,19 +167,21 @@ Videos.prototype = {
      * processes the search event after the user typed something
      * @param {Event} e - the raw input event
      */
-    searchEvent: function (e) {
+    searchEvent: function () {
+
         if (this.searchTimeout !== null) {
             clearTimeout(this.searchTimeout);
+            this.searchTimeout = null;
         }
 
-        this.searchTimeout = setTimeout(() => {
-            const target = e.target;
-            if (target && target instanceof HTMLInputElement) {
-                this.searchTerm = target.value.length >= 3 ? target.value : null;
+        this.searchTimeout = setTimeout(
+            function () {
+                this.searchTerm = this.searchInputElement.value.length >= 3 ? this.searchInputElement.value : null;
                 this.currentPage = 1;
-                this.ReloadVideos(false);
-            }
-        }, 300);
+                this.reloadVideos(false);
+            }.bind(this),
+            300
+        );
     },
 
 
@@ -197,7 +216,7 @@ Videos.prototype = {
             if (!user) {
                 modal(false, notLoggedIn());
             } else {
-                navigate(new Link().SubmitVideo(videoId))
+                navigate(new Link().submitVideo(videoId))
             }
         }).finally(() => {
             if (e && e.target) {
@@ -236,8 +255,9 @@ Videos.prototype = {
 
     /**
      * @param {number} num
+     * @param {number=} decimals
      */
-    printNumber: function (num) {
+    printNumber: function (num, decimals = 0) {
         if (num) {
             if (decimals) {
                 return num.toFixed(decimals).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -265,15 +285,17 @@ Videos.prototype = {
 
             new Render([
                 Div(
-                    ...(pages.map(page => {
-                        div(
+                    id('pagination'),
+                    ...pages.map(page =>
+                        a(
                             t(page.toString(10)),
-                            event('click', this.pageClickEvent)
+                            this.currentPage === page ? cl('active-page') : do_nothing,
+                            event('click', e => this.pageClickEvent(e))
                         )
-                    }))
+                    )
                 )
             ], this.paginationId);
-        });
+        }).catch(e => console.error(e));
     },
 
 
@@ -332,7 +354,7 @@ Videos.prototype = {
                 Tbody(
                     id(this.videoTableBodyId),
                     ...(videoResult.videos.map(video => {
-                        tr(
+                        return tr(
                             td(
                                 a(
                                     t(video.title),
@@ -380,7 +402,7 @@ Videos.prototype = {
                     }))
                 )
             ], this.videoTableId, true, false);
-        });
+        }).catch(e => console.error(e));
     }
 }
 

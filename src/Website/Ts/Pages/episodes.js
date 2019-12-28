@@ -1,21 +1,31 @@
-﻿import { Render, Div } from "../Framework/renderer";
+﻿import { Render, Div, id } from "../Framework/renderer";
 import { Videos } from "../Components/General/Videos";
 import { registerPage, initRouter } from "../Framework/router";
 
-function episodesPage() {
-    new Render([
-        Div(id('videos-x'))
-    ]);
+/** 
+ *  the episode overview page
+ *  @constructor
+ */
+function EpisodesPage() { }
 
-    Videos('videos-x', 'A list of all Isaac episodes');
+EpisodesPage.prototype = {
+
+    /** renders the page and displays all videos */
+    renderPage: function () {
+        new Render([
+            Div(id('videos-x'))
+        ]);
+
+        new Videos('videos-x', 'A list of all Isaac episodes');
+    }
 }
 
 function registerEpisodesPage() {
-    registerPage(episodesPage, 'Isaac Episodes', ['Episodes']);
+    registerPage(EpisodesPage, 'Isaac Episodes', ['Episodes']);
 }
 
 export {
-    episodesPage,
+    EpisodesPage,
     registerEpisodesPage
 }
 

@@ -11,7 +11,11 @@ import { renderPlayedCharacters } from "../Components/Video/played-characters";
 import { renderTimeSpentOnEachFloor } from "../Components/Video/time-spent-on-each-floor";
 import { renderItempickupChart } from "../Components/Video/item-pickup-chart";
 
-function episodePage(parameters) {
+/**
+ * Displays an entire episode
+ * @param {string[]} parameters - route parameters. parameters[0] is the youtube video ID
+ */
+function EpisodePage(parameters) {
     const videoData = get(`/api/videos/${parameters[0]}`);
     const headerContainerId = 'video-title';
 
@@ -81,12 +85,12 @@ function createVideoTitle(video, containerId) {
 }
 
 function registerEpisodePage() {
-    registerPage(episodePage, 'loading video...', ['{id}'], PAGE_TYPE_EPISODE);
+    registerPage(EpisodePage, 'loading video...', ['{id}'], PAGE_TYPE_EPISODE);
 }
 
 export {
     registerEpisodePage,
-    episodePage
+    EpisodePage
 }
 
 (() => {

@@ -1,5 +1,4 @@
-﻿import { Tag } from "./tags";
-
+﻿
 const convertGameModeToString = mode => {
     switch (mode) {
         case 0: return 'All Modes';
@@ -103,6 +102,7 @@ const gameplayEventTypeToString = e => {
         case 0: return 'Unspecified Event';
         case 20: return 'Clicker';
         case 21: return 'Transformation after Character Reroll';
+        case 22: return 'Respawn';
         default: return '';
     }
 }
@@ -117,7 +117,7 @@ const convertSubmissionTypeToString = t => {
     }
 }
 
-const convertTagToString = (t: Tag): string => {
+const convertTagToString = (t) => {
     switch (t) {
         case 0: return 'Unspecified';
         case 1: return 'Changes Consumable Drop Behavior';

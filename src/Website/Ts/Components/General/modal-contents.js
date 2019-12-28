@@ -34,7 +34,7 @@ function notLoggedIn() {
                 event('click', e => { e.preventDefault(); signin(); })
             ),
             span(
-                t('before proceeding.')
+                t(' before proceeding.')
             )
         ),
         dismissModalSection()

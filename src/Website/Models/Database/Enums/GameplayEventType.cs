@@ -23,6 +23,7 @@
         ItemTouched,
         StartingTrinket,
         Clicker,
-        RerollTransform
+        RerollTransform,
+        Respawn
     }
 }

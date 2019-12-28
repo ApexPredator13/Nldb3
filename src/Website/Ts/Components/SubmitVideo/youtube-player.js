@@ -45,13 +45,13 @@ YoutubePlayer.prototype = {
         this.createPlayerInterval = setInterval(() => {
             // youtube player creation fails at page load. gotta retry a couple times.
             if (!this.player || this.player.b === null) {
-                this.player = new YT.Player('ytplayer', { videoId: videoId });
+                this.player = new YT.Player('ytplayer', { videoId: this.videoId });
             } else {
                 this.playerReady = true;
                 clearInterval(this.createPlayerInterval);
                 this.createPlayerInterval = undefined;
             }
-        }, 200);
+        }, 1000);
     },
 
 

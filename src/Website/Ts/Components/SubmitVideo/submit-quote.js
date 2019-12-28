@@ -1,5 +1,4 @@
-﻿import { Component, FrameworkElement, A, EventType, Render, Div, id, p, t, span, div, textarea, attr, br, input, select, option, button } from "../../Framework/renderer";
-import { Option } from '../General/option';
+﻿import { Render, Div, id, p, t, span, div, textarea, attr, br, input, select, option, button } from "../../Framework/renderer";
 import { post } from "../../Framework/http";
 import { YoutubePlayer } from "./youtube-player";
 

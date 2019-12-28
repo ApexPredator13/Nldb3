@@ -145,7 +145,7 @@ const getRequestedPageFromRoute = (route, specificPageType) => {
 
         // if the page is valid, return it
         if (isValid) {
-            result.page = page;
+            result.pageData = page;
             result.parameters = parameters;
             result.found = true;
             break;
@@ -165,11 +165,11 @@ const navigate = (requestedRoute, preventDefaultForEvent, specificPageType, push
         requestedRoute = requestedRoute.substring(1);
     }
 
-    const { found, page, parameters } = getRequestedPageFromRoute(requestedRoute, specificPageType);
-    console.log(`page found for "${requestedRoute}"? ${found}`, page, parameters);
+    const { found, pageData, parameters } = getRequestedPageFromRoute(requestedRoute, specificPageType);
+    console.log(`page found for "${requestedRoute}"? ${found}`, pageData, parameters);
     const currentRoute = getCurrentRoute();
 
-    if (!found || !page || !parameters) {
+    if (!found || !pageData || !parameters) {
         console.log('page not found. registered pages:', getPages());
         return;
     }
@@ -181,10 +181,10 @@ const navigate = (requestedRoute, preventDefaultForEvent, specificPageType, push
 
     // check if user can leave the page unprompted or if we have a 'progress will not be saved' situation
     const lastUrl = window.lastUrl;
-    const allowedToLeave = window.leavingAllowed;
+    const allowedToLeaveCheck = window.leavingAllowed;
 
-    if (allowedToLeave) {
-        const leavingIsOk = allowedToLeave();
+    if (allowedToLeaveCheck) {
+        const leavingIsOk = allowedToLeaveCheck();
         if (!leavingIsOk) {
             // reverse popstate if navigation was cancelled
             history.pushState(undefined, '', lastUrl);
@@ -199,21 +199,22 @@ const navigate = (requestedRoute, preventDefaultForEvent, specificPageType, push
     }
 
     // save leaving guard
-    if (page.canLeave) {
-        window.leavingAllowed = page.canLeave;
+    if (pageData.canLeave) {
+        window.leavingAllowed = pageData.canLeave;
     } else {
         window.leavingAllowed = null;
     }
 
     // save new beforeLeaving action
-    if (page.beforeLeaving) {
-        window.beforeLeaving = page.beforeLeaving;
+    if (pageData.beforeLeaving) {
+        window.beforeLeaving = pageData.beforeLeaving;
     } else {
         window.beforeLeaving = null;
     }
 
     // render new page
-    page.page(parameters);
+    const p = new pageData.page(parameters);
+    p.renderPage();
 
     // handle pushState
     if (push) {
@@ -227,7 +228,7 @@ const navigate = (requestedRoute, preventDefaultForEvent, specificPageType, push
         window.lastUrl = requestedRoute;
     }
 
-    document.title = typeof page.title === 'string' ? page.title : page.title();
+    document.title = typeof pageData.title === 'string' ? pageData.title : pageData.title();
 
     if (scrollToTop) {
         window.scrollTo(0, 0);

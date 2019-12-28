@@ -1,4 +1,4 @@
-﻿import { modal, Div, h2, hr, p, span, t, h4, input, hr, br, attr, style } from "../../Framework/renderer";
+﻿import { modal, Div, h2, hr, p, span, t, h4, input, br, attr, style } from "../../Framework/renderer";
 import { dismissModalSection } from "../General/modal-contents";
 
 export function helpSelectItem() {

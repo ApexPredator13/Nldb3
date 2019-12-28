@@ -2,8 +2,9 @@
 import { registerEpisodePage } from "./episode";
 import { registerResourceOverviewPage } from "./resource-overview";
 import { registerDownloadsPage } from "./downloads";
-import { registerHome } from "./home";
+import { registerHomePage } from "./home";
 import { registerResourcePage } from "./resource";
+import { registerSubmitVideoPage } from "./submit-video";
 
 (() => {
     registerEpisodePage();
@@ -11,5 +12,6 @@ import { registerResourcePage } from "./resource";
     registerResourceOverviewPage();
     registerDownloadsPage();
     registerResourcePage();
-    registerHome();
+    registerHomePage();
+    registerSubmitVideoPage();
 })();

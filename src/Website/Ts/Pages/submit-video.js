@@ -1,60 +1,24 @@
-﻿import { HistoryTable, removeHistoryElement } from "../Components/SubmitVideo/history-table";
-import { WhatCharacterWasChosen } from "../Components/SubmitVideo/m-what-character-was-chosen";
-import { WhatGameModeWasChosen } from "../Components/SubmitVideo/m-what-game-mode-was-played";
-import { SubmitQuote } from "../Components/SubmitVideo/submit-quote";
-import { SubmitTopic } from "../Components/SubmitVideo/submit-topic";
+﻿import { HistoryTable } from "../Components/SubmitVideo/history-table";
 import { YoutubePlayer } from "../Components/SubmitVideo/youtube-player";
-import { GameMode } from "../Enums/game-mode";
-import { ResourceType } from "../Enums/resource-type";
 import { addClassIfNotExists, removeClassIfExists } from "../Framework/browser";
 import { getConfig } from "../Framework/Customizable/config.development";
 import { get, postResponse } from "../Framework/http";
-import { A, Component, EventType, FrameworkElement, render, Render, Div, id, div, a, iframe, attr, span, t, P, event, h2, H2, cl, hr, Hr, style, H1, input, button, br, href } from "../Framework/renderer";
-import { PageData, registerPage, setTitle } from "../Framework/router";
-import { SubmittedPlayedCharacter } from "../Models/submitted-played-character";
-import { SubmittedPlayedFloor } from "../Models/submitted-played-floor";
-import { Tag } from "../Enums/tags";
-import { WhatFloorAreWeOn } from "../Components/SubmitVideo/m-what-floor-are-we-on";
-import { SubmittedGameplayEvent } from "../Models/submitted-gameplay-event";
-import { WasTheFloorCursed } from "../Components/SubmitVideo/m-was-the-floor-cursed";
-import { GameplayEventType } from "../Enums/gameplay-event-type";
-import { DidNlShowTheSeed } from "../Components/SubmitVideo/m-did-nl-show-the-seed";
-import { MainSelectScreen } from "../Components/SubmitVideo/m-main-select-screen";
-import { WhereDidTheItemComeFrom } from "../Components/SubmitVideo/m-where-did-the-item-come-from";
-import { WhatItemWasCollected } from "../Components/SubmitVideo/m-what-item-was-collected";
-import { HowWasTheItemAbsorbed } from "../Components/SubmitVideo/m-how-was-the-item-absorbed";
-import { WhatBossWasFought } from "../Components/SubmitVideo/m-what-boss-was-fought";
-import { SelectWhatTrinketWasTaken } from "../Components/SubmitVideo/m-select-what-trinket-was-taken";
-import { SelectHowWasTheCharacterRerolled } from "../Components/SubmitVideo/m-select-how-was-the-character-rerolled";
-import { SelectWhatKilledNl } from "../Components/SubmitVideo/m-select-what-killed-nl";
-import { ConfirmNlDied } from "../Components/SubmitVideo/m-confirm-nl-died";
-import { DidNlDoAnotherRun } from "../Components/SubmitVideo/m-did-nl-do-another-run";
-import { ConfirmNlDidAVictoryLap } from "../Components/SubmitVideo/m-confirm-nl-did-a-victory-lap";
-import { ConfirmTheRunEnded } from "../Components/SubmitVideo/m-confirm-the-run-ended";
-import { ConfirmSubmitEpisode } from "../Components/SubmitVideo/m-confirm-submit-episode";
-import { SubmissionSucceeded } from "../Components/SubmitVideo/SubmissionSucceeded";
-import { ConfirmNlWon } from "../Components/SubmitVideo/m-confirm-nl-won";
-import { ConfirmDidNlDoAnotherRun } from "../Components/SubmitVideo/m-confirm-did-nl-do-another-run";
-import { WasThereAStartingItem } from "../Components/SubmitVideo/m-was-there-a-starting-item";
-import { WasThereAnotherStartingItem } from "../Components/SubmitVideo/m-was-there-another-starting-item";
-import { WasThereAStartingTrinket } from "../Components/SubmitVideo/m-was-there-a-starting-trinket";
-import { WasThereAnotherStartingTrinket } from "../Components/SubmitVideo/m-was-there-another-starting-trinket";
-import { WhatPillWasTaken } from "../Components/SubmitVideo/m-what-pill-was-taken";
-import { WhatTarotCardWasUsed } from "../Components/SubmitVideo/m-what-tarot-card-was-used";
-import { WhatRuneWasUsed } from "../Components/SubmitVideo/m-what-rune-was-used";
-import { DidBlackRuneAbsorbAnItem } from "../Components/SubmitVideo/m-did-black-rune-absorb-an-item";
-import { WhatOtherConsumableWasUsed } from "../Components/SubmitVideo/m-what-other-consumable-was-used";
-import * as Driver from 'driver.js';
-import { WhatOtherEventHappened } from "../Components/SubmitVideo/m-what-other-event-happened";
-import { HowDidNlRerollHisCharacter } from "../Components/SubmitVideo/m-how-did-nl-reroll-his-character";
-import { WhatTransformationDidNlRerollInto } from "../Components/SubmitVideo/m-what-transformation-did-nl-reroll-into";
-import { WhatCharacterDidNlChangeInto } from "../Components/SubmitVideo/m-what-character-did-nl-change-into";
+import { Render, Div, id, div, a, iframe, attr, span, t, P, event, H2, cl, hr, Hr, style, H1, input, button, br } from "../Framework/renderer";
+import { registerPage, setTitle, navigate, PAGE_TYPE_EPISODE } from "../Framework/router";
 import { PlayerControls } from "../Components/SubmitVideo/player-controls";
 import { CurrentPlayer } from "../Components/SubmitVideo/current-player";
 import { ChangeSeed } from "../Components/SubmitVideo/change-seed";
-import '../Framework/Customizable/typedefs';
 import { Boxes } from "../Components/General/Boxes";
 import { Searchbox } from "../Components/General/Searchbox";
+import { Link } from "./_link-creator";
+import { helpSelectAbsorbedItemModal } from "../Components/SubmitVideo/help-select-absorbed-item";
+import { helpSelectItemsource } from "../Components/SubmitVideo/help-select-itemsource";
+import { helpSelectItem } from "../Components/SubmitVideo/help-select-item";
+import { helpSelectTouchedItem } from "../Components/SubmitVideo/help-select-touched-item";
+import { helpSelectBoss } from "../Components/SubmitVideo/help-select-boss";
+
+import * as Driver from 'driver.js';
+import '../Framework/Customizable/typedefs';
 
 const MAJOR_GAMEPLAY_EVENTS = 1;
 const USED_CONSUMABLES = 2;
@@ -88,7 +52,6 @@ const beforeUnloadEvent = e => {
 
 /**
  * the 'Submit Video' page
- * 
  * @constructor
  * @param {string[]} parameters - route parameters. parameters[0] is the youtube video ID
  */
@@ -101,7 +64,7 @@ function SubmitVideoPage(parameters) {
         addClassIfNotExists(nav, 'display-none');
     }
 
-    const main = document.getElementById('main-container');
+    const main = document.getElementById('main');
     if (main) {
         removeClassIfExists(main, 'w80');
         addClassIfNotExists(main, 'w100');
@@ -110,7 +73,11 @@ function SubmitVideoPage(parameters) {
     // add beforeUnload event
     window.addEventListener('beforeunload', beforeUnloadEvent);
 
+    // set 'episode was submitted' flag to false to warn user before leaving
+    window.episodeWasSubmitted = false;
 
+
+    // set all local variables
     /** @type {string} */
     this.loading = 'loading resources...';
 
@@ -205,32 +172,32 @@ function SubmitVideoPage(parameters) {
 
     // hard-coded resources for menus
     this.staticResources.set(MAJOR_GAMEPLAY_EVENTS, [
-        { id: GameplayEventType.ItemCollected.toString(10), name: 'Item Collected', x: 70, y: 0, w: 35, h: 35 },
-        { id: GameplayEventType.ItemTouched.toString(10), name: 'Item Touched', x: 595, y: 0, w: 35, h: 35 },
-        { id: GameplayEventType.Bossfight.toString(10), name: 'Bossfight', x: 140, y: 0, w: 35, h: 35 },
-        { id: GameplayEventType.Trinket.toString(10), name: 'Trinket Taken', x: 280, y: 0, w: 35, h: 35 },
-        { id: GameplayEventType.CharacterReroll.toString(10), name: 'Character Reroll', x: 385, y: 0, w: 35, h: 35 },
-        { id: GameplayEventType.AbsorbedItem.toString(10), name: 'Sucked Up Item', x: 350, y: 0, w: 35, h: 35 },
-        { id: GameplayEventType.CharacterDied.toString(10), name: 'Northernlion DIED', x: 35, y: 0, w: 35, h: 35 },
-        { id: GameplayEventType.WonTheRun.toString(10), name: 'Northernlion WON', x: 1155, y: 0, w: 35, h: 35 },
-        { id: GameplayEventType.DownToTheNextFloor.toString(10), name: 'Down to the next floor!', x: 105, y: 0, w: 35, h: 35 },
-        { id: GameplayEventType.Clicker.toString(10), name: 'Other Events', x: 1190, y: 0, w: 35, h: 35 }
+        { id: '2', name: 'Item Collected', x: 70, y: 0, w: 35, h: 35 },
+        { id: '18', name: 'Item Touched', x: 595, y: 0, w: 35, h: 35 },
+        { id: '4', name: 'Bossfight', x: 140, y: 0, w: 35, h: 35 },
+        { id: '8', name: 'Trinket Taken', x: 280, y: 0, w: 35, h: 35 },
+        { id: '15', name: 'Character Reroll', x: 385, y: 0, w: 35, h: 35 },
+        { id: '14', name: 'Sucked Up Item', x: 350, y: 0, w: 35, h: 35 },
+        { id: '1', name: 'Northernlion DIED', x: 35, y: 0, w: 35, h: 35 },
+        { id: '16', name: 'Northernlion WON', x: 1155, y: 0, w: 35, h: 35 },
+        { id: '3', name: 'Down to the next floor!', x: 105, y: 0, w: 35, h: 35 },
+        { id: '20', name: 'Other Events', x: 1190, y: 0, w: 35, h: 35 }
     ]);
 
     this.staticResources.set(USED_CONSUMABLES, [
-        { id: GameplayEventType.Pill.toString(10), name: 'Pill', x: 175, y: 0, w: 35, h: 35 },
-        { id: GameplayEventType.TarotCard.toString(10), name: 'Tarot Card', x: 210, y: 0, w: 35, h: 35 },
-        { id: GameplayEventType.Rune.toString(10), name: 'Rune', x: 245, y: 0, w: 35, h: 35 },
-        { id: GameplayEventType.OtherConsumable.toString(10), name: 'Other Consumable', x: 315, y: 0, w: 35, h: 35 }
+        { id: '5', name: 'Pill', x: 175, y: 0, w: 35, h: 35 },
+        { id: '6', name: 'Tarot Card', x: 210, y: 0, w: 35, h: 35 },
+        { id: '7', name: 'Rune', x: 245, y: 0, w: 35, h: 35 },
+        { id: '10', name: 'Other Consumable', x: 315, y: 0, w: 35, h: 35 }
     ]);
 
     this.staticResources.set(GAME_MODES, [
-        { id: GameMode.HardAndNormal.toString(10), name: 'Normal Game', x: 840, y: 0, w: 35, h: 35 },
-        { id: GameMode.GreedAndGreedier.toString(10), name: 'Greed Mode!', x: 875, y: 0, w: 35, h: 35 },
-        { id: GameMode.SpecialChallenge.toString(10), name: 'A Special Challenge', x: 910, y: 0, w: 35, h: 35 },
-        { id: GameMode.CommunityChallenge.toString(10), name: 'Community-Requested Challenge', x: 980, y: 0, w: 35, h: 35 },
-        { id: GameMode.SpecialSeed.toString(10), name: 'A Special Seed', x: 945, y: 0, w: 35, h: 35 },
-        { id: GameMode.Unspecified.toString(10), name: 'Something else / from a mod', x: 1015, y: 0, w: 35, h: 35 }
+        { id: '8', name: 'Normal Game', x: 840, y: 0, w: 35, h: 35 },
+        { id: '10', name: 'Greed Mode!', x: 875, y: 0, w: 35, h: 35 },
+        { id: '5', name: 'A Special Challenge', x: 910, y: 0, w: 35, h: 35 },
+        { id: '9', name: 'Community-Requested Challenge', x: 980, y: 0, w: 35, h: 35 },
+        { id: '6', name: 'A Special Seed', x: 945, y: 0, w: 35, h: 35 },
+        { id: '7', name: 'Something else / modded content', x: 1015, y: 0, w: 35, h: 35 }
     ]);
 
     this.staticResources.set(NO_STARTING_ITEMS, [
@@ -286,7 +253,7 @@ function SubmitVideoPage(parameters) {
         { id: 'no', name: 'No, move on!', x: 665, y: 0, w: 35, h: 35 }
     ]);
     this.staticResources.set(DID_BLACK_RUN_ABSORB_ANOTHER_ITEM, [
-        { id: 'yes', name: 'Yes, it absorbed another item!', x: 350, y: 0, w: 35, h: 35 },
+        { id: 'yes', name: 'Yes, another item was absorbed !', x: 350, y: 0, w: 35, h: 35 },
         { id: 'no', name: 'No, that was it!', x: 700, y: 0, w: 35, h: 35 }
     ]);
     this.staticResources.set(NO_CURSE, [
@@ -322,6 +289,10 @@ function SubmitVideoPage(parameters) {
 
 SubmitVideoPage.prototype = {
 
+    /** empty, all work is done in the constructor function because things need to be initialized in proper order. */
+    renderPage: function () { },
+
+
     /**
      * changes the player to player 1 or player 2
      * @param {number} player
@@ -332,7 +303,7 @@ SubmitVideoPage.prototype = {
 
 
     /**
-     * decides what happens when an element was removed from history
+     * decides what to display when an element was removed from history
      * @param {RemoveHistoryElement} removedElement
      */
     itemWasRemovedFromHistory: function(removedElement) {
@@ -346,7 +317,7 @@ SubmitVideoPage.prototype = {
             } else {
                 this.menu_Main();
             }
-        } else if ((removedElement.characterIndex !== null && removedElement.floorIndex !== null && removedElement.eventIndex !== null && removedElement.eventType !== null) {
+        } else if (removedElement.characterIndex !== null && removedElement.floorIndex !== null && removedElement.eventIndex !== null && removedElement.eventType !== null) {
             // generic gameplay event was removed
             // generic events are safe to remove, except for the curse. here the 'select curse' menu must be displayed again
             if (removedElement.eventType === ResourceType.Curse) {
@@ -473,9 +444,9 @@ SubmitVideoPage.prototype = {
     menu_WhatCharacterWasChosen: function () {
         this.display(
             H2(t('What character was chosen?')),
-            Div(id('cb'))
+            Div(id('cb'), t(this.loading))
         );
-        new Boxes(this, 'cb', this.process_CharacterWasChosen, this.getServerResource(`/Api/Resources/?ResourceType=2`))
+        new Boxes(this, 'cb', this.process_CharacterWasChosen, this.getServerResource(`/Api/Resources/?ResourceType=2`), 1, false)
     },
 
 
@@ -538,6 +509,13 @@ SubmitVideoPage.prototype = {
                     event('click', () => this.process_OtherGameplayEventWasChosen('reroll-transform'))
                 )
             ),
+            P(
+                span(
+                    t('NL DIED and RESPAWNED, because of extra lives or a special item/trinket.'),
+                    cl('u', 'hand'),
+                    event('click', () => this.process_OtherGameplayEventWasChosen('respawn'))
+                )
+            ),
             this.backToMainMenu()
         );
     },
@@ -545,16 +523,45 @@ SubmitVideoPage.prototype = {
 
     /**
      * processes the 'Other Event' selection and chooses what will be displayed next
-     * @param {string} otherEvent
+     * @param {'clicker'|'reroll-transform'|'respawn'} otherEvent
      */
     process_OtherGameplayEventWasChosen: function(otherEvent) {
         if (otherEvent === 'reroll-transform') {
             this.menu_HowDidNlRerollHisCharacterBeforeTransforming();
         } else if (otherEvent === 'clicker') {
             this.menu_WhatCharacterDidNlChangeInto();
+        } else if (otherEvent === 'respawn') {
+            this.menu_WhatKilledNlBeforeRespawning();
         } else {
             this.menu_Main();
         }
+    },
+
+
+    /** displays the 'What killed NL before respawning?' */
+    menu_WhatKilledNlBeforeRespawning: function () {
+        this.display(
+            H2('How did NL die before respawning?'),
+            Div(id('how-die'), t(this.loading)),
+            this.backToMainMenu()
+        );
+
+        new Searchbox(this, this.process_WhatKilledNlBeforeRespawning, 1, this.getServerResource(`/Api/Resources/?ResourceType=11`), false, 'how-die');
+    },
+
+
+    /**
+     * processes what enemy killed NL, then goes back to the main menu
+     * @param {string} enemyId
+     */
+    process_WhatKilledNlBeforeRespawning: function (enemyId) {
+        this.history.addEvent({
+            EventType: 22,
+            Player: this.playerOneOrTwo,
+            RelatedResource1: enemyId
+        });
+
+        this.menu_Main();
     },
 
 
@@ -612,7 +619,7 @@ SubmitVideoPage.prototype = {
             Div(id('tra'), t(this.loading)),
             this.backToMainMenu()
         );
-        new Boxes(this, 'tra', process_RerolledTransformationSelected, this.getServerResource(`/Api/Resources/?ResourceType=12`), 1, false);
+        new Boxes(this, 'tra', this.process_RerolledTransformationSelected, this.getServerResource(`/Api/Resources/?ResourceType=12`), 1, false);
     },
 
 
@@ -644,8 +651,8 @@ SubmitVideoPage.prototype = {
             Div(id('all')),
             this.backToMainMenu()
         );
-        new Boxes(this, 'first', this.process_FirstFloorChosen, firstFloors, 1, false);
-        new Boxes(this, 'all', this.process_FirstFloorChosen, allFloors, 2, false);
+        new Boxes(this, 'first', this.process_FloorWasChosen, firstFloors, 1, false);
+        new Boxes(this, 'all', this.process_FloorWasChosen, allFloors, 2, false);
     },
 
 
@@ -675,7 +682,7 @@ SubmitVideoPage.prototype = {
 
         // if it was an XL floor, add curse of the labyrinth. otherwise prompt the user to select a curse
         if (floorId.toLowerCase().endsWith('xl')) {
-            this.process_curseSelected('CurseOfTheLabyrinth');
+            this.process_CurseSelected('CurseOfTheLabyrinth');
         } else {
             this.menu_WasTheFloorCursed();
         }
@@ -730,7 +737,7 @@ SubmitVideoPage.prototype = {
         }
 
         if (this.history.weAreOnFirstFloor() && !this.history.currentCharacterHasSeed()) {
-            this.menu_SelectSeed();
+            this.menu_Seed();
         } else {
             this.menu_Main();
         }
@@ -1028,22 +1035,370 @@ SubmitVideoPage.prototype = {
         const selection = parseInt(selectedEvent, 10);
 
         switch (selection) {
-            case 2: this.ShowWhereDidTheItemComeFrom(); break;
-            case 18: this.ShowWhereDidTheTouchedItemComeFrom(); break;
-            case 14: this.ShowHowWasTheItemAbsorbed(); break;
-            case 4: this.ShowSelectBoss(); break;
-            case 8: this.SelectTrinket(); break;
+            case 2: this.menu_WhereDidCollectedItemComeFrom(); break;
+            case 18: this.menu_WhereDidCollectedTouchedItemComeFrom(); break;
+            case 14: this.menu_HowWasItemAbsorbed(); break;
+            case 4: this.menu_SelectBoss(); break;
+            case 8: this.menu_SelectTrinket(); break;
             case 15: this.menu_HowWasTheCharacterRerolled(); break;
-            case 1: this.ShowConfirmNlDied(); break;
-            case 16: this.ShowConfirmNlWon(); break;
-            case 3: this.ShowChooseFloor(); break;
-            case 5: this.ShowChoosePill(); break;
+            case 1: this.menu_ConfirmNlDied(); break;
+            case 16: this.menu_ConfirmNlWon(); break;
+            case 3: this.menu_ChooseNextFloor(); break;
+            case 5: this.menu_SelectPill(); break;
             case 6: this.menu_ChooseTarotCard(); break;
             case 7: this.menu_ChooseRune(); break;
             case 10: this.menu_ChooseOtherConsumable(); break;
-            case 20: this.ShowWhatOtherEventHappened(); break;
-            case 21: this.ShowWhatOtherEventHappened(); break;
-            default: this.ShowMainSelectScreen(); break;
+            case 20: this.menu_WhatOtherEventHappened(); break;
+            case 21: this.menu_WhatOtherEventHappened(); break;
+            default: this.menu_Main(); break;
+        }
+    },
+
+
+    /** displays the 'what pill was taken?' menu */
+    menu_SelectPill: function () {
+        this.display(
+            H2(t('What pill was used?')),
+            Div(id('pills')),
+            this.backToMainMenu()
+        );
+
+        new Searchbox(this, this.process_PillTaken, 1, this.getServerResource(`/Api/Resources/?ResourceType=8`), false, 'pills');
+    },
+
+
+    /**
+     * saves the pill, then sends the user back to the main menu
+     * @param {string} pillId
+     */
+    process_PillTaken: function (pillId) {
+        this.history.addEvent({
+            EventType: 5,
+            Player: this.playerOneOrTwo,
+            RelatedResource1: pillId
+        });
+
+        this.menu_Main();
+    },
+
+
+    /** displays the 'What trinket was taken?' menu */
+    menu_SelectTrinket: function () {
+        this.display(
+            H2(t('What trinket was taken?')),
+            P(t('Only select trinkets that were used for a while, not once that were just picked up briefly or on accident.')),
+            Div(id('trinkets')),
+            this.backToMainMenu()
+        );
+
+        new Searchbox(this, this.process_TrinketSelected, 1, this.getServerResource(`/Api/Resources/?ResourceType=13`), false, 'trinkets');
+    },
+
+
+    /**
+     * saves the selected trinket and sends the user back to the main menu
+     * @param {string} trinketId
+     */
+    process_TrinketSelected: function (trinketId) {
+        this.history.addEvent({
+            EventType: 8,
+            RelatedResource1: trinketId,
+            Player: this.playerOneOrTwo
+        });
+
+        this.menu_Main();
+    },
+
+
+    /** displays the 'What boss was encountered?' menu */
+    menu_SelectBoss: function () {
+        this.display(
+            H2(t('What boss was encountered?')),
+            P(t('Common bosses for this floor:')),
+            Div(id('common')),
+            P(t('All Bosses:')),
+            Div(id('all')),
+            P(
+                cl('gray'),
+                span(
+                    t('❔ ')
+                ),
+                span(
+                    t('I don\'t know what to do!'),
+                    cl('u ', 'hand'),
+                    event('click', () => helpSelectBoss())
+                )
+            ),
+            this.backToMainMenu()
+        );
+
+        new Boxes(this, 'common', this.process_Bossfight, this.getStaticResource(COMMON_BOSSES), 1, false);
+        new Searchbox(this, this.process_Bossfight, 2, this.getServerResource(`/Api/Resources/?ResourceType=1`), false, 'all');
+    },
+
+
+    /**
+     * saves the bossfight, then sends the user back to the main menu
+     * @param {string} bossId
+     */
+    process_Bossfight: function (bossId) {
+        this.history.addEvent({
+            EventType: 4,
+            RelatedResource1: bossId
+        });
+
+        this.menu_Main();
+    },
+
+
+    /** displays the 'Where did the touched item come from?' menu */
+    menu_WhereDidCollectedTouchedItemComeFrom: function () {
+        this.display(
+            H2(t('Where did the touched item come from?')),
+            P(t('Common Item Sources')),
+            Div(id('common'), t(this.loading)),
+            P(t('All Sources')),
+            Div(id('all'), t(this.loading)),
+            P(
+                cl('gray'),
+                span(
+                    t('❔ ')
+                ),
+                span(
+                    t('I don\'t know what to select!'),
+                    cl('u ', 'hand'),
+                    event('click', () => helpSelectItemsource())
+                )
+            ),
+            this.backToMainMenu()
+        );
+
+        const resources = this.getServerResource(`/Api/Resources/?ResourceType=7`);
+        new Boxes(this, 'common', this.process_CollectedTouchedItemSource, resources, 1, false, undefined, 10);
+        new Searchbox(this, this.process_CollectedTouchedItemSource, 2, resources, false, 'all');
+    },
+
+
+    /**
+     * saves the selected itemsource and displays the next menu
+     * @param {string} itemSourceId
+     */
+    process_CollectedTouchedItemSource: function (itemSourceId) {
+        this.tempValue = itemSourceId;
+        this.menu_WhatItemWasTouched();
+    },
+
+
+    /** displays the 'What item was touched?' menu */
+    menu_WhatItemWasTouched: function () {
+        this.display(
+            H2('What spacebar item was touched and put down right after?'),
+            P(
+                t('"Touched" means picking it up briefly to get the item out of the item pool, or to get it\'s transformation bonuses.'),
+                br(),
+                t('Example: Buying "Guppy\'s Paw" from the Deal with the Devil and leaving it behind, just to get one step closer to the Guppy transformation.')
+            ),
+            this.wasItemRerolled(),
+            Div(id('items'), t(this.loading)),
+            P(
+                cl('gray'),
+                span(
+                    t('❔ ')
+                ),
+                span(
+                    t('I don\'t know what to do!'),
+                    cl('u ', 'hand'),
+                    event('click', () => helpSelectTouchedItem())
+                )
+            ),
+            this.backToMainMenu()
+        );
+
+        new Searchbox(this, this.process_TouchedItemSelected, 1, this.getServerResource(`/Api/Resources/?ResourceType=6&RequiredTags=139`), false)
+    },
+
+
+    /**
+     * saves the touched item and its itemsource, then sends the user back to the main menu
+     * @param {string} itemId
+     */
+    process_TouchedItemSelected: function (itemId) {
+        this.history.addEvent({
+            EventType: 18,
+            Player: this.playerOneOrTwo,
+            RelatedResource1: itemId,
+            RelatedResource3: this.copyString(this.tempValue),
+            Rerolled: this.wasRerolled
+        });
+        this.menu_Main();
+    },
+
+
+    /** displays the 'Where did the item come from?' menu */
+    menu_WhereDidCollectedItemComeFrom: function () {
+        this.display(
+            H2(t('Where did the item come from?')),
+            P(t('Common Item Sources')),
+            Div(id('common'), t(this.loading)),
+            P(t('All Sources')),
+            Div(id('all'), t(this.loading)),
+            P(
+                cl('gray'),
+                span(
+                    t('❔ ')
+                ),
+                span(
+                    t('I don\'t know what to select!'),
+                    cl('u ', 'hand'),
+                    event('click', () => helpSelectItemsource())
+                )
+            ),
+            this.backToMainMenu()
+        );
+
+        const resources = this.getServerResource(`/Api/Resources/?ResourceType=7`);
+        new Boxes(this, 'common', this.process_CollectedItemSource, resources, 1, false, undefined, 10);
+        new Searchbox(this, this.process_CollectedItemSource, 2, resources, false, 'all');
+    },
+
+
+    /**
+     * saves the selected itemsource and displays the next menu
+     * @param {string} itemSourceId
+     */
+    process_CollectedItemSource: function (itemSourceId) {
+        this.tempValue = itemSourceId;
+        this.menu_WhatItemWasCollected();
+    },
+
+
+    /** displays the 'What item was collected?' menu */
+    menu_WhatItemWasCollected: function () {
+        this.display(
+            H2('What item was collected?'),
+            this.wasItemRerolled(),
+            Div(id('items'), t(this.loading)),
+            P(
+                cl('gray'),
+                span(
+                    t('❔ ')
+                ),
+                span(
+                    t('I don\'t know what to do!'),
+                    cl('u ', 'hand'),
+                    event('click', () => helpSelectItem())
+                )
+            ),
+            this.backToMainMenu()
+        );
+
+        new Searchbox(this, this.process_CollectedItemSelected, 1, this.getServerResource(`/Api/Resources/?ResourceType=6`), false)
+    },
+
+
+    /**
+     * saves the collected item and its itemsource, then sends the user back to the main menu
+     * @param {string} itemId
+     */
+    process_CollectedItemSelected: function (itemId) {
+        this.history.addEvent({
+            EventType: 2,
+            Player: this.playerOneOrTwo,
+            RelatedResource1: itemId,
+            RelatedResource3: this.copyString(this.tempValue),
+            Rerolled: this.wasRerolled
+        });
+        this.menu_Main();
+    },
+
+
+    /** displays the 'How was the item absorbed?' menu */
+    menu_HowWasItemAbsorbed: function () {
+        this.display(
+            H2(t('How was the item absorbed?')),
+            Div(id('ab'), t(this.loading)),
+            this.backToMainMenu()
+        );
+
+        new Boxes(this, 'ab', this.process_HowWasItemAbsorbed, this.getServerResource(`/Api/Resources/?ResourceType=0&RequiredTags=148`), 1, false);
+    },
+
+
+    /**
+     * processes how the item was absorbed. Special treatment for black rune!
+     * @param {string} absorberId
+     */
+    process_HowWasItemAbsorbed: function (absorberId) {
+        if (absorberId === 'BlackRune') {
+            this.process_ChosenRune('BlackRune');
+        } else {
+            this.tempValue = absorberId;
+            this.menu_WhatItemWasAbsorbed();
+        }
+    },
+
+
+    /** displays the 'What item was absorbed?' menu */
+    menu_WhatItemWasAbsorbed: function () {
+        this.display(
+            H2('What item was absorbed?'),
+            this.wasItemRerolled(),
+            Div(id('what'), t(this.loading)),
+            P(
+                cl('gray'),
+                span(
+                    t('❔ ')
+                ),
+                span(
+                    t('I don\'t know what to do!'),
+                    cl('u ', 'hand'),
+                    event('click', () => helpSelectAbsorbedItemModal())
+                )
+            ),
+            this.backToMainMenu(),
+        );
+
+        new Searchbox(this, this.process_AbsorbedItem, 1, this.getServerResource(`/Api/Resources/?ResourceType=6`), false, 'what');
+    },
+
+
+    /**
+     * processes the absorbed item
+     * @param {string} itemId
+     */
+    process_AbsorbedItem: function (itemId) {
+        this.history.addEvent({
+            EventType: 14,
+            Rerolled: this.wasRerolled,
+            RelatedResource2: this.copyString(this.tempValue),
+            RelatedResource1: itemId,
+            Player: this.playerOneOrTwo
+        });
+
+        this.menu_WasAnotherItemAbsorbed();
+    },
+
+
+    /** displays the 'Did another item get absorbed?' menu */
+    menu_WasAnotherItemAbsorbed: function () {
+        this.display(
+            H2(t('Did another item get absorbed?')),
+            Div(id('another'))
+        );
+
+        new Boxes(this, 'another', this.process_WasAnotherItemAbsorbed, this.getStaticResource(DID_BLACK_RUN_ABSORB_ANOTHER_ITEM), 1, false, '/img/gameplay_events.png');
+    },
+
+
+    /**
+     * asks the user for the next item that was absorbed or sends him back to the main menu
+     * @param {'yes'|'no'} choice
+     */
+    process_WasAnotherItemAbsorbed: function (choice) {
+        if (choice === 'no') {
+            this.menu_Main();
+        } else {
+            this.menu_WhatItemWasAbsorbed();
         }
     },
 
@@ -1149,10 +1504,6 @@ SubmitVideoPage.prototype = {
 
     /** displays the 'What Other Consumable was used?' menu */
     menu_ChooseOtherConsumable: function() {
-        const consumables = this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.OtherConsumable.toString(10)}`);
-        const menu = new WhatOtherConsumableWasUsed(this, this.OtherConsumableChosen, consumables);
-        this.Display(menu);
-
         this.display(
             H2(t('What consumable was used?')),
             Div(id('other')),
@@ -1457,6 +1808,11 @@ SubmitVideoPage.prototype = {
     },
 
 
+    /**
+     * tells the user that the submission failed - including an error message
+     * user can try to re-submit
+     * @param {string} msg
+     */
     menu_SubmitEpisodeFailed: function (msg) {
         this.display(
             H2(
@@ -1465,17 +1821,17 @@ SubmitVideoPage.prototype = {
                 id('header')
             ),
             P(
-                id('text'),
+                id('message'),
                 t('The error message is:'),
                 br(),
-                t(msg)
+                t(msg || 'I have no idea what happened.')
             ),
             Div(
                 button(
-                    t('Try submitting again'),
+                    t('Try Again!'),
                     event('click', e => {
                         document.getElementById('header').innerText = 'Resubmitting......';
-                        document.getElementById('text').innerHTML = '';
+                        document.getElementById('message').innerHTML = '';
                         this.process_SubmitEpisode(e);
                     })
                 )
@@ -1483,7 +1839,12 @@ SubmitVideoPage.prototype = {
         );
     },
 
+
+    /** displays the 'submission succeeded!' menu */
     menu_SubmitEpisodeSucceeded: function () {
+
+        // setting the flag to true will no longer display the 'are you sure you want to leave?'-warning.
+        window.episodeWasSubmitted = true;
 
         this.display(
             H2(t('Submission Succeeded!')),
@@ -1491,9 +1852,13 @@ SubmitVideoPage.prototype = {
                 p(
                     t('Thank you very much for contributing!'),
                     br(),
+                    br(),
                     a(
                         t('Click here to see the results'),
-                        cl('u', 'hand')
+                        cl('u', 'hand'),
+                        event('click', e => {
+                            navigate(new Link().Episode(this.videoId), e, PAGE_TYPE_EPISODE);
+                        })
                     )
                 )
             )
@@ -1501,95 +1866,69 @@ SubmitVideoPage.prototype = {
     },
 
 
-    private ShowConfirmNlDied() {
-        const icons = this.GetStaticResource(StaticResourcesForMenu.ConfirmNlDied);
-        const menu = new ConfirmNlDied(this, this.ShowWhatKilledNl, icons);
-        this.Display(menu);
-    }
+    /** displays the 'Confirm NL DIED?' menu */
+    menu_ConfirmNlDied: function () {
+        this.display(
+            H2(t('Please Confirm: NL DIED?')),
+            P(
+                t('Only confirm this if the death '),
+                span(
+                    t('ended the run'),
+                    style('color: orange')
+                ),
+                t('! If the character respawned(thanks to extra lives), go back and choose '),
+                span(
+                    t('"Other Event"'),
+                    style('color: orange')
+                ),
+                t('.')
+            ),
+            Div(id('died')),
+            this.backToMainMenu()
+        );
 
-    private ShowWhatKilledNl(choice: string) {
-        if (choice === 'confirm') {
-            const enemies = this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.Enemy.toString(10)}`);
-            const menu = new SelectWhatKilledNl(this, this.EnemyWasSelected, enemies);
-            this.Display(menu);
+        new Boxes(this, 'died', this.process_ConfirmNlDied, this.getStaticResource(CONFIRM_NL_DIED), 1, false, '/img/gameplay_events.png');
+    },
+
+
+    /**
+     * processes the choice the user made and shows the next menu
+     * @param {'confirm'|'cancel'} choice
+     */
+    process_ConfirmNlDied: function (choice) {
+        if (choice === 'cancel') {
+            this.menu_Main();
         } else {
-            this.ShowMainSelectScreen();
+            this.menu_WhatKilledNl();
         }
-    }
+    },
 
-    private EnemyWasSelected(enemyId: string) {
-        if (!enemyId) {
-            this.ShowMainSelectScreen();
-            return;
-        }
 
-        this.history.AddEvent({
-            EventType: GameplayEventType.CharacterDied,
+    /** displays the 'What Killed NL?' menu */
+    menu_WhatKilledNl: function () {
+        this.display(
+            H2('How did he die?'),
+            P('Hint: If you can\'t find an enemy in the list, it might still be missing - choose "Missing Death".'),
+            Div(id('how')),
+            this.backToMainMenu()
+        );
+
+        new Searchbox(this, this.process_EnemySelected, 1, this.getServerResource(`/Api/Resources/?ResourceType=11`), false, 'how');
+    },
+
+
+    /**
+     * processes the selected enemy, then asks the user if there was another run
+     * @param {string} enemyId
+     */
+    process_EnemySelected: function (enemyId) {
+        this.history.addEvent({
+            EventType: 1,
             RelatedResource1: enemyId
         });
 
-        this.ShowDidNlDoAnotherRun();
-    }
-
-
-
-
-    private ShowConfirmNlDidAnotherRun() {
-        const icons = this.GetStaticResource(StaticResourcesForMenu.ConfirmAnotherRun);
-        const menu = new ConfirmDidNlDoAnotherRun(this, this.ConfirmDidNlDoAnotherRun, icons);
-        this.Display(menu);
-    }
-
-    private ConfirmDidNlDoAnotherRun(choice: string) {
-        if (choice === 'confirm') {
-            this.ShowWhatCharacterWasChosenNext();
-        } else {
-            this.ShowDidNlDoAnotherRun();
-        }
-    }
-
-    private ShowWhatCharacterWasChosenNext() {
-        const characters = this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.Character.toString(10)}`);
-        const menu = new WhatCharacterWasChosen(this, characters, this.CharacterWasChosen);
-        this.Display(menu);
-    }
-
-    private ShowConfirmRunEnded() {
-        const icons = this.GetStaticResource(StaticResourcesForMenu.ConfirmRunEnded)
-        const menu = new ConfirmTheRunEnded(this, this.ConfirmRunEndedChosen, icons);
-        this.Display(menu);
-    }
-
-    private ConfirmRunEndedChosen(choice: string) {
-        if (choice === 'confirm') {
-            this.ShowSubmitEpisode();
-        } else {
-            this.ShowDidNlDoAnotherRun();
-        }
-    }
-
-    private ShowSubmitEpisode() {
-        const menu = new ConfirmSubmitEpisode(this, this.RunSubmissionDone, this.history, false);
-        this.Display(menu);
-    }
-
-    private RunSubmissionDone(runSubmitted: boolean) {
-        if (runSubmitted) {
-            this.ShowSubmissionSucceeded();
-        } else {
-            this.ShowSubmissionFailed();
-        }
-    }
-
-    private ShowSubmissionFailed() {
-        const menu = new ConfirmSubmitEpisode(this, this.RunSubmissionDone, this.history, true);
-        this.Display(menu);
-    }
-
-    private ShowSubmissionSucceeded() {
-        const menu = new SubmissionSucceeded(this.videoId);
-        this.Display(menu);
-    }
+        this.menu_DidNlDoAnotherRun();
+    },
 
 
     /** the main menu tutorial, powered by Driver.js */
@@ -1678,8 +2017,8 @@ SubmitVideoPage.prototype = {
                 popover: {
                     title: 'Other Events',
                     description: 'Everything that doesn\'t fit anywhere else. Currently used for: Transformations '
-                        + 'that happened when rerolling the character (for example becoming \'Lord of the Flies\' after using the D100) and changing the '
-                        + 'character with the "Clicker".',
+                        + 'that happened when rerolling the character (for example becoming \'Lord of the Flies\' after using the D100), '
+                        + 'respawning after death (thanks to extra lives), and changing the character with the "Clicker".',
                     position: 'left'
                 }
             },
@@ -1767,260 +2106,12 @@ SubmitVideoPage.prototype = {
     }
 }
 
-class SubmitVideo implements Component {
-    
-
-
-    
-
-
-    
-
-    private ShowChoosePill() {
-        const pills = this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.Pill.toString(10)}`);
-        const menu = new WhatPillWasTaken(this, this.PillChosen, pills);
-        this.Display(menu);
-    }
-
-    private PillChosen(pillId: string) {
-        if (pillId) {
-            this.history.AddEvent({
-                EventType: GameplayEventType.Pill,
-                Player: this.currentPlayer,
-                RelatedResource1: pillId
-            });
-        }
-        this.ShowMainSelectScreen();
-    }
-
-
-
-    
-
-    private SelectTrinket() {
-        const trinkets = this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.Trinket.toString(10)}`);
-        const menu = new SelectWhatTrinketWasTaken(this, this.TrinketWasSelected, trinkets);
-        this.Display(menu);
-    }
-
-    private TrinketWasSelected(trinketId: string) {
-        if (!trinketId) {
-            this.ShowMainSelectScreen();
-            return;
-        }
-
-        this.history.AddEvent({
-            EventType: GameplayEventType.Trinket,
-            RelatedResource1: trinketId,
-            Player: this.currentPlayer
-        });
-        this.ShowMainSelectScreen();
-    }
-
-    private ShowSelectBoss() {
-        const commonBosses = this.GetStaticResource(StaticResourcesForMenu.CommonBosses);
-        const bosses = this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.Boss.toString(10)}`);
-        const menu = new WhatBossWasFought(this, this.BossfightWasSelected, commonBosses, bosses, this.youtubePlayer);
-        this.Display(menu);
-    }
-
-    private BossfightWasSelected(bossId: string) {
-        if (!bossId) {
-            this.ShowMainSelectScreen();
-            return;
-        }
-
-        this.history.AddEvent({
-            EventType: GameplayEventType.Bossfight,
-            RelatedResource1: bossId
-        });
-        this.ShowMainSelectScreen();
-    }
-
-    private ShowHowWasTheItemAbsorbed() {
-        const absorbers = this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.Unspecified.toString(10)}&RequiredTags=${Tag.AbsorbsOtherItems.toString(10)}`);
-        const menu = new HowWasTheItemAbsorbed<SubmitVideo>(this, this.ShowWhatItemWasAbsorbed, absorbers);
-        this.Display(menu);
-    }
-
-    private ShowWhatItemWasAbsorbed(absorberId: string) {
-        if (!absorberId) {
-            this.ShowMainSelectScreen();
-            return;
-        }
-
-        this.tempChosenItemSource = absorberId;
-        const items = this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.Item.toString(10)}`);
-        const menu = new WhatItemWasCollected<SubmitVideo>(this, items, this.AbsorberAndAbsorbedItemWereSelected, this.ItemWasRerolled, this.youtubePlayer, false, true);
-        this.Display(menu);
-    }
-
-    private AbsorberAndAbsorbedItemWereSelected(absorbedItemId: string) {
-        if (!absorbedItemId || !this.tempChosenItemSource) {
-            this.ShowMainSelectScreen();
-            return;
-        }
-
-        if (this.tempChosenItemSource === 'BlackRune') {
-            this.history.AddEvent({
-                RelatedResource1: this.copyString(this.tempChosenItemSource),
-                EventType: GameplayEventType.Rune,
-                Player: this.currentPlayer
-            });
-        }
-
-        this.history.AddEvent({
-            RelatedResource1: absorbedItemId,
-            RelatedResource2: this.copyString(this.tempChosenItemSource),
-            EventType: GameplayEventType.AbsorbedItem,
-            Player: this.currentPlayer,
-            Rerolled: this.wasRerolled
-        });
-        this.ShowMainSelectScreen();
-    }
-
-    
-
-    
-
-
-    private ShowChooseFloor() {
-        const commonFloorsThatComeNext = this.GetStaticResource(StaticResourcesForMenu.NextFloorset);
-        const allFloors = this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.Floor.toString(10)}`);
-        this.Display(new WhatFloorAreWeOn<SubmitVideo>(this, Promise.resolve(commonFloorsThatComeNext), allFloors, this.FloorWasChosen, false));
-    }
-
-    
-
-    
-
-    
-
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    private ShowWhereDidTheTouchedItemComeFrom() {
-        const itemSources = this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.ItemSource}`);
-        this.Display(new WhereDidTheItemComeFrom<SubmitVideo>(this, itemSources, this.ShowWhatItemWasTouched, this.youtubePlayer, true));
-    }
-
-    private ShowWhatItemWasTouched(itemsourceId: string) {
-        if (!itemsourceId) {
-            this.ShowMainSelectScreen();
-            return;
-        }
-        this.tempChosenItemSource = itemsourceId;
-
-        const items = this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.Item}&RequiredTags=${Tag.IsSpacebarItem}`);
-        this.Display(new WhatItemWasCollected<SubmitVideo>(this, items, this.TouchedItemAndSourceWereSelected, this.ItemWasRerolled, this.youtubePlayer, true, false));
-    }
-
-    private TouchedItemAndSourceWereSelected(itemId: string) {
-        if (itemId && this.tempChosenItemSource) {
-            this.history.AddEvent({
-                EventType: GameplayEventType.ItemTouched,
-                Player: this.currentPlayer,
-                RelatedResource1: itemId,
-                RelatedResource2: this.copyString(this.tempChosenItemSource),
-                Rerolled: this.wasRerolled
-            });
-        }
-        
-        this.ShowMainSelectScreen();
-    }
-
-    private ShowWhereDidTheItemComeFrom() {
-        const itemSources = this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.ItemSource}`);
-        this.Display(new WhereDidTheItemComeFrom<SubmitVideo>(this, itemSources, this.ShowWhatItemWasCollected, this.youtubePlayer, false));
-    }
-
-    
-
-    private ShowWhatItemWasCollected(itemsourceId: string) {
-        // itemsourceId = empty string if user clicked back button
-        if (!itemsourceId) {
-            this.ShowMainSelectScreen();
-            return;
-        }
-        this.tempChosenItemSource = itemsourceId;
-
-        const items = this.GetServerResource(`/Api/Resources/?ResourceType=${ResourceType.Item}`);
-        this.Display(new WhatItemWasCollected<SubmitVideo>(this, items, this.ItemAndSourceWereSelected, this.ItemWasRerolled, this.youtubePlayer, false, false))
-    }
-
-    private ItemWasRerolled(wasRerolled: boolean) {
-        this.wasRerolled = wasRerolled;
-    }
-
-
-
-    private ItemAndSourceWereSelected(itemId: string) {
-        if (itemId && this.tempChosenItemSource) {
-            const event: SubmittedGameplayEvent = {
-                EventType: GameplayEventType.ItemCollected,
-                Player: this.currentPlayer,
-                RelatedResource1: itemId,
-                RelatedResource2: this.copyString(this.tempChosenItemSource),
-                Rerolled: this.wasRerolled
-            };
-            this.history.AddEvent(event);
-        }
-
-        this.ShowMainSelectScreen();
-    }
-
-    
-
-
-    static RegisterPage() {
-        const page: PageData = {
-            Component: SubmitVideo,
-            Title: 'loading video...',
-            Url: ['SubmitVideo', '{id}'],
-            beforeLeaving: () => {
-                // show nav bar again
-                const nav = document.getElementById('nav');
-                if (nav) {
-                    addClassIfNotExists(nav, 'w20');
-                    removeClassIfExists(nav, 'display-none');
-                }
-
-                const main = document.getElementById('main-container');
-                if (main) {
-                    removeClassIfExists(main, 'w100');
-                    addClassIfNotExists(main, 'w80');
-                }
-
-                // remove beforeUnload event
-                window.removeEventListener('beforeunload', beforeUnloadEvent);
-
-                if (page.Component instanceof SubmitVideo && typeof (page.Component.playPauseInterval)) {
-                    // clear interval
-                    clearInterval(page.Component.playPauseInterval);
-                    console.warn('failed to clear interval');
-
-                    // destroy youtube player
-                    page.Component.youtubePlayer.DestroyIframe();
-                }
-            },
-            canLeave: () => confirm('warning! your progress will not be saved!')
-        };
-        registerPage(page);
-    }
-}
-
 
 
 function registerSubmitVideoPage() {
     const cleanup = () => {
+
+        // reset layout
         const nav = document.getElementById('nav');
         if (nav) {
             addClassIfNotExists(nav, 'w20');
@@ -2035,18 +2126,16 @@ function registerSubmitVideoPage() {
 
         // remove beforeUnload event
         window.removeEventListener('beforeunload', beforeUnloadEvent);
-
-        if (page.Component instanceof SubmitVideo && typeof (page.Component.playPauseInterval)) {
-            // clear interval
-            clearInterval(page.Component.playPauseInterval);
-            console.warn('failed to clear interval');
-
-            // destroy youtube player
-            page.Component.youtubePlayer.DestroyIframe();
-        }
     }
 
-    const canLeaveCheck = () => confirm('warning! your progress will not be saved!');
+    const canLeaveCheck = () => {
+        if (window.episodeWasSubmitted === true) {
+            window.episodeWasSubmitted = false;
+            return true;
+        } else {
+            return confirm('warning! your progress will not be saved!');
+        }
+    };
 
     registerPage(SubmitVideoPage, 'Loading data...', ['SubmitVideo', '{id}'], undefined, cleanup, canLeaveCheck);
 }

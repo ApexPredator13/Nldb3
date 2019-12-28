@@ -1,4 +1,4 @@
-﻿#pagination > div {
+﻿#pagination {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;

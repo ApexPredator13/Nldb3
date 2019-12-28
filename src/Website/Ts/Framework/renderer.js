@@ -42,7 +42,10 @@ const IFRAME = 28;
 const TEXTAREA = 29;
 const FORM = 30;
 
-const do_nothing = function () { };
+const do_nothing = function () {
+    const doNothing = function () { }
+    return doNothing;
+};
 
 // infrastructure
 function HtmlBuffer() {
@@ -132,18 +135,8 @@ function Render(content, id = 'main', displayHtmlAfterRender = true, replaceCont
 
             case CHILD_START:
                 const createdChildren = Render.call(this);
-
-                try {
-                    for (const createdChild of createdChildren) {
-                        currentElement.appendChild(createdChild);
-                    }
-                } catch (e) {
-                    debugger;
-                    if (e instanceof TypeError) {
-                        console.warn('chould not append:', createdChildren);
-                        console.warn('to', currentElement);
-                        console.error(e);
-                    }
+                for (const createdChild of createdChildren) {
+                    currentElement.appendChild(createdChild);
                 }
                 
                 break;
@@ -154,10 +147,6 @@ function Render(content, id = 'main', displayHtmlAfterRender = true, replaceCont
                 break;
 
             case CHILD_END:
-                if (renderedElements.length === 0) {
-                    console.warn('trying to return empty child');
-                    debugger;
-                }
                 return renderedElements;
 
             case ID:
@@ -218,8 +207,6 @@ function Render(content, id = 'main', displayHtmlAfterRender = true, replaceCont
                 return currentElement;
 
             default:
-                debugger;
-                console.error('current data:', typeof(currentData), currentData);
                 throw new TypeError('render event not handled!');
         }
     }
@@ -329,14 +316,6 @@ function cl(...classNames) {
     }
 }
 
-function input(...contents) {
-    return this.Child(INPUT, contents);
-}
-
-function canvas(...contents) {
-    return this.Child(CANVAS, contents);
-}
-
 function href(link) {
     return function () {
         this.buffer.data.push(ATTRIBUTES, { 'href': link })
@@ -354,9 +333,9 @@ function popup(distances, popupCreator) {
 function modal(hideOnClickAnywhere, ...content) {
     const modalContainer = document.getElementById('modal') || createAndGetModalContainer();
     modalContainer.innerHTML = '';
-    new Render([content], 'modal');
-    addClassIfNotExists('modal-container', modalContainer.firstChild);
-    ensureModalContentHasClass();
+    new Render([...content], 'modal');
+    const modalContentDiv = modalContainer.firstElementChild;
+    addClassIfNotExists(modalContentDiv, 'modal-container');
     showModal(hideOnClickAnywhere);
 }
 
@@ -455,6 +434,14 @@ function strong(...contents) {
     return Child.call(this, STRONG, ...contents);
 }
 
+function input(...contents) {
+    return Child.call(this, INPUT, ...contents);
+}
+
+function canvas(...contents) {
+    return Child.call(this, CANVAS, ...contents);
+}
+
 function br(...contents) {
     return Child.call(this, BR, ...contents);
 }
@@ -512,7 +499,7 @@ function Tbody(...contents) {
 }
 
 function thead(...contents) {
-    return Parent.call(this, THEAD, ...contents);
+    return Child.call(this, THEAD, ...contents);
 }
 
 function tbody(...contents) {
@@ -558,7 +545,7 @@ function createAndGetModalContainer() {
     modalContainer.style.position = 'fixed';
     modalContainer.style.top = '0';
     modalContainer.style.left = '0';
-    modalContainer.addEventListener('click', () => hideModal());
+    modalContainer.addEventListener('click', hideModal);
     document.body.appendChild(modalContainer);
     return modalContainer;
 }
@@ -573,6 +560,7 @@ function addModalCloseOnClickAnywhereEventListener() {
 }
 
 function showModal(hideOnClickAnywhere) {
+    debugger;
     const modalContainer = document.getElementById('modal');
     removeModalEventListeners(modalContainer);
     if (hideOnClickAnywhere) {

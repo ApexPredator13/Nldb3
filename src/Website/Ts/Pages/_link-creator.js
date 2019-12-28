@@ -12,15 +12,67 @@ const RO_TRINKET     = 'Trinkets';
 const RO_OC          = 'OtherConsumables';
 const RO_TRANS       = 'Transformations';
 
-function Link() {
-    this.Home = () => '';
-    this.Downloads = () => '/Downloads';
-    this.Episode = videoId => `/${videoId}`;
-    this.Episodes = () => '/Episodes';
-    this.ResourceOverview = type => `/${type}`;
-    this.SubmitVideo = id => `/SubmitVideo/${id}`;
-    this.IsaacResource = id => `/${id}`;
-    this.Quotes = () => '/Quotes';
+
+
+/** 
+ *  Creates links for all pages
+ *  @constructor 
+ */
+function Link() { }
+
+
+Link.prototype = {
+    /** Home */
+    home: function () {
+        return '';
+    },
+
+    /** /Downoads */
+    downloads: function () {
+        return '/Downloads';
+    },
+
+    /**
+     * /{Episode}
+     * @param {string} videoId - the ID of the video
+     */
+    episode: function (videoId) {
+        return `/${videoId}`;
+    },
+
+    /** /Episodes */
+    episodes: function () {
+        return '/Episodes';
+    },
+
+    /**
+     * /ResourceOverview - pass one of the RO_XXXXX constants that are exported from this file
+     * @param {string} type
+     */
+    resourceOverview: function (type) {
+        return `/${type}`;
+    },
+
+    /**
+     * /{ResourceId}
+     * @param {string} resourceId
+     */
+    isaacResource: function (resourceId) {
+        return `/${resourceId}`;
+    },
+
+    /** /Quotes */
+    quotes: function () {
+        return '/Quotes';
+    },
+
+    /**
+     * /SubmitVideo/{videoId}
+     * @param {string} videoId - the youtube video ID
+     */
+    submitVideo: function (videoId) {
+        return `/SubmitVideo/${videoId}`;
+    }
 }
 
 export {
