@@ -14,7 +14,8 @@ module.exports = {
         episodes: './Ts/Pages/episodes.js',
         resource_overview: './Ts/Pages/resource-overview.js',
         episode: './Ts/Pages/episode.js',
-        resource: './Ts/Pages/resource.js'
+        resource: './Ts/Pages/resource.js',
+        submit_episode: './Ts/Pages/submit-video.js'
     },
     output: {
         path: path.resolve(__dirname, 'wwwroot', 'js', 'dist'),
@@ -30,7 +31,7 @@ module.exports = {
             configuration === 'production' ? './config.production.js' : './config.development.js'
         )
     ],
-    devtool: 'inline-source-map',
+    // devtool: 'inline-source-map',
     mode: 'development',
     externals: {
         moment: 'moment'

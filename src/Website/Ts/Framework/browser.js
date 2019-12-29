@@ -15,6 +15,27 @@ const setZIndex = (e, zIndex) => {
     }
 }
 
+const loadSciptIfNotExists = (src) => {
+    return new Promise(resolve => {
+        const scripts = document.head.getElementsByTagName('script');
+        const found = false;
+        for (const script of scripts) {
+            if (script.src.toLowerCase() === src) {
+                found = true;
+            }
+        }
+
+        if (!found) {
+            const script = document.createElement('script');
+            document.head.appendChild(script);
+            script.addEventListener('load', () => resolve());
+            script.src = src;
+        } else {
+            resolve();
+        }
+    });
+}
+
 function getFormValue(e) {
     const target = e.target;
     if (!target || !(target instanceof HTMLFormElement)) {
@@ -88,6 +109,14 @@ function getFromLocalStorage(key) {
     return JSON.parse(result);
 }
 
+function localStorageHasKey(key) {
+    const result = localStorage.getItem(key);
+    if (result === null) {
+        return false;
+    }
+    return true;
+}
+
 const saveToLocalStorage = (key, value) => {
     if (value) {
         localStorage.setItem(key, JSON.stringify(value));
@@ -106,6 +135,8 @@ export {
     hide,
     show,
     getFromLocalStorage,
-    saveToLocalStorage
+    saveToLocalStorage,
+    loadSciptIfNotExists,
+    localStorageHasKey
 }
 

@@ -1,7 +1,15 @@
-﻿import { User, UserManager, UserManagerSettings, InMemoryWebStorage, WebStorageStateStore } from 'oidc-client';
-import { removeHashAndQuerystring, getHashFromUrl } from '../browser';
+﻿import { InMemoryWebStorage, WebStorageStateStore, UserManager, User } from 'oidc-client';
+import { removeHashAndQuerystring, getHashFromUrl, loadSciptIfNotExists } from '../browser';
 import { getConfig } from './config.development';
 
+
+let userWasFoundActionsExecuted = false;
+
+
+/** 
+ *  returns a usermanager instance, creates one if necessary 
+ *  @returns {UserManager}
+ */
 function getUserManager() {
     if (window.userManager) {
         return window.userManager;
@@ -31,10 +39,18 @@ function getUserManager() {
     return window.userManager;
 }
 
+
+/**
+ * returns the currently logged in user, or null if no user was found
+ * @returns {User|null}
+ */
 const getUser = async () => {
     const userManager = getUserManager();
+
+    /** @type {User|null} */
     let user = null;
 
+    // check if logout happened
     if (getHashFromUrl() === 'logout') {
         removeHashAndQuerystring();
         await userManager.removeUser();
@@ -42,40 +58,59 @@ const getUser = async () => {
     }
 
     try {
+        // check if user logged himself in right now
         if (window.location.href.indexOf('?code=') !== -1) {
             user = await userManager.signinRedirectCallback()
             if (user) {
                 removeHashAndQuerystring();
-                return user;
             }
         }
 
-        user = await userManager.getUser();
+        // check if user exists already
+        if (!user) {
+            user = await userManager.getUser();
+        }
+
+        // check if user is logged in on the oidc-provider
+        if (!user) {
+            user = await userManager.signinSilent();
+        }
+
+        // if user exists, do after-login-setup and return user,
+        // otherwise do cleanup and return null
         if (user) {
+            await userLoggedInSetup(user);
             return user;
-        }
-
-        user = await userManager.signinSilent();
-        if (user === null) {
+        } else {
             await userManager.removeUser();
+            return null;
         }
-
-        return user;
     } catch (e) {
+        console.error('getUser() error:', e);
+        await userManager.removeUser();
         return null;
     }
 }
 
+/** redirects the user to the login page */
 const signin = () => {
     const userManager = getUserManager();
     userManager.signinRedirect();
 }
 
+
+/** redirects the user to the logout page */
 const signout = () => {
     const userManager = getUserManager();
     userManager.signoutRedirect();
 }
 
+
+/**
+ * checks whether the user has the 'Admin' role claim set
+ * @param {User|null} user
+ * @returns {boolean}
+ */
 const isAdmin = (user) => {
     if (!user || !user.profile) {
         return false;
@@ -85,22 +120,59 @@ const isAdmin = (user) => {
     if (user.profile[roleClaimName] === 'admin') {
         return true;
     }
+
     return false;
 }
 
-const loadAdminPages = () => {
-    return new Promise(resolve => {
-        const script = document.createElement('script');
-        script.src = '/js/dist/all_admin_pages.min.js';
-        document.head.appendChild(script);
-        script.onload = () => resolve();
-    });
+
+/** 
+ *  loads the admin backend if user is admin 
+ *  @returns {Promise}
+ */
+const tryloadAdminPages = user => {
+    if (isAdmin(user)) {
+        return loadSciptIfNotExists('/js/dist/all_admin_pages.min.js');
+    } else {
+        return Promise.resolve();
+    }
 }
+
+
+/** 
+ *  loads the 'submit video' page for the logged in user 
+ *  @returns {Promise}
+ */
+const loadSubmitVideoPage = () => {
+    return loadSciptIfNotExists('/js/dist/submit_episode.min.js');
+}
+
+
+/**
+ * runs once, after a user was found.
+ * used to load admin backend and pages that only registered users can access
+ * @param {User} user - the logged in user
+ */
+const userLoggedInSetup = user => {
+    // only do this once
+    if (!userWasFoundActionsExecuted) {
+        userWasFoundActionsExecuted = true;
+
+        return Promise.all([
+            loadSubmitVideoPage(),
+            tryloadAdminPages(user)
+        ]);
+    } else {
+        return Promise.resolve();
+    }
+}
+
 
 export {
     getUser,
     signin,
     signout,
     isAdmin,
-    loadAdminPages
+    tryloadAdminPages,
+    loadSubmitVideoPage
 }
+

@@ -1,6 +1,6 @@
 ﻿import { Div, Render, t, cl, div, attr, id, event } from "../../Framework/renderer";
 import { isaacImage } from "./isaac-image";
-import "../../framework/customizable/typedefs"
+import "../../Framework/Customizable/typedefs"
 
 /**
  * renders a bunch of clickable boxes from IsaacResource[], HistoryImage[] or GameplayEvent[]

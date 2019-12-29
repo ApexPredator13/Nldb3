@@ -123,10 +123,13 @@
     <None Include="Ts\Framework\Customizable\Layout\modal-content.js" />
     <None Include="Ts\Framework\Customizable\typedefs.js" />
     <None Include="Ts\Framework\forms.js" />
+    <None Include="Ts\Pages\Admin\delete-mod-link.js" />
+    <None Include="Ts\Pages\Admin\delete-mod.js" />
   </ItemGroup>
 
 
   <ItemGroup>
+    <TypeScriptCompile Include="Ts\Components\Admin\go-back-links.js" />
     <TypeScriptCompile Include="Ts\Components\Admin\option-lists.js" />
     <TypeScriptCompile Include="Ts\Components\General\Boxes.js" />
     <TypeScriptCompile Include="Ts\Components\General\isaac-image.js" />
@@ -164,6 +167,17 @@
     <TypeScriptCompile Include="Ts\Framework\http.js" />
     <TypeScriptCompile Include="Ts\Framework\renderer.js" />
     <TypeScriptCompile Include="Ts\Framework\router.js" />
+    <TypeScriptCompile Include="Ts\Pages\Admin\add-video.js" />
+    <TypeScriptCompile Include="Ts\Pages\Admin\create-mod-link.js" />
+    <TypeScriptCompile Include="Ts\Pages\Admin\create-mod.js" />
+    <TypeScriptCompile Include="Ts\Pages\Admin\edit-resource.js" />
+    <TypeScriptCompile Include="Ts\Pages\Admin\mod.js" />
+    <TypeScriptCompile Include="Ts\Pages\Admin\mods.js" />
+    <TypeScriptCompile Include="Ts\Pages\Admin\overview.js" />
+    <TypeScriptCompile Include="Ts\Pages\Admin\resources.js" />
+    <TypeScriptCompile Include="Ts\Pages\Admin\videos-saved.js" />
+    <TypeScriptCompile Include="Ts\Pages\Admin\_admin-link-creator.js" />
+    <TypeScriptCompile Include="Ts\Pages\Admin\_all-admin-pages.js" />
     <TypeScriptCompile Include="Ts\Pages\downloads.js" />
     <TypeScriptCompile Include="Ts\Pages\episode.js" />
     <TypeScriptCompile Include="Ts\Pages\episodes.js" />

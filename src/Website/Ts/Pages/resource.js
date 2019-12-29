@@ -4,7 +4,7 @@ import { get } from "../Framework/http";
 import { isaacImage } from "../Components/General/isaac-image";
 import { Chart } from "chart.js";
 import { Videos } from "../Components/General/Videos";
-import "../framework/customizable/typedefs.js"
+import "../Framework/Customizable/typedefs.js"
 
 let originalBodyBackground, backgroundVisible, optionsLoaded, resourceId, allResources;
 const pageContainerId = 'page-container';

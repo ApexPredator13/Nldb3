@@ -41,6 +41,7 @@ const LI = 27;
 const IFRAME = 28;
 const TEXTAREA = 29;
 const FORM = 30;
+const LABEL = 31;
 
 const do_nothing = function () {
     const doNothing = function () { }
@@ -123,6 +124,7 @@ function Render(content, id = 'main', displayHtmlAfterRender = true, replaceCont
                     case IFRAME: elementType = 'iframe'; break;
                     case TEXTAREA: elementType = 'textarea'; break;
                     case FORM: elementType = 'form'; break;
+                    case LABEL: elementType = 'label'; break;
                     default:
                         console.warn('unknown element: ' + elementNumber + ', defaulting to DIV!');
                         elementType = 'div';
@@ -422,6 +424,10 @@ function textarea(...contents) {
     return Child.call(this, TEXTAREA, ...contents);
 }
 
+function label(...contents) {
+    return Child.call(this, LABEL, ...contents);
+}
+
 function iframe(...contents) {
     return Child.call(this, IFRAME, ...contents);
 }
@@ -630,5 +636,6 @@ export {
     iframe,
     textarea,
     form,
-    H2
+    H2,
+    label
 }

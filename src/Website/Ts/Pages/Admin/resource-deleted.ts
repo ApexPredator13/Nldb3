@@ -2,7 +2,7 @@
 import { AdminLink } from "./_admin-link-creator";
 import { ResourceType } from "../../Enums/resource-type";
 import { navigate, PageData, registerPage } from "../../Framework/router";
-import { BackToOverviewLinks } from "../../Components/Admin/back-to-overview-links";
+import { BackToOverviewLinks } from "../../Components/Admin/go-back-links";
 
 export class ResourceDeleted implements Component {
     E: FrameworkElement;

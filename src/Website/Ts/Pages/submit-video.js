@@ -2141,6 +2141,9 @@ function registerSubmitVideoPage() {
 }
 
 
+(() => {
+    registerSubmitVideoPage();
+})();
 
 
 export {

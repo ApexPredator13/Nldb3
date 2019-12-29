@@ -1,6 +1,6 @@
 ﻿import { Render, Div, cl, div, input, attr, event, span, t, style } from "../../Framework/renderer";
 import { removeClassIfExists, addClassIfNotExists } from "../../Framework/browser";
-import "../../framework/customizable/typedefs.js";
+import "../../Framework/Customizable/typedefs.js";
 
 /**
  * Renders a searchable itemlist with the provided resources

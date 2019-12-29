@@ -1,5 +1,5 @@
 ﻿import { Div, h3, t, hr, p, button, hideModal } from "../../renderer";
-import { biblethump } from "../../../components/general/modal-contents.js";
+import { biblethump } from "../../../Components/General/modal-contents.js";
 
 export function modalContent(msg) {
     return Div(

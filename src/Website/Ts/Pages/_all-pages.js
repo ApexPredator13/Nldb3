@@ -4,7 +4,6 @@ import { registerResourceOverviewPage } from "./resource-overview";
 import { registerDownloadsPage } from "./downloads";
 import { registerHomePage } from "./home";
 import { registerResourcePage } from "./resource";
-import { registerSubmitVideoPage } from "./submit-video";
 
 (() => {
     registerEpisodePage();
@@ -13,5 +12,4 @@ import { registerSubmitVideoPage } from "./submit-video";
     registerDownloadsPage();
     registerResourcePage();
     registerHomePage();
-    registerSubmitVideoPage();
 })();

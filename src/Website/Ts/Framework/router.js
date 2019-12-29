@@ -27,6 +27,15 @@ const getPages = () => {
     return window.p;
 }
 
+/**
+ * gives the router a new page he can navigate to
+ * @param {Function} page - the page constructor function. must have a 'renderPage()' function in its prototype
+ * @param {string} title - the page title
+ * @param {string[]} url - the route URL
+ * @param {number} [pageType] - the page type, in case pages have the same url
+ * @param {Function} [beforeLeaving] - a function that will be executed before leaving the page - for cleanup work
+ * @param {Function} [canLeave] - a check if the user is allowed to leave
+ */
 function registerPage(page, title, url, pageType, beforeLeaving, canLeave) {
     if (registrationCount++ === 0) {
         setOnLoadPageType(pageType);

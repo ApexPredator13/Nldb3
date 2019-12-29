@@ -1,7 +1,7 @@
 ﻿import { Render, Nav, cl, id, div, p, P, t, h3, strong, br, do_nothing, a, href, event, span } from "../../renderer";
 import { navSection } from "../../../Components/Navigation/nav-section";
 import { Link, RO_ITEMS, RO_BOSSES, RO_CHARACTERS, RO_ITEMSOURCES, RO_FLOORS, RO_TRANS, RO_REROLL, RO_CURSES, RO_PILLS, RO_RUNES, RO_TAROT, RO_TRINKET, RO_OC } from "../../../Pages/_link-creator";
-import { getUser, signin, isAdmin, loadAdminPages } from "../authentication";
+import { getUser, signin, isAdmin, tryloadAdminPages } from "../authentication";
 import { navigate } from "../../router";
 import { removeClassIfExists } from "../../browser";
 
@@ -26,10 +26,7 @@ export function renderNavigation() {
         }).then(user => {
             // if user was loaded, check if he is admin
             if (isAdmin(user)) {
-                // not ported yet!
-                //loadAdminPages().then(() => {
-                //    removeClassIfExists(document.getElementById('admin-link'), 'display-none');
-                //});
+                removeClassIfExists(document.getElementById('admin-link'), 'display-none');
             }
         });
     });

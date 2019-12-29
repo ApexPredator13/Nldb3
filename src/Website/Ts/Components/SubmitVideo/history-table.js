@@ -1,4 +1,4 @@
-﻿import { SubmitVideoPage } from "../../pages/submit-video.js"
+﻿import { SubmitVideoPage } from "../../Pages/submit-video.js"
 import { resourceTypeToString } from "../../Enums/enum-to-string-converters";
 import { post } from "../../Framework/http";
 import { Render, Div, id, t, table, td, tr, cl, p, modal, h2, hr, button, hideModal, div, attr } from "../../Framework/renderer";
