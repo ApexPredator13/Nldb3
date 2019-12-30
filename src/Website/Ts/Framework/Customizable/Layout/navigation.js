@@ -1,4 +1,4 @@
-﻿import { Render, Nav, cl, id, div, p, P, t, h3, strong, br, do_nothing, a, href, event, span } from "../../renderer";
+﻿import { Html, Nav, cl, id, div, p, P, t, h3, strong, br, do_nothing, a, href, event, span } from "../../renderer";
 import { navSection } from "../../../Components/Navigation/nav-section";
 import { Link, RO_ITEMS, RO_BOSSES, RO_CHARACTERS, RO_ITEMSOURCES, RO_FLOORS, RO_TRANS, RO_REROLL, RO_CURSES, RO_PILLS, RO_RUNES, RO_TAROT, RO_TRINKET, RO_OC } from "../../../Pages/_link-creator";
 import { getUser, signin, isAdmin, tryloadAdminPages } from "../authentication";
@@ -12,15 +12,15 @@ export function renderNavigation() {
     new Promise(resolve => {
         const n = nav();
         console.log(n);
-        new Render([n], 'body', true, false);
+        new Html([n], 'body', true, false);
         resolve();
     }).then(() => {
         // after that, try to load the logged in user
         getUser().then(user => {
             if (!user) {
-                new Render([userNotLoggedIn()], authContainerId);
+                new Html([userNotLoggedIn()], authContainerId);
             } else {
-                new Render([userLoggedIn(user)], authContainerId);
+                new Html([userLoggedIn(user)], authContainerId);
             }
             return user;
         }).then(user => {

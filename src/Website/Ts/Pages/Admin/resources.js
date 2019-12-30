@@ -1,4 +1,4 @@
-﻿import { Render, Div, thead, tbody, tr, td, t, event, h1, hr, p, span, cl, select, id, th, style } from "../../Framework/renderer";
+﻿import { Html, Div, thead, tbody, tr, td, t, event, h1, hr, p, span, cl, select, id, th, style } from "../../Framework/renderer";
 import { registerPage, navigate } from "../../Framework/router";
 import { get } from "../../Framework/http";
 import { AdminLink } from "./_admin-link-creator";
@@ -24,7 +24,7 @@ ResourcesPage.prototype = {
 
     /** renders the initial page */
     renderPage: function () {
-        new Render([
+        new Html([
             Div(
                 h1(
                     t('Resource Overview')
@@ -60,7 +60,7 @@ ResourcesPage.prototype = {
     /** loads resources from the server and displays them as table */
     loadAndDisplayResources: function () {
         get(`/Api/Resources/?ResourceType=${this.resourceType.toString(10)}&IncludeMod=true`).then(resources => {
-            new Render([
+            new Html([
                 Table(
                     thead(
                         tr(

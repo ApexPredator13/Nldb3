@@ -1,4 +1,4 @@
-﻿import { Render, event, H1, Hr, P, span, t, cl } from "../../Framework/renderer";
+﻿import { Html, event, H1, Hr, P, span, t, cl } from "../../Framework/renderer";
 import { registerPage, navigate } from "../../Framework/router";
 import { AdminLink } from "./_admin-link-creator";
 import { getFromLocalStorage } from "../../Framework/browser";
@@ -22,7 +22,7 @@ AdminOverview.prototype = {
 
     /** creates the page */
     renderPage: function () {
-        new Render([
+        new Html([
             H1(
                 t('Admin Area')
             ),

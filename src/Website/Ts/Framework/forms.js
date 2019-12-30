@@ -1,5 +1,5 @@
 ﻿import { searchParentsForTag, removeClassIfExists, addClassIfNotExists, getFormValue } from "./browser";
-import { Render, preparePopupParentElement, preparePopupElement, modal, cl, div, h3, hr, p, span, br } from "./renderer";
+import { Html, preparePopupParentElement, preparePopupElement, modal, cl, div, h3, hr, p, span, br } from "./renderer";
 import { postResponse } from "./http";
 import { navigate } from "./router";
 import { modalContent } from "./Customizable/Layout/modal-content";
@@ -49,7 +49,7 @@ function FormHelper() {
                 addClassIfNotExists(parent, 'popup-container');
                 this.RemoveError(e);
 
-                const popup = new Render([
+                const popup = new Html([
                     Div(
                         t(message || 'Invalid Input')
                     )
@@ -87,7 +87,7 @@ function FormHelper() {
 
     this.testMaxLength = function (e) {
         if (e instanceof HTMLTextAreaElement || e instanceof HTMLInputElement) {
-            const maxLength = Number(element.getAttribute('maxlength'));
+            const maxLength = Number(e.getAttribute('maxlength'));
             if (maxLength && e.value.length > maxLength) {
                 const error = e.getAttribute(ATTR_ERROR_MAXLENGTH);
                 this.ShowError(e, error);
@@ -134,7 +134,7 @@ function FormHelper() {
         for (const element of allElements) {
             const results = [
                 this.testRequired(element),
-                this.testMinlength(element),
+                this.testMinLength(element),
                 this.testMaxLength(element)
             ];
 
@@ -170,13 +170,14 @@ function FormHelper() {
     }
 
     this.handleSubmit = function (e, postUrl, authorized, successUrl, pushState = true, scrollToTop = true, forceRender = false) {
+        e.preventDefault();
         const formIsValid = this.validateForm(e);
 
-        const target = e.target;
-        if (formIsValid && target && target instanceof HTMLFormElement) {
-            const formButtons = target.getElementsByTagName('button');
-            for (let i = 0; i < formButtons.length; ++i) {
-                formButtons[i].disabled = true;
+        const formElement = e.target;
+        if (formIsValid && formElement && formElement instanceof HTMLFormElement) {
+            const buttonsBeforeSubmit = formElement.getElementsByTagName('button');
+            for (let i = 0; i < buttonsBeforeSubmit.length; ++i) {
+                buttonsBeforeSubmit[i].disabled = true;
             }
 
             const formData = getFormValue(e);
@@ -193,9 +194,15 @@ function FormHelper() {
                                 )
                             });
                         }
-                    }).finally(() => {
-                        for (let i = 0; i < formButtons.length; ++i) {
-                            formButtons[i].disabled = false;
+                    }).catch(e => console.error(e)).finally(() => {
+                        if (formElement) {
+                            const buttonsAfterSubmit = formElement.getElementsByTagName('button');
+                            for (let i = 0; i < buttonsAfterSubmit.length; ++i) {
+                                buttonsAfterSubmit[i].disabled = true;
+                            }
+                            for (let i = 0; i < buttonsAfterSubmit.length; ++i) {
+                                buttonsAfterSubmit[i].disabled = false;
+                            }
                         }
                     });
             }

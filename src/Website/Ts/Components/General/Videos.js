@@ -1,4 +1,4 @@
-﻿import { Div, div, Render, Tbody, td, a, th, cl, id, t, tr, thead, H1, p, P, do_nothing, select, option, attr, input, Table, tbody, modal, event } from "../../Framework/renderer";
+﻿import { Div, div, Html, Tbody, td, a, th, cl, id, t, tr, thead, H1, p, P, do_nothing, select, option, attr, input, Table, tbody, modal, event } from "../../Framework/renderer";
 import { get } from "../../Framework/http";
 import { addClassIfNotExists, removeClassIfExists } from "../../Framework/browser";
 import { getUser } from "../../Framework/Customizable/authentication";
@@ -40,7 +40,7 @@ function Videos(containerId, header, description, from = null, to = null, resour
     this.videoTableBodyId = 'video-table-body';
 
 
-    new Render([
+    new Html([
         H1(t(header)),
         description ? P(t(description)) : do_nothing,
 
@@ -283,7 +283,7 @@ Videos.prototype = {
                 pages.push(pageCounter++);
             }
 
-            new Render([
+            new Html([
                 Div(
                     id('pagination'),
                     ...pages.map(page =>
@@ -350,7 +350,7 @@ Videos.prototype = {
             const table = document.getElementById(this.videoTableId);
             table.removeChild(table.lastElementChild);
 
-            new Render([
+            new Html([
                 Tbody(
                     id(this.videoTableBodyId),
                     ...(videoResult.videos.map(video => {

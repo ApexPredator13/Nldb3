@@ -1,5 +1,5 @@
 ﻿import { SubmitVideoPage } from "../../Pages/submit-video.js"
-import { Render, Div, t, id, cl, event } from "../../Framework/renderer";
+import { Html, Div, t, id, cl, event } from "../../Framework/renderer";
 import { addClassIfNotExists, removeClassIfExists } from "../../Framework/browser";
 
 /**
@@ -14,7 +14,7 @@ export function CurrentPlayer(caller, containerId, subscriberFunction) {
     this.caller = caller;
     this.subscriberFunction = subscriberFunction;
 
-    new Render([
+    new Html([
         Div(
             t('Player: 1'),
             id('current-player-container'),

@@ -15,7 +15,7 @@ const convertGameModeToString = mode => {
     }
 }
 
-const existsInToString = n => {
+const convertExistsInToString = n => {
     switch (n) {
         case 0: return 'Nowhere';
         case 1: return 'Every Version';
@@ -412,7 +412,7 @@ const convertTagToString = (t) => {
 
 export {
     convertGameModeToString,
-    existsInToString,
+    convertExistsInToString,
     resourceTypeToString,
     convertTagToString,
     gameplayEventTypeToString,

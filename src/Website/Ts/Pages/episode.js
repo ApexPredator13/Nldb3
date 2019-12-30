@@ -1,4 +1,4 @@
-﻿import { Render, Div, id, div, H1, Hr, h2, hr, p, style } from "../Framework/renderer";
+﻿import { Html, Div, id, div, H1, Hr, h2, hr, p, style } from "../Framework/renderer";
 import { initRouter, registerPage, setTitle, setOnLoadPageType, PAGE_TYPE_EPISODE } from "../Framework/router";
 import { get } from "../Framework/http";
 import { renderEventsTable } from "../Components/Video/events-table";
@@ -23,7 +23,7 @@ function EpisodePage(parameters) {
     videoData.then(video => setTitle(video ? video.title : 'failed to load video'));
     
 
-    new Render([
+    new Html([
         Div(
             id(headerContainerId)
         ),
@@ -77,7 +77,7 @@ function EpisodePage(parameters) {
 
 function createVideoTitle(video, containerId) {
     video.then(video => {
-        new Render([
+        new Html([
             H1(video.title),
             Hr()
         ], containerId);

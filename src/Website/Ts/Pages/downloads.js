@@ -1,4 +1,4 @@
-﻿import { Render, Div, h1, t, span, hr, h3, a, href, cl, p, br } from "../Framework/renderer";
+﻿import { Html, Div, h1, t, span, hr, h3, a, href, cl, p, br } from "../Framework/renderer";
 import { registerPage, initRouter } from "../Framework/router";
 
 /**
@@ -11,7 +11,7 @@ DownloadsPage.prototype = {
 
     /** renders the page */
     renderPage: function () {
-        new Render([
+        new Html([
             Div(
                 h1(
                     t('Downloads')

@@ -8,7 +8,7 @@ module.exports = {
     entry: {
         aspnetcore_formvalidation: './Ts/Framework/aspnetcore-formvalidation.js',
         all_remaining_pages: './Ts/Pages/_all-pages.js',
-        //all_admin_pages: './Ts/Pages/Admin/_all-admin-pages.js',
+        all_admin_pages: './Ts/Pages/Admin/_all-admin-pages.js',
         home: './Ts/Pages/home.js',
         downloads: './Ts/Pages/downloads.js',
         episodes: './Ts/Pages/episodes.js',
@@ -31,7 +31,7 @@ module.exports = {
             configuration === 'production' ? './config.production.js' : './config.development.js'
         )
     ],
-    // devtool: 'inline-source-map',
+    devtool: 'inline-source-map',
     mode: 'development',
     externals: {
         moment: 'moment'

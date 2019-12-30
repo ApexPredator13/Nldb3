@@ -1,6 +1,6 @@
 ﻿import { AdminLink } from "./_admin-link-creator";
 import { FormHelper } from "../../Framework/forms";
-import { Render, Div, h1, t, event, hr, form, input, attr, div, button } from "../../Framework/renderer";
+import { Html, Div, h1, t, event, hr, form, input, attr, div, button } from "../../Framework/renderer";
 import { backToAdminOverview, backToMods, backToMod } from "../../Components/Admin/go-back-links";
 import { registerPage } from "../../Framework/router";
 
@@ -21,7 +21,7 @@ function DeleteModLinkPage(parameters) {
 
 DeleteModLinkPage.prototype = {
     renderPage: function () {
-        new Render([
+        new Html([
             Div(
                 h1(
                     t(`Delete Link '${this.linkText}'?`)

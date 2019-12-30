@@ -1,4 +1,4 @@
-﻿import { Render, Div, id, p, t, span, div, textarea, attr, br, input, select, option, button } from "../../Framework/renderer";
+﻿import { Html, Div, id, p, t, span, div, textarea, attr, br, input, select, option, button } from "../../Framework/renderer";
 import { post } from "../../Framework/http";
 import { YoutubePlayer } from "./youtube-player";
 
@@ -243,7 +243,7 @@ export function SubmitVideoQuotesSection(containerId, videoId, youtubePlayer) {
 
 
     // renders the initial HTML layout
-    new Render([
+    new Html([
         Div(
             id('quotes'),
 

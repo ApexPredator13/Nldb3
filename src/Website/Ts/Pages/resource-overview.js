@@ -1,4 +1,4 @@
-﻿import { Render, Div, h1, t, do_nothing, p, div, hr, h3, id } from "../Framework/renderer";
+﻿import { Html, Div, h1, t, do_nothing, p, div, hr, h3, id } from "../Framework/renderer";
 import { registerPage, initRouter, navigate, PAGE_TYPE_ISAAC_RESOURCE } from "../Framework/router";
 import { get } from "../Framework/http";
 import { Boxes } from "../Components/General/Boxes";
@@ -31,7 +31,7 @@ ResourceOverviewPage.prototype = {
 
     /** starts rendering the page, then calls the server for resources and displays them. */
     renderPage: function () {
-        new Render([
+        new Html([
             Div(
                 this.header ? h1(t(this.header)) : do_nothing,
                 this.descriptionLine1 ? p(t(this.descriptionLine1)) : do_nothing,
@@ -96,7 +96,7 @@ ResourceOverviewPage.prototype = {
                 }
             }
 
-            new Render([
+            new Html([
                 Div(
                     ...boxContainers
                 )

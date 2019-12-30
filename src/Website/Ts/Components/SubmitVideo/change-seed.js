@@ -1,5 +1,5 @@
 ﻿import { SubmitVideoPage } from "../../Pages/submit-video.js"
-import { Render, Div, id, cl, event, h2, t, hr, p, input, attr, button, formButton, hideModal, form, modal } from "../../Framework/renderer";
+import { Html, Div, id, cl, event, h2, t, hr, p, input, attr, button, formButton, hideModal, form, modal } from "../../Framework/renderer";
 import { addClassIfNotExists, removeClassIfExists } from "../../Framework/browser";
 import { FormHelper } from "../../Framework/forms";
 import { YoutubePlayer } from "./youtube-player";
@@ -23,7 +23,7 @@ function ChangeSeed(caller, containerId, youtubePlayer, subscriberFunction, hist
     this.history = history;
     this.caller = caller;
 
-    new Render([
+    new Html([
         Div(
             id('seed-container'),
             cl('hand', 'display-none'),

@@ -1,4 +1,4 @@
-﻿import { existsInToString, convertGameModeToString, resourceTypeToString, convertTagToString, gameplayEventTypeToString } from "../../Enums/enum-to-string-converters";
+﻿import { convertExistsInToString, convertGameModeToString, resourceTypeToString, convertTagToString, gameplayEventTypeToString } from "../../Enums/enum-to-string-converters";
 import { option } from "../../Framework/renderer";
 
 const gameModeOptionList = selected => {
@@ -8,7 +8,7 @@ const gameModeOptionList = selected => {
 
 const existsInOptionlist = selected => {
     return Array.from(new Array(35).keys())
-        .map(key => option(existsInToString(key), key.toString(10), selected === key));
+        .map(key => option(convertExistsInToString(key), key.toString(10), selected === key));
 }
 
 const resourceTypeOptionList = (selected) => {

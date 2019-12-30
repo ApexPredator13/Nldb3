@@ -42,6 +42,7 @@ const IFRAME = 28;
 const TEXTAREA = 29;
 const FORM = 30;
 const LABEL = 31;
+const FIELDSET = 32;
 
 const do_nothing = function () {
     const doNothing = function () { }
@@ -70,7 +71,7 @@ HtmlMaker.prototype.build = function (...args) {
     }
 }
 
-function Render(content, id = 'main', displayHtmlAfterRender = true, replaceContent = true) {
+function Html(content, id = 'main', displayHtmlAfterRender = true, replaceContent = true) {
 
     if (!this.buffer) {
         HtmlMaker.call(this);
@@ -125,6 +126,7 @@ function Render(content, id = 'main', displayHtmlAfterRender = true, replaceCont
                     case TEXTAREA: elementType = 'textarea'; break;
                     case FORM: elementType = 'form'; break;
                     case LABEL: elementType = 'label'; break;
+                    case FIELDSET: elementType = 'fieldset'; break;
                     default:
                         console.warn('unknown element: ' + elementNumber + ', defaulting to DIV!');
                         elementType = 'div';
@@ -136,7 +138,7 @@ function Render(content, id = 'main', displayHtmlAfterRender = true, replaceCont
                 break;
 
             case CHILD_START:
-                const createdChildren = Render.call(this);
+                const createdChildren = Html.call(this);
                 for (const createdChild of createdChildren) {
                     currentElement.appendChild(createdChild);
                 }
@@ -197,7 +199,7 @@ function Render(content, id = 'main', displayHtmlAfterRender = true, replaceCont
                 preparePopupParentElement(parent);
 
                 // render popup elements
-                const popup = Render.call(this);
+                const popup = Html.call(this);
                 preparePopupElement(popup, top, right, bottom, left);
 
                 // append to container
@@ -232,7 +234,7 @@ function Render(content, id = 'main', displayHtmlAfterRender = true, replaceCont
     }
 }
 
-Render.prototype = Object.create(HtmlMaker.prototype);
+Html.prototype = Object.create(HtmlMaker.prototype);
 
 function preparePopupElement(e, top, right, bottom, left) {
     e.classList.add('popup', 'display-none');
@@ -335,7 +337,7 @@ function popup(distances, popupCreator) {
 function modal(hideOnClickAnywhere, ...content) {
     const modalContainer = document.getElementById('modal') || createAndGetModalContainer();
     modalContainer.innerHTML = '';
-    new Render([...content], 'modal');
+    new Html([...content], 'modal');
     const modalContentDiv = modalContainer.firstElementChild;
     addClassIfNotExists(modalContentDiv, 'modal-container');
     showModal(hideOnClickAnywhere);
@@ -398,6 +400,10 @@ function p(...contents) {
 
 function form(...contents) {
     return Child.call(this, FORM, ...contents);
+}
+
+function fieldset(...contents) {
+    return Child.call(this, FIELDSET, ...contents);
 }
 
 function ul(...contents) {
@@ -566,7 +572,6 @@ function addModalCloseOnClickAnywhereEventListener() {
 }
 
 function showModal(hideOnClickAnywhere) {
-    debugger;
     const modalContainer = document.getElementById('modal');
     removeModalEventListeners(modalContainer);
     if (hideOnClickAnywhere) {
@@ -584,7 +589,7 @@ function hideModal() {
 }
 
 export {
-    Render,
+    Html,
     popup,
     preparePopupParentElement,
     preparePopupElement,
@@ -637,5 +642,6 @@ export {
     textarea,
     form,
     H2,
-    label
+    label,
+    fieldset
 }

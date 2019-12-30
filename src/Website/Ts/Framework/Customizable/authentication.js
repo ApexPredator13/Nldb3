@@ -42,7 +42,7 @@ function getUserManager() {
 
 /**
  * returns the currently logged in user, or null if no user was found
- * @returns {User|null}
+ * @returns {Promise<User|null>}
  */
 const getUser = async () => {
     const userManager = getUserManager();

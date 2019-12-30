@@ -3,7 +3,7 @@ import { YoutubePlayer } from "../Components/SubmitVideo/youtube-player";
 import { addClassIfNotExists, removeClassIfExists } from "../Framework/browser";
 import { getConfig } from "../Framework/Customizable/config.development";
 import { get, postResponse } from "../Framework/http";
-import { Render, Div, id, div, a, iframe, attr, span, t, P, event, H2, cl, hr, Hr, style, H1, input, button, br } from "../Framework/renderer";
+import { Html, Div, id, div, a, iframe, attr, span, t, P, event, H2, cl, hr, Hr, style, H1, input, button, br } from "../Framework/renderer";
 import { registerPage, setTitle, navigate, PAGE_TYPE_EPISODE } from "../Framework/router";
 import { PlayerControls } from "../Components/SubmitVideo/player-controls";
 import { CurrentPlayer } from "../Components/SubmitVideo/current-player";
@@ -99,9 +99,6 @@ function SubmitVideoPage(parameters) {
     /** @type {Map<number,IsaacResource[]>} */
     this.staticResources = new Map();
 
-    /** @type {YoutubePlayer} */
-    this.youtubePlayer = new YoutubePlayer(this.videoId);
-
     /** @type {string} */
     this.historyTableContainerId = 'history-table-container-xx';
 
@@ -119,7 +116,7 @@ function SubmitVideoPage(parameters) {
     
     // renders initial page
     const origin = getConfig().baseUrlWithoutTrailingSlash;
-    new Render([
+    new Html([
         Div(
             id('menu-wrapper'),
 
@@ -434,7 +431,7 @@ SubmitVideoPage.prototype = {
      * @param {...any} contents
      */
     display: function (...contents) {
-        new Render([
+        new Html([
             ...contents
         ], this.menuContainerId, true, true)
     },

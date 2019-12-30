@@ -61,6 +61,7 @@ async function request(url, requestInit, displayError = true) {
 }
 
 async function requestResponse(url, requestInit) {
+    console.log('request response entered. requestInit:', requestInit);
     return fetch(url, requestInit);
 }
 
@@ -82,7 +83,9 @@ async function post(url, body, authorized = false, displayError = true) {
 }
 
 async function postResponse(url, body, authorized = false) {
+    console.log('post response entered');
     const headers = await createHeaders(body, authorized);
+    console.log('headers created', headers);
     return requestResponse(url, { method: 'POST', headers: headers, body: body });
 }
 

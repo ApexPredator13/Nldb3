@@ -1,9 +1,9 @@
-﻿import { Render, Div, div, t, p, strong, style, cl, h2, hr, br } from "../../Framework/renderer";
+﻿import { Html, Div, div, t, p, strong, style, cl, h2, hr, br } from "../../Framework/renderer";
 import { isaacImage } from "../General/isaac-image";
 
 export function renderPlayedCharacters(video, submissionIndex, containerId) {
     video.then(video => {
-        new Render([
+        new Html([
             Div(
                 video.submissions[submissionIndex].played_characters.map(character => {
 

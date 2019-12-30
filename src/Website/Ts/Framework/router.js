@@ -58,7 +58,6 @@ function setTitle(title) {
     document.title = title;
 }
 
-
 const initRouter = () => {
     if (!window.routerInit) {
         window.routerInit = true;
@@ -165,7 +164,9 @@ const getRequestedPageFromRoute = (route, specificPageType) => {
 }
 
 
+
 const navigate = (requestedRoute, preventDefaultForEvent, specificPageType, push = true, forceRender = false, scrollToTop = true) => {
+    console.log('navigating.', requestedRoute);
     if (preventDefaultForEvent) {
         preventDefaultForEvent.preventDefault();
     }
@@ -188,15 +189,33 @@ const navigate = (requestedRoute, preventDefaultForEvent, specificPageType, push
         return;
     }
 
-    // check if user can leave the page unprompted or if we have a 'progress will not be saved' situation
-    const lastUrl = window.lastUrl;
-    const allowedToLeaveCheck = window.leavingAllowed;
+    // check if user can leave the page unprompted or if we have a 'warning - progress will not be saved' situation
+    const lastUrl = window.lastUrl;                     // get the url that we can fall back to, if the user decides to stay:
+    const allowedToLeaveCheck = window.leavingAllowed;  // get the 'allowed to leave?'-check
 
     if (allowedToLeaveCheck) {
+        // the browser navigated away by now. undo that right away 
+        // because we need to wait for the user to confirm his action!!
+        history.pushState(null, null, lastUrl);
+
+        // now let the user decide if he really wants to leave
         const leavingIsOk = allowedToLeaveCheck();
-        if (!leavingIsOk) {
-            // reverse popstate if navigation was cancelled
-            history.pushState(undefined, '', lastUrl);
+
+        if (leavingIsOk) {
+            // if the user confirmed that he wants to leave, hit the back button.
+            // todo: trigger the intended navigation. not necessary here, because there is no 
+            // real link on the only page that requires this. user can only leave by navigating back.
+            history.back();
+            return;
+        } else {
+            // - the user decided to stay
+            // - the check was a confirm(...) dialog and the user 
+            //   didn't confirm/cancel it or mashed the back button 
+            //   again and it got auto-closed. in that case, the 
+            //   result is also false.
+            //   
+            //   either way, the history.pushState(...) did it's work 
+            //   and we're done here.
             return;
         }
     }

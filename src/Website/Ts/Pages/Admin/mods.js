@@ -1,7 +1,6 @@
-﻿import { Render, Div, id, h1, t, hr, p, span, cl, div, Table, thead, tr, th, attr, tbody, td, event } from "../../Framework/renderer";
+﻿import { Html, Div, id, h1, t, hr, p, span, cl, div, Table, thead, tr, th, attr, tbody, td, event } from "../../Framework/renderer";
 import { registerPage, navigate } from "../../Framework/router";
 import { get } from "../../Framework/http";
-import { DeleteModButton } from "../../Components/Admin/delete-mod-button";
 import { AdminLink } from "./_admin-link-creator";
 import '../../Framework/Customizable/typedefs';
 
@@ -18,7 +17,7 @@ ModsPage.prototype = {
 
     /** renders the initial layout */
     renderPage: function () {
-        new Render([
+        new Html([
             Div(
                 h1(
                     t('Mods')
@@ -48,7 +47,7 @@ ModsPage.prototype = {
      */
     loadAndDisplayExistingMods: function (containerId) {
         get('/Api/Mods').then(mods => {
-            new Render([
+            new Html([
                 Table(
                     thead(
                         tr(
@@ -69,7 +68,9 @@ ModsPage.prototype = {
                                 t(mod.id.toString(10))
                             ),
                             td(
-                                t(mod.name)
+                                t(mod.name),
+                                event('click', e => navigate(this.link.mod(mod.id), e)),
+                                cl('u', 'hand')
                             ),
                             td(
                                 t(mod.links && mod.links.length > 0 ? `${mod.links.length.toString(10)} links` : '0 links')

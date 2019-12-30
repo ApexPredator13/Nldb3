@@ -1,4 +1,4 @@
-﻿import { Render, Div, div, t, style, cl, event, popup, h4, hr, br, strong, do_nothing } from "../../Framework/renderer";
+﻿import { Html, Div, div, t, style, cl, event, popup, h4, hr, br, strong, do_nothing } from "../../Framework/renderer";
 import { isaacImage } from "../General/isaac-image";
 
 export function renderTimeline(video, submissionIndex, containerId) {
@@ -72,7 +72,7 @@ export function renderTimeline(video, submissionIndex, containerId) {
         }
 
         // draw the 3 timeline lanes
-        new Render([
+        new Html([
             Div(
                 div(
                     cl('timeline-flex'),

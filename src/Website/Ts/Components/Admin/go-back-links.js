@@ -16,6 +16,49 @@ function backToAdminOverview() {
 }
 
 
+function backToSubmissions() {
+    const link = new AdminLink();
+    return div(
+        p(
+            a(
+                t('← Back to Submissions'),
+                href(link.submissions()),
+                event('click', e => navigate(link.submissions(), e))
+            )
+        )
+    );
+}
+
+
+function backToResourceEditPage(resourceId) {
+    const link = new AdminLink();
+    return div(
+        p(
+            a(
+                t('← Back to Editing'),
+                href(link.editResource(resourceId)),
+                event('click', e => navigate(link.editResource(resourceId), e))
+            )
+        )
+    );
+}
+
+
+function backToEditSubmission(videoId, submissionId) {
+    const link = new AdminLink();
+    return div(
+        p(
+            a(
+                t('← Back to Submittion Editing'),
+                href(link.editSubmission(videoId, submissionId)),
+                event('click', e => navigate(link.editSubmission(videoId, submissionId), e))
+            )
+        )
+    );
+}
+
+
+
 function backToMods() {
     const link = new AdminLink();
     return div(
@@ -92,5 +135,8 @@ export {
     backToMods,
     backToMod,
     backToResources,
-    nextResource
+    nextResource,
+    backToResourceEditPage,
+    backToSubmissions,
+    backToEditSubmission
 }

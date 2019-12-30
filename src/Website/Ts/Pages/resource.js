@@ -1,4 +1,4 @@
-﻿import { Render, Div, div, h3, canvas, attr, hr, cl, h1, span, t, p, button, br, id, event } from "../Framework/renderer";
+﻿import { Html, Div, div, h3, canvas, attr, hr, cl, h1, span, t, p, button, br, id, event } from "../Framework/renderer";
 import { registerPage, setOnLoadPageType, initRouter, setTitle, PAGE_TYPE_ISAAC_RESOURCE } from "../Framework/router";
 import { get } from "../Framework/http";
 import { isaacImage } from "../Components/General/isaac-image";
@@ -31,7 +31,7 @@ ResourcePage.prototype = {
 
     /** starts rendering the page, the calls the server for data and renders the charts */
     renderPage: function () {
-        new Render([
+        new Html([
             Div(
                 div(
                     id(pageContainerId),
@@ -226,7 +226,7 @@ ResourcePage.prototype = {
         return new Promise(resolve => {
             get(`/Api/Resources/${resourceId}/Stats`).then(result => {
                 if (!result) {
-                    new Render([
+                    new Html([
                         Div(t('Resource not found.'))
                     ]);
                     return;
@@ -344,7 +344,7 @@ ResourcePage.prototype = {
                     );
                 }
 
-                new Render([
+                new Html([
                     Div(
                         h1(
                             isaacImage(result.resource, null, true),

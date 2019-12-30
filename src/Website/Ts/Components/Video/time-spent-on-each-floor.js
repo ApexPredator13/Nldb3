@@ -1,4 +1,4 @@
-﻿import { Render, Div, cl, canvas, attr } from "../../Framework/renderer";
+﻿import { Html, Div, cl, canvas, attr } from "../../Framework/renderer";
 import { Chart } from 'chart.js';
 
 export function renderTimeSpentOnEachFloor(video, submissionIndex, containerId) {
@@ -6,7 +6,7 @@ export function renderTimeSpentOnEachFloor(video, submissionIndex, containerId) 
         const submission = video.submissions[submissionIndex];
         const allFloors = submission.played_characters.flatMap(c => c.played_floors);
 
-        new Render([
+        new Html([
             Div(
                 cl('video-page-element'),
                 canvas(

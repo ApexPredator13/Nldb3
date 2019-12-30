@@ -1,4 +1,4 @@
-﻿import { Render, Div, cl, div, input, attr, event, span, t, style } from "../../Framework/renderer";
+﻿import { Html, Div, cl, div, input, attr, event, span, t, style } from "../../Framework/renderer";
 import { removeClassIfExists, addClassIfNotExists } from "../../Framework/browser";
 import "../../Framework/Customizable/typedefs.js";
 
@@ -20,7 +20,7 @@ function Searchbox(caller, sub, searchboxId, resources, displayType, containerId
     this.displayType = displayType;
 
     // renders the initial HTML
-    new Render([
+    new Html([
         Div(
             event('mouseover', this.focusOnMouseover),
             cl('dd-container'),
@@ -59,13 +59,13 @@ Searchbox.prototype = {
      */
     createSearchboxContent: function (resources) {
         if (!resources || resources.length === 0) {
-            new Render([
+            new Html([
                 Div(
                     t('No resources found')
                 )
             ], `s${this.searchboxId.toString(10)}`, true, true);
         } else {
-            new Render([
+            new Html([
                 Div(
                     cl('dd-dropdown'),
                     ...resources.map(resource => {

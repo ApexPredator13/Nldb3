@@ -1,11 +1,11 @@
-﻿import { Render, Div, attr, canvas } from "../../Framework/renderer";
+﻿import { Html, Div, attr, canvas } from "../../Framework/renderer";
 import { Chart } from 'chart.js';
 import { filterTransformationEvents } from "./transformation-progress";
 
 export function renderTransformationProgressChart(video, submissionIndex, containerId) {
     video.then(video => {
 
-        new Render([
+        new Html([
             Div(
                 attr({
                     style: 'display: inline-block; height: 420px;',

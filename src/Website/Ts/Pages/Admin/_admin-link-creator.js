@@ -14,7 +14,7 @@ AdminLink.prototype = {
      */
     deleteModLink: function (linkId, linkText, modId) {
         return `/Admin/DeleteModLink/${linkId.toString(10)}/${linkText}/${modId.toString(10)}`;
-    }
+    },
 
     /**
      * /Admin/DeleteMod/{id}
@@ -166,11 +166,13 @@ AdminLink.prototype = {
 
 
     /**
-     * /Admin/EditGameplayEvent/{eventId}
+     * /Admin/EditGameplayEvent/{eventId}/{videoId}/{submissionId}
      * @param {number} eventId
+     * @param {string} videoId
+     * @param {number} submissionId
      */
-    editGameplayEvent: function (eventId) {
-        return `/Admin/EditGameplayEvent/${eventId.toString(10)}`;
+    editGameplayEvent: function (eventId, videoId, submissionId) {
+        return `/Admin/EditGameplayEvent/${eventId.toString(10)}/${videoId}/${submissionId.toString(10)}`;
     },
 
 
@@ -203,9 +205,10 @@ AdminLink.prototype = {
     /**
      * /Admin/DeleteSubmission/{id}
      * @param {number} id - the ID of the submission
+     * @param {string} videoId - the ID of the vide
      */
-    deleteSubmission: function (id) {
-        return `/Admin/DeleteSubmission/${id.toString(10)}`;
+    deleteSubmission: function (id, videoId) {
+        return `/Admin/DeleteSubmission/${id.toString(10)}/${videoId}`;
     }
 };
 

@@ -1,7 +1,7 @@
 ﻿import { SubmitVideoPage } from "../../Pages/submit-video.js"
 import { resourceTypeToString } from "../../Enums/enum-to-string-converters";
 import { post } from "../../Framework/http";
-import { Render, Div, id, t, table, td, tr, cl, p, modal, h2, hr, button, hideModal, div, attr } from "../../Framework/renderer";
+import { Html, Div, id, t, table, td, tr, cl, p, modal, h2, hr, button, hideModal, div, attr } from "../../Framework/renderer";
 import { isaacImage } from "../General/isaac-image";
 import "../../Framework/Customizable/typedefs";
 import { YoutubePlayer } from "./youtube-player";
@@ -39,7 +39,7 @@ function HistoryTable(caller, videoId, historyTableContainerId, youtubePlayer, s
 
 
     // renders the initial content
-    new Render([
+    new Html([
         Div(
             id('history-container'),
 
@@ -509,7 +509,7 @@ HistoryTable.prototype = {
                 }
             }
 
-            new Render([trs], 'history', true, false);
+            new Html([trs], 'history', true, false);
         });
     }
 }

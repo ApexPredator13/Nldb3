@@ -1,4 +1,4 @@
-﻿import { Render, Div, id, cl, t, p, div, popup } from "../../Framework/renderer";
+﻿import { Html, Div, id, cl, t, p, div, popup } from "../../Framework/renderer";
 import { isaacImage } from "../General/isaac-image";
 import { transformationPopupContent } from "./events-table";
 
@@ -61,7 +61,7 @@ function renderTransformationProgress(video, submissionIndex, containerId) {
             lastEventKey = event[0];
         }
 
-        new Render([
+        new Html([
             Div(
                 id('video-transformation-stats-container'),
                 cl('video-page-element'),

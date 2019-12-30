@@ -1,11 +1,11 @@
-﻿import { Render, Div, cl, canvas, attr } from "../../Framework/renderer";
+﻿import { Html, Div, cl, canvas, attr } from "../../Framework/renderer";
 import 'array-flat-polyfill';
 
 export function renderItempickupChart(video, submissionIndex, containerId) {
 
     video.then(v => {
         // draw chart elements
-        new Render([
+        new Html([
             Div(
                 cl('video-page-element'),
                 canvas(

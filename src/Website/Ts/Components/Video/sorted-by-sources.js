@@ -1,11 +1,11 @@
-﻿import { Render, Div, table, id, thead, tr, th, t, tbody, td } from "../../Framework/renderer";
+﻿import { Html, Div, table, id, thead, tr, th, t, tbody, td } from "../../Framework/renderer";
 import { isaacImage } from "../General/isaac-image";
 
 export function renderItemsSortedBySources(video, submissionIndex, containerId) {
     video.then(video => {
         const submission = video.submissions[submissionIndex];
 
-        new Render([
+        new Html([
             Div(
                 table(
                     id('sorted-items-table'),

@@ -77,9 +77,9 @@
     <PackageReference Include="Hangfire.AspNetCore" Version="1.7.8" />
     <PackageReference Include="Hangfire.Core" Version="1.7.8" />
     <PackageReference Include="Hangfire.PostgreSql" Version="1.6.3" />
-    <PackageReference Include="IdentityServer4" Version="3.0.2" />
-    <PackageReference Include="IdentityServer4.AspNetIdentity" Version="3.0.2" />
-    <PackageReference Include="IdentityServer4.EntityFramework" Version="3.0.2" />
+    <PackageReference Include="IdentityServer4" Version="3.1.0" />
+    <PackageReference Include="IdentityServer4.AspNetIdentity" Version="3.1.0" />
+    <PackageReference Include="IdentityServer4.EntityFramework" Version="3.1.0" />
     <PackageReference Include="MailKit" Version="2.4.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Facebook" Version="3.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="3.1.0" />
@@ -94,7 +94,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="3.1.0" />
-    <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="3.7.2">
+    <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="3.7.4">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -106,7 +106,6 @@
 
 
   <ItemGroup>
-    <Folder Include="Ts\Utilities\" />
     <Folder Include="wwwroot\dump\" />
     <Folder Include="wwwroot\js\dist\" />
   </ItemGroup>
@@ -168,13 +167,22 @@
     <TypeScriptCompile Include="Ts\Framework\renderer.js" />
     <TypeScriptCompile Include="Ts\Framework\router.js" />
     <TypeScriptCompile Include="Ts\Pages\Admin\add-video.js" />
+    <TypeScriptCompile Include="Ts\Pages\Admin\create-isaac-resource.js" />
     <TypeScriptCompile Include="Ts\Pages\Admin\create-mod-link.js" />
     <TypeScriptCompile Include="Ts\Pages\Admin\create-mod.js" />
+    <TypeScriptCompile Include="Ts\Pages\Admin\delete-event.js" />
+    <TypeScriptCompile Include="Ts\Pages\Admin\delete-resource.js" />
+    <TypeScriptCompile Include="Ts\Pages\Admin\delete-submission.js" />
+    <TypeScriptCompile Include="Ts\Pages\Admin\edit-gameplay-event.js" />
     <TypeScriptCompile Include="Ts\Pages\Admin\edit-resource.js" />
+    <TypeScriptCompile Include="Ts\Pages\Admin\edit-submission.js" />
+    <TypeScriptCompile Include="Ts\Pages\Admin\insert-gameplay-event.js" />
     <TypeScriptCompile Include="Ts\Pages\Admin\mod.js" />
     <TypeScriptCompile Include="Ts\Pages\Admin\mods.js" />
     <TypeScriptCompile Include="Ts\Pages\Admin\overview.js" />
+    <TypeScriptCompile Include="Ts\Pages\Admin\resource-deleted.js" />
     <TypeScriptCompile Include="Ts\Pages\Admin\resources.js" />
+    <TypeScriptCompile Include="Ts\Pages\Admin\submissions_overview.js" />
     <TypeScriptCompile Include="Ts\Pages\Admin\videos-saved.js" />
     <TypeScriptCompile Include="Ts\Pages\Admin\_admin-link-creator.js" />
     <TypeScriptCompile Include="Ts\Pages\Admin\_all-admin-pages.js" />

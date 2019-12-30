@@ -1,4 +1,4 @@
-﻿import { Render, Div, t, h1, hr, table, thead, tr, th, tbody, p, span, cl, div, a, attr } from "../../Framework/renderer";
+﻿import { Html, Div, t, h1, hr, table, thead, tr, th, tbody, p, span, cl, div, a, attr, td, event } from "../../Framework/renderer";
 import { registerPage, navigate } from "../../Framework/router";
 import { get } from "../../Framework/http";
 import { AdminLink } from "./_admin-link-creator";
@@ -19,7 +19,7 @@ ModPage.prototype = {
 
     /** initial dummy content... */
     renderPage: function () {
-        new Render([
+        new Html([
             Div(
                 t('loading mod...')
             )
@@ -32,7 +32,7 @@ ModPage.prototype = {
     /** loads the mod from the server and displays it */
     loadMod: function () {
         get(`/Api/Mods/${this.modId}`).then(mod => {
-            new Render([
+            new Html([
                 Div(
                     h1(
                         t(mod.name)

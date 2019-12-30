@@ -1,11 +1,11 @@
-﻿import { Render, div, Div, id, tr, td, t, attr, popup, cl, h3, hr, br, span, do_nothing, strong, Table, thead, th } from "../../Framework/renderer";
+﻿import { Html, div, Div, id, tr, td, t, attr, popup, cl, h3, hr, br, span, do_nothing, strong, Table, thead, th } from "../../Framework/renderer";
 import { isaacImage } from "../General/isaac-image";
 
 function renderEventsTable(videoPromise, submissionIndex, containerId) {
     const tableContainer = 'video-page-tables';
 
     // draw container
-    new Render([
+    new Html([
         Div(
             id(tableContainer),
             t('loading data...')
@@ -16,7 +16,7 @@ function renderEventsTable(videoPromise, submissionIndex, containerId) {
     videoPromise.then(v => {
         const submission = v.submissions[submissionIndex];
 
-        new Render([
+        new Html([
             Table(
                 thead(
                     tr(

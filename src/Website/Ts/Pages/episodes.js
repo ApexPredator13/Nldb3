@@ -1,4 +1,4 @@
-﻿import { Render, Div, id } from "../Framework/renderer";
+﻿import { Html, Div, id } from "../Framework/renderer";
 import { Videos } from "../Components/General/Videos";
 import { registerPage, initRouter } from "../Framework/router";
 
@@ -12,7 +12,7 @@ EpisodesPage.prototype = {
 
     /** renders the page and displays all videos */
     renderPage: function () {
-        new Render([
+        new Html([
             Div(id('videos-x'))
         ]);
 

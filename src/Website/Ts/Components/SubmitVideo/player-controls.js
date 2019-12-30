@@ -1,4 +1,4 @@
-﻿import { Render, Div, id, span, t, attr, event } from "../../Framework/renderer";
+﻿import { Html, Div, id, span, t, attr, event } from "../../Framework/renderer";
 import { YoutubePlayer } from "./youtube-player";
 
 
@@ -16,7 +16,7 @@ function PlayerControls(containerId, youtubePlayer) {
     this.youtubePlayer = youtubePlayer;
 
     // renders the initial HTML
-    new Render([
+    new Html([
         Div(
             id('player-controls'),
 

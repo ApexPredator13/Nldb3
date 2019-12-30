@@ -1,4 +1,4 @@
-﻿import { Render, Div, h1, p, P, div, hr, cl, id, h3, style, attr, t, do_nothing } from "../Framework/renderer";
+﻿import { Html, Div, h1, p, P, div, hr, cl, id, h3, style, attr, t, do_nothing } from "../Framework/renderer";
 import { topic } from "../Components/Home/topic";
 import { get } from "../Framework/http";
 import { rankImage, rankName } from "../Components/Home/Rank";
@@ -21,7 +21,7 @@ HomePage.prototype = {
     renderPage: function () {
         const link = new Link();
 
-        new Render([
+        new Html([
             Div(
                 h1(t('Welcome to the Northernlion Database!')),
                 p(t('A database dedicated to the best Let\'s Play series on the internet.')),
@@ -76,7 +76,7 @@ HomePage.prototype = {
                 restUsers.push({ e: ['span', topUsers[i].name + (i === topUsers.length - 1 ? '' : ', ')] })
             }
 
-            new Render([
+            new Html([
                 Div(
                     div(
                         id('top-contributors-container'),
@@ -152,7 +152,7 @@ HomePage.prototype = {
                 )
             ], this.belowFoldContainerId);
         }).catch(() => {
-            new Render([
+            new Html([
                 P(t('Failed to load front page data! :/'))
             ], this.belowFoldContainerId);
         });

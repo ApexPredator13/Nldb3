@@ -1,4 +1,8 @@
-﻿let youtubeScriptCreated = false;
+﻿import { modal, Div, h2, t, hr, p } from "../../Framework/renderer";
+import { dismissModalSection } from "../General/modal-contents";
+
+let youtubeScriptCreated = false;
+let createPlayerInterval = null;
 
 /**
  * Creates a new youtube player and wraps its basic behavior
@@ -7,15 +11,12 @@
  * @param {string} videoId - the youtube video ID that should be displayed
  */
 function YoutubePlayer(videoId) {
-
+    
     /** @type {string} */
     this.videoId = videoId;
 
     /** @type {boolean} */
     this.playerReady = false;
-
-    /** @type {number|undefined} */
-    this.createPlayerInterval = undefined;
 
     /** @type {*} */
     this.player = undefined;
@@ -42,16 +43,38 @@ YoutubePlayer.prototype = {
 
     /** creates a new youtube player */
     createPlayer: function () {
-        this.createPlayerInterval = setInterval(() => {
+
+        let tries = 0;
+
+        createPlayerInterval = window.setInterval(() => {
             // youtube player creation fails at page load. gotta retry a couple times.
             if (!this.player || this.player.b === null) {
                 this.player = new YT.Player('ytplayer', { videoId: this.videoId });
             } else {
                 this.playerReady = true;
-                clearInterval(this.createPlayerInterval);
-                this.createPlayerInterval = undefined;
+                console.log('clearing interval', createPlayerInterval);
+                clearInterval(createPlayerInterval);
+                return;
+            }
+
+            if (tries++ >= 20) {
+                modal(false,
+                    Div(
+                        h2(
+                            t('An error occurred')
+                        ),
+                        hr(),
+                        p(
+                            t('The youtube player could not be initialized.')
+                        ),
+                        dismissModalSection()
+                    )
+                )
+                console.log('clearing interval', createPlayerInterval);
+                clearInterval(createPlayerInterval);
             }
         }, 1000);
+        console.log('interval set', createPlayerInterval);
     },
 
 
@@ -94,7 +117,7 @@ YoutubePlayer.prototype = {
      * @returns {number}
      */
     getPlayerState: function() {
-        const player = this.GetYoutubePlayer();
+        const player = this.getYoutubePlayer();
         if (player) {
             return player.getPlayerState();
         }
@@ -107,7 +130,7 @@ YoutubePlayer.prototype = {
      * @param {number} to - number of seconds to go forward or backwards
      */
     seek: function (to) {
-        const player = this.GetYoutubePlayer();
+        const player = this.getYoutubePlayer();
         if (player) {
             const currentTime = this.getCurrentTime();
             let newTime = currentTime + (to);

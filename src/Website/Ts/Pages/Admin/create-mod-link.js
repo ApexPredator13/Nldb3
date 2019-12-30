@@ -1,7 +1,6 @@
-﻿import { Component, FrameworkElement, EventType, A, Render, Div, h2, t, hr, form, attr, event, input, div, cl, label, formButton } from "../../Framework/renderer";
+﻿import { Html, Div, h2, t, hr, form, attr, event, input, div, cl, label, formButton } from "../../Framework/renderer";
 import { AdminLink } from "./_admin-link-creator";
-import { PageData, registerPage } from "../../Framework/router";
-import { ComponentWithForm } from "../../Framework/ComponentBaseClasses/component-with-form";
+import { registerPage } from "../../Framework/router";
 import { FormHelper } from "../../Framework/forms";
 import { backToMod, backToMods, backToAdminOverview } from "../../Components/Admin/go-back-links";
 
@@ -21,7 +20,7 @@ function CreateModLinkPage(parameters) {
 CreateModLinkPage.prototype = {
 
     renderPage: function () {
-        new Render([
+        new Html([
             Div(
                 h2(
                     t('Create Link for Mod')

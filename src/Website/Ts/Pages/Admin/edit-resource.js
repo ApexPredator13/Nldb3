@@ -1,4 +1,4 @@
-﻿import { Render, Div, h2, t, event, attr, h1, p, span, input, hr, form, label, div, cl, formButton, br, style, select, strong, option, href } from "../../Framework/renderer";
+﻿import { Html, Div, h2, t, event, attr, h1, p, span, input, hr, form, label, div, cl, formButton, br, style, select, strong, option, href } from "../../Framework/renderer";
 import { registerPage, navigate } from "../../Framework/router";
 import { get, postResponse } from "../../Framework/http";
 import { AdminLink } from "./_admin-link-creator";
@@ -25,11 +25,11 @@ function EditResourcePage(parameters) {
 }
 
 
-EditResource.prototype = {
+EditResourcePage.prototype = {
 
     /** renders initial dummy content */
     renderPage: function () {
-        new Render([
+        new Html([
             Div(
                 h2(
                     t('loading resource...')
@@ -49,7 +49,7 @@ EditResource.prototype = {
 
             this.resourceType = resource.resource_type;
 
-            new Render([
+            new Html([
                 Div(
                     h1(
                         t(`Editing: ${resource.name}`)

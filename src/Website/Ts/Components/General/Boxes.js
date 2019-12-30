@@ -1,4 +1,4 @@
-﻿import { Div, Render, t, cl, div, attr, id, event } from "../../Framework/renderer";
+﻿import { Div, Html, t, cl, div, attr, id, event } from "../../Framework/renderer";
 import { isaacImage } from "./isaac-image";
 import "../../Framework/Customizable/typedefs"
 
@@ -43,7 +43,7 @@ Boxes.prototype = {
      */
     createBoxes: function (resources) {
         if (!resources || resources.length === 0) {
-            new Render([
+            new Html([
                 Div(
                     t('No resources found.')
                 )
@@ -55,7 +55,7 @@ Boxes.prototype = {
             resources = resources.slice(0, this.limit);
         }
 
-        new Render([
+        new Html([
             Div(
                 cl('box-container'),
                 id(`box${this.id}`),

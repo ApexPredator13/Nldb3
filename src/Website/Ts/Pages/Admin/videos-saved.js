@@ -1,4 +1,4 @@
-﻿import { Render, t, H1, Hr, P } from "../../Framework/renderer";
+﻿import { Html, t, H1, Hr, P } from "../../Framework/renderer";
 import { backToAdminOverview } from "../../Components/Admin/go-back-links";
 import { registerPage } from "../../Framework/router";
 
@@ -16,7 +16,7 @@ function VideosSavedPage(parameters) {
 VideosSavedPage.prototype = {
 
     renderPage: function () {
-        new Render([
+        new Html([
             H1(
                 t('The videos have been saved successfully.')
             ),

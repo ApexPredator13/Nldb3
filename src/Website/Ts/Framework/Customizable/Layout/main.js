@@ -1,7 +1,7 @@
-﻿import { cl, id, Main, Render } from '../../renderer';
+﻿import { cl, id, Main, Html } from '../../renderer';
 
 export function renderMainContainer() {
-    new Render([
+    new Html([
         Main(
             id('main'),
             cl('w80')

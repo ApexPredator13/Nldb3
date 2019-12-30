@@ -8,6 +8,16 @@ import { registerResourcePage } from "../resource";
 import { registerDeleteModLinkPage } from "./delete-mod-link";
 import { registerModPage } from "./mod";
 import { registerCreateModLinkPage } from "./create-mod-link";
+import { registerEditResourcePage } from "./edit-resource";
+import { registerCreateIsaacResourcePage } from "./create-isaac-resource";
+import { registerDeleteResourcePage } from "./delete-resource";
+import { registerResourceDeletedPage } from "./resource-deleted";
+import { registerSubmissionsOverviewPage } from "./submissions_overview";
+import { registerEditSubmissionPage } from "./edit-submission";
+import { registerEditGameplayEventPage } from "./edit-gameplay-event";
+import { registerInsertGameplayEventPage } from "./insert-gameplay-event";
+import { registerDeleteEventPage } from "./delete-event";
+import { registerDeleteSubmissionPage } from "./delete-submission";
 
 
 (() => {
@@ -21,18 +31,15 @@ import { registerCreateModLinkPage } from "./create-mod-link";
     registerDeleteModLinkPage();
     registerModPage();
     registerCreateModLinkPage();
-
-    //EditResource.RegisterPage();
-    //Redirect.RegisterPage();
-    //RedirectNextResource.RegisterPage();
-    //CreateIsaacResource.RegisterPage();
-    //DeleteResource.RegisterPage();
-    //ResourceDeleted.RegisterPage();
-    //SubmissionsOverview.RegisterPage();
-    //EditSubmission.RegisterPage();
-    //EditGameplayEvent.RegisterPage();
-    //InsertGameplayEvent.RegisterPage();
-    //DeleteEvent.RegisterPage();
-    //DeleteSubmission.RegisterPage();
+    registerEditResourcePage();
+    registerCreateIsaacResourcePage();
+    registerDeleteResourcePage();
+    registerResourceDeletedPage();
+    registerSubmissionsOverviewPage();
+    registerEditSubmissionPage();
+    registerEditGameplayEventPage();
+    registerInsertGameplayEventPage();
+    registerDeleteEventPage();
+    registerDeleteSubmissionPage();
 })();
 

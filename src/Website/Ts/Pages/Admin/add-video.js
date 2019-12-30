@@ -1,4 +1,4 @@
-﻿import { Render, Div, div, id, form, attr, label, textarea, formButton, hr } from "../../Framework/renderer";
+﻿import { Html, Div, div, id, form, attr, label, textarea, formButton, hr } from "../../Framework/renderer";
 import { registerPage } from "../../Framework/router";
 import { backToAdminOverview } from "../../Components/Admin/go-back-links";
 import { AdminLink } from "./_admin-link-creator";
@@ -19,7 +19,7 @@ AddVideoPage.prototype = {
 
     /** renders the page */
     renderPage: function () {
-        new Render([
+        new Html([
             Div(
                 h1(
                     t('Add Videos')

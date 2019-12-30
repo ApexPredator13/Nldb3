@@ -1,4 +1,4 @@
-﻿import { Render, Div, h1, t, hr, form, attr, div, button, input } from "../../Framework/renderer"
+﻿import { Html, Div, h1, t, hr, form, attr, div, button, input, event } from "../../Framework/renderer"
 import { FormHelper } from "../../Framework/forms";
 import { AdminLink } from "./_admin-link-creator";
 import { backToMods, backToAdminOverview } from "../../Components/Admin/go-back-links";
@@ -20,7 +20,7 @@ function DeleteModPage(parameters) {
 
 DeleteModPage.prototype = {
     renderPage: function () {
-        new Render([
+        new Html([
             Div(
                 h1(
                     t(`Really delete "${this.modName}"?`)
