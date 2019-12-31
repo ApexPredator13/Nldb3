@@ -4,7 +4,7 @@ import { addClassIfNotExists, removeClassIfExists } from "../Framework/browser";
 import { getConfig } from "../Framework/Customizable/config.development";
 import { get, postResponse } from "../Framework/http";
 import { Html, Div, id, div, a, iframe, attr, span, t, P, event, H2, cl, hr, Hr, style, H1, input, button, br } from "../Framework/renderer";
-import { registerPage, setTitle, navigate, PAGE_TYPE_EPISODE } from "../Framework/router";
+import { registerPage, setTitle, navigate, PAGE_TYPE_EPISODE, removeLeaveGuard } from "../Framework/router";
 import { PlayerControls } from "../Components/SubmitVideo/player-controls";
 import { CurrentPlayer } from "../Components/SubmitVideo/current-player";
 import { ChangeSeed } from "../Components/SubmitVideo/change-seed";
@@ -1840,8 +1840,12 @@ SubmitVideoPage.prototype = {
     /** displays the 'submission succeeded!' menu */
     menu_SubmitEpisodeSucceeded: function () {
 
-        // setting the flag to true will no longer display the 'are you sure you want to leave?'-warning.
+        // user is allowed to leave the page unpromptet now:
+
+        // step 1: setting the flag to true will no longer display the 'are you sure you want to leave?'-warning.
         window.episodeWasSubmitted = true;
+        // step 2: remove the 'beforeunload' event
+        window.removeEventListener('beforeunload', beforeUnloadEvent);
 
         this.display(
             H2(t('Submission Succeeded!')),

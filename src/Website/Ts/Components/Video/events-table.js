@@ -1,4 +1,4 @@
-﻿import { Html, div, Div, id, tr, td, t, attr, popup, cl, h3, hr, br, span, do_nothing, strong, Table, thead, th } from "../../Framework/renderer";
+﻿import { Html, div, Div, id, tr, td, t, attr, popup, cl, h3, hr, br, span, do_nothing, strong, Table, thead, th, tbody, style } from "../../Framework/renderer";
 import { isaacImage } from "../General/isaac-image";
 
 function renderEventsTable(videoPromise, submissionIndex, containerId) {
@@ -89,11 +89,12 @@ function itemProgress(playedFloor, twoPlayerMode) {
         .map(event => {
             return div(
                 cl('display-inline'),
+                style('position: relative; z-index: 1'),
                 isaacImage(event, 1),
 
-                popup({ top: 10, left: 0 },
+                popup({ bottom: 65, left: 0 },
                     Div(
-                        cl('c', 'downscale'),
+                        cl('c'),
 
                         h3(
                             t('Item Collected')
@@ -103,11 +104,11 @@ function itemProgress(playedFloor, twoPlayerMode) {
                             t(event.r1.name)
                         ),
                         br(),
-                        isaacImage(event, 2, false),
+                        isaacImage(event, 2),
                         span(
                             t(' ⟹ ')
                         ),
-                        isaacImage(event, 1, false),
+                        isaacImage(event, 1),
                         br(),
                         span(
                             t(`From  ${event.r2.name}`)
@@ -132,30 +133,28 @@ function itemProgress(playedFloor, twoPlayerMode) {
 }
 
 
-function transformationProgress(playedFloor, upscale) {
+function transformationProgress(playedFloor) {
     return playedFloor.events
         .filter(event => event.event_type === 12)
         .map(event => {
             return div(
-                cl('display-inline'),
+                cl('display-inline', 'c'),
 
                 isaacImage(event, 1),
-                popup({ top: 10, left: 0 },
-                    transformationPopupContent(upscale, event)
+                popup({ bottom: 65, left: 0 },
+                    transformationPopupContent(event)
                 )
             )
         });
 }
 
-function transformationPopupContent(upscale, event) {
+function transformationPopupContent(event) {
     return Div(
-        upscale ? cl('c') : cl('c', 'downscale'),
-
         h3(
             t('Transformation Progress')
         ),
         hr(),
-        isaacImage(event, 1, upscale),
+        isaacImage(event, 1),
         br(),
         span(
             t(`${event.r1.name} collected`)
@@ -169,7 +168,7 @@ function transformationPopupContent(upscale, event) {
         span(
             t('collected during regular gamplay')
         )
-    )
+    );
 }
 
 function transformationComplete(playedFloor) {
@@ -180,15 +179,15 @@ function transformationComplete(playedFloor) {
                 cl('display-inline'),
 
                 isaacImage(event, 2),
-                popup({ top: 10, left: 0 },
+                popup({ bottom: 65, left: 0 },
                     Div(
-                        cl('c', 'downscale'),
+                        cl('c'),
 
                         h3(
                             t('Transformation Complete!')
                         ),
                         hr(),
-                        isaacImage(event, 2, false),
+                        isaacImage(event, 2),
                         br(),
                         span(
                             t('NL successfully transformed')
@@ -201,7 +200,7 @@ function transformationComplete(playedFloor) {
                         span(
                             t(event.event_type === 21 ? 'after rerolling his character with' : 'by collecting 3 specific items.')
                         ),
-                        event.event_type === 21 ? isaacImage(event, 1, false) : do_nothing
+                        event.event_type === 21 ? isaacImage(event, 1) : do_nothing
                     )
                 )
             )
@@ -232,9 +231,9 @@ function consumableProgress(playedFloor, twoPlayerMode) {
             return div(
                 cl('display-inline'),
                 isaacImage(event, 1),
-                popup({ top: 10, left: 0 },
+                popup({ bottom: 65, left: 0 },
                     Div(
-                        cl('c', 'downscale'),
+                        cl('c'),
 
                         h3(
                             t(popupHeader)
@@ -274,15 +273,15 @@ function trinketProgress(playedFloor, twoPlayerMode) {
 
                 isaacImage(event, 1),
 
-                popup({ top: 10, left: 0 },
+                popup({ bottom: 65, left: 0 },
                     Div(
-                        cl('c', 'downscale'),
+                        cl('c'),
 
                         h3(
                             t('A new trinket was used from here on out!')
                         ),
                         hr(),
-                        isaacImage(event, 1, false),
+                        isaacImage(event, 1),
                         br(),
                         span(
                             t(event.r1.name)

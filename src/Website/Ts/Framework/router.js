@@ -164,9 +164,12 @@ const getRequestedPageFromRoute = (route, specificPageType) => {
 }
 
 
+const removeLeaveGuard = () => {
+    window.leavingAllowed = null;
+}
+
 
 const navigate = (requestedRoute, preventDefaultForEvent, specificPageType, push = true, forceRender = false, scrollToTop = true) => {
-    console.log('navigating.', requestedRoute);
     if (preventDefaultForEvent) {
         preventDefaultForEvent.preventDefault();
     }
@@ -176,11 +179,9 @@ const navigate = (requestedRoute, preventDefaultForEvent, specificPageType, push
     }
 
     const { found, pageData, parameters } = getRequestedPageFromRoute(requestedRoute, specificPageType);
-    console.log(`page found for "${requestedRoute}"? ${found}`, pageData, parameters);
     const currentRoute = getCurrentRoute();
 
     if (!found || !pageData || !parameters) {
-        console.log('page not found. registered pages:', getPages());
         return;
     }
 
@@ -249,7 +250,6 @@ const navigate = (requestedRoute, preventDefaultForEvent, specificPageType, push
         if (!requestedRoute.startsWith('/')) {
             requestedRoute = '/' + requestedRoute;
         }
-        console.log('pushing state', requestedRoute);
         history.pushState(undefined, '', requestedRoute);
 
         // save this url as last url
@@ -287,7 +287,8 @@ export {
     setOnLoadPageType,
     getOnLoadPageType,
     PAGE_TYPE_EPISODE,
-    PAGE_TYPE_ISAAC_RESOURCE
+    PAGE_TYPE_ISAAC_RESOURCE,
+    removeLeaveGuard
 }
 
 

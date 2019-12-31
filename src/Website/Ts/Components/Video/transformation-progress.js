@@ -14,7 +14,7 @@ function renderTransformationProgress(video, submissionIndex, containerId) {
             pyramid.push(
                 div(
                     cl('pyramid-transformation-bar'),
-                    event[1].map(event => {
+                    ...event[1].map(event => {
                         let addNewRunBorder = false;
                         if (lastEventKey && !lastEventKey.endsWith(event.run_number.toString(10))) {
                             addNewRunBorder = true;
@@ -23,11 +23,11 @@ function renderTransformationProgress(video, submissionIndex, containerId) {
                         const block = div(
                             cl(
                                 'transformation-stats-block',
-                                transformationCompleted ? ' transformation-completed' : null,
-                                addNewRunBorder ? ' transformation-stats-block-next-run' : null
+                                transformationCompleted ? 'transformation-completed' : null,
+                                addNewRunBorder ? 'transformation-stats-block-next-run' : null
                             ),
-                            popup(
-                                transformationPopupContent(true, event)
+                            popup({ bottom: 45, left: 0 },
+                                transformationPopupContent(event)
                             )
                         )
 
@@ -52,7 +52,7 @@ function renderTransformationProgress(video, submissionIndex, containerId) {
                 div(
                     cl(
                         'pyramid-transformation-icon',
-                        addNewRunBorder ? ' transformation-stats-block-next-run' : null
+                        addNewRunBorder ? 'transformation-stats-block-next-run' : null
                     ),
                     isaacImage(event[1][0], 2)
                 )

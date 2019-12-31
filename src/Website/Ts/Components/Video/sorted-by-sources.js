@@ -37,14 +37,15 @@ function getItemEventsFromSubmission(submission) {
         for (const floor of character.played_floors) {
             for (const event of floor.events) {
                 if (event.event_type === 2 || event.event_type === 18) {
+                    const source = event.r2;
                     if (events.has(source.id)) {
                         const sortedItems = events.get(source.id);
                         if (sortedItems) {
                             sortedItems.items.push(isaacImage(event, 1));
                         }
                     } else {
-                        events.set({
-                            source: isaacImage(events, 2),
+                        events.set(source.id, {
+                            source: isaacImage(event, 2),
                             items: [isaacImage(event, 1)]
                         });
                     }

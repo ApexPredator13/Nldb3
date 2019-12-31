@@ -1,17 +1,14 @@
 ﻿.popup {
     position: absolute;
-    top: 30px;
-    right: 0;
     background-color: #212121;
     border: 0.1rem solid white;
     padding: 0.25rem;
     border-radius: 0.3rem;
-    display: none;
     overflow: visible;
     width: auto;
     height: auto;
     white-space: nowrap;
-    z-index: inherit;
+    z-index: 10000;
 }
 
 .popup-container:hover > .popup {

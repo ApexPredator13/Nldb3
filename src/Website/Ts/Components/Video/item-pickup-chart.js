@@ -9,16 +9,16 @@ export function renderItempickupChart(video, submissionIndex, containerId) {
             Div(
                 cl('video-page-element'),
                 canvas(
-                    attr({ class: 'video-page-element', width: '800', height: '300', id: 'item-pickup-chart-canvas' })
+                    attr({ width: '800', height: '300', id: 'item-pickup-chart-canvas' })
                 )
             )
         ], containerId);
 
         // extract data
         const canvasContext = document.getElementById('item-pickup-chart-canvas').getContext('2d');
-        const itemEvents = v.submissions[submissionIndex]
+        const itemEvents = v.submissions[submissionIndex].played_characters
             .flatMap(c => c.played_floors)
-            .flatMap(floor => floor.events.filter(event => event.event_type === GameplayEventType.ItemCollected || event.event_type === GameplayEventType.ItemTouched));
+            .flatMap(floor => floor.events.filter(event => event.event_type === 2 || event.event_type === 18));
 
         const extractedData = new Map();
 
@@ -52,6 +52,8 @@ export function renderItempickupChart(video, submissionIndex, containerId) {
                 ]
             },
             options: {
+                maintainAspectRatio: true,
+                responsive: true,
                 legend: {
                     display: false
                 }

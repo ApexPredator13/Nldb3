@@ -1,4 +1,4 @@
-﻿import { Html, Div, div, t, style, cl, event, popup, h4, hr, br, strong, do_nothing } from "../../Framework/renderer";
+﻿import { Html, Div, div, t, style, cl, event, popup, h4, hr, br, strong, do_nothing, p, span } from "../../Framework/renderer";
 import { isaacImage } from "../General/isaac-image";
 
 export function renderTimeline(video, submissionIndex, containerId) {
@@ -30,7 +30,7 @@ export function renderTimeline(video, submissionIndex, containerId) {
 
             const videoLength = hours * 3600 + minutes * 60 + seconds;
             const floorLength = floor.duration - 0.01;
-            const percentage = (100 * floorLength) / videoLength;
+            const percentage = (100 * floorLength) / videoLength - 0.1;
 
             floorUpperElements.push(
                 div(
@@ -45,18 +45,16 @@ export function renderTimeline(video, submissionIndex, containerId) {
                 floorStartsAt += floors[x].duration;
             }
 
+            const bossfightEvents = floor.events.filter(event => event.event_type === 4);
             floorElements.push(
                 div(
-                    t(i % 2 !== 0 ? (`↦${floor.floor.name}` + (floor.died_from !== null ? ' (†)' : '')) : ''),
-                    style(`width: ${percentage}%`),
+                    style(`width: ${percentage}%; background-color: ${floor.floor.color}`),
                     cl('r', 'timeline-floor'),
                     event('click', () => window.open(`https://youtu.be/${video.id}?t=${floorStartsAt}`, '_blank')),
 
-                    ...(floor.events.filter(event => event.event_type === 4).map(bossfight => {
-                        isaacImage(bossfight, 1, false)
-                    })),
+                    ...bossfightEvents.map(bossfight => isaacImage(bossfight, 1, false)),
 
-                    popup({ top: 50, left: 0 },
+                    popup({ top: 50, right: 0 },
                         timelinePopupContent(floor, submission.played_characters[floor.run_number - 1])
                     ),
                 )
@@ -66,7 +64,7 @@ export function renderTimeline(video, submissionIndex, containerId) {
                 div(
                     t(i % 2 !== 0 ? (`↦${floor.floor.name}` + (floor.died_from !== null ? ' (†)' : '')) : ''),
                     style(`width: ${percentage}%`),
-                    cl('timeline-floorname', 'l', floor.died_from ? ' orange' : null)
+                    cl('timeline-floorname', 'l', floor.died_from ? 'orange' : null)
                 )
             );
         }
@@ -74,6 +72,7 @@ export function renderTimeline(video, submissionIndex, containerId) {
         // draw the 3 timeline lanes
         new Html([
             Div(
+                style('width: 98%; margin: 1rem auto;'),
                 div(
                     cl('timeline-flex'),
                     ...floorUpperElements
@@ -93,11 +92,11 @@ export function renderTimeline(video, submissionIndex, containerId) {
 
 
 function timelinePopupContent(currentFloor, currentCharacter) {
-    const bossfights = floor.events.filter(event => event.event_type === 4);
+    const bossfights = currentFloor.events.filter(event => event.event_type === 4);
     const numberOfBossfights = bossfights.length;
 
-    const minutes = Math.floor(floor.duration / 60);
-    const seconds = floor.duration - minutes * 60;
+    const minutes = Math.floor(currentFloor.duration / 60);
+    const seconds = currentFloor.duration - minutes * 60;
 
     const minutesString = minutes ? `${minutes.toString(10)} ${(minutes === 1 ? 'minute' : 'minutes')}` : '';
     const conditionalComma = minutes ? ', ' : '';
@@ -105,6 +104,23 @@ function timelinePopupContent(currentFloor, currentCharacter) {
 
     const wonTheRun = currentFloor.events.filter(event => event.event_type === 16);
     const lostTheRun = currentFloor.events.filter(event => event.event_type === 17);
+
+    let bossfightCounter = 1;
+    const bossfightSectionElements = numberOfBossfights === 0 ? [p(
+        t('No bossfights on this floor')
+    )] : bossfights.map(bossfight => {
+        return p(
+            span(
+                t(numberOfBossfights > 1 ? `Bossfight ${bossfightCounter++}:` : 'Bossfight:')
+            ),
+            br(),
+            isaacImage(bossfight, 1),
+            br(),
+            strong(
+                t(bossfight.r1.name)
+            )
+        )
+    });
 
     return Div(
         cl('c'),
@@ -116,21 +132,7 @@ function timelinePopupContent(currentFloor, currentCharacter) {
             t(`~ ${minutesString}${conditionalComma}${secondsString}`)
         ),
         hr(),
-        numberOfBossfights === 0 ? p(
-            t('No bossfights on this floor')
-        ) : bossfights.map(bossfight => {
-            return p(
-                span(
-                    t(numberOfBossfights > 1 ? `Bossfight ${bossfightCounter}:` : 'Bossfight:')
-                ),
-                br(),
-                isaacImage(bossfight, 1),
-                br(),
-                strong(
-                    t(bossfight.r1.name)
-                )
-            )
-        }),
+        ...bossfightSectionElements,
         wonTheRun && wonTheRun.length > 0 ? div(
             hr(),
             p(

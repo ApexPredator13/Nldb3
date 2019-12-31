@@ -52,7 +52,6 @@ YoutubePlayer.prototype = {
                 this.player = new YT.Player('ytplayer', { videoId: this.videoId });
             } else {
                 this.playerReady = true;
-                console.log('clearing interval', createPlayerInterval);
                 clearInterval(createPlayerInterval);
                 return;
             }
@@ -70,11 +69,9 @@ YoutubePlayer.prototype = {
                         dismissModalSection()
                     )
                 )
-                console.log('clearing interval', createPlayerInterval);
                 clearInterval(createPlayerInterval);
             }
         }, 1000);
-        console.log('interval set', createPlayerInterval);
     },
 
 

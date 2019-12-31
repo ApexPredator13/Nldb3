@@ -1,10 +1,10 @@
-﻿import { Div, id, cl, canvas, attr, div } from "../../Framework/renderer";
+﻿import { Div, id, cl, canvas, attr, div, Html } from "../../Framework/renderer";
 import { get } from "../../Framework/http";
 import { Chart } from 'chart.js';
 
 export function renderVideoStats(video, containerId) {
-    Promise.all(video, get('/api/videos/max')).then(([video, stats]) => {
-        new Render([
+    Promise.all([video, get('/api/videos/max')]).then(([video, stats]) => {
+        new Html([
             Div(
                 id('global-stats'),
                 cl('video-page-element'),

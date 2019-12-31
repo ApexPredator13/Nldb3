@@ -200,7 +200,6 @@ export function SubmitVideoQuotesSection(containerId, videoId, youtubePlayer) {
             at = (parseInt(minuteSelect.value, 10) * 60) + (parseInt(secondSelect.value, 10));
         } else {
             at = this.youtubePlayer.GetCurrentTime();
-            console.log('current video time: ', at);
         }
 
         const data = new FormData();

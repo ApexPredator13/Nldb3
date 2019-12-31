@@ -1,4 +1,4 @@
-﻿import { Html, Div, cl, div, input, attr, event, span, t, style } from "../../Framework/renderer";
+﻿import { Html, Div, cl, div, input, attr, event, span, t, style, id } from "../../Framework/renderer";
 import { removeClassIfExists, addClassIfNotExists } from "../../Framework/browser";
 import "../../Framework/Customizable/typedefs.js";
 
@@ -89,7 +89,7 @@ Searchbox.prototype = {
 
                         return div(
                             attr({ class: 'dd-line', title: resource.name, di: resource.id, dl: resource.id.toLowerCase() }),
-                            event('click', this.lineClickEvent),
+                            event('click', e => this.lineClickEvent(e)),
                             div(
                                 t(displayName),
                                 cl('dd-text')

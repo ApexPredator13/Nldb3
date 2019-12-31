@@ -1,11 +1,11 @@
-﻿import { Html, Div, div, t, p, strong, style, cl, h2, hr, br } from "../../Framework/renderer";
+﻿import { Html, Div, div, t, p, strong, style, cl, h2, hr, br, span } from "../../Framework/renderer";
 import { isaacImage } from "../General/isaac-image";
 
 export function renderPlayedCharacters(video, submissionIndex, containerId) {
     video.then(video => {
         new Html([
             Div(
-                video.submissions[submissionIndex].played_characters.map(character => {
+                ...video.submissions[submissionIndex].played_characters.map(character => {
 
                     // extract necessary data for the character
                     const numberOfFloors = character.played_floors.length;
@@ -58,11 +58,11 @@ export function renderPlayedCharacters(video, submissionIndex, containerId) {
                             isaacImage(character.died_from),
                             p(
                                 span(
-                                    t('on')
+                                    t('on ')
                                 ),
                                 span(
                                     strong(
-                                        style(`color: ${floor.color}`),
+                                        style(`color: ${floor.color}; text-shadow: 0 0 1px black; font-weight: bolder; font-size: 1.1rem;`),
                                         t(`${floor.name === 'Chest' ? 'the Chest' : floor.name}`)
                                     )
                                 )

@@ -207,7 +207,6 @@ function Html(content, id = 'main', displayHtmlAfterRender = true, replaceConten
                 break;
 
             case POPUP_END:
-                debugger;
                 return currentElement;
 
             default:

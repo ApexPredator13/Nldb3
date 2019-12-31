@@ -254,7 +254,6 @@ HistoryTable.prototype = {
             .map(floor => typeof (floor.Duration) === 'number' ? floor.Duration : 0)
             .reduce((acc, curr) => acc += curr);
 
-        console.log('time so far: ', recordedFloorTimeSoFar);
         return recordedFloorTimeSoFar;
     },
 

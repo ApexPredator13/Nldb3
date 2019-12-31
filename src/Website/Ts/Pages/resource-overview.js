@@ -49,8 +49,6 @@ ResourceOverviewPage.prototype = {
     loadAndDisplayResources: function () {
         get(`/Api/Resources/?ResourceType=${this.type}&OrderBy=${1}`).then(resources => {
 
-            console.log('resources', resources);
-
             // sort resources by alphabet / sometimes type
             const sortedResources = new Map();
             sortedResources.set('Other', []);

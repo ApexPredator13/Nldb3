@@ -5,6 +5,7 @@ import { isaacImage } from "../Components/General/isaac-image";
 import { Chart } from "chart.js";
 import { Videos } from "../Components/General/Videos";
 import "../Framework/Customizable/typedefs.js"
+import { Searchbox } from "../Components/General/Searchbox";
 
 let originalBodyBackground, backgroundVisible, optionsLoaded, resourceId, allResources;
 const pageContainerId = 'page-container';
@@ -42,7 +43,7 @@ ResourcePage.prototype = {
                     span(
                         t('Show Options'),
                         id('chart-options-link'),
-                        event('click', clickOptions)
+                        event('click', e => this.clickOptions(e))
                     ),
                     div(
                         id('chart-options-box-container'),
@@ -60,7 +61,7 @@ ResourcePage.prototype = {
                                 t('Randomize Bar-Colors'),
                                 id('change-colors'),
                                 cl('btn-green'),
-                                event('click', randomizeChartColors)
+                                event('click', () => this.randomizeChartColors())
                             ),
                             br(),
                             br(),
@@ -68,7 +69,7 @@ ResourcePage.prototype = {
                                 t('Toggle Background'),
                                 id('hide-background'),
                                 cl('btn-green'),
-                                event('click', toggleBackground)
+                                event('click', () => this.toggleBackground())
                             ),
                             br(),
                             br(),
@@ -76,7 +77,7 @@ ResourcePage.prototype = {
                                 t('Reset Page'),
                                 id('reset-chart'),
                                 cl('btn-red'),
-                                event('click', e => resetPage(e))
+                                event('click', e => this.resetPage(e))
                             )
                         )
                     )
@@ -92,8 +93,8 @@ ResourcePage.prototype = {
 
     /** loads the options menu in the bottom left */
     initializeOptions: function () {
-        this.getAllResources.then(resources => {
-            this.renderSearchbox(addComparison, 1, resources, true);
+        this.getAllResources().then(resources => {
+            new Searchbox(this, this.addComparison, 1, resources, true, 'searchbox-placeholder', true);
         }).then(() => optionsLoaded = true);
     },
 
@@ -224,7 +225,7 @@ ResourcePage.prototype = {
      */
     prepareCharts: function () {
         return new Promise(resolve => {
-            get(`/Api/Resources/${resourceId}/Stats`).then(result => {
+            get(`/Api/Resources/${this.resourceId}/Stats`).then(result => {
                 if (!result) {
                     new Html([
                         Div(t('Resource not found.'))
@@ -237,14 +238,13 @@ ResourcePage.prototype = {
                 const chartSections = [];
 
                 if (result.history) {
-                    debugger;
                     const chartId = 'throughout-the-letsplay';
                     this.chartsData.set(chartId, result.history);
 
                     chartSections.push(
                         hr(),
                         h3(
-                            t(throughoutTheLetsplayHeader(result.resource.resource_type, result.resource.name))
+                            t(this.throughoutTheLetsplayHeader(result.resource.resource_type, result.resource.name))
                         ),
                         canvas(
                             attr({ class: 'chart', id: chartId, height: '500', style: 'width: 95% !important' })
@@ -282,7 +282,7 @@ ResourcePage.prototype = {
                     chartSections.push(
                         hr(),
                         h3(
-                            t(characterRankingHeader(result.resource.resource_type, result.resource.name))
+                            t(this.characterRankingHeader(result.resource.resource_type, result.resource.name))
                         ),
                         div(
                             cl('doughnut-chart-container'),
@@ -300,7 +300,7 @@ ResourcePage.prototype = {
                     chartSections.push(
                         hr(),
                         h3(
-                            t(curseRankingHeader(result.resource.resource_type, result.resource.name))
+                            t(this.curseRankingHeader(result.resource.resource_type, result.resource.name))
                         ),
                         div(
                             cl('doughnut-chart-container'),
@@ -318,7 +318,7 @@ ResourcePage.prototype = {
                     chartSections.push(
                         hr(),
                         h3(
-                            t(floorRankingHeader(result.resource.resource_type, result.resource.name))
+                            t(this.floorRankingHeader(result.resource.resource_type, result.resource.name))
                         ),
                         canvas(
                             attr({ class: 'chart', id: chartId, height: (50 + ((result.floor_stats.labels.length || 1) * 20)).toString(10), style: 'width: 95% !important;' })
@@ -356,7 +356,7 @@ ResourcePage.prototype = {
                     )
                 ], pageContainerId);
 
-                Videos('videos-container', `Videos where "${result.resource.name}" appears:`, undefined, result.resource.resource_type, undefined, undefined, result.resource.id);
+                new Videos('videos-container', `Videos where "${result.resource.name}" appears:`, undefined, undefined, undefined, result.resource.id, result.resource.resource_type);
 
                 resolve();
             });
@@ -370,10 +370,10 @@ ResourcePage.prototype = {
      */
     resetPage: function (e) {
         e.target.disabled = true;
-        createPage().then(() => {
-            initializeCharts();
-            e.target.disabled = false;
-        });
+        this.prepareCharts()
+            .then(() => this.initializeCharts())
+            .then(() => this.initializeOptions())
+            .then(() => e.target.disabled = false);
     },
 
 
@@ -401,14 +401,14 @@ ResourcePage.prototype = {
     changeColors: function (data) {
         if (data && data.datasets) {
             for (let i = 0; i < data.datasets.length; ++i) {
-                fillDatasetWithRandomColor(data.datasets[i]);
+                this.fillDatasetWithRandomColor(data.datasets[i]);
             }
         }
     },
 
 
     /** adds the dataset of another resources to all charts on the page */
-    addComparison: function () {
+    addComparison: function (resourceId) {
         const historyChart = this.chartsData.get('throughout-the-letsplay');
         const foundAtChart = this.chartsData.get('found-at');
         const floorChart = this.chartsData.get('floor-stats');
@@ -433,42 +433,42 @@ ResourcePage.prototype = {
         }
 
         if (historyChart.datasets.length < 5) {
-            get(`/Api/Resources/${id}/Stats`).then(result => {
+            get(`/Api/Resources/${resourceId}/Stats`).then(result => {
                 if (!result) {
                     return;
                 }
 
-                if (result.history && result.history.datasets) {
+                if (historyChart && result.history && result.history.datasets) {
                     const index = result.history.datasets.length - 1;
                     const newData = result.history.datasets[index];
                     this.fillDatasetWithRandomColor(newData);
-                    this.historyChart.datasets.push(newData);
+                    historyChart.datasets.push(newData);
                 }
 
-                if (result.character_stats && result.character_stats.datasets) {
+                if (foundAtChart && result.character_stats && result.character_stats.datasets) {
                     const index = result.character_stats.datasets.length - 1;
                     const newData = result.character_stats.datasets[index];
-                    this.characterChart.datasets.push(newData);
+                    characterChart.datasets.push(newData);
                 }
 
-                if (result.curse_stats && result.curse_stats.datasets) {
+                if (curseChart && result.curse_stats && result.curse_stats.datasets) {
                     const index = result.curse_stats.datasets.length - 1;
                     const newData = result.curse_stats.datasets[index];
-                    this.curseChart.datasets.push(newData);
+                    curseChart.datasets.push(newData);
                 }
 
-                if (result.floor_stats && result.floor_stats.datasets) {
+                if (floorChart && result.floor_stats && result.floor_stats.datasets) {
                     const index = result.floor_stats.datasets.length - 1;
                     const newData = result.floor_stats.datasets[index];
                     this.fillDatasetWithRandomColor(newData);
-                    this.floorChart.datasets.push(newData);
+                    floorChart.datasets.push(newData);
                 }
 
-                if (result.found_at_stats && result.found_at_stats.datasets) {
+                if (foundAtChart && result.found_at_stats && result.found_at_stats.datasets) {
                     const index = result.found_at_stats.datasets.length - 1;
                     const newData = result.found_at_stats.datasets[index];
                     this.fillDatasetWithRandomColor(newData);
-                    this.foundAtChart.datasets.push(newData);
+                    foundAtChart.datasets.push(newData);
                 }
 
                 this.updateAllCharts();
@@ -558,7 +558,7 @@ ResourcePage.prototype = {
             return;
         }
 
-        const color = randomColor();
+        const color = this.randomColor();
         for (let i = 0; i < dataSet.backgroundColor.length; ++i) {
             dataSet.backgroundColor[i] = color;
             dataSet.borderColor[i] = color;

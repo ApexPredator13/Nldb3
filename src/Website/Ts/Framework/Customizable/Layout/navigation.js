@@ -11,7 +11,6 @@ const navSectionClass = 'nav-section';
 export function renderNavigation() {
     new Promise(resolve => {
         const n = nav();
-        console.log(n);
         new Html([n], 'body', true, false);
         resolve();
     }).then(() => {

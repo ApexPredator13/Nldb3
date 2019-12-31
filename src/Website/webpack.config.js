@@ -31,7 +31,7 @@ module.exports = {
             configuration === 'production' ? './config.production.js' : './config.development.js'
         )
     ],
-    devtool: 'inline-source-map',
+    //devtool: 'inline-source-map',
     mode: 'development',
     externals: {
         moment: 'moment'

@@ -1,10 +1,10 @@
-﻿import { Div, div, Html, Tbody, td, a, th, cl, id, t, tr, thead, H1, p, P, do_nothing, select, option, attr, input, Table, tbody, modal, event } from "../../Framework/renderer";
+﻿import { Div, div, Html, Tbody, td, a, th, cl, id, t, tr, thead, H1, p, P, do_nothing, select, option, attr, input, Table, tbody, modal, event, href, span } from "../../Framework/renderer";
 import { get } from "../../Framework/http";
 import { addClassIfNotExists, removeClassIfExists } from "../../Framework/browser";
 import { getUser } from "../../Framework/Customizable/authentication";
 import { notLoggedIn } from "./modal-contents";
 import { Link } from "../../Pages/_link-creator";
-import { navigate } from "../../Framework/router";
+import { navigate, PAGE_TYPE_EPISODE } from "../../Framework/router";
 
 
 /**
@@ -39,6 +39,7 @@ function Videos(containerId, header, description, from = null, to = null, resour
     this.videoTableId = 'video-table';
     this.videoTableBodyId = 'video-table-body';
 
+    this.link = new Link();
 
     new Html([
         H1(t(header)),
@@ -153,8 +154,6 @@ function Videos(containerId, header, description, from = null, to = null, resour
     ], containerId);
 
     this.searchInputElement = document.getElementById('search');
-
-    console.log(document.getElementById(this.videoTableId));
 
     this.reloadVideos(false);
 }
@@ -344,7 +343,6 @@ Videos.prototype = {
      * @param {Promise} request
      */
     createVideos: function (request) {
-        const link = new Link();
         request.then(videoResult => {
 
             const table = document.getElementById(this.videoTableId);
@@ -353,12 +351,16 @@ Videos.prototype = {
             new Html([
                 Tbody(
                     id(this.videoTableBodyId),
-                    ...(videoResult.videos.map(video => {
+                    ...videoResult.videos.map(video => {
                         return tr(
                             td(
-                                a(
+                                video.submission_count > 0 ? a(
                                     t(video.title),
-                                    event('click', e => navigate(link.Episode(video.id), e, PageType.Episode))
+                                    href(this.link.episode(video.id)),
+                                    event('click', e => navigate(this.link.episode(video.id), e, PAGE_TYPE_EPISODE))
+                                ) : span(
+                                    t(video.title),
+                                    cl('gray')
                                 )
                             ),
                             td(
@@ -399,7 +401,7 @@ Videos.prototype = {
                                 event('click', e => this.submitVideoEvent(e, video.id))
                             )
                         )
-                    }))
+                    })
                 )
             ], this.videoTableId, true, false);
         }).catch(e => console.error(e));
