@@ -1,6 +1,7 @@
-﻿import { div, p, a, href, t, event, hr } from "../../Framework/renderer";
+﻿import { div, p, a, href, t, event } from "../../Framework/renderer";
 import { navigate } from "../../Framework/router";
 import { AdminLink } from "../../Pages/Admin/_admin-link-creator";
+import { get } from "../../Framework/http";
 
 function backToAdminOverview() {
     const link = new AdminLink();
@@ -92,7 +93,7 @@ function backToResources(resourceType) {
     return div(
         p(
             a(
-                t('← Back to Mod'),
+                t('← Back to Resources'),
                 href(link.resourceOverview(resourceType)),
                 event('click', e => navigate(link.resourceOverview(resourceType), e))
             )
@@ -101,23 +102,24 @@ function backToResources(resourceType) {
 }
 
 
-function nextResource(resourceType) {
+function nextResource(resourceType, resourceId) {
     const link = new AdminLink();
     return div(
         p(
             a(
-                t('Next Resource in the list →'),
-                href(link.editResource(resource.id)),
+                t('→ Next Resource in the list'),
+                href(link.editResource(resourceId)),
                 event('click', e => {
+                    e.preventDefault();
                     e.target.innerText = 'trying to find next resource...';
                     get(`/Api/Resources/?ResourceType=${resourceType.toString(10)}`).then(resources => {
                         let loadNextResource = false;
                         for (let resource of resources) {
                             if (loadNextResource) {
-                                navigate(new AdminLink().editResource(resource.id), e, undefined, true, true, true);
+                                navigate(new AdminLink().editResource(resource.id), undefined, undefined, true, true, true);
                                 break;
                             }
-                            if (resource.id === nextResourceId) {
+                            if (resource.id === resourceId) {
                                 loadNextResource = true;
                             }
                         }

@@ -15,6 +15,29 @@ const setZIndex = (e, zIndex) => {
     }
 }
 
+/**
+ * removes the 'disabled' attribute from a button
+ * @param {HTMLElement} button - the HTML Button Element
+ */
+const enableButton = (button) => {
+    debugger;
+    console.log(button.disabled);
+    console.log(button);
+    if (button.hasAttribute('disabled')) {
+        button.removeAttribute('disabled');
+    }
+}
+
+/**
+ * adds the 'disabled'='true' attribute to a button
+ * @param {HTMLElement} button - the HTML Button Element
+ */
+const disableButton = (button) => {
+    if (!button.hasAttribute('disabled')) {
+        button.setAttribute('disabled', 'true');
+    }
+}
+
 const loadSciptIfNotExists = (src) => {
     return new Promise(resolve => {
         const scripts = document.head.getElementsByTagName('script');
@@ -137,6 +160,8 @@ export {
     getFromLocalStorage,
     saveToLocalStorage,
     loadSciptIfNotExists,
-    localStorageHasKey
+    localStorageHasKey,
+    disableButton,
+    enableButton
 }
 

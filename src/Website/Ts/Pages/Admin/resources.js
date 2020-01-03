@@ -1,4 +1,4 @@
-﻿import { Html, Div, thead, tbody, tr, td, t, event, h1, hr, p, span, cl, select, id, th, style } from "../../Framework/renderer";
+﻿import { Html, Div, thead, tbody, tr, td, t, event, h1, hr, p, span, cl, select, id, th, style, div, Table } from "../../Framework/renderer";
 import { registerPage, navigate } from "../../Framework/router";
 import { get } from "../../Framework/http";
 import { AdminLink } from "./_admin-link-creator";
@@ -106,6 +106,7 @@ ResourcesPage.prototype = {
                             ),
                             td(
                                 event('click', e => navigate(this.link.editResource(resource.id), e)),
+                                cl('u', 'hand'),
                                 t(resource.name)
                             ),
                             td(

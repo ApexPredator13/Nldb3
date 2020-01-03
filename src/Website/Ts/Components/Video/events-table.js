@@ -240,6 +240,8 @@ function consumableProgress(playedFloor, twoPlayerMode) {
                         ),
                         hr(),
                         br(),
+                        isaacImage(event, 1),
+                        br(),
                         span(
                             t(event.r1.name)
                         ),

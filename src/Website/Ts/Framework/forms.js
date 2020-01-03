@@ -1,12 +1,12 @@
-﻿import { searchParentsForTag, removeClassIfExists, addClassIfNotExists, getFormValue } from "./browser";
-import { Html, preparePopupParentElement, preparePopupElement, modal, cl, div, h3, hr, p, span, br } from "./renderer";
+﻿import { searchParentsForTag, removeClassIfExists, addClassIfNotExists, getFormValue, disableButton, enableButton } from "./browser";
+import { Html, preparePopupParentElement, preparePopupElement, modal, Div, t, style } from "./renderer";
 import { postResponse } from "./http";
 import { navigate } from "./router";
 import { modalContent } from "./Customizable/Layout/modal-content";
 
-const ATTR_ERROR_REQUIRED = 'requiredError';
-const ATTR_ERROR_MINLENGTH = 'minlengthError';
-const ATTR_ERROR_MAXLENGTH = 'maxlengthError';
+const ATTR_ERROR_REQUIRED = 'required_error';
+const ATTR_ERROR_MINLENGTH = 'minlength_error';
+const ATTR_ERROR_MAXLENGTH = 'maxlength_error';
 
 /**
  * @constructor
@@ -47,16 +47,18 @@ function FormHelper() {
             const parent = e.parentElement;
             if (parent && message) {
                 addClassIfNotExists(parent, 'popup-container');
-                this.RemoveError(e);
+                this.removeError(e);
 
+                /** @type {DocumentFragment} */
                 const popup = new Html([
                     Div(
+                        style('bottom: 0; left: 0;'),
                         t(message || 'Invalid Input')
                     )
                 ], '', false);
 
                 preparePopupParentElement(parent);
-                preparePopupElement(popup, 0, null, null, 0);
+                preparePopupElement(popup.firstElementChild, 0, null, null, 0);
                 parent.appendChild(popup);
             }
         }
@@ -64,7 +66,7 @@ function FormHelper() {
 
     this.testRequired = function (e) {
         if (e.required && !e.value) {
-            const error = element.getAttribute(ATTR_ERROR_REQUIRED);
+            const error = e.getAttribute(ATTR_ERROR_REQUIRED);
             this.showError(e, error);
             return false;
         }
@@ -77,7 +79,7 @@ function FormHelper() {
             const minLength = Number(e.getAttribute('minlength'));
             if (minLength && e.value.length < minLength) {
                 const error = e.getAttribute(ATTR_ERROR_MINLENGTH);
-                this.ShowError(e, error);
+                this.showError(e, error);
                 return false;
             }
         }
@@ -90,7 +92,7 @@ function FormHelper() {
             const maxLength = Number(e.getAttribute('maxlength'));
             if (maxLength && e.value.length > maxLength) {
                 const error = e.getAttribute(ATTR_ERROR_MAXLENGTH);
-                this.ShowError(e, error);
+                this.showError(e, error);
                 return false;
             }
         }
@@ -102,7 +104,7 @@ function FormHelper() {
         const buttons = form.getElementsByTagName('button');
         for (let i = 0; i < buttons.length; ++i) {
             if (buttons[i].getAttribute('type') === 'submit') {
-                buttons[i].disabled = true;
+                disableButton(buttons[i]);
             }
         }
     }
@@ -111,7 +113,7 @@ function FormHelper() {
         const buttons = form.getElementsByTagName('button');
         for (let i = 0; i < buttons.length; ++i) {
             if (buttons[i].getAttribute('type') === 'submit') {
-                buttons[i].disabled = false;
+                enableButton(buttons[i]);
             }
         }
     }
@@ -137,6 +139,7 @@ function FormHelper() {
                 this.testMinLength(element),
                 this.testMaxLength(element)
             ];
+            console.log(results);
 
             if (!results.some(r => r === false)) {
                 this.removeError(element);
@@ -177,7 +180,7 @@ function FormHelper() {
         if (formIsValid && formElement && formElement instanceof HTMLFormElement) {
             const buttonsBeforeSubmit = formElement.getElementsByTagName('button');
             for (let i = 0; i < buttonsBeforeSubmit.length; ++i) {
-                buttonsBeforeSubmit[i].disabled = true;
+                disableButton(buttonsBeforeSubmit[i]);
             }
 
             const formData = getFormValue(e);
@@ -198,10 +201,10 @@ function FormHelper() {
                         if (formElement) {
                             const buttonsAfterSubmit = formElement.getElementsByTagName('button');
                             for (let i = 0; i < buttonsAfterSubmit.length; ++i) {
-                                buttonsAfterSubmit[i].disabled = true;
+                                disableButton(buttonsAfterSubmit[i]);
                             }
                             for (let i = 0; i < buttonsAfterSubmit.length; ++i) {
-                                buttonsAfterSubmit[i].disabled = false;
+                                enableButton(buttonsAfterSubmit[i]);
                             }
                         }
                     });

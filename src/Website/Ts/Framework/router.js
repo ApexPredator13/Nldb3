@@ -34,9 +34,8 @@ const getPages = () => {
  * @param {string[]} url - the route URL
  * @param {number} [pageType] - the page type, in case pages have the same url
  * @param {Function} [beforeLeaving] - a function that will be executed before leaving the page - for cleanup work
- * @param {Function} [canLeave] - a check if the user is allowed to leave
  */
-function registerPage(page, title, url, pageType, beforeLeaving, canLeave) {
+function registerPage(page, title, url, pageType, beforeLeaving) {
     if (registrationCount++ === 0) {
         setOnLoadPageType(pageType);
     }
@@ -49,7 +48,6 @@ function registerPage(page, title, url, pageType, beforeLeaving, canLeave) {
             url: url,
             pageType: pageType,
             beforeLeaving: beforeLeaving,
-            canLeave: canLeave
         });
     }
 }
@@ -57,6 +55,80 @@ function registerPage(page, title, url, pageType, beforeLeaving, canLeave) {
 function setTitle(title) {
     document.title = title;
 }
+
+
+
+// event handlers and helper functions for popstate and beforeunload
+// =================================================================
+/**
+ * warns the user before leaving the page
+ * @param {Event} e - the raw beforeunload event
+ */
+function beforeUnloadEvent(e) {
+    e.preventDefault();
+    e.returnValue = '';
+}
+
+/** the normal popstate event handler. loads pages depending on what route we are on */
+function regularPopstateHandler() {
+    window.cannotLeave = false;
+    const currentRoute = getCurrentRoute();
+    const page = getRequestedPageFromRoute(currentRoute);
+    navigate(currentRoute, undefined, page.page ? page.page.specificPageType : undefined, false, true);
+}
+
+/** popstate event handler that will stop the browser backbutton navigation */
+function navigationPreventedPopstateHandler() {
+    console.log('backbutton disabled event handler invoked');
+    if (window.popStateCallback && window.popStateCaller) {
+        window.popStateCallback.call(window.popStateCaller);
+    }
+    window.cannotLeave = true;
+    history.pushState(null, null, window.lastUrl);
+}
+
+
+
+/** triggers the browser Back button */
+function goBack() {
+    console.log('going back triggered!');
+    window.history.back();
+}
+
+/** the normal popstate event handler will be used from now on */
+function useRegularPopstateHandler() {
+    // clean everything up
+    window.removeEventListener('beforeunload', beforeUnloadEvent);
+    window.removeEventListener('popstate', navigationPreventedPopstateHandler);
+    window.removeEventListener('popstate', regularPopstateHandler);
+    // attach the regular popstate event
+    window.addEventListener('popstate', regularPopstateHandler);
+}
+
+/**
+ * the 'remove all basic browser navigation' event handler will be used from now on
+ * @param {Object} caller - THIS context of the object that will be notified whenever a navigation is prevented
+ * @param {Function} callbackFunction - the callback function that will be called
+ */
+function dontLetUserNavigateAway(caller, callbackFunction) {
+    // globally save context and callback function
+    window.popStateCaller = caller;
+    window.popStateCallback = callbackFunction;
+
+    // clean everything up
+    window.removeEventListener('beforeunload', beforeUnloadEvent);
+    window.removeEventListener('popstate', navigationPreventedPopstateHandler);
+    window.removeEventListener('popstate', regularPopstateHandler);
+
+    // add event listeners
+    window.addEventListener('beforeunload', beforeUnloadEvent);
+    window.addEventListener('popstate', navigationPreventedPopstateHandler); 
+}
+
+// end of helper functions for popstate and beforeunload
+// =====================================================
+
+
 
 const initRouter = () => {
     if (!window.routerInit) {
@@ -70,17 +142,24 @@ const initRouter = () => {
 
         // delay enough so that initial popstate event that some browsers trigger on load will be skipped
         setTimeout(() => {
-            window.addEventListener('popstate', () => {
-                const currentRoute = getCurrentRoute();
-                const page = getRequestedPageFromRoute(getCurrentRoute());
-                navigate(currentRoute, undefined, page.page ? page.page.specificPageType : undefined, false, true);
-            });
+            useRegularPopstateHandler();
         }, 100);
 
         // load initial page, only one should exist at the start
-        const currentRoute = getCurrentRoute();
+        let currentRoute = getCurrentRoute();
+
+        if (currentRoute.startsWith('/')) {
+            currentRoute = currentRoute.substring(1);
+        }
+
         const pageType = getOnLoadPageType();
-        navigate(currentRoute, undefined, pageType, false, true);
+
+        const pageData = getRequestedPageFromRoute(currentRoute, pageType);
+        if (pageData.found) {
+            navigate(currentRoute, undefined, pageType, false, true, true);
+        } else {
+            navigate('', undefined, undefined, true, true, true);
+        }
     }
 };
 
@@ -164,14 +243,13 @@ const getRequestedPageFromRoute = (route, specificPageType) => {
 }
 
 
-const removeLeaveGuard = () => {
-    window.leavingAllowed = null;
-}
-
-
 const navigate = (requestedRoute, preventDefaultForEvent, specificPageType, push = true, forceRender = false, scrollToTop = true) => {
     if (preventDefaultForEvent) {
         preventDefaultForEvent.preventDefault();
+    }
+
+    if (window.cannotLeave) {
+        return;
     }
 
     if (requestedRoute.startsWith('/')) {
@@ -190,48 +268,10 @@ const navigate = (requestedRoute, preventDefaultForEvent, specificPageType, push
         return;
     }
 
-    // check if user can leave the page unprompted or if we have a 'warning - progress will not be saved' situation
-    const lastUrl = window.lastUrl;                     // get the url that we can fall back to, if the user decides to stay:
-    const allowedToLeaveCheck = window.leavingAllowed;  // get the 'allowed to leave?'-check
-
-    if (allowedToLeaveCheck) {
-        // the browser navigated away by now. undo that right away 
-        // because we need to wait for the user to confirm his action!!
-        history.pushState(null, null, lastUrl);
-
-        // now let the user decide if he really wants to leave
-        const leavingIsOk = allowedToLeaveCheck();
-
-        if (leavingIsOk) {
-            // if the user confirmed that he wants to leave, hit the back button.
-            // todo: trigger the intended navigation. not necessary here, because there is no 
-            // real link on the only page that requires this. user can only leave by navigating back.
-            history.back();
-            return;
-        } else {
-            // - the user decided to stay
-            // - the check was a confirm(...) dialog and the user 
-            //   didn't confirm/cancel it or mashed the back button 
-            //   again and it got auto-closed. in that case, the 
-            //   result is also false.
-            //   
-            //   either way, the history.pushState(...) did it's work 
-            //   and we're done here.
-            return;
-        }
-    }
-
     // check if cleanup work has to be done before navigating
     const beforeLeaving = window.beforeLeaving;
     if (beforeLeaving) {
         beforeLeaving();
-    }
-
-    // save leaving guard
-    if (pageData.canLeave) {
-        window.leavingAllowed = pageData.canLeave;
-    } else {
-        window.leavingAllowed = null;
     }
 
     // save new beforeLeaving action
@@ -242,6 +282,7 @@ const navigate = (requestedRoute, preventDefaultForEvent, specificPageType, push
     }
 
     // render new page
+    console.log('NAVIGATE() rendering page', requestedRoute, pageData);
     const p = new pageData.page(parameters);
     p.renderPage();
 
@@ -288,7 +329,9 @@ export {
     getOnLoadPageType,
     PAGE_TYPE_EPISODE,
     PAGE_TYPE_ISAAC_RESOURCE,
-    removeLeaveGuard
+    useRegularPopstateHandler,
+    dontLetUserNavigateAway,
+    goBack
 }
 
 

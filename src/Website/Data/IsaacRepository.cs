@@ -98,7 +98,7 @@ namespace Website.Data
             return result;
         }
 
-        public async Task<List<(int amount, IsaacResource floor)>> GetFloorRanking(string resourceId, int resourceNumber)
+        public async Task<List<(int amount, IsaacResource floor)>> GetFloorRanking(string resourceId, int resourceNumber, GameplayEventType? eventType = null)
         {
             var result = new List<(int amount, IsaacResource floor)>();
 
@@ -110,12 +110,19 @@ namespace Website.Data
                 "LEFT JOIN played_floors f ON f.id = e.played_floor " +
                 "LEFT JOIN isaac_resources r ON r.id = f.floor " +
                 $"WHERE e.{resourceName} = @ResourceId " +
+                (eventType.HasValue ? $"AND e.event_type = @EventType " : string.Empty) +
                 $"GROUP BY r.id " +
                 $"ORDER BY floor_count DESC, r.name ASC;";
 
             using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand(query, c);
             q.Parameters.AddWithValue("@ResourceId", NpgsqlDbType.Text, resourceId);
+            
+            if (eventType.HasValue)
+            {
+                q.Parameters.AddWithValue("@EventType", NpgsqlDbType.Integer, (int)eventType.Value);
+            }
+            
             using var r = await q.ExecuteReaderAsync();
 
             if (r.HasRows)
@@ -326,6 +333,20 @@ namespace Website.Data
             return result;
         }
 
+        private int ResourceOneOrTwo(GameplayEventType eventType)
+        {
+            if (eventType == GameplayEventType.RerollTransform 
+                || eventType == GameplayEventType.Clicker 
+                || eventType == GameplayEventType.AbsorbedItem 
+                || eventType == GameplayEventType.Clicker 
+                || eventType == GameplayEventType.RerollTransform
+                || eventType == GameplayEventType.AbsorbedItem)
+            {
+                return 2;
+            }
+            return 1;
+        }
+
         public async Task<History> GetHistory(SubmittedCompleteEpisode episode)
         {
             if (episode.PlayedCharacters is null || episode.PlayedCharacters.Count is 0)
@@ -335,9 +356,9 @@ namespace Website.Data
 
             var characters = episode.PlayedCharacters.Select(x => x.CharacterId).ToList();
             var floors = episode.PlayedCharacters.SelectMany(x => x.PlayedFloors).Select(x => x.FloorId).ToList();
-            var events = episode.PlayedCharacters.SelectMany(x => x.PlayedFloors).SelectMany(x => x.GameplayEvents).Select(x => x.RelatedResource1).ToList();
+            var events = episode.PlayedCharacters.SelectMany(x => x.PlayedFloors).SelectMany(x => x.GameplayEvents).Select(x => ResourceOneOrTwo(x.EventType) == 1 ? x.RelatedResource1 : x.RelatedResource2).ToList();
 
-            var allResources = new List<string>();
+            var allResources = new List<string?>();
             allResources.AddRange(characters);
             allResources.AddRange(floors);
             allResources.AddRange(events);
@@ -385,7 +406,11 @@ namespace Website.Data
                     for (int e = 0; e < episode.PlayedCharacters[c].PlayedFloors[f].GameplayEvents.Count; e++)
                     {
                         history.CharacterHistory[c].Floors[f].Events.Add(new EventHistory());
-                        history.CharacterHistory[c].Floors[f].Events[e].Image = allImages[episode.PlayedCharacters[c].PlayedFloors[f].GameplayEvents[e].RelatedResource1];
+                        history.CharacterHistory[c].Floors[f].Events[e].Image = allImages[
+                            ResourceOneOrTwo(episode.PlayedCharacters[c].PlayedFloors[f].GameplayEvents[e].EventType) == 1 
+                            ? episode.PlayedCharacters[c].PlayedFloors[f].GameplayEvents[e].RelatedResource1 
+                            : episode.PlayedCharacters[c].PlayedFloors[f].GameplayEvents[e].RelatedResource2!
+                        ];
                     }
                 }
             }

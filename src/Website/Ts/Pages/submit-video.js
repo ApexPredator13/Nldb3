@@ -1,10 +1,11 @@
-﻿import { HistoryTable } from "../Components/SubmitVideo/history-table";
+﻿import { SubmitVideoQuotesSection } from "../Components/Submitvideo/submit-quote.js";
+import { HistoryTable } from "../Components/SubmitVideo/history-table";
 import { YoutubePlayer } from "../Components/SubmitVideo/youtube-player";
 import { addClassIfNotExists, removeClassIfExists } from "../Framework/browser";
 import { getConfig } from "../Framework/Customizable/config.development";
 import { get, postResponse } from "../Framework/http";
-import { Html, Div, id, div, a, iframe, attr, span, t, P, event, H2, cl, hr, Hr, style, H1, input, button, br } from "../Framework/renderer";
-import { registerPage, setTitle, navigate, PAGE_TYPE_EPISODE, removeLeaveGuard } from "../Framework/router";
+import { Html, Div, id, div, a, iframe, attr, span, t, P, event, H2, cl, hr, Hr, style, H1, input, button, br, modal, h2, hideModal, p } from "../Framework/renderer";
+import { registerPage, setTitle, navigate, PAGE_TYPE_EPISODE, dontLetUserNavigateAway, useRegularPopstateHandler, goBack } from "../Framework/router";
 import { PlayerControls } from "../Components/SubmitVideo/player-controls";
 import { CurrentPlayer } from "../Components/SubmitVideo/current-player";
 import { ChangeSeed } from "../Components/SubmitVideo/change-seed";
@@ -19,6 +20,7 @@ import { helpSelectBoss } from "../Components/SubmitVideo/help-select-boss";
 
 import * as Driver from 'driver.js';
 import '../Framework/Customizable/typedefs';
+import { SubmitTopicSection } from "../Components/SubmitVideo/submit-topic.js";
 
 const MAJOR_GAMEPLAY_EVENTS = 1;
 const USED_CONSUMABLES = 2;
@@ -57,6 +59,9 @@ const beforeUnloadEvent = e => {
  */
 function SubmitVideoPage(parameters) {
 
+    // prevent user from navigating away
+    dontLetUserNavigateAway(this, this.askUserIfHeReallyWantsToLeave);
+
     // hide navigation, stretch main view
     const nav = document.getElementById('nav');
     if (nav) {
@@ -72,10 +77,6 @@ function SubmitVideoPage(parameters) {
 
     // add beforeUnload event
     window.addEventListener('beforeunload', beforeUnloadEvent);
-
-    // set 'episode was submitted' flag to false to warn user before leaving
-    window.episodeWasSubmitted = false;
-
 
     // set all local variables
     /** @type {string} */
@@ -151,11 +152,18 @@ function SubmitVideoPage(parameters) {
         )
     ]);
 
+
     /** @type {YoutubePlayer} */
     this.youtubePlayer = new YoutubePlayer(this.videoId);
 
+    /** @type {SubmitVideoQuotesSection} */
+    this.submitQuote = new SubmitVideoQuotesSection(this.quotesAndTopicsContainerId, this.videoId, this.youtubePlayer);
+
+    /** @type {SubmitTopicSection} */
+    this.submitTopic = new SubmitTopicSection(this.quotesAndTopicsContainerId, this.videoId);
+
     /** @type {HistoryTable} */
-    this.history = new HistoryTable(this, this.videoId, this.historyTableContainerId, this.youtubePlayer, this.itemWasRemovedFromHistory);
+    this.history = new HistoryTable(this, this.videoId, this.quotesAndTopicsContainerId, this.youtubePlayer, this.itemWasRemovedFromHistory);
 
     /** @type {PlayerControls} */
     this.playerControls = new PlayerControls(this.playerAndSeedContainerId, this.youtubePlayer);
@@ -261,7 +269,7 @@ function SubmitVideoPage(parameters) {
         { id: 'no', name: 'No, move on!', x: 665, y: 0, w: 35, h: 35 }
     ]);
     this.staticResources.set(DID_REROLL_TRIGGER_ANOTHER_TRANSFORMATION, [
-        { id: 'yes', name: 'Yes, it did!', x: 525, y: 0, w: 35, h: 35 },
+        { id: 'yes', name: 'Yes, there was!', x: 525, y: 0, w: 35, h: 35 },
         { id: 'no', name: 'No, move on!', x: 665, y: 0, w: 35, h: 35 }
     ]);
 
@@ -288,6 +296,38 @@ SubmitVideoPage.prototype = {
 
     /** empty, all work is done in the constructor function because things need to be initialized in proper order. */
     renderPage: function () { },
+
+
+    /** prompt the user to confirm leaving the page */
+    askUserIfHeReallyWantsToLeave: function () {
+        modal(false,
+            Div(
+                h2(
+                    t('Warning! Progress will not be saved!')
+                ),
+                hr(),
+                p(
+                    t('Really leave this page?')
+                ),
+                button(
+                    cl('btn-yellow'),
+                    t('No, I want to stay!'),
+                    event('click', e => { e.preventDefault(); hideModal(); })
+                ),
+                button(
+                    cl('btn-red'),
+                    t('Yes, Leave!'),
+                    event('click', e => {
+                        e.preventDefault();
+                        window.removeEventListener('beforeunload', beforeUnloadEvent);
+                        useRegularPopstateHandler();
+                        hideModal();
+                        goBack();
+                    })
+                )
+            )
+        )
+    },
 
 
     /**
@@ -317,7 +357,7 @@ SubmitVideoPage.prototype = {
         } else if (removedElement.characterIndex !== null && removedElement.floorIndex !== null && removedElement.eventIndex !== null && removedElement.eventType !== null) {
             // generic gameplay event was removed
             // generic events are safe to remove, except for the curse. here the 'select curse' menu must be displayed again
-            if (removedElement.eventType === ResourceType.Curse) {
+            if (removedElement.eventType === 3) {
                 this.menu_WasTheFloorCursed();
                 return;
             }
@@ -371,7 +411,7 @@ SubmitVideoPage.prototype = {
     wasItemRerolled: function () {
         return div(
             input(
-                attr({ type: 'ckeckbox', checked: 'false' }),
+                attr({ type: 'checkbox' }),
                 event('input', e => {
                     if (e.target.checked) {
                         this.wasRerolled = true;
@@ -501,19 +541,14 @@ SubmitVideoPage.prototype = {
             ),
             P(
                 span(
-                    t('NL REROLLED his character, and a TRANSFORMATION happened'),
-                    cl('u', 'hand'),
-                    event('click', () => this.process_OtherGameplayEventWasChosen('reroll-transform'))
-                )
-            ),
-            P(
-                span(
                     t('NL DIED and RESPAWNED, because of extra lives or a special item/trinket.'),
                     cl('u', 'hand'),
                     event('click', () => this.process_OtherGameplayEventWasChosen('respawn'))
                 )
             ),
-            this.backToMainMenu()
+            Div(
+                this.backToMainMenu()
+            )
         );
     },
 
@@ -523,9 +558,7 @@ SubmitVideoPage.prototype = {
      * @param {'clicker'|'reroll-transform'|'respawn'} otherEvent
      */
     process_OtherGameplayEventWasChosen: function(otherEvent) {
-        if (otherEvent === 'reroll-transform') {
-            this.menu_HowDidNlRerollHisCharacterBeforeTransforming();
-        } else if (otherEvent === 'clicker') {
+        if (otherEvent === 'clicker') {
             this.menu_WhatCharacterDidNlChangeInto();
         } else if (otherEvent === 'respawn') {
             this.menu_WhatKilledNlBeforeRespawning();
@@ -538,9 +571,11 @@ SubmitVideoPage.prototype = {
     /** displays the 'What killed NL before respawning?' */
     menu_WhatKilledNlBeforeRespawning: function () {
         this.display(
-            H2('How did NL die before respawning?'),
+            H2(t('How did NL die before respawning?')),
             Div(id('how-die'), t(this.loading)),
-            this.backToMainMenu()
+            Div(
+                this.backToMainMenu()
+            )
         );
 
         new Searchbox(this, this.process_WhatKilledNlBeforeRespawning, 1, this.getServerResource(`/Api/Resources/?ResourceType=11`), false, 'how-die');
@@ -567,7 +602,9 @@ SubmitVideoPage.prototype = {
         this.display(
             H2(t('What character did NL change into after using the clicker?')),
             Div(id('clicker'), t(this.loading)),
-            this.backToMainMenu()
+            Div(
+                this.backToMainMenu()
+            )
         );
         new Boxes(this, 'clicker', this.process_ClickerCharacterChosen, this.getServerResource(`/Api/Resources/?ResourceType=2`), 1, false);
     },
@@ -578,7 +615,7 @@ SubmitVideoPage.prototype = {
      * @param {string} characterId
      */
     process_ClickerCharacterChosen: function (characterId) {
-        this.history.AddEvent({
+        this.history.addEvent({
             EventType: 20,
             RelatedResource1: 'Clicker',
             RelatedResource2: characterId,
@@ -588,33 +625,14 @@ SubmitVideoPage.prototype = {
     },
 
 
-    /** displays the 'How did NL reroll his character before he got a transformation?' menu */
-    menu_HowDidNlRerollHisCharacterBeforeTransforming: function () {
-        this.display(
-            H2(t('How did NL reroll his character?')),
-            Div(id('rr'), t(this.loading)),
-            this.backToMainMenu()
-        );
-        new Boxes(this, 'rr', this.process_RerollBeforeTransformingChosen, get(`/Api/Resources/?ResourceType=0&RequiredTags=124`), 1, false);
-    },
-
-
-    /**
-     * processes the that triggered a transformation and decides what to display next
-     * @param {string} rerollId
-     */
-    process_RerollBeforeTransformingChosen: function (rerollId) {
-        this.tempValue = rerollId;
-        this.menu_WhatTransformationDidNlRerollInto();
-    },
-
-
     /** displays the 'What Transformation did NL reroll into?' */
     menu_WhatTransformationDidNlRerollInto: function () {
         this.display(
             H2(t('What transformation did NL reroll into?')),
             Div(id('tra'), t(this.loading)),
-            this.backToMainMenu()
+            Div(
+                this.backToMainMenu()
+            )
         );
         new Boxes(this, 'tra', this.process_RerolledTransformationSelected, this.getServerResource(`/Api/Resources/?ResourceType=12`), 1, false);
     },
@@ -646,10 +664,12 @@ SubmitVideoPage.prototype = {
             H2(t('What floor did we start on?')),
             Div(id('first')),
             Div(id('all')),
-            this.backToMainMenu()
+            Div(
+                this.backToMainMenu()
+            )
         );
         new Boxes(this, 'first', this.process_FloorWasChosen, firstFloors, 1, false);
-        new Boxes(this, 'all', this.process_FloorWasChosen, allFloors, 2, false);
+        new Searchbox(this, this.process_FloorWasChosen, 2, allFloors, false, 'all');
     },
 
 
@@ -687,7 +707,7 @@ SubmitVideoPage.prototype = {
         // now that we know the floor, preload common bosses for this floor
         get(`/Api/Resources/common-bosses-for-floor/${floorId}`, false, false).then(bossesForThisFloor => {
             if (bossesForThisFloor) {
-                this.staticResources.set(COMMON_BOSSES, bossesForThisFloor.filter(boss => boss.tags && !boss.tags.some(tag => tag === Tag.DoubleTroubleBossfight)));
+                this.staticResources.set(COMMON_BOSSES, bossesForThisFloor.filter(boss => boss.tags && !boss.tags.some(tag => tag === 142)));
             } else {
                 this.staticResources.set(COMMON_BOSSES, []);
             }
@@ -744,7 +764,7 @@ SubmitVideoPage.prototype = {
     menu_Seed: function () {
         this.display(
             H1(t('Did NL show the seed?')),
-            P('If so, you can enter it here (if can be entered later at any point!)'),
+            P(t('If so, you can enter it here (if can be entered later at any point!)')),
             Div(
                 div(
                     cl('display-inline'),
@@ -801,9 +821,6 @@ SubmitVideoPage.prototype = {
             Div(id('no')),
             Hr(),
             P(t('If yes, start choosing one of them:')),
-            Div(
-                this.wasItemRerolled(),
-            ),
             Div(id('yes'))
         );
 
@@ -862,9 +879,6 @@ SubmitVideoPage.prototype = {
     menu_SelectAnotherStartingItem: function () {
         this.display(
             H2(t('What other item did we start with?')),
-            Div(
-                this.wasItemRerolled(),
-            ),
             Div(id('yes')),
             Hr(),
             P(
@@ -1003,6 +1017,7 @@ SubmitVideoPage.prototype = {
                 span(
                     t('Launch Tutorial!'),
                     style(this.highlightTutorial ? 'color: orange' : 'color: darkgray'),
+                    cl('u', 'hand'),
                     id('launch-tutorial'),
                     event('click', () => {
                         this.highlightTutorial = false;
@@ -1057,7 +1072,9 @@ SubmitVideoPage.prototype = {
         this.display(
             H2(t('What pill was used?')),
             Div(id('pills')),
-            this.backToMainMenu()
+            Div(
+                this.backToMainMenu()
+            )
         );
 
         new Searchbox(this, this.process_PillTaken, 1, this.getServerResource(`/Api/Resources/?ResourceType=8`), false, 'pills');
@@ -1083,9 +1100,11 @@ SubmitVideoPage.prototype = {
     menu_SelectTrinket: function () {
         this.display(
             H2(t('What trinket was taken?')),
-            P(t('Only select trinkets that were used for a while, not once that were just picked up briefly or on accident.')),
+            P(t('Only select trinkets that were used for a while, don\'t add trinkets thatwere just picked up briefly or on accident.')),
             Div(id('trinkets')),
-            this.backToMainMenu()
+            Div(
+                this.backToMainMenu()
+            )
         );
 
         new Searchbox(this, this.process_TrinketSelected, 1, this.getServerResource(`/Api/Resources/?ResourceType=13`), false, 'trinkets');
@@ -1122,11 +1141,13 @@ SubmitVideoPage.prototype = {
                 ),
                 span(
                     t('I don\'t know what to do!'),
-                    cl('u ', 'hand'),
+                    cl('u', 'hand'),
                     event('click', () => helpSelectBoss())
                 )
             ),
-            this.backToMainMenu()
+            Div(
+                this.backToMainMenu()
+            )
         );
 
         new Boxes(this, 'common', this.process_Bossfight, this.getStaticResource(COMMON_BOSSES), 1, false);
@@ -1163,11 +1184,13 @@ SubmitVideoPage.prototype = {
                 ),
                 span(
                     t('I don\'t know what to select!'),
-                    cl('u ', 'hand'),
+                    cl('u', 'hand'),
                     event('click', () => helpSelectItemsource())
                 )
             ),
-            this.backToMainMenu()
+            Div(
+                this.backToMainMenu()
+            )
         );
 
         const resources = this.getServerResource(`/Api/Resources/?ResourceType=7`);
@@ -1189,13 +1212,10 @@ SubmitVideoPage.prototype = {
     /** displays the 'What item was touched?' menu */
     menu_WhatItemWasTouched: function () {
         this.display(
-            H2('What spacebar item was touched and put down right after?'),
-            P(
-                t('"Touched" means picking it up briefly to get the item out of the item pool, or to get it\'s transformation bonuses.'),
-                br(),
-                t('Example: Buying "Guppy\'s Paw" from the Deal with the Devil and leaving it behind, just to get one step closer to the Guppy transformation.')
+            H2(t('What spacebar item was touched and put down right after?')),
+            Div(
+                this.wasItemRerolled(),
             ),
-            this.wasItemRerolled(),
             Div(id('items'), t(this.loading)),
             P(
                 cl('gray'),
@@ -1204,14 +1224,25 @@ SubmitVideoPage.prototype = {
                 ),
                 span(
                     t('I don\'t know what to do!'),
-                    cl('u ', 'hand'),
+                    cl('u', 'hand'),
                     event('click', () => helpSelectTouchedItem())
                 )
             ),
-            this.backToMainMenu()
+            Hr(),
+            P(
+                style('font-size: 0.75rem;'),
+                t('"Touched" means picking it up briefly to get the item out of the item pool, or to get it\'s transformation bonuses.'),
+                br(),
+                br(),
+                t('Example: Buying "Guppy\'s Paw" from the Deal with the Devil and leaving it behind, just to get one step closer to the Guppy transformation.'),
+                br(),
+            ),
+            Div(
+                this.backToMainMenu()
+            )
         );
 
-        new Searchbox(this, this.process_TouchedItemSelected, 1, this.getServerResource(`/Api/Resources/?ResourceType=6&RequiredTags=139`), false)
+        new Searchbox(this, this.process_TouchedItemSelected, 1, this.getServerResource(`/Api/Resources/?ResourceType=6&RequiredTags=139`), false, 'items', true)
     },
 
 
@@ -1224,7 +1255,7 @@ SubmitVideoPage.prototype = {
             EventType: 18,
             Player: this.playerOneOrTwo,
             RelatedResource1: itemId,
-            RelatedResource3: this.copyString(this.tempValue),
+            RelatedResource2: this.copyString(this.tempValue),
             Rerolled: this.wasRerolled
         });
         this.menu_Main();
@@ -1246,11 +1277,13 @@ SubmitVideoPage.prototype = {
                 ),
                 span(
                     t('I don\'t know what to select!'),
-                    cl('u ', 'hand'),
+                    cl('u', 'hand'),
                     event('click', () => helpSelectItemsource())
                 )
             ),
-            this.backToMainMenu()
+            Div(
+                this.backToMainMenu()
+            )
         );
 
         const resources = this.getServerResource(`/Api/Resources/?ResourceType=7`);
@@ -1272,24 +1305,26 @@ SubmitVideoPage.prototype = {
     /** displays the 'What item was collected?' menu */
     menu_WhatItemWasCollected: function () {
         this.display(
-            H2('What item was collected?'),
-            this.wasItemRerolled(),
-            Div(id('items'), t(this.loading)),
-            P(
-                cl('gray'),
-                span(
-                    t('❔ ')
+            Div(
+                h2(t('What item was collected?')),
+                this.wasItemRerolled(),
+                div(id('items'), t(this.loading)),
+                p(
+                    cl('gray'),
+                    span(
+                        t('❔ ')
+                    ),
+                    span(
+                        t('I don\'t know what to do!'),
+                        cl('u', 'hand'),
+                        event('click', () => helpSelectItem())
+                    )
                 ),
-                span(
-                    t('I don\'t know what to do!'),
-                    cl('u ', 'hand'),
-                    event('click', () => helpSelectItem())
-                )
-            ),
-            this.backToMainMenu()
+                this.backToMainMenu()
+            )
         );
 
-        new Searchbox(this, this.process_CollectedItemSelected, 1, this.getServerResource(`/Api/Resources/?ResourceType=6`), false)
+        new Searchbox(this, this.process_CollectedItemSelected, 1, this.getServerResource(`/Api/Resources/?ResourceType=6`), false, 'items')
     },
 
 
@@ -1302,7 +1337,7 @@ SubmitVideoPage.prototype = {
             EventType: 2,
             Player: this.playerOneOrTwo,
             RelatedResource1: itemId,
-            RelatedResource3: this.copyString(this.tempValue),
+            RelatedResource2: this.copyString(this.tempValue),
             Rerolled: this.wasRerolled
         });
         this.menu_Main();
@@ -1312,9 +1347,12 @@ SubmitVideoPage.prototype = {
     /** displays the 'How was the item absorbed?' menu */
     menu_HowWasItemAbsorbed: function () {
         this.display(
-            H2(t('How was the item absorbed?')),
-            Div(id('ab'), t(this.loading)),
-            this.backToMainMenu()
+            Div(
+                h2(t('How was the item absorbed?')),
+                div(id('ab'), t(this.loading)),
+                this.backToMainMenu()
+            )
+            
         );
 
         new Boxes(this, 'ab', this.process_HowWasItemAbsorbed, this.getServerResource(`/Api/Resources/?ResourceType=0&RequiredTags=148`), 1, false);
@@ -1338,21 +1376,23 @@ SubmitVideoPage.prototype = {
     /** displays the 'What item was absorbed?' menu */
     menu_WhatItemWasAbsorbed: function () {
         this.display(
-            H2('What item was absorbed?'),
-            this.wasItemRerolled(),
-            Div(id('what'), t(this.loading)),
-            P(
-                cl('gray'),
-                span(
-                    t('❔ ')
+            Div(
+                h2(t('What item was absorbed?')),
+                this.wasItemRerolled(),
+                div(id('what'), t(this.loading)),
+                p(
+                    cl('gray'),
+                    span(
+                        t('❔ ')
+                    ),
+                    span(
+                        t('I don\'t know what to do!'),
+                        cl('u', 'hand'),
+                        event('click', () => helpSelectAbsorbedItemModal())
+                    )
                 ),
-                span(
-                    t('I don\'t know what to do!'),
-                    cl('u ', 'hand'),
-                    event('click', () => helpSelectAbsorbedItemModal())
-                )
-            ),
-            this.backToMainMenu(),
+                this.backToMainMenu(),
+            )
         );
 
         new Searchbox(this, this.process_AbsorbedItem, 1, this.getServerResource(`/Api/Resources/?ResourceType=6`), false, 'what');
@@ -1405,7 +1445,9 @@ SubmitVideoPage.prototype = {
         this.display(
             H2(t('What rune was used?')),
             Div(id('ru')),
-            this, this.backToMainMenu()
+            Div(
+                this.backToMainMenu()
+            )
         );
 
         new Searchbox(this, this.process_ChosenRune, 1, this.getServerResource(`/Api/Resources/?ResourceType=9`), false, 'ru');
@@ -1441,7 +1483,7 @@ SubmitVideoPage.prototype = {
             Div(id('rune'))
         );
 
-        new Boxes(this, 'rune', x, this.getStaticResource(DID_BLACK_RUN_ABSORB_AN_ITEM), 1, false, '/img/gameplay_events.png');
+        new Boxes(this, 'rune', this.process_DidBlackRuneAbsorbAnItem, this.getStaticResource(DID_BLACK_RUN_ABSORB_AN_ITEM), 1, false, '/img/gameplay_events.png');
     },
 
 
@@ -1461,10 +1503,12 @@ SubmitVideoPage.prototype = {
     /** displays the 'What item did "Black Rune" absorb?' menu */
     menu_WhatItemDidBlackRuneAbsorb: function () {
         this.display(
-            H2('What item did "Black Rune" absorb?'),
-            this.wasItemRerolled(),
+            H2(t('What item did "Black Rune" absorb?')),
+            Div(this.wasItemRerolled()),
             Div(id('br')),
-            this.backToMainMenu('Nothing (else) was absorbed, cancel!')
+            Div(
+                this.backToMainMenu('Nothing (else) was absorbed, cancel!')
+            )
         );
 
         new Searchbox(this, this.process_BlackRuneAbsorbedItem, 1, this.getServerResource(`/Api/Resources/?ResourceType=6`), false, 'br');
@@ -1504,7 +1548,9 @@ SubmitVideoPage.prototype = {
         this.display(
             H2(t('What consumable was used?')),
             Div(id('other')),
-            this.backToMainMenu()
+            Div(
+                this.backToMainMenu()
+            )
         );
 
         new Searchbox(this, this.process_OtherConsumableChosen, 1, this.getServerResource(`/Api/Resources/?ResourceType=15`), false, 'other');
@@ -1532,10 +1578,12 @@ SubmitVideoPage.prototype = {
         this.display(
             H2(t('How was the character rerolled?')),
             Div(id('rerolls')),
-            this.backToMainMenu()
+            Div(
+                this.backToMainMenu()
+            )
         );
 
-        this.Boxes(this, 'rerolls', this.process_CharacterRerollWasChosen, this.getServerResource(`/Api/Resources/?ResourceType=14`), 1, false);
+        new Boxes(this, 'rerolls', this.process_CharacterRerollWasChosen, this.getServerResource(`/Api/Resources/?ResourceType=14`), 1, false);
     },
 
 
@@ -1587,7 +1635,9 @@ SubmitVideoPage.prototype = {
         this.display(
             H2(t('What transformation did NL reroll into?')),
             Div(id('tr')),
-            this.backToMainMenu('no transformation happened, cancel!')
+            Div(
+                this.backToMainMenu('no transformation happened, cancel!')
+            )
         );
 
         new Searchbox(this, this.process_RerollTransformationChosen, 1, this.getServerResource(`/Api/Resources/?ResourceType=12`), false, 'tr');
@@ -1625,8 +1675,10 @@ SubmitVideoPage.prototype = {
     menu_ChooseTarotCard: function () {
         this.display(
             H2(t('What card was used?')),
-            Div(t('cards')),
-            this.backToMainMenu()
+            Div(id('cards')),
+            Div(
+                this.backToMainMenu()
+            )
         )
 
         new Searchbox(this, this.process_TarotCardChosen, 1, this.getServerResource(`/Api/Resources/?ResourceType=10`), false, 'cards');
@@ -1643,6 +1695,7 @@ SubmitVideoPage.prototype = {
             Player: this.playerOneOrTwo,
             RelatedResource1: cardId
         });
+        this.menu_Main();
     },
 
 
@@ -1651,9 +1704,11 @@ SubmitVideoPage.prototype = {
         this.display(
             H2(t('Please confirm: NL WON the run?')),
             Div(id('won')),
-            this.backToMainMenu()
+            Div(
+                this.backToMainMenu()
+            )
         );
-        new Boxes(this, 'won', this.process_WinConfirmed, this.getStaticResource(CONFIRM_NL_WON), 1, false, '/img/gameplay_events.png');
+        new Boxes(this, 'won', this.process_ConfirmNlWon, this.getStaticResource(CONFIRM_NL_WON), 1, false, '/img/gameplay_events.png');
     },
 
 
@@ -1751,7 +1806,7 @@ SubmitVideoPage.prototype = {
             Div(id('end'))
         );
 
-        new Boxes(this, 'end', this.process_NlDidAnotherRunConfirmation, this.getStaticResource(CONFIRM_ANOTHER_RUN), 1, false, '/img/gameplay_events.png');
+        new Boxes(this, 'end', this.process_VideoEndedConfirmation, this.getStaticResource(CONFIRM_RUN_ENDED), 1, false, '/img/gameplay_events.png');
     },
 
 
@@ -1841,11 +1896,8 @@ SubmitVideoPage.prototype = {
     menu_SubmitEpisodeSucceeded: function () {
 
         // user is allowed to leave the page unpromptet now:
-
-        // step 1: setting the flag to true will no longer display the 'are you sure you want to leave?'-warning.
-        window.episodeWasSubmitted = true;
-        // step 2: remove the 'beforeunload' event
         window.removeEventListener('beforeunload', beforeUnloadEvent);
+        useRegularPopstateHandler();
 
         this.display(
             H2(t('Submission Succeeded!')),
@@ -1858,7 +1910,7 @@ SubmitVideoPage.prototype = {
                         t('Click here to see the results'),
                         cl('u', 'hand'),
                         event('click', e => {
-                            navigate(new Link().Episode(this.videoId), e, PAGE_TYPE_EPISODE);
+                            navigate(new Link().episode(this.videoId), e, PAGE_TYPE_EPISODE);
                         })
                     )
                 )
@@ -1877,7 +1929,7 @@ SubmitVideoPage.prototype = {
                     t('ended the run'),
                     style('color: orange')
                 ),
-                t('! If the character respawned(thanks to extra lives), go back and choose '),
+                t('! If the character respawned (thanks to extra lives), go back and choose '),
                 span(
                     t('"Other Event"'),
                     style('color: orange')
@@ -1885,7 +1937,9 @@ SubmitVideoPage.prototype = {
                 t('.')
             ),
             Div(id('died')),
-            this.backToMainMenu()
+            Div(
+                this.backToMainMenu()
+            )
         );
 
         new Boxes(this, 'died', this.process_ConfirmNlDied, this.getStaticResource(CONFIRM_NL_DIED), 1, false, '/img/gameplay_events.png');
@@ -1908,10 +1962,12 @@ SubmitVideoPage.prototype = {
     /** displays the 'What Killed NL?' menu */
     menu_WhatKilledNl: function () {
         this.display(
-            H2('How did he die?'),
-            P('Hint: If you can\'t find an enemy in the list, it might still be missing - choose "Missing Death".'),
+            H2(t('How did he die?')),
+            P(t('Hint: If you can\'t find an enemy in the list, it might still be missing - choose "Missing Death".')),
             Div(id('how')),
-            this.backToMainMenu()
+            Div(
+                this.backToMainMenu()
+            )
         );
 
         new Searchbox(this, this.process_EnemySelected, 1, this.getServerResource(`/Api/Resources/?ResourceType=11`), false, 'how');
@@ -1939,7 +1995,7 @@ SubmitVideoPage.prototype = {
         const driver = new Driver({ allowClose: false });
         driver.defineSteps([
             {
-                element: '#b60',
+                element: '#b10',
                 popover: {
                     title: 'Collected Item',
                     description: 'If NL collects an item, click here!',
@@ -1947,7 +2003,7 @@ SubmitVideoPage.prototype = {
                 }
             },
             {
-                element: '#b61',
+                element: '#b11',
                 popover: {
                     title: 'Touched Item',
                     description: 'If NL only touches a spacebar item and puts it down again (to get transformation bonuses or to take it out of the item pool), click here!',
@@ -1955,7 +2011,7 @@ SubmitVideoPage.prototype = {
                 }
             },
             {
-                element: '#b62',
+                element: '#b12',
                 popover: {
                     title: 'Bossfight',
                     description: 'If NL encounters a boss, click here (even if he doesn\'t win or doesn\'t finish the fight!).',
@@ -1963,7 +2019,7 @@ SubmitVideoPage.prototype = {
                 }
             },
             {
-                element: '#b63',
+                element: '#b13',
                 popover: {
                     title: 'Trinkets',
                     description: 'If NL switches out his trinket, click here! Only trinkets that NL used for a while count!',
@@ -1971,7 +2027,7 @@ SubmitVideoPage.prototype = {
                 }
             },
             {
-                element: '#b64',
+                element: '#b14',
                 popover: {
                     title: 'Character Reroll',
                     description: 'Did NL use the D4 / D100 / the 6-Room or did "Missing No." trigger at the beginning of the floor? That\'s what this is for!',
@@ -1979,7 +2035,7 @@ SubmitVideoPage.prototype = {
                 }
             },
             {
-                element: '#b65',
+                element: '#b15',
                 popover: {
                     title: 'Absorbed Items',
                     description: 'This box is for items that got absorbed by Void or Black Rune!',
@@ -1987,7 +2043,7 @@ SubmitVideoPage.prototype = {
                 }
             },
             {
-                element: '#b66',
+                element: '#b16',
                 popover: {
                     title: 'DIED!',
                     description: 'If NL got killed and the run ended, click this box to choose how he got killed!',
@@ -1995,7 +2051,7 @@ SubmitVideoPage.prototype = {
                 }
             },
             {
-                element: '#b67',
+                element: '#b17',
                 popover: {
                     title: 'WON!',
                     description: 'Northernlion killed a final boss and won the run? click here!',
@@ -2003,7 +2059,7 @@ SubmitVideoPage.prototype = {
                 }
             },
             {
-                element: '#b68',
+                element: '#b18',
                 popover: {
                     title: 'Down to the next floor!',
                     description: 'This will take you to the "next floor" select screen. '
@@ -2014,12 +2070,11 @@ SubmitVideoPage.prototype = {
                 }
             },
             {
-                element: '#b69',
+                element: '#b19',
                 popover: {
                     title: 'Other Events',
-                    description: 'Everything that doesn\'t fit anywhere else. Currently used for: Transformations '
-                        + 'that happened when rerolling the character (for example becoming \'Lord of the Flies\' after using the D100), '
-                        + 'respawning after death (thanks to extra lives), and changing the character with the "Clicker".',
+                    description: 'Everything that doesn\'t fit anywhere else. Currently used for: Respawning after death (thanks to extra lives), '
+                        + 'and changing the character with the "Clicker".',
                     position: 'left'
                 }
             },
@@ -2119,7 +2174,7 @@ function registerSubmitVideoPage() {
             removeClassIfExists(nav, 'display-none');
         }
 
-        const main = document.getElementById('main-container');
+        const main = document.getElementById('main');
         if (main) {
             removeClassIfExists(main, 'w100');
             addClassIfNotExists(main, 'w80');
@@ -2129,16 +2184,7 @@ function registerSubmitVideoPage() {
         window.removeEventListener('beforeunload', beforeUnloadEvent);
     }
 
-    const canLeaveCheck = () => {
-        if (window.episodeWasSubmitted === true) {
-            window.episodeWasSubmitted = false;
-            return true;
-        } else {
-            return confirm('warning! your progress will not be saved!');
-        }
-    };
-
-    registerPage(SubmitVideoPage, 'Loading data...', ['SubmitVideo', '{id}'], undefined, cleanup, canLeaveCheck);
+    registerPage(SubmitVideoPage, 'Loading data...', ['SubmitVideo', '{id}'], undefined, cleanup);
 }
 
 

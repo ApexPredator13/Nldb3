@@ -1,4 +1,4 @@
-﻿import { Html, Div, h2, t, event, attr, h1, p, span, input, hr, form, label, div, cl, formButton, br, style, select, strong, option, href } from "../../Framework/renderer";
+﻿import { Html, Div, h2, t, event, attr, h1, p, span, input, hr, form, label, div, cl, formButton, br, style, select, strong, option, href, id, a } from "../../Framework/renderer";
 import { registerPage, navigate } from "../../Framework/router";
 import { get, postResponse } from "../../Framework/http";
 import { AdminLink } from "./_admin-link-creator";
@@ -57,9 +57,11 @@ EditResourcePage.prototype = {
                     p(
                         t('Stay on this page after saving changes?'),
                         input(
-                            attr({
+                            this.stayOnPage() ? attr({
                                 type: 'checkbox',
-                                checked: this.stayOnPage()
+                                checked: 'true'
+                            }) : attr({
+                                type: 'checkbox'
                             }),
                             event('input', e => this.saveStayOnPage(e.target.checked))
                         )
@@ -115,16 +117,16 @@ EditResourcePage.prototype = {
                         id('selected-tags'),
                         t('Selected Tags:'),
                         br(),
-                        resource.tags && resource.tags.length > 0 ? resource.tags.map(tag => span(
+                        ...(resource.tags && resource.tags.length > 0 ? resource.tags.map(tag => span(
                             t(convertTagToString(tag)),
                             attr({
                                 class: 'selected-tag',
                                 c: tag.toString(10)
                             }),
                             event('click', e => this.removeTag(e))
-                        )) : span(
+                        )) : [span(
                             t('no tags.')
-                        )
+                        )])
                     ),
                     div(
                         id('tags-searchbox-goes-here')
@@ -402,7 +404,7 @@ EditResourcePage.prototype = {
                     ),
                     hr(),
 
-                    nextResource(),
+                    nextResource(this.resourceType, this.resourceId),
                     backToResources(this.resourceType),
 
                     div(

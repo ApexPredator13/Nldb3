@@ -10,55 +10,6 @@
     <NullableReferenceTypes>true</NullableReferenceTypes>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Content Remove="bundleconfig.json" />
-    <Content Remove="wwwroot\js\src\charts.ts" />
-    <Content Remove="wwwroot\js\src\components\quotes.ts" />
-    <Content Remove="wwwroot\js\src\components\videos.ts" />
-    <Content Remove="wwwroot\js\src\components\youtube-player.ts" />
-    <Content Remove="wwwroot\js\src\dom-operations.ts" />
-    <Content Remove="wwwroot\js\src\drag-and-drop.ts" />
-    <Content Remove="wwwroot\js\src\edit-submissions-video-loader.ts" />
-    <Content Remove="wwwroot\js\src\enum-converters.ts" />
-    <Content Remove="wwwroot\js\src\enums\video-order-by.ts" />
-    <Content Remove="wwwroot\js\src\frontpage.ts" />
-    <Content Remove="wwwroot\js\src\interfaces\frontpage-top-user.ts" />
-    <Content Remove="wwwroot\js\src\interfaces\frontpage.ts" />
-    <Content Remove="wwwroot\js\src\interfaces\get-resource-request.ts" />
-    <Content Remove="wwwroot\js\src\interfaces\History.ts" />
-    <Content Remove="wwwroot\js\src\interfaces\isaac-resource.ts" />
-    <Content Remove="wwwroot\js\src\interfaces\mod-url.ts" />
-    <Content Remove="wwwroot\js\src\interfaces\mod.ts" />
-    <Content Remove="wwwroot\js\src\interfaces\quote.ts" />
-    <Content Remove="wwwroot\js\src\interfaces\removed-history-item.ts" />
-    <Content Remove="wwwroot\js\src\interfaces\selected-isaac-object.ts" />
-    <Content Remove="wwwroot\js\src\interfaces\submitted-complete-episode.ts" />
-    <Content Remove="wwwroot\js\src\interfaces\submitted-gameplay-event.ts" />
-    <Content Remove="wwwroot\js\src\interfaces\submitted-played-character.ts" />
-    <Content Remove="wwwroot\js\src\interfaces\submitted-played-floor.ts" />
-    <Content Remove="wwwroot\js\src\interfaces\Tag.ts" />
-    <Content Remove="wwwroot\js\src\interfaces\thumbnail.ts" />
-    <Content Remove="wwwroot\js\src\interfaces\video-request.ts" />
-    <Content Remove="wwwroot\js\src\interfaces\video-result.ts" />
-    <Content Remove="wwwroot\js\src\interfaces\Video.ts" />
-    <Content Remove="wwwroot\js\src\isaac-resource-video-loader.ts" />
-    <Content Remove="wwwroot\js\src\lib\api-calls.ts" />
-    <Content Remove="wwwroot\js\src\lib\boxes.ts" />
-    <Content Remove="wwwroot\js\src\lib\component-type.ts" />
-    <Content Remove="wwwroot\js\src\lib\episode-history-manager.ts" />
-    <Content Remove="wwwroot\js\src\lib\gameplay-event-type.ts" />
-    <Content Remove="wwwroot\js\src\lib\history-manager.ts" />
-    <Content Remove="wwwroot\js\src\lib\prerendered-component.ts" />
-    <Content Remove="wwwroot\js\src\lib\resource-type.ts" />
-    <Content Remove="wwwroot\js\src\lib\submit-episode.ts" />
-    <Content Remove="wwwroot\js\src\polyfills.ts" />
-    <Content Remove="wwwroot\js\src\quotes.ts" />
-    <Content Remove="wwwroot\js\src\resource-overview.ts" />
-    <Content Remove="wwwroot\js\src\resource-selector.ts" />
-    <Content Remove="wwwroot\js\src\set-admin-mode.ts" />
-    <Content Remove="wwwroot\js\src\validation.ts" />
-    <Content Remove="wwwroot\js\src\video-quotes.ts" />
-  </ItemGroup>
 
   <ItemGroup>
     <None Remove="Ts\**\*" />
@@ -67,7 +18,6 @@
   <ItemGroup>
     <Content Include="Ts\Models\removed-history-item.ts" />
   </ItemGroup>
-
 
   <ItemGroup>
     <PackageReference Include="AspNet.Security.OAuth.Twitch" Version="3.0.0" />
@@ -108,93 +58,6 @@
   <ItemGroup>
     <Folder Include="wwwroot\dump\" />
     <Folder Include="wwwroot\js\dist\" />
-  </ItemGroup>
-
-
-  <ItemGroup>
-    <None Include="bundleconfig.json" />
-    <None Include="Ts\Components\Navigation\nav-section.js" />
-    <None Include="Ts\Components\SubmitVideo\change-seed.js" />
-    <None Include="Ts\Components\SubmitVideo\current-player.js" />
-    <None Include="Ts\Components\SubmitVideo\player-controls.js" />
-    <None Include="Ts\Framework\Customizable\config.development.js" />
-    <None Include="Ts\Framework\Customizable\config.production.js" />
-    <None Include="Ts\Framework\Customizable\Layout\modal-content.js" />
-    <None Include="Ts\Framework\Customizable\typedefs.js" />
-    <None Include="Ts\Framework\forms.js" />
-    <None Include="Ts\Pages\Admin\delete-mod-link.js" />
-    <None Include="Ts\Pages\Admin\delete-mod.js" />
-  </ItemGroup>
-
-
-  <ItemGroup>
-    <TypeScriptCompile Include="Ts\Components\Admin\go-back-links.js" />
-    <TypeScriptCompile Include="Ts\Components\Admin\option-lists.js" />
-    <TypeScriptCompile Include="Ts\Components\General\Boxes.js" />
-    <TypeScriptCompile Include="Ts\Components\General\isaac-image.js" />
-    <TypeScriptCompile Include="Ts\Components\General\modal-contents.js" />
-    <TypeScriptCompile Include="Ts\Components\General\Searchbox.js" />
-    <TypeScriptCompile Include="Ts\Components\General\Videos.js" />
-    <TypeScriptCompile Include="Ts\Components\Home\rank.js" />
-    <TypeScriptCompile Include="Ts\Components\Home\stat.js" />
-    <TypeScriptCompile Include="Ts\Components\Home\topic.js" />
-    <TypeScriptCompile Include="Ts\Components\SubmitVideo\back-to-main-selection.js" />
-    <TypeScriptCompile Include="Ts\Components\SubmitVideo\help-select-absorbed-item.js" />
-    <TypeScriptCompile Include="Ts\Components\SubmitVideo\help-select-boss.js" />
-    <TypeScriptCompile Include="Ts\Components\SubmitVideo\help-select-item.js" />
-    <TypeScriptCompile Include="Ts\Components\SubmitVideo\help-select-itemsource.js" />
-    <TypeScriptCompile Include="Ts\Components\SubmitVideo\help-select-touched-item.js" />
-    <TypeScriptCompile Include="Ts\Components\SubmitVideo\history-table.js" />
-    <TypeScriptCompile Include="Ts\Components\SubmitVideo\submit-quote.js" />
-    <TypeScriptCompile Include="Ts\Components\SubmitVideo\youtube-player.js" />
-    <TypeScriptCompile Include="Ts\Components\Video\events-table.js" />
-    <TypeScriptCompile Include="Ts\Components\Video\item-pickup-chart.js" />
-    <TypeScriptCompile Include="Ts\Components\Video\played-characters.js" />
-    <TypeScriptCompile Include="Ts\Components\Video\sorted-by-sources.js" />
-    <TypeScriptCompile Include="Ts\Components\Video\time-spent-on-each-floor.js" />
-    <TypeScriptCompile Include="Ts\Components\Video\timeline.js" />
-    <TypeScriptCompile Include="Ts\Components\Video\transformation-progress-chart.js" />
-    <TypeScriptCompile Include="Ts\Components\Video\transformation-progress.js" />
-    <TypeScriptCompile Include="Ts\Components\Video\video-stats.js" />
-    <TypeScriptCompile Include="Ts\Enums\enum-to-string-converters.js" />
-    <TypeScriptCompile Include="Ts\Framework\aspnetcore-formvalidation.js" />
-    <TypeScriptCompile Include="Ts\Framework\browser.js" />
-    <TypeScriptCompile Include="Ts\Framework\Customizable\authentication.js" />
-    <TypeScriptCompile Include="Ts\Framework\Customizable\global-chart-options.js" />
-    <TypeScriptCompile Include="Ts\Framework\Customizable\Layout\main.js" />
-    <TypeScriptCompile Include="Ts\Framework\Customizable\Layout\navigation.js" />
-    <TypeScriptCompile Include="Ts\Framework\http.js" />
-    <TypeScriptCompile Include="Ts\Framework\renderer.js" />
-    <TypeScriptCompile Include="Ts\Framework\router.js" />
-    <TypeScriptCompile Include="Ts\Pages\Admin\add-video.js" />
-    <TypeScriptCompile Include="Ts\Pages\Admin\create-isaac-resource.js" />
-    <TypeScriptCompile Include="Ts\Pages\Admin\create-mod-link.js" />
-    <TypeScriptCompile Include="Ts\Pages\Admin\create-mod.js" />
-    <TypeScriptCompile Include="Ts\Pages\Admin\delete-event.js" />
-    <TypeScriptCompile Include="Ts\Pages\Admin\delete-resource.js" />
-    <TypeScriptCompile Include="Ts\Pages\Admin\delete-submission.js" />
-    <TypeScriptCompile Include="Ts\Pages\Admin\edit-gameplay-event.js" />
-    <TypeScriptCompile Include="Ts\Pages\Admin\edit-resource.js" />
-    <TypeScriptCompile Include="Ts\Pages\Admin\edit-submission.js" />
-    <TypeScriptCompile Include="Ts\Pages\Admin\insert-gameplay-event.js" />
-    <TypeScriptCompile Include="Ts\Pages\Admin\mod.js" />
-    <TypeScriptCompile Include="Ts\Pages\Admin\mods.js" />
-    <TypeScriptCompile Include="Ts\Pages\Admin\overview.js" />
-    <TypeScriptCompile Include="Ts\Pages\Admin\resource-deleted.js" />
-    <TypeScriptCompile Include="Ts\Pages\Admin\resources.js" />
-    <TypeScriptCompile Include="Ts\Pages\Admin\submissions_overview.js" />
-    <TypeScriptCompile Include="Ts\Pages\Admin\videos-saved.js" />
-    <TypeScriptCompile Include="Ts\Pages\Admin\_admin-link-creator.js" />
-    <TypeScriptCompile Include="Ts\Pages\Admin\_all-admin-pages.js" />
-    <TypeScriptCompile Include="Ts\Pages\downloads.js" />
-    <TypeScriptCompile Include="Ts\Pages\episode.js" />
-    <TypeScriptCompile Include="Ts\Pages\episodes.js" />
-    <TypeScriptCompile Include="Ts\Pages\home.js" />
-    <TypeScriptCompile Include="Ts\Pages\resource-overview.js" />
-    <TypeScriptCompile Include="Ts\Pages\resource.js" />
-    <TypeScriptCompile Include="Ts\Pages\submit-video.js" />
-    <TypeScriptCompile Include="Ts\Pages\_all-pages.js" />
-    <TypeScriptCompile Include="Ts\Pages\_link-creator.js" />
   </ItemGroup>
 
 </Project>

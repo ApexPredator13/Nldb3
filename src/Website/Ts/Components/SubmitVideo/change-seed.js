@@ -64,7 +64,7 @@ ChangeSeed.prototype = {
     /** displays the seed input element */
     showSeedInputElement: function() {
         const seedContainer = document.getElementById('seed-container');
-        const seed = this.getSeed();
+        const seed = this.history.getSeed();
         seedContainer.innerText = seed ? `Seed: ${seed}` : 'Enter seed';
         removeClassIfExists(seedContainer, 'display-none');
     },
@@ -83,6 +83,9 @@ ChangeSeed.prototype = {
 
     /** creates the HTML for the modal */
     createModalContent: function () {
+
+        // removing cached form element because form gets recreated now
+        this.seedFormHelper.form = null;
 
         const existingSeed = this.history.getSeed();
         const seed1 = existingSeed ? existingSeed.substring(0, 4) : '';
@@ -104,12 +107,12 @@ ChangeSeed.prototype = {
 
                 p(
                     input(
-                        attr({ id: 'seed1', value: seed1, minlength: '4', maxlength: '4', required: 'true', requiredError: 'Please enter a seed', minlengthError: 'Please enter the first 4 digits of the seed' }),
-                        event('input', e => this.seedFormHelper.validateForm(e))
+                        attr({ id: 'seed1', value: seed1, minlength: '4', maxlength: '4', required: 'true', required_error: 'Please enter a seed', minlength_error: 'Please enter the first 4 digits of the seed' }),
+                        event('input', e => { e.target.value = e.target.value.toUpperCase(); this.seedFormHelper.validateForm(e); })
                     ),
                     input(
-                        attr({ id: 'seed2', value: seed2, minlength: '4', maxlength: '4', required: 'true', requiredError: 'Please enter a seed', minlengthError: 'Please enter the last 4 digits of the seed' }),
-                        event('input', e => this.seedFormHelper.validateForm(e))
+                        attr({ id: 'seed2', value: seed2, minlength: '4', maxlength: '4', required: 'true', required_error: 'Please enter a seed', minlength_error: 'Please enter the last 4 digits of the seed' }),
+                        event('input', e => { e.target.value = e.target.value.toUpperCase(); this.seedFormHelper.validateForm(e); })
                     )
                 ),
                 p(
@@ -120,7 +123,7 @@ ChangeSeed.prototype = {
                         t('Remove Seed'),
                         event('click', e => {
                             e.preventDefault();
-                            this.addSeed(null);
+                            this.history.addSeed(null);
                             this.updateSeedText(null);
                             hideModal();
                             this.youtubePlayer.playVideo();

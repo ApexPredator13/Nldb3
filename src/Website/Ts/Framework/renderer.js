@@ -67,7 +67,13 @@ HtmlMaker.prototype = Object.create(HtmlBuffer.prototype);
 
 HtmlMaker.prototype.build = function (...args) {
     for (const arg of args) {
-        arg.call(this);
+        try {
+            arg.call(this);
+        }
+        catch (e) {
+            console.warn('failed to render:', arg);
+            console.error('error:', e);
+        }
     }
 }
 
@@ -352,7 +358,13 @@ function Parent(type, ...contents) {
     return function () {
         this.buffer.data.push(NEW_ELEMENT, type);
         for (let i = 0; i < contents.length; ++i) {
-            contents[i].call(this);
+            try {
+                contents[i].call(this);
+            } catch (e) {
+                console.warn('error! cannot call', contents[i], contents);
+                console.error(e)
+            }
+            //contents[i].call(this);
         }
     }
 }
@@ -361,7 +373,13 @@ function Child(type, ...contents) {
     return function () {
         this.buffer.data.push(CHILD_START, NEW_ELEMENT, type);
         for (let i = 0; i < contents.length; ++i) {
-            contents[i].call(this);
+            try {
+                contents[i].call(this);
+            } catch (e) {
+                console.warn('error! cannot call', contents[i], contents);
+                console.error(e)
+            }
+            //contents[i].call(this);
         }
         this.buffer.data.push(CHILD_END);
     }
@@ -499,6 +517,10 @@ function td(...contents) {
 
 function tr(...contents) {
     return Child.call(this, TR, ...contents);
+}
+
+function Tr(...contents) {
+    return Parent.call(this, TR, ...contents);
 }
 
 function th(...contents) {
@@ -642,5 +664,6 @@ export {
     form,
     H2,
     label,
-    fieldset
+    fieldset,
+    Tr
 }

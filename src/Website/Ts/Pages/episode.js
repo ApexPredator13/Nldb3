@@ -102,7 +102,7 @@ EpisodePage.prototype = {
 
 
 function registerEpisodePage() {
-    registerPage(EpisodePage, 'loading video...', ['{id}'], PAGE_TYPE_EPISODE);
+    registerPage(EpisodePage, 'loading video...', ['{youtubeVideoId}'], PAGE_TYPE_EPISODE);
 }
 
 export {

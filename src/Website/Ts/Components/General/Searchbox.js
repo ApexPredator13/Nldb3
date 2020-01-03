@@ -13,7 +13,7 @@ import "../../Framework/Customizable/typedefs.js";
  * @param {string} containerId - the ID of the container the searchbox will be rendered into
  * @param {boolean=} replaceContent - replace container content? (default: true)
  */
-function Searchbox(caller, sub, searchboxId, resources, displayType, containerId, replaceContent = false) {
+function Searchbox(caller, sub, searchboxId, resources, displayType, containerId, replaceContent = true) {
     this.caller = caller;
     this.sub = sub;
     this.searchboxId = searchboxId;
@@ -124,12 +124,12 @@ Searchbox.prototype = {
      * processes the click event after the user selected something and notifies the subscriber
      * @param {Event} e - the raw click event
      */
-    lineClickEvent: function(e) {
+    lineClickEvent: function (e) {
         const target = e.target;
         let id = null;
 
         if (target.className === 'dd-line') {
-            id = target.getAttribute('data-id');
+            id = target.getAttribute('di');
         } else if ((target.className === 'dd-text' || target.className === 'dd-image')) {
             id = target.parentElement.getAttribute('di');
         }

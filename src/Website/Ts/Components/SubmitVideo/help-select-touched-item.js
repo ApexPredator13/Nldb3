@@ -1,4 +1,4 @@
-﻿import { modal, Div, h1, t, p, br, hr, input, style, h4, attr } from "../../Framework/renderer";
+﻿import { modal, Div, h1, t, p, br, hr, input, style, h4, attr, span } from "../../Framework/renderer";
 import { dismissModalSection } from "../General/modal-contents";
 
 export function helpSelectTouchedItem() {

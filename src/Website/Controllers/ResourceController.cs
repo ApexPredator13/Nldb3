@@ -155,7 +155,7 @@ namespace Website.Controllers
             // floor ranking
             if (availableStats.Contains(AvailableStats.Floor))
             {
-                var floorStats = await _isaacRepository.GetFloorRanking(id, resourceNumber);
+                var floorStats = await _isaacRepository.GetFloorRanking(id, resourceNumber, eventType);
                 result.FloorStats = _barGraphCreator.IsaacResourceRanking(resource.Name, floorStats);
             }
 

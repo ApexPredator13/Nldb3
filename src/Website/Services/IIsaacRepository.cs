@@ -40,7 +40,7 @@ namespace Website.Services
         Task<List<(int amount, IsaacResource foundAt)>> GetFoundAtRanking(string videoId);
         Task<List<(int amount, IsaacResource characters)>> GetCharacterRanking(string resourceId, int resourceNumber);
         Task<List<(int amount, IsaacResource curse)>> GetCurseRanking(string resourceId, int resourceNumber);
-        Task<List<(int amount, IsaacResource floor)>> GetFloorRanking(string resourceId, int resourceNumber);
+        Task<List<(int amount, IsaacResource floor)>> GetFloorRanking(string resourceId, int resourceNumber, GameplayEventType? eventType = null);
         Task<List<(int amount, IsaacResource item)>> GetTransformationItemRanking(string transformationId);
         List<AvailableStats> GetAvailableStats(IsaacResource resource);
         int GetResourceNumber(IsaacResource resource);

@@ -1,4 +1,4 @@
-﻿import { Html, Div, id, p, t, span, div, textarea, attr, br, input, select, option, button } from "../../Framework/renderer";
+﻿import { Html, Div, id, p, t, span, div, textarea, attr, br, input, select, option, button, event } from "../../Framework/renderer";
 import { post } from "../../Framework/http";
 import { YoutubePlayer } from "./youtube-player";
 
@@ -10,7 +10,6 @@ import { YoutubePlayer } from "./youtube-player";
  * @param {YoutubePlayer} youtubePlayer - the youtube player
  */
 export function SubmitVideoQuotesSection(containerId, videoId, youtubePlayer) {
-
     this.textareaCounter = null;
     this.submitButton = null;
     this.textarea = null;
@@ -24,221 +23,7 @@ export function SubmitVideoQuotesSection(containerId, videoId, youtubePlayer) {
     this.canEnableSubmitButton = false;
     this.interval = null;
     this.intervalCounter = 15;
-
-
-    /**
-     * processes the textarea inputs
-     * @param {Event} e - the raw input event
-     */
-    this.textareaTypeEvent = function (e) {
-        const textarea = e.target;
-
-        if (!this.textareaCounter) {
-            this.textareaCounter = document.getElementById('quotes-textarea-counter');
-        }
-
-        const typedCharacters = textarea.value.length;
-
-        if (typedCharacters > 10) {
-            this.enableSubmitButton();
-        } else {
-            this.disableSubmitButton();
-        }
-
-        this.textareaCounter.innerText = `(${typedCharacters}/300 characters)`;
-    }
-
-    /**
-     * checks whether the quote and the selected time value is valid or not
-     * @returns {boolean}
-     */
-    this.checkQuoteValid = function () {
-        const videoTimeRadio = this.getVideoTimeRadio();
-        const specificTimeRadio = this.getSpecificTimeRadio();
-        const minuteSelection = this.getMinuteSelectElement();
-        const secondSelection = this.getSecondSelectElement();
-
-        if (!videoTimeRadio.checked && !specificTimeRadio.checked) {
-            this.disableSubmitButton();
-            return false;
-        }
-
-        if (specificTimeRadio.checked && (!minuteSelection.value || !secondSelection.value)) {
-            this.disableSubmitButton();
-            return false;
-        }
-
-        const textarea = this.getTextarea();
-        if (textarea.value.length < 10) {
-            this.disableSubmitButton();
-            return false;
-        }
-
-        this.enableSubmitButton();
-        return true;
-    }
-
-    /** resets the 'specific time' select elements */
-    this.resetSpecificTimeSelection = function() {
-        const minute = this.getMinuteSelectElement();
-        const second = this.getSecondSelectElement();
-        minute.selectedIndex = 0;
-        second.selectedIndex = 0;
-    }
-
-    /** checks the 'specific time' radio */
-    this.checkSpecificTimeRadio = function () {
-        document.getElementById('exact-time').checked = true;
-    }
-
-    /** disables the 'submit quote' button */
-    this.disableSubmitButton = function() {
-        this.getSubmitButton().disabled = true;
-    }
-    
-    /** enables the 'submit quote' button */
-    this.enableSubmitButton = function() {
-        if (this.canEnableSubmitButton) {
-            this.getSubmitButton().disabled = false;
-        }
-    }
-
-    /**
-     * gets, caches and returns the submit button
-     * @returns {HTMLButtonElement}
-     */
-    this.getSubmitButton = function() {
-        if (this.submitButton) {
-            return this.submitButton;
-        } else {
-            this.submitButton = document.getElementById('submit-quote-button');
-            return this.submitButton;
-        }
-    }
-
-    /**
-     * gets, caches and returns the textarea element
-     * @returns {HTMLTextAreaElement}
-     */
-    this.getTextarea = function() {
-        if (this.textarea) {
-            return this.textarea;
-        } else {
-            this.textarea = document.getElementById('quotes-textarea');
-            return this.textarea;
-        }
-    }
-
-    /**
-     * gets, caches and returns the 'specific time' radio button
-     * @returns {HTMLInputElement}
-     */
-    this.getSpecificTimeRadio = function() {
-        if (this.specificTimeRadio) {
-            return this.specificTimeRadio;
-        } else {
-            this.specificTimeRadio = document.getElementById('exact-time');
-            return this.specificTimeRadio;
-        }
-    }
-
-    /**
-    * gets, caches and returns the 'current video time' radio button
-    * @returns {HTMLInputElement}
-    */
-    this.getVideoTimeRadio = function() {
-        if (this.videoTimeRadio) {
-            return this.videoTimeRadio;
-        } else {
-            this.videoTimeRadio = document.getElementById('current-video-timer');
-            return this.videoTimeRadio;
-        }
-    }
-
-    /**
-    * gets, caches and returns the minute select element
-    * @returns {HTMLSelectElement}
-    */
-    this.getMinuteSelectElement = function() {
-        if (this.selectedMinute) {
-            return this.selectedMinute;
-        } else {
-            this.selectedMinute = document.getElementById('select-minute');
-            return this.selectedMinute;
-        }
-    }
-
-    /**
-    * gets, caches and returns the seconds select element
-    * @returns {HTMLSelectElement}
-    */
-    this.getSecondSelectElement = function() {
-        if (this.selectedSecond) {
-            return this.selectedSecond;
-        } else {
-            this.selectedSecond = document.getElementById('select-second');
-            return this.selectedSecond;
-        }
-    }
-
-    /**
-     * submits the quote
-     * @param {Event} e - the raw 'submit' event
-     */
-    this.submitQuote = function(e) {
-        e.preventDefault();
-
-        const textarea = this.getTextarea();
-        const specificTimeRadio = this.getSpecificTimeRadio();
-
-        let at = 0;
-
-        const minuteSelect = this.getMinuteSelectElement();
-        const secondSelect = this.getSecondSelectElement();
-
-        if (specificTimeRadio.checked) {
-            at = (parseInt(minuteSelect.value, 10) * 60) + (parseInt(secondSelect.value, 10));
-        } else {
-            at = this.youtubePlayer.GetCurrentTime();
-        }
-
-        const data = new FormData();
-        data.append('VideoId', this.videoId);
-        data.append('Content', textarea.value);
-        data.append('At', at.toString(10));
-
-        const valid = this.checkQuoteValid();
-
-        if (valid) {
-            this.disableSubmitButton();
-            this.canEnableSubmitButton = false;
-
-            post('/Api/Quotes', data).then(() => {
-
-                textarea.value = '';
-                minuteSelect.selectedIndex = 0;
-                secondSelect.selectedIndex = 0;
-                const radio1 = this.getSpecificTimeRadio();
-                radio1.checked = false;
-                const radio2 = this.getVideoTimeRadio();
-                radio2.checked = false;
-                this.canEnableSubmitButton = false;
-
-                this.interval = setInterval(() => {
-                    this.intervalCounter--;
-                    const button = this.getSubmitButton();
-                    button.innerText = `Quote Submitted! (Waiting... ${this.intervalCounter.toString(10)})`;
-                    if (this.intervalCounter === 0) {
-                        button.innerText = 'Submit Quote';
-                        clearInterval(this.interval);
-                        this.intervalCounter = 15;
-                        this.canEnableSubmitButton = true;
-                        this.disableSubmitButton();
-                    }
-                }, 1000);
-            }).catch(() => { this.canEnableSubmitButton = true; this.enableSubmitButton(); });
-        }
-    }
+    this.containerId = containerId;
 
 
     // renders the initial HTML layout
@@ -313,3 +98,220 @@ export function SubmitVideoQuotesSection(containerId, videoId, youtubePlayer) {
     ], containerId, true, false);
 }
 
+
+SubmitVideoQuotesSection.prototype = {
+
+    /**
+     * processes the textarea inputs
+     * @param {Event} e - the raw input event
+     */
+    textareaTypeEvent: function (e) {
+        const textarea = e.target;
+
+        if (!this.textareaCounter) {
+            this.textareaCounter = document.getElementById('quotes-textarea-counter');
+        }
+
+        const typedCharacters = textarea.value.length;
+
+        if (typedCharacters > 10) {
+            this.enableSubmitButton();
+        } else {
+            this.disableSubmitButton();
+        }
+
+        this.textareaCounter.innerText = `(${typedCharacters}/300 characters)`;
+    },
+
+    /**
+     * checks whether the quote and the selected time value is valid or not
+     * @returns {boolean}
+     */
+    heckQuoteValid: function () {
+        const videoTimeRadio = this.getVideoTimeRadio();
+        const specificTimeRadio = this.getSpecificTimeRadio();
+        const minuteSelection = this.getMinuteSelectElement();
+        const secondSelection = this.getSecondSelectElement();
+
+        if (!videoTimeRadio.checked && !specificTimeRadio.checked) {
+            this.disableSubmitButton();
+            return false;
+        }
+
+        if (specificTimeRadio.checked && (!minuteSelection.value || !secondSelection.value)) {
+            this.disableSubmitButton();
+            return false;
+        }
+
+        const textarea = this.getTextarea();
+        if (textarea.value.length < 10) {
+            this.disableSubmitButton();
+            return false;
+        }
+
+        this.enableSubmitButton();
+        return true;
+    },
+
+    /** resets the 'specific time' select elements */
+    resetSpecificTimeSelection: function () {
+        const minute = this.getMinuteSelectElement();
+        const second = this.getSecondSelectElement();
+        minute.selectedIndex = 0;
+        second.selectedIndex = 0;
+    },
+
+    /** checks the 'specific time' radio */
+    checkSpecificTimeRadio: function () {
+        document.getElementById('exact-time').checked = true;
+    },
+
+    /** disables the 'submit quote' button */
+    disableSubmitButton: function () {
+        this.getSubmitButton().disabled = true;
+    },
+
+    /** enables the 'submit quote' button */
+    enableSubmitButton: function () {
+        if (this.canEnableSubmitButton) {
+            this.getSubmitButton().disabled = false;
+        }
+    },
+
+    /**
+     * gets, caches and returns the submit button
+     * @returns {HTMLButtonElement}
+     */
+    getSubmitButton: function () {
+        if (this.submitButton) {
+            return this.submitButton;
+        } else {
+            this.submitButton = document.getElementById('submit-quote-button');
+            return this.submitButton;
+        }
+    },
+
+    /**
+     * gets, caches and returns the textarea element
+     * @returns {HTMLTextAreaElement}
+     */
+    getTextarea: function () {
+        if (this.textarea) {
+            return this.textarea;
+        } else {
+            this.textarea = document.getElementById('quotes-textarea');
+            return this.textarea;
+        }
+    },
+
+    /**
+     * gets, caches and returns the 'specific time' radio button
+     * @returns {HTMLInputElement}
+     */
+    getSpecificTimeRadio: function () {
+        if (this.specificTimeRadio) {
+            return this.specificTimeRadio;
+        } else {
+            this.specificTimeRadio = document.getElementById('exact-time');
+            return this.specificTimeRadio;
+        }
+    },
+
+    /**
+    * gets, caches and returns the 'current video time' radio button
+    * @returns {HTMLInputElement}
+    */
+    getVideoTimeRadio: function () {
+        if (this.videoTimeRadio) {
+            return this.videoTimeRadio;
+        } else {
+            this.videoTimeRadio = document.getElementById('current-video-timer');
+            return this.videoTimeRadio;
+        }
+    },
+
+    /**
+    * gets, caches and returns the minute select element
+    * @returns {HTMLSelectElement}
+    */
+    getMinuteSelectElement: function () {
+        if (this.selectedMinute) {
+            return this.selectedMinute;
+        } else {
+            this.selectedMinute = document.getElementById('select-minute');
+            return this.selectedMinute;
+        }
+    },
+
+    /**
+    * gets, caches and returns the seconds select element
+    * @returns {HTMLSelectElement}
+    */
+    getSecondSelectElement: function () {
+        if (this.selectedSecond) {
+            return this.selectedSecond;
+        } else {
+            this.selectedSecond = document.getElementById('select-second');
+            return this.selectedSecond;
+        }
+    },
+
+    /**
+     * submits the quote
+     * @param {Event} e - the raw 'submit' event
+     */
+    submitQuote: function (e) {
+        e.preventDefault();
+
+        const textarea = this.getTextarea();
+        const specificTimeRadio = this.getSpecificTimeRadio();
+
+        let at = 0;
+
+        const minuteSelect = this.getMinuteSelectElement();
+        const secondSelect = this.getSecondSelectElement();
+
+        if (specificTimeRadio.checked) {
+            at = (parseInt(minuteSelect.value, 10) * 60) + (parseInt(secondSelect.value, 10));
+        } else {
+            at = this.youtubePlayer.GetCurrentTime();
+        }
+
+        const data = new FormData();
+        data.append('VideoId', this.videoId);
+        data.append('Content', textarea.value);
+        data.append('At', at.toString(10));
+
+        const valid = this.checkQuoteValid();
+
+        if (valid) {
+            this.disableSubmitButton();
+            this.canEnableSubmitButton = false;
+
+            post('/Api/Quotes', data).then(() => {
+
+                textarea.value = '';
+                minuteSelect.selectedIndex = 0;
+                secondSelect.selectedIndex = 0;
+                const radio1 = this.getSpecificTimeRadio();
+                radio1.checked = false;
+                const radio2 = this.getVideoTimeRadio();
+                radio2.checked = false;
+                this.canEnableSubmitButton = false;
+
+                this.interval = setInterval(() => {
+                    this.intervalCounter--;
+                    const button = this.getSubmitButton();
+                    button.innerText = `Quote Submitted! (Waiting... ${this.intervalCounter.toString(10)})`;
+                    if (this.intervalCounter === 0) {
+                        button.innerText = 'Submit Quote';
+                        clearInterval(this.interval);
+                        this.intervalCounter = 15;
+                        this.canEnableSubmitButton = true;
+                        this.disableSubmitButton();
+                    }
+                }, 1000);
+            }).catch(() => { this.canEnableSubmitButton = true; this.enableSubmitButton(); });
+        }
+    }
+}

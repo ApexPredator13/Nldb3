@@ -1,7 +1,7 @@
 ﻿import { SubmitVideoPage } from "../../Pages/submit-video.js"
 import { resourceTypeToString } from "../../Enums/enum-to-string-converters";
 import { post } from "../../Framework/http";
-import { Html, Div, id, t, table, td, tr, cl, p, modal, h2, hr, button, hideModal, div, attr } from "../../Framework/renderer";
+import { Html, Div, id, t, table, td, tr, cl, p, modal, h2, hr, button, hideModal, div, attr, event, Tbody, style } from "../../Framework/renderer";
 import { isaacImage } from "../General/isaac-image";
 import "../../Framework/Customizable/typedefs";
 import { YoutubePlayer } from "./youtube-player";
@@ -55,7 +55,7 @@ function HistoryTable(caller, videoId, historyTableContainerId, youtubePlayer, s
                 )
             )
         )
-    ], historyTableContainerId);
+    ], historyTableContainerId, true, false);
 }
 
 
@@ -127,6 +127,7 @@ HistoryTable.prototype = {
         if (currentFloor) {
             currentFloor.GameplayEvents.push(event);
         }
+        console.log('history:', this.dataForThisEpisode);
         this.reloadHistory();
     },
 
@@ -424,7 +425,7 @@ HistoryTable.prototype = {
      */
     removeFloor: function (data) {
         hideModal();
-        if (data && floorToRemove.characterIndex !== null && data.floorIndex !== null) {
+        if (data && data.characterIndex !== null && data.floorIndex !== null) {
             this.dataForThisEpisode.PlayedCharacters[data.characterIndex].PlayedFloors.splice(data.floorIndex, 1);
             this.reloadHistory();
             this.notifySubscribersOfDeletion(data);
@@ -440,7 +441,7 @@ HistoryTable.prototype = {
         if (data.characterIndex !== null && data.floorIndex !== null && data.eventIndex !== null) {
             this.dataForThisEpisode.PlayedCharacters[data.characterIndex].PlayedFloors[data.floorIndex].GameplayEvents.splice(data.eventIndex, 1);
             this.reloadHistory();
-            this.notifySubscribersOfDeletion();
+            this.notifySubscribersOfDeletion(data);
         }
     },
 
@@ -465,7 +466,7 @@ HistoryTable.prototype = {
                                 div(
                                     attr({ c: c.toString(10), title: 'Click to remove character', class: 'hand display-inline' }),
                                     isaacImage(character.characterImage, undefined, false),
-                                    event('click', this.removeHistoryElement)
+                                    event('click', e => this.removeHistoryElement(e))
                                 )
                             )
                         );
@@ -482,24 +483,25 @@ HistoryTable.prototype = {
                             div(
                                 attr({ c: c.toString(10), f: f.toString(10), title: 'Click to remove floor', class: 'hand display-inline' }),
                                 isaacImage(floor.floorImage, undefined, false),
-                                event('click', this.removeHistoryElement)
+                                event('click', e => this.removeHistoryElement(e))
                             )
                         )
                     );
 
                     // add events
-                    const eventTds = events.map((event, e) => td(
+                    const eventTds = events.map((ev, e) => td(
+                        style('padding: 0; text-align: center;'),
                         div(
                             attr({
                                 c: c.toString(10),
                                 f: f.toString(10),
                                 e: e.toString(10),
-                                et: event.image.type.toString(10),
-                                class: 'hand display-inline',
-                                title: `Click to remove ${resourceTypeToString(event.image.type).toLowerCase()}`
+                                et: ev.image.type.toString(10),
+                                class: 'hand display-inline c',
+                                title: `Click to remove ${resourceTypeToString(ev.image.type).toLowerCase()}`,
                             }),
-                            isaacImage(event.image, undefined, false),
-                            event('click', this.removeHistoryElement)
+                            isaacImage(ev.image, undefined, false),
+                            event('click', e => this.removeHistoryElement(e))
                         )
                     ));
 
@@ -507,8 +509,7 @@ HistoryTable.prototype = {
                     trs.push(tr(...tds));
                 }
             }
-
-            new Html([trs], 'history', true, false);
+            new Html([Tbody(...trs)], 'history');
         });
     }
 }

@@ -1,148 +1,151 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-var renderer_1 = require("../../Framework/renderer");
-var http_1 = require("../../Framework/http");
-var SubmitTopic = /** @class */ (function () {
-    function SubmitTopic(videoId) {
-        var _this = this;
-        this.videoId = videoId;
-        this.canSubmit = true;
-        this.intervalCounter = 15;
-        this.E = {
-            e: ['div'],
-            a: [[renderer_1.A.Id, 'submit-topic-container']],
-            c: [
-                {
-                    e: ['p'],
-                    c: [
-                        {
-                            e: ['span', 'Did NL talk about a topic for a while?']
-                        },
-                        {
-                            e: ['br']
-                        },
-                        {
-                            e: ['span', 'Submit interesting topics here!']
-                        },
-                        {
-                            e: ['span', ' (0/100)'],
-                            a: [[renderer_1.A.Id, 'submit-topic-counter']]
-                        }
-                    ]
-                },
-                {
-                    e: ['div'],
-                    c: [
-                        {
-                            e: ['textarea'],
-                            a: [
-                                [renderer_1.A.Id, 'submit-topic-textarea'],
-                                [renderer_1.A.MaxLength, '100'],
-                                [renderer_1.A.Rows, '2'],
-                                [renderer_1.A.Cols, '20'],
-                                [renderer_1.A.Placeholder, 'Topics, Tangents, Events, Artists...']
-                            ],
-                            v: [[renderer_1.EventType.Input, function () { _this.ValidateInput(); _this.UpdateCounter(); }]]
-                        }
-                    ]
-                },
-                {
-                    e: ['div'],
-                    c: [
-                        {
-                            e: ['button', 'Submit'],
-                            a: [[renderer_1.A.Id, 'submit-topic-button'], [renderer_1.A.Disabled, 'true']],
-                            v: [[renderer_1.EventType.Click, function (e) { return _this.SubmitTopic(e); }]]
-                        }
-                    ]
-                }
-            ]
-        };
-    }
-    SubmitTopic.prototype.GetTextarea = function () {
+import { Html, Div, id, p, t, br, span, div, textarea, attr, event, button } from "../../Framework/renderer";
+import { post } from "../../Framework/http";
+
+/**
+ * The "Submit Topic" section of the submit video page
+ * @constructor
+ * @param {string} containerId - the container into which the component will be rendered into
+ * @param {string} videoId - the ID of the youtube Video
+ */
+function SubmitTopicSection(containerId, videoId) {
+    this.videoId = videoId;
+    this.textarea = null;
+    this.interval = null;
+    this.submitButton = null;
+    this.intervalCounter = 15;
+    this.canSubmit = false;
+    this.submitTopicCounter = null;
+
+    new Html([
+        Div(
+            id('submit-topic-container'),
+
+            p(
+                t('Did NL talk about a topic for a while?'),
+                br(),
+                t('Submit interesting topics here!'),
+                span(
+                    t(' (0/100)'),
+                    id('submit-topic-counter')
+                )
+            ),
+            div(
+                textarea(
+                    attr({
+                        id: 'submit-topic-textarea',
+                        maxlength: '100',
+                        rows: '2',
+                        cols: '20',
+                        placeholder: 'Topics, Tangents, Events, Artists...'
+                    }),
+                    event('input', () => {
+                        this.validateInput();
+                        this.updateCounter();
+                    })
+                )
+            ),
+            div(
+                button(
+                    t('Submit'),
+                    attr({
+                        id: 'submit-topic-button',
+                        disabled: 'true'
+                    }),
+                    event('click', e => this.submitTopic(e))
+                )
+            )
+        )
+    ], containerId, true, false);
+}
+
+SubmitTopicSection.prototype = {
+
+    getTextarea: function () {
         if (this.textarea) {
             return this.textarea;
         }
-        var textarea = document.getElementById('submit-topic-textarea');
-        if (!textarea || !(textarea instanceof HTMLTextAreaElement)) {
-            throw 'topic textarea not found';
-        }
-        this.textarea = textarea;
-        return textarea;
-    };
-    SubmitTopic.prototype.SubmitTopic = function (e) {
-        var _this = this;
+        this.textarea = document.getElementById('submit-topic-textarea');
+        return this.textarea;
+    },
+
+    submitTopic: function (e) {
         e.preventDefault();
+
         if (!this.canSubmit) {
             return;
         }
-        var textarea = this.GetTextarea();
-        var canSubmit = this.ValidateInput();
+
+        const textarea = this.getTextarea();
+        const canSubmit = this.validateInput();
+
         if (!canSubmit) {
             return;
         }
+
         this.canSubmit = false;
-        this.DisableButton();
-        http_1.post('/Api/Topics', JSON.stringify({ VideoId: this.videoId, Topic: textarea.value }), true).then(function () {
+        this.disableButton();
+
+        post('/Api/Topics', JSON.stringify({ VideoId: this.videoId, Topic: textarea.value }), true).then(() => {
             textarea.value = '';
-            debugger;
-            _this.interval = setInterval(function () {
-                _this.intervalCounter--;
-                _this.GetTextareaCounter().innerText = " (" + _this.intervalCounter + "...)";
-                if (_this.intervalCounter === 0) {
-                    _this.intervalCounter = 15;
+            this.interval = setInterval(function () {
+                this.intervalCounter--;
+                this.getTextareaCounter().innerText = " (" + this.intervalCounter + "...)";
+                if (this.intervalCounter === 0) {
+                    this.intervalCounter = 15;
                     clearInterval(_this.interval);
-                    _this.canSubmit = true;
-                    _this.GetTextareaCounter().innerText = " (" + textarea.value.length.toString(10) + "/100)";
+                    this.canSubmit = true;
+                    this.getTextareaCounter().innerText = " (" + textarea.value.length.toString(10) + "/100)";
                 }
             }, 1000);
         }).catch(function () { return _this.canSubmit = true; });
-    };
-    SubmitTopic.prototype.GetSubmitButton = function () {
+    },
+
+    getSubmitButton: function () {
         if (this.submitButton) {
             return this.submitButton;
         }
-        var button = document.getElementById('submit-topic-button');
-        if (!button || !(button instanceof HTMLButtonElement)) {
-            throw 'submit topic button not found!';
-        }
-        this.submitButton = button;
-        return button;
-    };
-    SubmitTopic.prototype.EnableButton = function () {
+        this.submitButton = document.getElementById('submit-topic-button');
+        return this.submitButton;
+    },
+
+    enableButton: function () {
         if (this.canSubmit) {
-            this.GetSubmitButton().disabled = false;
+            this.getSubmitButton().disabled = false;
         }
-    };
-    SubmitTopic.prototype.DisableButton = function () {
-        this.GetSubmitButton().disabled = true;
-    };
-    SubmitTopic.prototype.GetTextareaCounter = function () {
+    },
+
+    disableButton: function () {
+        if (this.canSubmit) {
+            this.getSubmitButton().disabled = true;
+        }
+    },
+
+    getTextareaCounter: function () {
         if (this.submitTopicCounter) {
             return this.submitTopicCounter;
         }
-        var counter = document.getElementById('submit-topic-counter');
-        if (!counter || !(counter instanceof HTMLSpanElement)) {
-            throw 'submit topic counter element not found';
-        }
-        this.submitTopicCounter = counter;
-        return counter;
-    };
-    SubmitTopic.prototype.UpdateCounter = function () {
-        var counter = this.GetTextareaCounter();
-        var textarea = this.GetTextarea();
+        this.submitTopicCounter = document.getElementById('submit-topic-counter');
+        return this.submitTopicCounter;
+    },
+
+    updateCounter: function () {
+        var counter = this.getTextareaCounter();
+        var textarea = this.getTextarea();
         counter.innerText = " (" + textarea.value.length.toString(10) + "/100)";
-    };
-    SubmitTopic.prototype.ValidateInput = function () {
-        var textarea = this.GetTextarea();
+    },
+
+    validateInput: function () {
+        var textarea = this.getTextarea();
         if (textarea && textarea.value.length < 5) {
-            this.DisableButton();
+            this.disableButton();
             return false;
         }
-        this.EnableButton();
+        this.enableButton();
         return true;
-    };
-    return SubmitTopic;
-}());
-exports.SubmitTopic = SubmitTopic;
-//# sourceMappingURL=submit-topic.js.map
+    }
+}
+
+
+export {
+    SubmitTopicSection
+}
