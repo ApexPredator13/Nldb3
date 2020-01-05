@@ -11,6 +11,6 @@ namespace Website.Models.Admin
         public string LinkText { get; set; } = string.Empty;
 
         [Required]
-        public int ModId { get; set; } = 0;
+        public int? ModId { get; set; } = 0;
     }
 }

@@ -6,9 +6,9 @@ namespace Website.Models.SubmitEpisode
     public class SubmittedQuoteVote
     {
         [Required]
-        public Vote Vote { get; set; } = Vote.Up;
+        public Vote? Vote { get; set; }
 
         [Required]
-        public int QuoteId { get; set; } = 0;
+        public int? QuoteId { get; set; }
     }
 }

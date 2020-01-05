@@ -10,7 +10,7 @@ namespace Website.Models.Admin
     public class UpdateGameplayEventType
     {
         [Required]
-        public int GameplayEventId { get; set; }
+        public int? GameplayEventId { get; set; }
 
         [Required]
         public GameplayEventType NewGameplayEventType { get; set; }

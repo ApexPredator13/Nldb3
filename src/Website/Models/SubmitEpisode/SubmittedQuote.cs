@@ -11,6 +11,6 @@ namespace Website.Models.SubmitEpisode
         public string Content { get; set; } = string.Empty;
 
         [Required]
-        public int At { get; set; } = 0;
+        public int? At { get; set; }
     }
 }

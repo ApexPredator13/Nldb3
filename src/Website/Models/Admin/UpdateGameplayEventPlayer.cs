@@ -9,7 +9,7 @@ namespace Website.Models.Admin
     public class UpdateGameplayEventPlayer
     {
         [Required]
-        public int EventId { get; set; }
+        public int? EventId { get; set; }
 
         [Range(1, 2)]
         public int? Player { get; set; }

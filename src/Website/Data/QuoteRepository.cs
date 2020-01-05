@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Website.Models.Database;
 using Website.Models.Database.Enums;
+using Website.Models.Quote;
 using Website.Models.SubmitEpisode;
 using Website.Services;
 
@@ -227,6 +228,45 @@ namespace Website.Data
             return Convert.ToInt32(await q.ExecuteScalarAsync());
         }
 
+        public async Task<List<Quote>> GetQuotesForUser(string userId)
+        {
+            var result = new List<Quote>();
+
+            string commandText =
+                "SELECT q.id, q.video, q.content, q.at, q.submitted_at, i.\"UserName\", v.vote " +
+                "FROM public.quotes q " +
+                "LEFT JOIN public.quotes_userdata u ON q.id = u.quote " +
+                "LEFT JOIN identity.\"AspNetUsers\" i ON i.\"Id\" = u.user_id " +
+                "LEFT JOIN public.quote_votes v ON v.quote = q.id AND v.user_id = u.user_id " +
+                "WHERE u.user_id = @UserId " +
+                "ORDER BY q.submitted_at DESC;";
+
+            using var connection = await _npgsql.Connect();
+            using var command = new NpgsqlCommand(commandText, connection);
+            command.Parameters.AddWithValue("@UserId", NpgsqlDbType.Text, userId);
+            using var r = await command.ExecuteReaderAsync();
+
+            if (r.HasRows)
+            {
+                while (r.Read())
+                {
+                    int i = 0;
+                    result.Add(new Quote()
+                    {
+                        Id = r.GetInt32(i++),
+                        VideoId = r.GetString(i++),
+                        QuoteText = r.GetString(i++),
+                        At = r.GetInt32(i++),
+                        SubmissionTime = r.GetDateTime(i++),
+                        Contributor = r.GetString(i++),
+                        Vote = r.IsDBNull(i) ? null : (Vote?)r.GetInt32(i)
+                    });
+                }
+            }
+
+            return result;
+        }
+
         public async Task<List<QuoteVote>> GetVotesForUser(string userId)
         {
             var result = new List<QuoteVote>();
@@ -386,6 +426,45 @@ namespace Website.Data
             }
 
             return foundQuotes;
+        }
+
+
+        public async Task<bool> UserSubmittedQuote(int quoteId, string userId)
+        {
+            var commandText = "SELECT id FROM quotes_userdata WHERE quote = @QuoteId AND user_id = @UserId;";
+
+            using var connection = await _npgsql.Connect();
+            using var command = new NpgsqlCommand(commandText, connection);
+            command.Parameters.AddWithValue("@QuoteId", NpgsqlDbType.Integer, quoteId);
+            command.Parameters.AddWithValue("@UserId", NpgsqlDbType.Text, userId);
+            using var r = await command.ExecuteReaderAsync();
+
+            if (r.HasRows)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+
+        public async Task<int> UpdateQuote(UpdateQuote quote, string userId)
+        {
+            if (!await UserSubmittedQuote(quote.Id ?? 0, userId))
+            {
+                return 0;
+            }
+
+            NpgsqlParameter[] parameters =
+            {
+                new NpgsqlParameter("@Content", NpgsqlDbType.Text) { NpgsqlValue = quote.QuoteText },
+                new NpgsqlParameter("@At", NpgsqlDbType.Integer) { NpgsqlValue = quote.At },
+                new NpgsqlParameter("@Id", NpgsqlDbType.Integer) { NpgsqlValue = quote.Id }
+            };
+
+            return await _npgsql.NonQuery("UPDATE quotes SET content = @Content, at = @At WHERE id = @Id;", parameters);
         }
     }
 }

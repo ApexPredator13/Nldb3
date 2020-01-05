@@ -20,7 +20,6 @@ const setZIndex = (e, zIndex) => {
  * @param {HTMLElement} button - the HTML Button Element
  */
 const enableButton = (button) => {
-    debugger;
     console.log(button.disabled);
     console.log(button);
     if (button.hasAttribute('disabled')) {

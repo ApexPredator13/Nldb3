@@ -1,4 +1,4 @@
-﻿import { SubmitVideoQuotesSection } from "../Components/Submitvideo/submit-quote.js";
+﻿import { SubmitVideoQuotesSection } from "../Components/SubmitVideo/submit-quote.js";
 import { HistoryTable } from "../Components/SubmitVideo/history-table";
 import { YoutubePlayer } from "../Components/SubmitVideo/youtube-player";
 import { addClassIfNotExists, removeClassIfExists } from "../Framework/browser";
@@ -17,10 +17,10 @@ import { helpSelectItemsource } from "../Components/SubmitVideo/help-select-item
 import { helpSelectItem } from "../Components/SubmitVideo/help-select-item";
 import { helpSelectTouchedItem } from "../Components/SubmitVideo/help-select-touched-item";
 import { helpSelectBoss } from "../Components/SubmitVideo/help-select-boss";
+import { SubmitTopicSection } from "../Components/SubmitVideo/submit-topic.js";
 
 import * as Driver from 'driver.js';
 import '../Framework/Customizable/typedefs';
-import { SubmitTopicSection } from "../Components/SubmitVideo/submit-topic.js";
 
 const MAJOR_GAMEPLAY_EVENTS = 1;
 const USED_CONSUMABLES = 2;

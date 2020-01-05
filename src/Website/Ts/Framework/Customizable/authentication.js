@@ -1,4 +1,4 @@
-﻿import { InMemoryWebStorage, WebStorageStateStore, UserManager, User } from 'oidc-client';
+﻿import { WebStorageStateStore, UserManager, User } from 'oidc-client';
 import { removeHashAndQuerystring, getHashFromUrl, loadSciptIfNotExists } from '../browser';
 import { getConfig } from './config.development';
 
@@ -31,7 +31,7 @@ function getUserManager() {
         loadUserInfo: true,
         post_logout_redirect_uri: baseUrlOfThisWebsite,
         revokeAccessTokenOnSignout: true,
-        userStore: new WebStorageStateStore({ store: new InMemoryWebStorage() })
+        userStore: new WebStorageStateStore({ store: window.sessionStorage })
     };
 
     var userManager = new UserManager(settings);
@@ -86,7 +86,6 @@ const getUser = async () => {
             return null;
         }
     } catch (e) {
-        console.error('getUser() error:', e);
         await userManager.removeUser();
         return null;
     }
@@ -167,12 +166,19 @@ const userLoggedInSetup = user => {
 }
 
 
+const removeUser = () => {
+    const userManager = getUserManager();
+    return userManager.removeUser();
+}
+
+
 export {
     getUser,
     signin,
     signout,
     isAdmin,
     tryloadAdminPages,
-    loadSubmitVideoPage
+    loadSubmitVideoPage,
+    removeUser
 }
 

@@ -5,10 +5,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Website.Areas.Api.Models;
 using Website.Models.Admin;
 using Website.Models.Database;
 using Website.Models.Database.Enums;
+using Website.Models.Resource;
 using Website.Models.SubmitEpisode;
 using Website.Services;
 

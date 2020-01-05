@@ -15,7 +15,8 @@ module.exports = {
         resource_overview: './Ts/Pages/resource-overview.js',
         episode: './Ts/Pages/episode.js',
         resource: './Ts/Pages/resource.js',
-        submit_episode: './Ts/Pages/submit-video.js'
+        submit_episode: './Ts/Pages/submit-video.js',
+        quotes: './Ts/Pages/quotes.js'
     },
     output: {
         path: path.resolve(__dirname, 'wwwroot', 'js', 'dist'),

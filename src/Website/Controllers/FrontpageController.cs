@@ -6,10 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Website.Areas.Api.Models;
+using Website.Models.FrontPage;
 using Website.Services;
 
-namespace Website.Areas.Api.Controllers
+namespace Website.Controllers
 {
     [Area("api"), Route("[area]/frontpage"), ApiController]
     public class FrontpageController : Controller

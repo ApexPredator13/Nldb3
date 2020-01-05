@@ -252,17 +252,22 @@ namespace Website.Data
             return usedMods;
         }
 
-        public async Task<int> AddModUrl(Models.Admin.CreateModLink modUrl)
+        public async Task<int> AddModUrl(CreateModLink modUrl)
         {
+            if (modUrl.ModId is null)
+            {
+                return 0;
+            }
+
             using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand("INSERT INTO mod_url (id, url, name, mod) VALUES (DEFAULT, @U, @N, @M) RETURNING id; ", c);
             q.Parameters.AddWithValue("@U", NpgsqlDbType.Text, modUrl.Url);
             q.Parameters.AddWithValue("@N", NpgsqlDbType.Text, modUrl.LinkText);
-            q.Parameters.AddWithValue("@M", NpgsqlDbType.Integer, modUrl.ModId);
+            q.Parameters.AddWithValue("@M", NpgsqlDbType.Integer, modUrl.ModId.Value);
             return Convert.ToInt32(await q.ExecuteScalarAsync());
         }
 
-        public async Task<int> RemoveModUrl(int modUrlId)
+        public async Task<int> RemoveModUrl(int? modUrlId)
         {
             using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand("DELETE FROM mod_url WHERE id = @Id", c);
@@ -270,8 +275,13 @@ namespace Website.Data
             return await q.ExecuteNonQueryAsync();
         }
 
-        public async Task<int> RemoveMod(int modId)
+        public async Task<int> RemoveMod(int? modId)
         {
+            if (modId is null)
+            {
+                return 0;
+            }
+
             using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand("DELETE FROM mods WHERE id = @Id", c);
             q.Parameters.AddWithValue("@Id", NpgsqlDbType.Integer, modId);

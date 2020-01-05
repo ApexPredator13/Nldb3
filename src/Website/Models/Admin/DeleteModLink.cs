@@ -5,6 +5,6 @@ namespace Website.Models.Admin
     public class DeleteModLink
     {
         [Required]
-        public int LinkId { get; set; }
+        public int? LinkId { get; set; }
     }
 }

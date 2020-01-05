@@ -5,6 +5,6 @@ namespace Website.Models.Admin
     public class DeleteSubmission
     {
         [Required]
-        public int SubmissionId { get; set; }
+        public int? SubmissionId { get; set; }
     }
 }

@@ -225,7 +225,7 @@ namespace Website
 
             app.UseCookiePolicy();
             app.UseHttpsRedirection();
-
+            
             app.UseStaticFiles();
 
             app.UseRouting();

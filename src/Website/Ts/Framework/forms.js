@@ -33,10 +33,12 @@ function FormHelper() {
 
     this.removeError = function (e) {
         removeClassIfExists(e, 'invalid');
+        console.log(e);
         const parent = e.parentElement;
         if (parent) {
             const popups = parent.getElementsByClassName('popup');
             for (let i = 0; i < popups.length; ++i) {
+                console.log('removing ', popups[i], parent);
                 parent.removeChild(popups[i]);
             }
         }
@@ -134,6 +136,10 @@ function FormHelper() {
         const testResults = [];
 
         for (const element of allElements) {
+            if (element.hasAttribute('type') && element.getAttribute('type') === 'hidden') {
+                continue;
+            }
+
             const results = [
                 this.testRequired(element),
                 this.testMinLength(element),
@@ -172,7 +178,7 @@ function FormHelper() {
         }
     }
 
-    this.handleSubmit = function (e, postUrl, authorized, successUrl, pushState = true, scrollToTop = true, forceRender = false) {
+    this.handleSubmit = function (e, postUrl, authorized, successUrl = null, pushState = true, scrollToTop = true, forceRender = false) {
         e.preventDefault();
         const formIsValid = this.validateForm(e);
 
@@ -188,7 +194,7 @@ function FormHelper() {
             if (formData) {
                 postResponse(postUrl, formData, authorized)
                     .then(response => {
-                        if (response.ok) {
+                        if (response.ok && successUrl) {
                             navigate(successUrl, undefined, undefined, pushState, forceRender, scrollToTop);
                         } else {
                             this.getErrorMessage(response).then(msg => {

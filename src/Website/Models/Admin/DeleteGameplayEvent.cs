@@ -5,6 +5,6 @@ namespace Website.Models.Admin
     public class DeleteGameplayEvent
     {
         [Required]
-        public int GameplayEventId { get; set; }
+        public int? GameplayEventId { get; set; }
     }
 }

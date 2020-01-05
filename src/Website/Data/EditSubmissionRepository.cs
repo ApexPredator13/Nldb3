@@ -19,8 +19,13 @@ namespace Website.Data
             _isaac = isaac;
         }
 
-        public async Task<int> DeleteSubmission(int submissionId)
+        public async Task<int> DeleteSubmission(int? submissionId)
         {
+            if (submissionId is null)
+            {
+                return 0;
+            }
+
             return await _npgsql.NonQuery(
                 "DELETE FROM video_submissions WHERE id = @Id",
                 _npgsql.Parameter("@Id", NpgsqlDbType.Integer, submissionId));
@@ -28,11 +33,16 @@ namespace Website.Data
 
         public async Task<int> UpdateGameplayEventType(UpdateGameplayEventType updateGameplayEventType)
         {
+            if (updateGameplayEventType.GameplayEventId is null)
+            {
+                return 0;
+            }
+
             var commandText = "UPDATE gameplay_events SET event_type = @NewEventType WHERE id = @Id;";
             var c = await _npgsql.Connect();
             var q = new NpgsqlCommand(commandText, c);
             q.Parameters.AddWithValue("@NewEventType", NpgsqlDbType.Integer, (int)updateGameplayEventType.NewGameplayEventType);
-            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Integer, updateGameplayEventType.GameplayEventId);
+            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Integer, updateGameplayEventType.GameplayEventId.Value);
             return await q.ExecuteNonQueryAsync();
         }
 
@@ -90,14 +100,24 @@ namespace Website.Data
 
         public async Task<int> UpdateGameplayEventPlayer(UpdateGameplayEventPlayer updateGameplayEventPlayer)
         {
+            if (updateGameplayEventPlayer.EventId is null)
+            {
+                return 0;
+            }
+
             return await _npgsql.NonQuery(
                 "UPDATE gameplay_events SET player = @Player WHERE id = @Id;",
                 _npgsql.Parameter("@Player", NpgsqlDbType.Integer, updateGameplayEventPlayer.Player ?? (object)DBNull.Value),
-                _npgsql.Parameter("@Id", NpgsqlDbType.Integer, updateGameplayEventPlayer.EventId));
+                _npgsql.Parameter("@Id", NpgsqlDbType.Integer, updateGameplayEventPlayer.EventId.Value));
         }
 
         public async Task<int> UpdateGameplayEventWasRerolled(UpdateGameplayEventWasRerolled updateGameplayEventWasRerolled)
         {
+            if (updateGameplayEventWasRerolled.EventId is null || updateGameplayEventWasRerolled.WasRerolled is null)
+            {
+                return 0;
+            }
+
             return await _npgsql.NonQuery(
                 "UPDATE gameplay_events SET was_rerolled = @Rerolled WHERE id = @Id;",
                 _npgsql.Parameter("@Rerolled", NpgsqlDbType.Boolean, updateGameplayEventWasRerolled.WasRerolled),
@@ -106,7 +126,12 @@ namespace Website.Data
 
         public async Task<int> DeleteGameplayEvent(DeleteGameplayEvent deleteGameplayEvent)
         {
-            var gameplayEvent = await _isaac.GetGameplayEventById(deleteGameplayEvent.GameplayEventId);
+            if (deleteGameplayEvent.GameplayEventId is null)
+            {
+                return 0;
+            }
+
+            var gameplayEvent = await _isaac.GetGameplayEventById(deleteGameplayEvent.GameplayEventId.Value);
 
             if (gameplayEvent is null)
             {
@@ -129,7 +154,16 @@ namespace Website.Data
 
         public async Task<int> InsertGameplayEventAfterEvent(InsertGameplayEvent insertEvent)
         {
-            var gameplayEvent = await _isaac.GetGameplayEventById(insertEvent.InsertAfterEvent);
+            if (insertEvent.InsertAfterEvent is null 
+                || insertEvent.PlayedCharacterId is null 
+                || insertEvent.PlayedFloorId is null 
+                || insertEvent.RunNumber is null 
+                || insertEvent.FloorNumber is null)
+            {
+                return 0;
+            }
+
+            var gameplayEvent = await _isaac.GetGameplayEventById(insertEvent.InsertAfterEvent.Value);
 
             if (gameplayEvent is null)
             {

@@ -19,12 +19,6 @@ namespace Website.Controllers
             _videoRepository = videoRepository;
         }
 
-        //public async Task<ViewResult> Index([FromRoute] string id)
-        //{
-        //    var video = await _videoRepository.GetCompleteEpisode(id);
-        //    return View(video);
-        //}
-
         [HttpGet("Title/{videoId}")]
         public async Task<ActionResult<string>> GetVideoTitle([FromRoute] string videoId)
         {

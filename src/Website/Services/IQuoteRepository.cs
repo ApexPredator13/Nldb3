@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Website.Models.Database;
+using Website.Models.Quote;
 using Website.Models.SubmitEpisode;
 
 namespace Website.Services
@@ -19,5 +20,8 @@ namespace Website.Services
         Task<List<Quote>> NewestQuotes(int amount, string? userId);
         Task<List<Quote>> Search(string searchTerm, string? userId);
         Task<bool> UserCanCreateQuote(string userId);
+        Task<List<Quote>> GetQuotesForUser(string userId);
+        Task<bool> UserSubmittedQuote(int quoteId, string userId);
+        Task<int> UpdateQuote(UpdateQuote quote, string userId);
     }
 }

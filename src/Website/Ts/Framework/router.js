@@ -2,6 +2,7 @@
 import { renderMainContainer } from './Customizable/Layout/main';
 import { setGlobalChartOptions } from './Customizable/global-chart-options';
 import { getConfig } from './Customizable/config.development';
+import { removeUser } from './Customizable/authentication';
 
 const PAGE_TYPE_EPISODE = 1;
 const PAGE_TYPE_ISAAC_RESOURCE = 2;
@@ -147,19 +148,22 @@ const initRouter = () => {
 
         // load initial page, only one should exist at the start
         let currentRoute = getCurrentRoute();
+        const removeUserIfNecessary = currentRoute.endsWith('#logout') ? removeUser() : Promise.resolve();
 
-        if (currentRoute.startsWith('/')) {
-            currentRoute = currentRoute.substring(1);
-        }
+        removeUserIfNecessary.then(() => {
+            if (currentRoute.startsWith('/')) {
+                currentRoute = currentRoute.substring(1);
+            }
 
-        const pageType = getOnLoadPageType();
+            const pageType = getOnLoadPageType();
 
-        const pageData = getRequestedPageFromRoute(currentRoute, pageType);
-        if (pageData.found) {
-            navigate(currentRoute, undefined, pageType, false, true, true);
-        } else {
-            navigate('', undefined, undefined, true, true, true);
-        }
+            const pageData = getRequestedPageFromRoute(currentRoute, pageType);
+            if (pageData.found) {
+                navigate(currentRoute, undefined, pageType, false, true, true);
+            } else {
+                navigate('', undefined, undefined, true, true, true);
+            }
+        });
     }
 };
 

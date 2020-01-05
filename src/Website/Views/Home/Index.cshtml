@@ -37,6 +37,9 @@
     case "/otherconsumables":
         <script src="~/js/dist/resource_overview.min.js"></script>
         break;
+    case "/quotes":
+        <script src="~/js/dist/quotes.min.js"></script>
+        break;
 
     @* check if video ID was requested: 11 characters + leading slash *@
     case string potentialVideoId when potentialVideoId.Length == 12 && await _videoRepository.VideoExists(path.Substring(1)):

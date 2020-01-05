@@ -72,6 +72,19 @@ Link.prototype = {
      */
     submitVideo: function (videoId) {
         return `/SubmitVideo/${videoId}`;
+    },
+
+    /** /ManageQuotes */
+    manageMyQuotes: function () {
+        return '/ManageQuotes';
+    },
+
+    /**
+     * edit a single quote
+     * @param {number} quoteId
+     */
+    editQuote: function (quoteId) {
+        return `/EditQuote/${quoteId.toString(10)}`;
     }
 }
 

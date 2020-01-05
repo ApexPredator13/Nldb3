@@ -4,9 +4,9 @@ using Website.Models;
 using Website.Models.Database;
 using Website.Services;
 
-namespace Website.Areas.Api.Controllers
+namespace Website.Controllers
 {
-    [ApiController, Route("api/videos")]
+    [ApiController, Route("Api/Videos")]
     public class VideosController : Controller
     {
         private readonly IVideoRepository _videoRepository;
@@ -47,12 +47,6 @@ namespace Website.Areas.Api.Controllers
         {
             return await _videoRepository.GetMaxVideoStats();
         }
-
-        //[HttpGet("title/{videoId}")]
-        //public async Task<string> GetVideoTitle([FromRoute] string videoId)
-        //{
-        //    return await _videoRepository.GetVideoTitle(videoId);
-        //}
     }
 }
 

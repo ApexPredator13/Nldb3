@@ -15,6 +15,6 @@ namespace Website.Services
         Task<int> UpdateGameplayEventWasRerolled(UpdateGameplayEventWasRerolled updateGameplayEventWasRerolled);
         Task<int> InsertGameplayEventAfterEvent(InsertGameplayEvent insertEvent);
         Task<int> DeleteGameplayEvent(DeleteGameplayEvent deleteGameplayEvent);
-        Task<int> DeleteSubmission(int submissionId);
+        Task<int> DeleteSubmission(int? submissionId);
     }
 }

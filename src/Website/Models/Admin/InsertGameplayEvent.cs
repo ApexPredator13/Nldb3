@@ -9,22 +9,22 @@ namespace Website.Models.Admin
         public SubmittedGameplayEvent NewEvent { get; set; } = new SubmittedGameplayEvent();
 
         [Required]
-        public int InsertAfterEvent { get; set; }
+        public int? InsertAfterEvent { get; set; }
 
         [Required]
         public string VideoId { get; set; } = string.Empty;
 
         [Required]
-        public int PlayedCharacterId { get; set; }
+        public int? PlayedCharacterId { get; set; }
 
         [Required]
-        public int PlayedFloorId { get; set; }
+        public int? PlayedFloorId { get; set; }
 
         [Required]
-        public int RunNumber { get; set; }
+        public int? RunNumber { get; set; }
 
         [Required]
-        public int FloorNumber { get; set; }
+        public int? FloorNumber { get; set; }
 
         public int? InConsequenceOf { get; set; }
     }

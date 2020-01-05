@@ -9,6 +9,6 @@ namespace Website.Models.Admin
     public class DeleteMod
     {
         [Required]
-        public int ModId { get; set; }
+        public int? ModId { get; set; }
     }
 }

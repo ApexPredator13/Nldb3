@@ -4,6 +4,9 @@ import { registerResourceOverviewPage } from "./resource-overview";
 import { registerDownloadsPage } from "./downloads";
 import { registerHomePage } from "./home";
 import { registerResourcePage } from "./resource";
+import { registerQuotesPage } from "./quotes";
+import { registerManageQuotesPage } from "./manage-quotes";
+import { registerEditQuotePage } from "./edit-quote";
 
 (() => {
     registerEpisodePage();
@@ -12,4 +15,7 @@ import { registerResourcePage } from "./resource";
     registerDownloadsPage();
     registerResourcePage();
     registerHomePage();
+    registerQuotesPage();
+    registerManageQuotesPage();
+    registerEditQuotePage();
 })();
