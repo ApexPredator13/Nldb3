@@ -1,5 +1,5 @@
 ﻿import { registerPage, navigate } from "../Framework/router";
-import { Html, H1, t, Hr, Div, h2, form, event, textarea, attr, input, div, formButton, modal, p } from "../Framework/renderer";
+import { Html, H1, t, Hr, Div, h2, form, event, textarea, attr, input, div, formButton, modal, p, button } from "../Framework/renderer";
 import { getUser } from "../Framework/Customizable/authentication";
 import { get } from "../Framework/http";
 import { FormHelper } from "../Framework/forms";
@@ -52,7 +52,6 @@ EditQuotePage.prototype = {
 
     loadQuoteAndDisplayForm: function () {
         get(`/Api/Quotes/single/${this.quoteId.toString(10)}`).then(quote => {
-            console.log(quote)
             new Html([
                 H1(
                     t(`Editing quote #${quote.id}`)
@@ -117,8 +116,11 @@ EditQuotePage.prototype = {
                     h2(
                         t('Delete quote')
                     ),
-                    form(
-                        event('submit', e => { e.preventDefault(); this.deleteQuote(); })
+                    p(
+                        button(
+                            t('Click here to permanently delete this quote'),
+                            event('click', e => navigate(this.link.deleteQuote(this.quoteId), e))
+                        )
                     )
                 )
             ])

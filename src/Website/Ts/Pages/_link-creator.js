@@ -27,6 +27,14 @@ Link.prototype = {
         return '';
     },
 
+    /**
+     * /DeleteQuote/{quoteId}
+     * @param {number} quoteId - the quote that should be deleted
+     */
+    deleteQuote: function (quoteId) {
+        return `/DeleteQuote/${quoteId.toString(10)}`
+    },
+
     /** /Downoads */
     downloads: function () {
         return '/Downloads';

@@ -1,4 +1,4 @@
-﻿import { Html, Div, h1, t, hr, form, attr, fieldset, div, cl, label, input, select, option, formButton } from "../../Framework/renderer";
+﻿import { Html, Div, h1, t, hr, form, attr, fieldset, div, cl, label, input, select, option, formButton, event } from "../../Framework/renderer";
 import { registerPage } from "../../Framework/router";
 import { AdminLink } from "./_admin-link-creator";
 import { gameplayEventTypeOptionList } from "../../Components/Admin/option-lists";

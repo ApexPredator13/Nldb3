@@ -1,4 +1,4 @@
-﻿import { Html, Div, h1, hr, div, id, button, event, P, cl, Table, thead, tbody, tr, td, th } from "../../Framework/renderer";
+﻿import { Html, Div, h1, hr, div, id, button, event, P, cl, Table, thead, tbody, tr, td, th, t } from "../../Framework/renderer";
 import { get } from "../../Framework/http";
 import { registerPage, navigate } from "../../Framework/router";
 import { convertSubmissionTypeToString } from "../../Enums/enum-to-string-converters";
@@ -74,7 +74,7 @@ SubmissionsOverviewPage.prototype = {
 
     /** loads submissions, displays them */
     loadSubmissions: function () {
-        get(`/Admin/Submissions/${this.limit.toString(10)}/${this.offset.toString(10)}`).then(submissions => {
+        get(`/Admin/Submissions/${this.limit.toString(10)}/${this.offset.toString(10)}`, true).then(submissions => {
             if (!submissions || submissions.length === 0) {
                 new Html([
                     P(
@@ -120,7 +120,7 @@ SubmissionsOverviewPage.prototype = {
                                     t(submission.latest ? 'latest submission' : '')
                                 ),
                                 td(
-                                    convertSubmissionTypeToString(submission.submission_type)
+                                    t(convertSubmissionTypeToString(submission.submission_type))
                                 )
                             ))
                         )

@@ -211,6 +211,11 @@ namespace Website.Data
 
         public async Task<int> Vote(SubmittedQuoteVote vote, string userId)
         {
+            if (vote.Vote is null || vote.QuoteId is null)
+            {
+                return 0;
+            }
+
             string query =
                 "INSERT INTO quote_votes (id, vote, user_id, quote, voted_at) " +
                 "VALUES (DEFAULT, @V, @U, @Q, DEFAULT) " +
@@ -222,9 +227,9 @@ namespace Website.Data
 
             using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand(query, c);
-            q.Parameters.AddWithValue("@V", NpgsqlDbType.Integer, (int)vote.Vote);
+            q.Parameters.AddWithValue("@V", NpgsqlDbType.Integer, (int)vote.Vote.Value);
             q.Parameters.AddWithValue("@U", NpgsqlDbType.Text, userId);
-            q.Parameters.AddWithValue("@Q", NpgsqlDbType.Integer, vote.QuoteId);
+            q.Parameters.AddWithValue("@Q", NpgsqlDbType.Integer, vote.QuoteId.Value);
             return Convert.ToInt32(await q.ExecuteScalarAsync());
         }
 

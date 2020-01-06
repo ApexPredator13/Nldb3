@@ -95,7 +95,6 @@ YoutubePlayer.prototype = {
     pauseVideo: function () {
         const player = this.getYoutubePlayer();
         if (player) {
-            console.log(player);
             player.pauseVideo();
         }
     },

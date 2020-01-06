@@ -7,6 +7,7 @@ import { registerResourcePage } from "./resource";
 import { registerQuotesPage } from "./quotes";
 import { registerManageQuotesPage } from "./manage-quotes";
 import { registerEditQuotePage } from "./edit-quote";
+import { registerConfirmDeleteQuotePage } from "./confirm-delete-quote";
 
 (() => {
     registerEpisodePage();
@@ -18,4 +19,5 @@ import { registerEditQuotePage } from "./edit-quote";
     registerQuotesPage();
     registerManageQuotesPage();
     registerEditQuotePage();
+    registerConfirmDeleteQuotePage();
 })();

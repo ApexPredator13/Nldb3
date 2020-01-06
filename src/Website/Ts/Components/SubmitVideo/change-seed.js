@@ -107,12 +107,36 @@ ChangeSeed.prototype = {
 
                 p(
                     input(
-                        attr({ id: 'seed1', value: seed1, minlength: '4', maxlength: '4', required: 'true', required_error: 'Please enter a seed', minlength_error: 'Please enter the first 4 digits of the seed' }),
-                        event('input', e => { e.target.value = e.target.value.toUpperCase(); this.seedFormHelper.validateForm(e); })
+                        attr({
+                            type: 'text',
+                            id: 'seed1',
+                            size: '4',
+                            spellcheck: 'false',
+                            value: seed1,
+                            minlength: '4',
+                            maxlength: '4',
+                            required: 'true'
+                        }),
+                        event('input', e => {
+                            e.target.value = e.target.value.toUpperCase();
+                            this.seedFormHelper.validateForm(e);
+                        })
                     ),
                     input(
-                        attr({ id: 'seed2', value: seed2, minlength: '4', maxlength: '4', required: 'true', required_error: 'Please enter a seed', minlength_error: 'Please enter the last 4 digits of the seed' }),
-                        event('input', e => { e.target.value = e.target.value.toUpperCase(); this.seedFormHelper.validateForm(e); })
+                        attr({
+                            type: 'text',
+                            id: 'seed2',
+                            value: seed2,
+                            size: '4',
+                            spellcheck: 'false',
+                            minlength: '4',
+                            maxlength: '4',
+                            required: 'true'
+                        }),
+                        event('input', e => {
+                            e.target.value = e.target.value.toUpperCase();
+                            this.seedFormHelper.validateForm(e);
+                        })
                     )
                 ),
                 p(

@@ -61,7 +61,6 @@ export function helpSelectBoss() {
             ),
             t('. If there is a pair that hasn\'t appeared yet (which is very possible!), just add them as \'Missing Boss\'.')
         ),
-        hr(),
         dismissModalSection()
     ));
 }

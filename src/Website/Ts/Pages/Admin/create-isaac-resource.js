@@ -55,9 +55,9 @@ CreateIsaacResourcePage.prototype = {
                                     name: 'Id',
                                     id: 'new-resource-id',
                                     required: 'true',
-                                    requiredError: 'Resource ID is required',
+                                    required_error: 'Resource ID is required',
                                     maxlength: '30',
-                                    maxlengthError: 'Max. 30 characters'
+                                    maxlength_error: 'Max. 30 characters'
                                 })
                             )
                         ),
@@ -73,7 +73,7 @@ CreateIsaacResourcePage.prototype = {
                                     type: 'text',
                                     name: 'Name',
                                     required: 'true',
-                                    requiredError: 'Please enter a name!'
+                                    required_error: 'Please enter a name!'
                                 })
                             ),
                         ),
@@ -88,7 +88,7 @@ CreateIsaacResourcePage.prototype = {
                                 attr({
                                     name: 'ExistsIn',
                                     required: 'true',
-                                    requiredError: 'Please choose existance'
+                                    required_error: 'Please choose existance'
                                 }),
 
                                 ...existsInOptionlist(1)
@@ -106,7 +106,7 @@ CreateIsaacResourcePage.prototype = {
                                     type: 'file',
                                     name: 'Icon',
                                     required: 'true',
-                                    requiredError: 'Please specify an Icon!'
+                                    required_error: 'Please specify an Icon!'
                                 })
                             )
                         ),
@@ -121,7 +121,7 @@ CreateIsaacResourcePage.prototype = {
                                 attr({
                                     name: 'GameMode',
                                     required: 'true',
-                                    requiredError: 'Please select in which game modes the resource can be found in'
+                                    required_error: 'Please select in which game modes the resource can be found in'
                                 }),
 
                                 ...gameModeOptionList(0)
@@ -140,9 +140,9 @@ CreateIsaacResourcePage.prototype = {
                                     name: 'Color',
                                     value: '#',
                                     required: 'true',
-                                    requiredError: 'Please enter a color',
+                                    required_error: 'Please enter a color',
                                     minlength: '2',
-                                    minlengthError: 'Please enter a valid color name',
+                                    minlength_error: 'Please enter a valid color name',
                                 })
                             )
                         ),
@@ -157,7 +157,7 @@ CreateIsaacResourcePage.prototype = {
                                 attr({
                                     name: 'ResourceType',
                                     required: 'true',
-                                    requiredError: 'Please enter what type of resource this is'
+                                    required_error: 'Please enter what type of resource this is'
                                 }),
 
                                 ...resourceTypeOptionList(6)
@@ -176,7 +176,7 @@ CreateIsaacResourcePage.prototype = {
                                 }),
 
                                 option('No Mod', '', true),
-                                mods.map(mod => option(mod.name, mod.id, false))
+                                ...mods.map(mod => option(mod.name, mod.id, false))
                             )
                         ),
 

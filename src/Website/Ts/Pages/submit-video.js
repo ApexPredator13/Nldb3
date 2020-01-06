@@ -44,6 +44,7 @@ const CONFIRM_ANOTHER_RUN = 19;
 const DID_BLACK_RUN_ABSORB_ANOTHER_ITEM = 20;
 const DID_REROLL_TRIGGER_TRANSFORMATION = 21;
 const DID_REROLL_TRIGGER_ANOTHER_TRANSFORMATION = 22;
+const CONFIRM_DOWN_TO_NEXT_FLOOR = 23;
 
 
 const beforeUnloadEvent = e => {
@@ -272,6 +273,10 @@ function SubmitVideoPage(parameters) {
         { id: 'yes', name: 'Yes, there was!', x: 525, y: 0, w: 35, h: 35 },
         { id: 'no', name: 'No, move on!', x: 665, y: 0, w: 35, h: 35 }
     ]);
+    this.staticResources.set(CONFIRM_DOWN_TO_NEXT_FLOOR, [
+        { id: 'confirm', name: 'Yes, down to the next floor!', x: 1050, y: 0, w: 35, h: 30 },
+        { id: 'cancel', name: 'No, CANCEL!', x: 1085, y: 0, w: 35, h: 30 }
+    ]);
 
 
     // render initial menu
@@ -374,7 +379,7 @@ SubmitVideoPage.prototype = {
         if (this.history.weAreOnFirstFloor() && !this.history.characterHasStartingItems()) {
             this.menu_WasThereAStartingItem();
         } else {
-            this.menu_MainSelectScreen();
+            this.menu_Main();
         }
     },
 
@@ -769,11 +774,14 @@ SubmitVideoPage.prototype = {
                 div(
                     cl('display-inline'),
                     input(
-                        attr({ type: 'text', maxlength: '4', id: 'seed-1', size: '4' }),
+                        attr({ type: 'text', maxlength: '4', id: 'seed-1', size: '4', spellcheck: 'false' }),
                         event('input', e => { this.uppercase(e); this.validateSeed(); })
                     ),
+                    span(
+                        t(' ')
+                    ),
                     input(
-                        attr({ type: 'text', maxlength: '4', id: 'seed-2', size: '4' }),
+                        attr({ type: 'text', maxlength: '4', id: 'seed-2', size: '4', spellcheck: 'false' }),
                         event('input', e => { this.uppercase(e); this.validateSeed(); })
                     )
                 ),
@@ -1055,7 +1063,7 @@ SubmitVideoPage.prototype = {
             case 15: this.menu_HowWasTheCharacterRerolled(); break;
             case 1: this.menu_ConfirmNlDied(); break;
             case 16: this.menu_ConfirmNlWon(); break;
-            case 3: this.menu_ChooseNextFloor(); break;
+            case 3: this.menu_ConfirmNextFloor(); break;
             case 5: this.menu_SelectPill(); break;
             case 6: this.menu_ChooseTarotCard(); break;
             case 7: this.menu_ChooseRune(); break;
@@ -1063,6 +1071,30 @@ SubmitVideoPage.prototype = {
             case 20: this.menu_WhatOtherEventHappened(); break;
             case 21: this.menu_WhatOtherEventHappened(); break;
             default: this.menu_Main(); break;
+        }
+    },
+
+
+    /** displays the 'confirm: we are going down to the next floor?' menu */
+    menu_ConfirmNextFloor: function () {
+        this.display(
+            H2(t('Please Confirm: Down to the next floor?')),
+            P(t('This cant be undone!')),
+            Div(id('confirm'))
+        );
+        new Boxes(this, 'confirm', this.process_ConfirmNextFloorChoice, this.getStaticResource(CONFIRM_DOWN_TO_NEXT_FLOOR), 1, false, '/img/gameplay_events.png')
+    },
+
+
+    /**
+     * processes whether the user confirmed going down to the next floor
+     * @param {'confirm'|'cancel'} choice
+     */
+    process_ConfirmNextFloorChoice: function (choice) {
+        if (choice === 'confirm') {
+            this.menu_ChooseNextFloor();
+        } else {
+            this.menu_Main();
         }
     },
 
@@ -1142,7 +1174,7 @@ SubmitVideoPage.prototype = {
                 span(
                     t('I don\'t know what to do!'),
                     cl('u', 'hand'),
-                    event('click', () => helpSelectBoss())
+                    event('click', () => { this.youtubePlayer.pauseVideo(); helpSelectBoss(); })
                 )
             ),
             Div(
@@ -1185,7 +1217,7 @@ SubmitVideoPage.prototype = {
                 span(
                     t('I don\'t know what to select!'),
                     cl('u', 'hand'),
-                    event('click', () => helpSelectItemsource())
+                    event('click', () => { this.youtubePlayer.pauseVideo(); helpSelectItemsource(); })
                 )
             ),
             Div(
@@ -1225,7 +1257,7 @@ SubmitVideoPage.prototype = {
                 span(
                     t('I don\'t know what to do!'),
                     cl('u', 'hand'),
-                    event('click', () => helpSelectTouchedItem())
+                    event('click', () => { this.youtubePlayer.pauseVideo(); helpSelectTouchedItem(); })
                 )
             ),
             Hr(),
@@ -1278,7 +1310,7 @@ SubmitVideoPage.prototype = {
                 span(
                     t('I don\'t know what to select!'),
                     cl('u', 'hand'),
-                    event('click', () => helpSelectItemsource())
+                    event('click', () => { this.youtubePlayer.pauseVideo(); helpSelectItemsource(); })
                 )
             ),
             Div(
@@ -1317,7 +1349,7 @@ SubmitVideoPage.prototype = {
                     span(
                         t('I don\'t know what to do!'),
                         cl('u', 'hand'),
-                        event('click', () => helpSelectItem())
+                        event('click', () => { this.youtubePlayer.pauseVideo(); helpSelectItem(); })
                     )
                 ),
                 this.backToMainMenu()
@@ -1388,7 +1420,7 @@ SubmitVideoPage.prototype = {
                     span(
                         t('I don\'t know what to do!'),
                         cl('u', 'hand'),
-                        event('click', () => helpSelectAbsorbedItemModal())
+                        event('click', () => { this.youtubePlayer.pauseVideo(); helpSelectAbsorbedItemModal(); })
                     )
                 ),
                 this.backToMainMenu(),
@@ -2142,7 +2174,8 @@ SubmitVideoPage.prototype = {
                 popover: {
                     title: 'History',
                     description: 'All events you select will appear here in chronological order. If you added anything by accident, you can click individual events to remove them from the log! NOTE: '
-                        + 'Removing a floor or a character will also remove all events that happend on that floor, or everything that happened to that character! (a confirmation dialog will appear in those cases.)',
+                        + 'Removing a floor or a character ' // REMOVED FOR NOW: will also remove all events that happend on that floor, or everything that happened to that character! (a confirmation dialog will appear in those cases.)',
+                        + 'is not possible, because it screws up the recorded floor timestamps. Just be aware of that :)',
                     position: 'top'
                 }
             },

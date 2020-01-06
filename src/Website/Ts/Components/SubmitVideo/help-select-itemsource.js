@@ -1,10 +1,12 @@
-﻿import { modal, Div, h2, hr, p, t, ul, li, strong, style, span, br, cl, input, attr } from "../../Framework/renderer";
+﻿import { modal, Div, h2, hr, p, t, ul, li, strong, style, span, br, cl, input, attr, h4 } from "../../Framework/renderer";
 import { dismissModalSection } from "../General/modal-contents";
 
 export function helpSelectItemsource() {
     modal(true,
         Div(
-            h2('Help'),
+            h2(
+                t('Help'),
+            ),
             hr(),
 
             h4(
@@ -15,7 +17,9 @@ export function helpSelectItemsource() {
             ),
             hr(),
 
-            h4('I\'m not sure what dropped the item...?'),
+            h4(
+                t('I\'m not sure what dropped the item...?'),
+            ),
             hr(),
             p(
                 t('Always select the thing that directly dropped or spawned the item. Examples:')

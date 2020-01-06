@@ -136,6 +136,7 @@
     <None Include="Ts\Pages\Admin\videos-saved.js" />
     <None Include="Ts\Pages\Admin\_admin-link-creator.js" />
     <None Include="Ts\Pages\Admin\_all-admin-pages.js" />
+    <None Include="Ts\Pages\confirm-delete-quote.js" />
     <None Include="Ts\Pages\downloads.js" />
     <None Include="Ts\Pages\edit-quote.js" />
     <None Include="Ts\Pages\episode.js" />

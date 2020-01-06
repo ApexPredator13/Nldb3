@@ -198,7 +198,7 @@ AdminLink.prototype = {
      * @param {number} eventId - the ID of the event that should be deleted
      */
     deleteEvent: function (videoId, submissionId, eventId) {
-        `/Admin/DeleteEvent/${videoId}/${submissionId.toString(10)}/${eventId.toString(10)}`;
+        return `/Admin/DeleteEvent/${videoId}/${submissionId.toString(10)}/${eventId.toString(10)}`;
     },
 
 

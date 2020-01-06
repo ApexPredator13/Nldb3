@@ -1,6 +1,7 @@
 ﻿import { Html, Div, id, p, t, span, div, textarea, attr, br, input, select, option, button, event } from "../../Framework/renderer";
 import { post } from "../../Framework/http";
 import { YoutubePlayer } from "./youtube-player";
+import { disableButton, enableButton } from "../../Framework/browser";
 
 /**
  * handler for submitting quotes while the video is playing
@@ -20,7 +21,7 @@ export function SubmitVideoQuotesSection(containerId, videoId, youtubePlayer) {
 
     this.youtubePlayer = youtubePlayer;
     this.videoId = videoId;
-    this.canEnableSubmitButton = false;
+    this.canEnableSubmitButton = true;
     this.interval = null;
     this.intervalCounter = 15;
     this.containerId = containerId;
@@ -44,7 +45,7 @@ export function SubmitVideoQuotesSection(containerId, videoId, youtubePlayer) {
                 div(
                     textarea(
                         attr({ id: 'quotes-textarea', maxlength: '300', cols: '30', rows: '4' }),
-                        event('input', e => { this.textareaTypeEvent(e); this.checkQuoteValid() })
+                        event('input', e => { this.textareaTypeEvent(e); this.checkQuoteValid(); })
                     )
                 ),
                 div(
@@ -91,8 +92,8 @@ export function SubmitVideoQuotesSection(containerId, videoId, youtubePlayer) {
             ),
             button(
                 t('Submit Quote'),
-                attr({ id: 'submit-quote-button', disabled: 'true' }),
-                event('click', this.submitQuote)
+                attr({ id: 'submit-quote-button' }),
+                event('click', e => this.submitQuote(e))
             )
         )
     ], containerId, true, false);
@@ -114,12 +115,6 @@ SubmitVideoQuotesSection.prototype = {
 
         const typedCharacters = textarea.value.length;
 
-        if (typedCharacters > 10) {
-            this.enableSubmitButton();
-        } else {
-            this.disableSubmitButton();
-        }
-
         this.textareaCounter.innerText = `(${typedCharacters}/300 characters)`;
     },
 
@@ -127,7 +122,7 @@ SubmitVideoQuotesSection.prototype = {
      * checks whether the quote and the selected time value is valid or not
      * @returns {boolean}
      */
-    heckQuoteValid: function () {
+    checkQuoteValid: function () {
         const videoTimeRadio = this.getVideoTimeRadio();
         const specificTimeRadio = this.getSpecificTimeRadio();
         const minuteSelection = this.getMinuteSelectElement();
@@ -168,13 +163,15 @@ SubmitVideoQuotesSection.prototype = {
 
     /** disables the 'submit quote' button */
     disableSubmitButton: function () {
-        this.getSubmitButton().disabled = true;
+        disableButton(this.getSubmitButton());
+        console.log('disabled', this.getSubmitButton().disabled);
     },
 
     /** enables the 'submit quote' button */
     enableSubmitButton: function () {
         if (this.canEnableSubmitButton) {
-            this.getSubmitButton().disabled = false;
+            enableButton(this.getSubmitButton());
+            console.log('disabled', this.getSubmitButton().disabled);
         }
     },
 
@@ -274,7 +271,7 @@ SubmitVideoQuotesSection.prototype = {
         if (specificTimeRadio.checked) {
             at = (parseInt(minuteSelect.value, 10) * 60) + (parseInt(secondSelect.value, 10));
         } else {
-            at = this.youtubePlayer.GetCurrentTime();
+            at = this.youtubePlayer.getCurrentTime();
         }
 
         const data = new FormData();
@@ -297,7 +294,6 @@ SubmitVideoQuotesSection.prototype = {
                 radio1.checked = false;
                 const radio2 = this.getVideoTimeRadio();
                 radio2.checked = false;
-                this.canEnableSubmitButton = false;
 
                 this.interval = setInterval(() => {
                     this.intervalCounter--;

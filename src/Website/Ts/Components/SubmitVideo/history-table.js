@@ -127,7 +127,6 @@ HistoryTable.prototype = {
         if (currentFloor) {
             currentFloor.GameplayEvents.push(event);
         }
-        console.log('history:', this.dataForThisEpisode);
         this.reloadHistory();
     },
 
@@ -321,11 +320,13 @@ HistoryTable.prototype = {
         }
 
         if (data.characterIndex !== null && data.floorIndex === null && data.eventIndex === null) {
+            // DISABLED FOR NOW: Breaks timestamps!!
             // user wants to remove character: show confirmation prompt
-            this.showRemoveCharacterWarning(data);
+            // this.showRemoveCharacterWarning(data);
         } else if (data.characterIndex !== null && data.floorIndex !== null && data.eventIndex === null) {
+            // DISABLED FOR NOW: Breaks timestamps!!
             // user wants to remove floor: show confirmation prompt
-            this.showRemoveFloorWarning(data);
+            // this.showRemoveFloorWarning(data);
         } else if (data.characterIndex !== null && data.floorIndex !== null && data.eventIndex !== null) {
             // user wants to remove event: just let him do it
             this.removeEvent(data);
@@ -464,9 +465,14 @@ HistoryTable.prototype = {
                         tds.push(
                             td(
                                 div(
-                                    attr({ c: c.toString(10), title: 'Click to remove character', class: 'hand display-inline' }),
+                                    // DELETING CHARACTER DISABLED FOR NOW: breaks timestamps!
+                                    attr({
+                                        c: c.toString(10),
+                                        // title: 'Click to remove character',
+                                        // class: 'hand display-inline'
+                                    }),
                                     isaacImage(character.characterImage, undefined, false),
-                                    event('click', e => this.removeHistoryElement(e))
+                                    // event('click', e => this.removeHistoryElement(e))
                                 )
                             )
                         );
@@ -481,31 +487,39 @@ HistoryTable.prototype = {
                     tds.push(
                         td(
                             div(
-                                attr({ c: c.toString(10), f: f.toString(10), title: 'Click to remove floor', class: 'hand display-inline' }),
+                                // DELETING FLOOR DISABLED FOR NOW: breaks timestamps!
+                                attr({
+                                    c: c.toString(10),
+                                    f: f.toString(10),
+                                    // title: 'Click to remove floor',
+                                    class: 'display-inline'
+                                    // class: 'hand display-inline'
+                                }),
                                 isaacImage(floor.floorImage, undefined, false),
-                                event('click', e => this.removeHistoryElement(e))
+                                // event('click', e => this.removeHistoryElement(e))
                             )
                         )
                     );
 
                     // add events
-                    const eventTds = events.map((ev, e) => td(
-                        style('padding: 0; text-align: center;'),
-                        div(
-                            attr({
-                                c: c.toString(10),
-                                f: f.toString(10),
-                                e: e.toString(10),
-                                et: ev.image.type.toString(10),
-                                class: 'hand display-inline c',
-                                title: `Click to remove ${resourceTypeToString(ev.image.type).toLowerCase()}`,
-                            }),
-                            isaacImage(ev.image, undefined, false),
-                            event('click', e => this.removeHistoryElement(e))
+                    tds.push(
+                        td(
+                            style('padding: 0; text-align: left;'),
+                            ...events.map((ev, e) => div(
+                                    attr({
+                                        c: c.toString(10),
+                                        f: f.toString(10),
+                                        e: e.toString(10),
+                                        et: ev.image.type.toString(10),
+                                        class: 'hand display-inline c',
+                                        title: `Click to remove ${resourceTypeToString(ev.image.type).toLowerCase()}`,
+                                    }),
+                                    isaacImage(ev.image, undefined, false),
+                                    event('click', e => this.removeHistoryElement(e))
+                                ))
                         )
-                    ));
+                    );
 
-                    tds.push(...eventTds);
                     trs.push(tr(...tds));
                 }
             }

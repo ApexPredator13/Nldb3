@@ -1,4 +1,4 @@
-﻿import { Html, Div, div, id, form, attr, label, textarea, formButton, hr } from "../../Framework/renderer";
+﻿import { Html, Div, div, id, form, attr, label, textarea, formButton, hr, h1, event, t, p, br } from "../../Framework/renderer";
 import { registerPage } from "../../Framework/router";
 import { backToAdminOverview } from "../../Components/Admin/go-back-links";
 import { AdminLink } from "./_admin-link-creator";
@@ -38,6 +38,7 @@ AddVideoPage.prototype = {
                         label(
                             t('Video IDs')
                         ),
+                        br(),
                         textarea(
                             attr({
                                 placeholder: 'enter video ids, seperated by a comma \',\'',
@@ -46,7 +47,9 @@ AddVideoPage.prototype = {
                                 minlength: '11',
                                 minlengthError: 'Must be at least 11 characters long',
                                 name: 'VideoIds',
-                                id: 'video-ids-textarea'
+                                id: 'video-ids-textarea',
+                                cols: '50',
+                                rows: '10'
                             }),
                             event('input', e => this.formHelper.validateForm(e))
                         )

@@ -10,13 +10,13 @@ async function createHeaders(body, authorized) {
     const headers = new Headers();
 
     if (body && typeof (body) === 'string') {
-        headers.append('Content-Type', 'application/json');
+        headers.set('Content-Type', 'application/json');
     }
 
     if (authorized) {
         const user = await getUser();
         if (user) {
-            headers.append('Authorization', `${user.token_type} ${user.access_token}`);
+            headers.set('Authorization', `${user.token_type} ${user.access_token}`);
         }
     }
 
@@ -91,6 +91,7 @@ export {
     get,
     getResponse,
     post,
-    postResponse
+    postResponse,
+    createHeaders
 }
 

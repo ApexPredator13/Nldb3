@@ -141,7 +141,7 @@ namespace Website.Controllers
             }
         }
 
-        [HttpDelete("{id:int}"), Authorize]
+        [HttpDelete("{quoteId:int}"), Authorize]
         public async Task<ActionResult> Delete([FromRoute] int quoteId)
         {
             var user = await _userManager.GetUserAsync(User);

@@ -1,5 +1,6 @@
 import { Html, Div, id, p, t, br, span, div, textarea, attr, event, button } from "../../Framework/renderer";
 import { post } from "../../Framework/http";
+import { disableButton, enableButton } from "../../Framework/browser";
 
 /**
  * The "Submit Topic" section of the submit video page
@@ -13,7 +14,7 @@ function SubmitTopicSection(containerId, videoId) {
     this.interval = null;
     this.submitButton = null;
     this.intervalCounter = 15;
-    this.canSubmit = false;
+    this.canSubmit = true;
     this.submitTopicCounter = null;
 
     new Html([
@@ -76,14 +77,8 @@ SubmitTopicSection.prototype = {
         }
 
         const textarea = this.getTextarea();
-        const canSubmit = this.validateInput();
-
-        if (!canSubmit) {
-            return;
-        }
-
         this.canSubmit = false;
-        this.disableButton();
+        disableButton(this.getSubmitButton());
 
         post('/Api/Topics', JSON.stringify({ VideoId: this.videoId, Topic: textarea.value }), true).then(() => {
             textarea.value = '';
@@ -92,11 +87,11 @@ SubmitTopicSection.prototype = {
                 this.getTextareaCounter().innerText = " (" + this.intervalCounter + "...)";
                 if (this.intervalCounter === 0) {
                     this.intervalCounter = 15;
-                    clearInterval(_this.interval);
+                    clearInterval(this.interval);
                     this.canSubmit = true;
                     this.getTextareaCounter().innerText = " (" + textarea.value.length.toString(10) + "/100)";
                 }
-            }, 1000);
+            }.bind(this), 1000);
         }).catch(function () { return _this.canSubmit = true; });
     },
 
@@ -106,18 +101,6 @@ SubmitTopicSection.prototype = {
         }
         this.submitButton = document.getElementById('submit-topic-button');
         return this.submitButton;
-    },
-
-    enableButton: function () {
-        if (this.canSubmit) {
-            this.getSubmitButton().disabled = false;
-        }
-    },
-
-    disableButton: function () {
-        if (this.canSubmit) {
-            this.getSubmitButton().disabled = true;
-        }
     },
 
     getTextareaCounter: function () {
@@ -137,10 +120,10 @@ SubmitTopicSection.prototype = {
     validateInput: function () {
         var textarea = this.getTextarea();
         if (textarea && textarea.value.length < 5) {
-            this.disableButton();
+            disableButton(this.getSubmitButton());
             return false;
         }
-        this.enableButton();
+        enableButton(this.getSubmitButton());
         return true;
     }
 }

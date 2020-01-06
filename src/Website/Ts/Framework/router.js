@@ -80,7 +80,6 @@ function regularPopstateHandler() {
 
 /** popstate event handler that will stop the browser backbutton navigation */
 function navigationPreventedPopstateHandler() {
-    console.log('backbutton disabled event handler invoked');
     if (window.popStateCallback && window.popStateCaller) {
         window.popStateCallback.call(window.popStateCaller);
     }
@@ -92,7 +91,6 @@ function navigationPreventedPopstateHandler() {
 
 /** triggers the browser Back button */
 function goBack() {
-    console.log('going back triggered!');
     window.history.back();
 }
 
@@ -286,7 +284,6 @@ const navigate = (requestedRoute, preventDefaultForEvent, specificPageType, push
     }
 
     // render new page
-    console.log('NAVIGATE() rendering page', requestedRoute, pageData);
     const p = new pageData.page(parameters);
     p.renderPage();
 

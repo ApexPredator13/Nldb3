@@ -1,4 +1,4 @@
-﻿import { Div, t, Html, h1, hr, h2, p, form, attr, input, select, div, formButton } from "../../Framework/renderer";
+﻿import { Div, t, Html, h1, hr, h2, p, form, attr, input, select, div, formButton, event } from "../../Framework/renderer";
 import { get } from "../../Framework/http";
 import { registerPage } from "../../Framework/router";
 import { AdminLink } from "./_admin-link-creator";
@@ -28,11 +28,12 @@ EditGameplayEventPage.prototype = {
                 t('loading gameplay event...')
             )
         ]);
+        this.loadAndDisplayGameplayEvent();
     },
 
 
     loadAndDisplayGameplayEvent: function () {
-        get(`/Admin/GameplayEvent/${this.eventId.toString(10)}`).then(event => {
+        get(`/Admin/GameplayEvent/${this.eventId.toString(10)}`, true).then(ev => {
             new Html([
                 Div(
                     h1(
@@ -43,33 +44,33 @@ EditGameplayEventPage.prototype = {
                         t('Change Type')
                     ),
                     p(
-                        t('Current Type: ' + gameplayEventTypeToString(event.event_type))
+                        t('Current Type: ' + gameplayEventTypeToString(ev.event_type))
                     ),
                     form(
                         attr({ method: 'post' }),
-                        event('submit', e => this.formHelper.handleSubmit(e, `/Admin/update_gameplay_event_type`, true, this.link.editGameplayEvent(event.id), true, true, true)),
+                        event('submit', e => this.formHelper.handleSubmit(e, `/Admin/update_gameplay_event_type`, true, this.link.editSubmission(this.videoId, this.submissionId), true, true, true)),
                         input(
                             attr({
                                 type: 'hidden',
                                 name: 'GameplayEventId',
-                                value: event.id
+                                value: ev.id
                             }),
+                        ),
+                        div(
+                            select(
+                                event('input', e => this.formHelper.validateForm(e)),
+                                attr({
+                                    name: 'NewGameplayEventType',
+                                    required: 'true',
+                                    requiredError: 'Event Type must be selected',
+                                }),
 
-                            div(
-                                select(
-                                    event('input', e => this.formHelper.validateForm(e)),
-                                    attr({
-                                        required: 'true',
-                                        requiredError: 'Event Type must be selected',
-                                    }),
-
-                                    ...gameplayEventTypeOptionList(event.event_type)
-                                )
-                            ),
-                            div(
-                                formButton(
-                                    t('Change Event Type')
-                                )
+                                ...gameplayEventTypeOptionList(ev.event_type)
+                            )
+                        ),
+                        div(
+                            formButton(
+                                t('Change Event Type')
                             )
                         )
                     ),
@@ -80,7 +81,7 @@ EditGameplayEventPage.prototype = {
                     ),
 
                     hr(),
-                    backToEditSubmission(event.video_id, this.submissionId),
+                    backToEditSubmission(this.videoId, this.submissionId),
                     backToSubmissions(),
                     backToAdminOverview()
                 )

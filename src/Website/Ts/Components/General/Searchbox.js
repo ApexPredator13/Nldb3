@@ -88,7 +88,7 @@ Searchbox.prototype = {
                         }
 
                         return div(
-                            attr({ class: 'dd-line', title: resource.name, di: resource.id, dl: resource.id.toLowerCase() }),
+                            attr({ class: 'dd-line', title: resource.name, di: resource.id, dl: resource.name.toLowerCase() }),
                             event('click', e => this.lineClickEvent(e)),
                             div(
                                 t(displayName),

@@ -70,7 +70,7 @@ EditSubmissionPage.prototype = {
 
 
     loadPlayedCharacters: function () {
-        get(`/Admin/Submissions/${this.videoId}/${this.submissionId}/Characters`).then(characters => {
+        get(`/Admin/Submissions/${this.videoId}/${this.submissionId}/Characters`, true).then(characters => {
             new Html([
                 Table(
                     thead(
@@ -87,7 +87,7 @@ EditSubmissionPage.prototype = {
                     tbody(
                         ...characters.map(character => tr(
                             td(
-                                isaacImage(character, undefined, false)
+                                isaacImage(character.character, undefined, false)
                             ),
                             td(
                                 t(character.character.name),
@@ -103,7 +103,7 @@ EditSubmissionPage.prototype = {
 
 
     loadPlayedFloors: function () {
-        get(`/Admin/Submissions/${this.videoId}/${this.submissionId}/Floors`).then(floors => {
+        get(`/Admin/Submissions/${this.videoId}/${this.submissionId}/Floors`, true).then(floors => {
             new Html([
                 Table(
                     thead(
@@ -126,7 +126,7 @@ EditSubmissionPage.prototype = {
                     tbody(
                         ...floors.map(floor => tr(
                             td(
-                                isaacImage(floor, undefined, false)
+                                isaacImage(floor.floor, undefined, false)
                             ),
                             td(
                                 t(floor.floor.name),
@@ -151,7 +151,7 @@ EditSubmissionPage.prototype = {
 
 
     loadGameplayEvents: function () {
-        get(`/Admin/Submissions/${this.videoId}/${this.submissionId}/Events`).then(events => {
+        get(`/Admin/Submissions/${this.videoId}/${this.submissionId}/Events`, true).then(events => {
             new Html([
                 Table(
                     thead(
@@ -169,29 +169,29 @@ EditSubmissionPage.prototype = {
                         )
                     ),
                     tbody(
-                        events.map(event => tr(
+                        ...events.map(ev => tr(
                             td(
-                                t(event.id.toString(10))
+                                t(ev.id.toString(10))
                             ),
                             td(
-                                t(event.action.toString(10))
+                                t(ev.action.toString(10))
                             ),
                             td(
-                                isaacImage(event, 1, false)
+                                isaacImage(ev, 1, false)
                             ),
                             td(
-                                t(gameplayEventTypeToString(event.event_type)),
-                                event('click', e => navigate(this.link.editGameplayEvent(event.id, this.videoId, this.submissionId), e)),
+                                t(gameplayEventTypeToString(ev.event_type)),
+                                event('click', e => navigate(this.link.editGameplayEvent(ev.id, this.videoId, this.submissionId), e)),
                                 cl('u', 'hand')
                             ),
                             td(
                                 t('delete'),
-                                event('click', e => navigate(this.link.deleteEvent(this.videoId, this.submissionId, event.id), e)),
+                                event('click', e => navigate(this.link.deleteEvent(this.videoId, this.submissionId, ev.id), e)),
                                 cl('u', 'hand')
                             ),
                             td(
                                 t('insert event'),
-                                event('click', e => navigate(this.link.insertGameplayEvent(this.videoId, this.submissionId, event.id, event.played_character, event.played_floor, event.run_number, event.floor_number), e)),
+                                event('click', e => navigate(this.link.insertGameplayEvent(this.videoId, this.submissionId, ev.id, ev.played_character, ev.played_floor, ev.run_number, ev.floor_number), e)),
                                 cl('u', 'hand')
                             )
                         ))

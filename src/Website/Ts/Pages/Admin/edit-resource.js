@@ -477,7 +477,9 @@ EditResourcePage.prototype = {
         if (spans && spans.length > 0) {
             for (let i = 0; i < spans.length; ++i) {
                 const tag = parseInt(spans[i].getAttribute('c'), 10);
-                existingTags.push(tag);
+                if (!isNaN(tag)) {
+                    existingTags.push(tag);
+                }
             }
         }
         return existingTags;

@@ -33,12 +33,10 @@ function FormHelper() {
 
     this.removeError = function (e) {
         removeClassIfExists(e, 'invalid');
-        console.log(e);
         const parent = e.parentElement;
         if (parent) {
             const popups = parent.getElementsByClassName('popup');
             for (let i = 0; i < popups.length; ++i) {
-                console.log('removing ', popups[i], parent);
                 parent.removeChild(popups[i]);
             }
         }
@@ -145,7 +143,6 @@ function FormHelper() {
                 this.testMinLength(element),
                 this.testMaxLength(element)
             ];
-            console.log(results);
 
             if (!results.some(r => r === false)) {
                 this.removeError(element);
@@ -190,7 +187,6 @@ function FormHelper() {
             }
 
             const formData = getFormValue(e);
-
             if (formData) {
                 postResponse(postUrl, formData, authorized)
                     .then(response => {

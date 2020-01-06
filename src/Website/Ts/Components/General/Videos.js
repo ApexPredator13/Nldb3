@@ -264,7 +264,7 @@ Videos.prototype = {
                 return num.toString(10).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
             }
         } else {
-            return undefined;
+            return '';
         }
     },
 
@@ -344,7 +344,7 @@ Videos.prototype = {
      */
     createVideos: function (request) {
         request.then(videoResult => {
-
+            console.log(videoResult);
             const table = document.getElementById(this.videoTableId);
             table.removeChild(table.lastElementChild);
 
