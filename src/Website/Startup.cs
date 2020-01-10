@@ -25,6 +25,7 @@ using IdentityServer4;
 using IdentityServer4.EntityFramework;
 using System.Reflection;
 using IdentityServer4.Services;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Website
 {
@@ -81,7 +82,12 @@ namespace Website
 
             // entity framework
             var dbContextConnectionString = Config.GetConnectionString("DefaultConnection");
-            services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(dbContextConnectionString));
+            services.AddDbContext<ApplicationDbContext>(options => {
+                options.UseNpgsql(dbContextConnectionString, npgsqlOptions =>
+                {
+                    npgsqlOptions.MigrationsHistoryTable(HistoryRepository.DefaultTableName, "identity");
+                });
+            });
 
             // identity
             services.AddIdentity<IdentityUser, IdentityRole>(options =>
@@ -152,7 +158,6 @@ namespace Website
             services.AddIdentityServer(config =>
             {
                 config.IssuerUri = "https://www.northernlion-db.com";
-                config.UserInteraction.LoginUrl = "/Account/Login";
                 config.UserInteraction.LogoutUrl = "/Account/Logout";
                 config.UserInteraction.ErrorUrl = "/Error";
             })
@@ -165,6 +170,7 @@ namespace Website
                     {
                         builder.UseNpgsql(dbContextConnectionString, npgsqlOptions =>
                         {
+                            npgsqlOptions.MigrationsHistoryTable(HistoryRepository.DefaultTableName, "identity");
                             npgsqlOptions.MigrationsAssembly(migrationsAssembly);
                         });
                     };
@@ -177,6 +183,7 @@ namespace Website
                     {
                         builder.UseNpgsql(dbContextConnectionString, npgsqlOptions =>
                         {
+                            npgsqlOptions.MigrationsHistoryTable(HistoryRepository.DefaultTableName, "identity");
                             npgsqlOptions.MigrationsAssembly(migrationsAssembly);
                         });
                     };
@@ -245,7 +252,6 @@ namespace Website
             {
                 // silent signin
                 endpoints.MapControllerRoute("silent_signin", "/SilentSignin", new { controller = Controllers.HomeController.Controllername, action = nameof(Controllers.HomeController.SilentSignin) });
-                endpoints.MapControllerRoute("defaultArea", "{area:exists}/{controller=home}/{action=index}/{id?}");
                 endpoints.MapControllerRoute("default", "{controller=home}/{action=index}/{id?}");
             });
 
@@ -256,7 +262,7 @@ namespace Website
             // BackgroundJob.Enqueue<IMigrateOldDatabase>(migrator => migrator.MigrateUsersQuotesVideosAndRuns());
 
             RecurringJob.AddOrUpdate<ISqlDumper>(dumper => dumper.Dump(), Cron.Hourly());
-            RecurringJob.AddOrUpdate<IVideoRepository>("update-videos", repo => repo.GetVideosThatNeedYoutubeUpdate(1, true), Cron.Hourly);
+            RecurringJob.AddOrUpdate<IVideoRepository>("update-videos", repo => repo.GetVideosThatNeedYoutubeUpdate(40, true), Cron.Minutely);
         }
     }
 }

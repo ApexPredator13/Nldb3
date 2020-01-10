@@ -1,0 +1,109 @@
+﻿<style>
+    img {
+        margin: 1rem;
+    }
+</style>
+
+<main class="l" style="margin: 0 auto; width: 70%; border-left: 2px dashed rgba(255,255,255,0.2)">
+    <h1>General Layout</h1>
+    <img src="~/img/tables.png" />
+    <p>
+        The above image is a little confusing, so I'll break things down.
+    </p>
+    <p>
+        <br />
+        <br />
+        <br />
+    </p>
+
+
+
+
+    <hr />
+    <h1>Section 1: Isaac Episodes</h1>
+    <img src="~/img/tables_1.png" />
+    <p>
+        This is what you're probably here for. All runs and gameplay events are saved in those 4 tables!<br />
+        An episode can be broken down into a series of one-to-many relationships:
+    </p>
+    <ul>
+        <li>An episode has potentially multiple characters that were played</li>
+        <li>A character went through multiple floors</li>
+        <li>A floor had multiple gamplay events.</li>
+    </ul>
+    <p>The corresponding tables:</p>
+    <ul>
+        <li><pre>video_submissions</pre> all isaac episodes</li>
+        <li><pre>played_characters</pre> the characters that were played in those submissions</li>
+        <li><pre>played_floors</pre> the floors the characters went through</li>
+        <li><pre>gameplay_events</pre> the events that happened on those floors</li>
+    </ul>
+    <p>The tables also reference themselves in that direction, meaning...</p>
+    <ul>
+        <li>everything that belongs to a submission references <pre>video_submissions.id</pre></li>
+        <li>everything that happened to a character references <pre>played_characters.id</pre></li>
+        <li>everything that happened on a floor references the <pre>played_floors.id</pre></li>
+    </ul>
+    <p>
+        <br />
+        <br />
+        <br />
+    </p>
+    <hr />
+
+
+
+
+    <h1>Section 2: Game Resources</h1>
+    <img src="~/img/tables_2.png" />
+    <p>
+        All game resources are stored in "isaac_resources". Be it pills, items, transformations, floors, characters, enemies... everything. The only thing that keeps them apart is the "type" column.
+    </p>
+    <p>
+        "mods" and "mod_url" store mods from which "isaac_resources" came, as well as hyperlinks to those (for example a link to the steam workshop page)
+    </p>
+    <p>
+        If collecting an "isaac_resource" counts as transformation progress, then that property is saved in the "transformative_resources" table.
+    </p>
+    <p>
+        <br />
+        <br />
+        <br />
+    </p>
+    <hr />
+
+
+
+    <h1>Section 3: Video Data</h1>
+    <img src="~/img/tables_3.png" />
+    <p>
+        "videos" saves youtube-video related stuff like upload date, video duration and so on. Most of this stuff is directly pulled from youtube. The "thumbnails" table is self-explanatory.
+    </p>
+    <p>
+        "quotes" are the funny quotes that users submitted while watching.
+    </p>
+    <p>
+        "discussion_topics" are tangents and broad themes NL talked about during an episode.
+    </p>
+    <p>
+        <br />
+        <br />
+        <br />
+    </p>
+    <hr />
+
+
+    <h1>Next Step</h1>
+    <p>
+        <a asp-controller="@SqlDumpController.Controllername" asp-action="@nameof(SqlDumpController.Details)">A detailed table description and query examples</a>
+    </p>
+    <p>
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+    </p>
+</main>
+

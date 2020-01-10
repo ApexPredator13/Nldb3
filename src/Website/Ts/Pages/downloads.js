@@ -1,11 +1,14 @@
-﻿import { Html, Div, h1, t, span, hr, h3, a, href, cl, p, br } from "../Framework/renderer";
-import { registerPage, initRouter } from "../Framework/router";
+﻿import { Html, Div, h1, t, span, hr, h3, a, href, cl, p, br, event, attr } from "../Framework/renderer";
+import { registerPage, initRouter, navigate } from "../Framework/router";
+import { Link } from "./_link-creator";
 
 /**
  * The Downloads page.
  * @constructor
  */
-function DownloadsPage() { }
+function DownloadsPage() {
+    this.link = new Link();
+}
 
 DownloadsPage.prototype = {
 
@@ -39,7 +42,18 @@ DownloadsPage.prototype = {
                 ),
                 a(
                     t('Download SQL Dump'),
-                    href('/Downloads/DownloadFile')
+                    href('Api/Downloads/DownloadFile')
+                ),
+                p(
+                    t('After downloading, '),
+                    a(
+                        t('consider reading the guide'),
+                        attr({
+                            href: '/SqlDump/Description',
+                            target: '_blank'
+                        }),
+                    ),
+                    t(' on how to set things up and a description of all the tables.')
                 )
             )
         ]);

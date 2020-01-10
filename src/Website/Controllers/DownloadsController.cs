@@ -4,6 +4,7 @@ using System.IO;
 
 namespace Website.Controllers
 {
+    [ApiController, Route("Api/Downloads")]
     public class DownloadsController : Controller
     {
         public const string Controllername = "Downloads";

@@ -43,6 +43,8 @@ const TEXTAREA = 29;
 const FORM = 30;
 const LABEL = 31;
 const FIELDSET = 32;
+const PRE = 33;
+const OL = 34;
 
 const do_nothing = function () {
     const doNothing = function () { }
@@ -133,6 +135,8 @@ function Html(content, id = 'main', displayHtmlAfterRender = true, replaceConten
                     case FORM: elementType = 'form'; break;
                     case LABEL: elementType = 'label'; break;
                     case FIELDSET: elementType = 'fieldset'; break;
+                    case PRE: elementType = 'pre'; break;
+                    case OL: elementType = 'ol'; break;
                     default:
                         console.warn('unknown element: ' + elementNumber + ', defaulting to DIV!');
                         elementType = 'div';
@@ -427,6 +431,10 @@ function ul(...contents) {
     return Child.call(this, UL, ...contents);
 }
 
+function ol(...contents) {
+    return Child.call(this, OL, ...contents);
+}
+
 function li(...contents) {
     return Child.call(this, LI, ...contents);
 }
@@ -449,6 +457,10 @@ function textarea(...contents) {
 
 function label(...contents) {
     return Child.call(this, LABEL, ...contents);
+}
+
+function pre(...contents) {
+    return Child.call(this, PRE, ...contents);
 }
 
 function iframe(...contents) {
@@ -665,5 +677,7 @@ export {
     H2,
     label,
     fieldset,
-    Tr
+    Tr,
+    pre,
+    ol
 }

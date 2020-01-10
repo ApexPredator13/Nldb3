@@ -1,0 +1,69 @@
+﻿<main class="l" style="margin: 0 auto; width: 70%; border-left: 2px dashed rgba(255,255,255,0.2)">
+    <h1>Preparation</h1>
+
+    <ol>
+        <li>
+            Have Postgresql installed:
+            <a href="https://www.postgresql.org/" target="_blank">Download Page</a>
+        </li>
+        <li>
+            Open a psql terminal:
+            <ul>
+                <li>
+                    <strong>On Windows:</strong>
+                    Open any terminal, go to the postgres bin folder
+                    (default is <pre>C:/Program Files/PostgreSQL/[Version Number]/bin</pre>)
+                    and type <pre>psql -U [username]</pre>
+                    <br />
+                    "[username]" will probably be <pre>postgres</pre> on your local computer.
+                </li>
+                <li>
+                    <strong>On Linux:</strong>
+                    switch to the postgres user: <pre>sudo su postgres</pre>, then type <pre>psql</pre>
+                </li>
+            </ul>
+            <a href="https://www.postgresql.org/docs/current/app-psql.html">Official Documentation if needed</a>
+        </li>
+        <li>
+            Create a user called nldb:
+            <pre>CREATE USER nldb;</pre>
+        </li>
+        <li>
+            Create a database called nldb_new: 
+            <pre>CREATE DATABASE nldb_new;</pre>
+        </li>
+        <li>
+            Connect to the newly created database:
+            <pre>\c nldb_new</pre>
+        </li>
+        <li>
+            Grant rights to the nldb user:
+            <pre>GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO nldb;</pre>
+        </li>
+    </ol>
+
+    <hr />
+
+    <h1>Extract the downloaded SQL dump</h1>
+
+    <ol>
+        <li>
+            Exit the psql terminal if it\'s still open:
+            <pre>\q</pre>
+        </li>
+        <li>
+            Extract the downloaded dump into the database:<br />
+            <pre>psql -U [username] nldb_new < C:/Path/To/Downloaded/File/NorthernlionDatabase_SQL_Dump.sql</pre><br />
+            [username] will probably be "postgres" again if you are doing this on a local computer.<br />
+            Official docs on the topic: <a href="https://www.postgresql.org/docs/12/backup-dump.html" target="_blank">Backup-Dump</a>
+        </li>
+    </ol>
+
+
+    <hr />
+
+    <h1>Next Step</h1>
+    <p>
+        <a asp-controller="@SqlDumpController.Controllername" asp-action="@nameof(SqlDumpController.Tables)">> A description of table and data layout</a>
+    </p>
+</main>

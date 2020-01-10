@@ -1,0 +1,543 @@
+﻿<style>
+    img {
+        margin: 1rem;
+    }
+    ol li {
+        padding: 0;
+        font-size: 0.8rem;
+        font-family: sans-serif;
+    }
+
+    .b {
+        color: cornflowerblue;
+    }
+    .r {
+        color: palevioletred;
+    }
+    .g {
+        color: springgreen;
+    }
+
+    .sql {
+        background-color: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.2);
+        padding: 0.3rem;
+        border-radius: 0.3rem;
+        margin: 0 0.3rem;
+        font-family: monospace;
+        display: inline-block;
+        margin-bottom: 1rem;
+    }
+</style>
+
+<main class="l" style="margin: 0 auto; width: 70%; border-left: 2px dashed rgba(255,255,255,0.2)">
+    <h1>isaac_resources</h1>
+
+    <p>A very important table! As explained on the last page, every game resource is stored here: pills, runes, items, enemies, bosses...</p>
+    <img src="~/img/table_isaac_resources.png" />
+    <ul>
+        <li>
+            <pre>id</pre> - Primary Key. The unique ID, roughly resembles the name of the resource.
+            For example: "BasementOne", "CarrionQueen" or "AceOfClubs".
+            <span class="orange">All tables that refer to isaac resources use this ID!</span>
+        </li>
+        <li>
+            <pre>name</pre> - the name of the resource, as it is displayed in-game
+            like "Basement 1", "Carrion Queen" or "Ace of Clubs".
+        </li>
+        <li>
+            <pre>type</pre> - what type of resource it is:
+            <partial name="_ResourceTypeListPartial" />
+        </li>
+        <li>
+            <pre>exists_in</pre> - In what version(s) of isaac does this resource exist?
+            <partial name="_ExistsInListPartial" />
+        </li>
+        <li>
+            <pre>x</pre> - the CSS coordinates for this resource in <a href="~/img/isaac.png" target="_blank">this giant ass image</a>.
+            Probably not too useful outside of this website
+        </li>
+        <li>
+            <pre>game_mode</pre> - In which game mode does this resource exist? Almost everything has, as you might imagine, set this to "All Modes".
+            <partial name="_GameModeListPartial" />
+        </li>
+        <li>
+            <pre>color</pre> - an appropriate color for the resource. Again, probably not too useful outside of this webpage.
+        </li>
+        <li>
+            <pre>mod</pre> - this references the primary key of the <pre>mods</pre> table if the resource was introduced by a mod.
+        </li>
+        <li>
+            <pre>display_order</pre> - a simple integer used for sorting resources in a custom way.
+        </li>
+        <li>
+            <pre>difficulty</pre> - unused for now, but could be used to assign a difficulty rating to bosses for example.
+        </li>
+        <li>
+            <pre>tags</pre> - resources are tagges as "Poisons Enemies", "Is a spacebar item" or "appears on Basement 1", and so on.
+            This integer array stores all flags that were assigned to the resource. The list of tags is quite big (250+),
+            <a asp-controller="@SqlDumpController.Controllername" asp-action="@nameof(SqlDumpController.Tags)" target="_blank">refer to this page for a full list</a>
+        </li>
+    </ul>
+
+    <h2>Query Examples:</h2>
+
+    <p>
+        Find all bosses:
+    </p>
+    <p class="sql">
+        <span class="r">select</span> <span class="b">*</span> <span class="r">from</span> isaac_resources <span class="r">where</span> <span class="b">type</span> = <span class="b">1</span>;
+    </p>
+
+
+    <p>
+        Find everything that starts with 'A':
+    </p>
+    <p class="sql">
+        <span class="r">select</span> <span class="b">name</span> <span class="r">from</span> isaac_resources <span class="r">where</span> <span class="b">lower(name)</span> <span class="r">like</span> <span class="g">'a%'</span>;
+    </p>
+
+
+
+    <p>
+        Find all resources that are tagged as spacebar item:<br />
+        <small>Tags are saved as integer array. <a href="https://www.postgresql.org/docs/current/functions-array.html" target="_blank">Use the '@@>' operator</a> to see if the integer array contains <a asp-controller="@SqlDumpController.Controllername" asp-action="@nameof(SqlDumpController.Tags)" target="_blank">a specific tag</a>.</small>
+    </p>
+    <p class="sql">
+        <span class="r">select</span> <span class="b">name</span> <span class="r">from</span> isaac_resources <span class="r">where</span> <span class="b">tags</span> @@> <span class="r">array</span>[<span class="b">139</span>];
+    </p>
+
+
+    <p>
+        Find everything that comes from a mod:
+    </p>
+    <p class="sql">
+        <span class="r">select</span> <span class="b">name, mod</span> <span class="r">from</span> isaac_resources <span class="r">where</span> <span class="b">mod</span> <span class="r">is not null</span>;
+    </p>
+
+
+    <p>
+        Same, but joining the mods table for mod names:
+    </p>
+    <div>
+        <p class="sql">
+            <span class="r">select</span> isaac_resources.<span class="b">name</span>, mods.<span class="b">name</span><br />
+            <span class="r">from</span> isaac_resources <br />
+            <span class="r">join</span> mods <span class="r">on</span> mods.<span class="b">id</span> = isaac_resources.<span class="b">mod</span><br />
+            <span class="r">where</span> isaac_resources.<span class="b">mod</span> <span class="r">is not null</span>;
+        </p>
+    </div>
+
+    <hr />
+
+    <h1><br />mods</h1>
+    <p>Very simple. Only contains a primary key and the name of the mod.</p>
+    <img src="~/img/table_mods.png" />
+    <ul>
+        <li>
+            <pre>id</pre> - Primary key.
+        </li>
+        <li>
+            <pre>name</pre> - the name of the mod.
+        </li>
+    </ul>
+
+    <hr />
+
+    <h1><br />mod_url</h1>
+    <p>Saves external links for mods, for example to the steam workshop page or a wiki.</p>
+    <img src="~/img/table_mod_urls.png" />
+
+    <ul>
+        <li>
+            <pre>id</pre> - Primary Key
+        </li>
+        <li>
+            <pre>url</pre> - the link URL
+        </li>
+        <li>
+            <pre>name</pre> - the link text
+        </li>
+        <li>
+            <pre>mod</pre> - references the ID of the mod this link belongs to
+        </li>
+    </ul>
+
+    <h2>Query Examples:</h2>
+    <p>
+        Get all links for the Antibirth mod:
+    </p>
+    <p class="sql">
+        <span class="r">select</span> mods.<span class="b">name</span>, mod_url.<span class="b">name</span>, mod_url.<span class="b">url</span><br />
+        <span class="r">from</span> mods<br />
+        <span class="r">join</span> mod_url <span class="r">on</span> mod_url.<span class="b">mod</span> = mods.<span class="b">id</span><br />
+        <span class="r">where</span> mods.<span class="b">name</span> = <span class="g">'Antibirth'</span>;
+    </p>
+
+    <hr />
+
+    <h1><br />videos</h1>
+
+    <p>Stores video data - everything except the timestamp at the end is directly pulled from the youtube API.</p>
+    <img src="~/img/table_mod_videos.png" />
+
+    <ul>
+        <li>
+            <pre>id</pre> - Primary Key. The same 11-character ID youtube uses for videos. <span class="orange">Everything in the database that references a video will refer to this 11-character ID!</span>
+        </li>
+        <li>
+            <pre>title</pre> - the video title, for example: "The Binding of Isaac: AFTERBIRTH+ - Northernlion Plays - Episode 186 [Trainwreck]"
+        </li>
+        <li>
+            <pre>published</pre> - the release date of the episode
+        </li>
+        <li>
+            <pre>duration</pre> - the video duration in seconds
+        </li>
+        <li>
+            <pre>needs_update</pre> - a flag that can be set if the episode needs to be updated. Can be ignored.
+        </li>
+        <li>
+            <pre>likes</pre> <pre>dislikes</pre> <pre>view_count</pre> <pre>favorite_count</pre> <pre>comment_count</pre> are exactly what they say
+        </li>
+        <li>
+            <pre>tags</pre> - the tags Northernlion added to the episode when he uploaded it
+        </li>
+        <li>
+            <pre>is_3d</pre> - pretty useless. indicates whether the video is in 3D or not.
+        </li>
+        <li>
+            <pre>is_hd</pre> - if the video is 720p and up.
+        </li>
+        <li>
+            <pre>cc</pre> - if the video has subtitles
+        </li>
+        <li>
+            <pre>last_updated</pre> - timestamp indicating when the data was last updated from the youtube API
+        </li>
+    </ul>
+
+    <h2>Query Examples</h2>
+
+    <p>Search the video title for 'Trainwreck'</p>
+    <p class="sql">
+        <span class="r">select</span> <span class="b">*</span> <span class="r">from</span> videos <span class="r">where</span> <span class="b">lower(title)</span> <span class="r">like</span> <span class="g">'%trainwreck%'</span>;
+    </p>
+
+    <p>Search for videos that are longer than an hour</p>
+    <p class="sql">
+        <span class="r">select</span> <span class="b">*</span> <span class="r">from</span> videos <span class="r">where</span> <span class="b">duration</span> > <span class="b">3600</span>;
+    </p>
+
+    <p>Find the episode with the most likes</p>
+    <p class="sql">
+        <span class="r">select</span> <span class="b">title</span> <span class="r">from</span> videos <span class="r">where</span> <span class="b">likes</span> = (<span class="r">select</span> <span class="b">max(likes)</span> <span class="r">from</span> videos);
+    </p>
+
+    <hr />
+
+
+    <h1><br />video_submissions</h1>
+    <p>This is what you call <span class="orange">'an isaac episode'</span>. Saves some metadata every time a user submits an episode that ties everything together.</p>
+    <img src="~/img/table_mod_video_submissions.png" />
+
+    <ul>
+        <li>
+            <pre>id</pre> - Primary Key. <span class="orange">Everything that belongs to this submission will reference this ID!</span>
+        </li>
+        <li>
+            <pre>video</pre> - the 11-character ID of the video. See "videos" table.
+        </li>
+        <li>
+            <pre>s_type</pre> - type of submission - for internal use. Can be:
+            <ol start="0">
+                <li>Lost submission, no data is available for this one.</li>
+                <li>Old submission, misses data old versions of this website didn't track (like runes, pills, reroll transformations and so on)</li>
+                <li>New submission, was submitted since this version of the website came out.</li>
+                <li>Unknown</li>
+            </ol>
+        </li>
+        <li>
+            <pre>latest</pre> - episodes can be submitted multiple times by multiple users. This flag indicates if it's the most recent submission for this episode.
+        </li>
+    </ul>
+
+    <h2>Query Examples</h2>
+
+    <p>Find all submissions for the first isaac episode</p>
+    <p class="sql">
+        <span class="r">select</span> <span class="b">*</span> <span class="r">from</span> video_submissions <span class="r">where</span> <span class="b">video</span> = <span class="g">'c5PLC6nmOO4'</span>;
+    </p>
+
+    <p>
+        Find the most recent submission for the first isaac episode.<br />
+        Make sure to always include the "latest" flag when querying submissions, because episodes can be submitted multiple times by multiple users.
+        Otherwise you will most likely get duplicate entries or submissions with missing data.
+    </p>
+    <p class="sql">
+        <span class="r">select</span> <span class="b">*</span> <span class="r">from</span> video_submissions <span class="r">where</span> <span class="b">video</span> = <span class="g">'c5PLC6nmOO4'</span> <span class="r">and</span> <span class="b">latest</span> = <span class="b">true</span>;
+    </p>
+
+
+    <hr />
+
+    <h1><br />played_characters</h1>
+    <p>
+        Every 'isaac episode' described in the table above can have multiple played characters, so every entry in this table is what you call <span class="orange">'a run'</span>.
+        Most of the time there will only be a single character per submission, but sometimes there can be quite a few (for example episodes where Northernlion plays as Keeper or The Lost).
+    </p>
+    <img src="~/img/table_mod_video_played_characters.png" />
+
+    <ul>
+        <li>
+            <pre>id</pre> - Primary Key. <span class="orange">Everything that happened to this character will reference this ID!</span>
+        </li>
+        <li>
+            <pre>game_character</pre> - the ID of the isaac_resource (see first section of this page) that resembles this character.
+        </li>
+        <li>
+            <pre>submission</pre> - the ID of the submission this character belonged to
+        </li>
+        <li>
+            <pre>action</pre> - a counter that counts up (+1) for every action that was taken by this character. Can be used to sort all actions chronologically.
+        </li>
+        <li>
+            <pre>video</pre> - the 11-character ID of the video. See "videos" table.
+        </li>
+        <li>
+            <pre>run_number</pre> - as was already discussed, a submission can have multiple runs. This is a counter that starts at 1 and is incremented for every run. Example:
+            <ul>
+                <li>Run 1: game_character = Isaac; run_number = 1</li>
+                <li>Run 2: game_character = Maggie; run_number = 2</li>
+            </ul>
+        </li>
+        <li>
+            <pre>died_from</pre> - If the character survived the run, this will be null. If not, this will be the ID of the isaac_resource of the enemy who killed the character.
+        </li>
+        <li>
+            <pre>seed</pre> - the seed for the run. If Northernlion didn't show the seed, this will be null.
+        </li>
+    </ul>
+
+
+    <h2>Query Examples</h2>
+    <p>
+        Finding all characters and deaths from the infamous "Trainwreck" episode. <br />
+        As described in the last section, the submission table has to be included to only get the "latest" submission instead of all submissions to eliminate duplicate data.
+    </p>
+    <p class="sql">
+        <span class="r">select</span> played_characters.<span class="b">game_character</span>, played_characters.<span class="b">died_from</span><br />
+        <span class="r">from</span> played_characters<br />
+        <span class="r">join</span> video_submissions <span class="r">on</span> played_characters.<span class="b">submission</span> = video_submissions.<span class="b">id</span><br />
+        <span class="r">where</span> video_submissions.<span class="b">latest</span> = <span class="b">true</span><br />
+        <span class="r">and</span> video_submissions.<span class="b">video</span> = <span class="g">'JfDnrW-pnXU'</span>;
+    </p>
+
+    <p>Finding all characters NL killed by "Bombing Himself"</p>
+    <p class="sql">
+        <span class="r">select</span> played_characters.<span class="b">game_character</span>, played_characters.<span class="b">died_from</span><br />
+        <span class="r">from</span> played_characters<br />
+        <span class="r">join</span> video_submissions <span class="r">on</span> played_characters.<span class="b">submission</span> = video_submissions.<span class="b">id</span><br />
+        <span class="r">where</span> video_submissions.<span class="b">latest</span> = <span class="b">true</span><br />
+        <span class="r">and</span> played_characters.<span class="b">died_from</span> = <span class="g">'BombedHimself'</span>;
+    </p>
+
+    <p>Same as above, but with video title and sorted by release date:</p>
+    <p class="sql">
+        <span class="r">select</span> videos.<span class="b">title</span>, played_characters.<span class="b">game_character</span>, played_characters.<span class="b">died_from</span><br />
+        <span class="r">from</span> played_characters<br />
+        <span class="r">join</span> video_submissions <span class="r">on</span> played_characters.<span class="b">submission</span> = video_submissions.<span class="b">id</span><br />
+        <span class="r">join</span> videos <span class="r">on</span> videos.<span class="b">id</span> = video_submissions.<span class="b">video</span><br />
+        <span class="r">where</span> video_submissions.<span class="b">latest</span> = <span class="b">true</span><br />
+        <span class="r">and</span> played_characters.<span class="b">died_from</span> = <span class="g">'BombedHimself'</span><br />
+        <span class="r">order by</span> videos.<span class="b">published</span> <span class="r">desc</span>;
+    </p>
+
+    <hr />
+
+
+    <h1><br />played_floors</h1>
+    <p>Saves all floors a "played_character" from the last section went through.</p>
+    <img src="~/img/table_mod_video_played_floor.png" />
+
+    <ul>
+        <li>
+            <pre>id</pre> - Primary Key. <span class="orange">All events that happened on this floor will reference this ID!</span>
+        </li>
+        <li>
+            <pre>floor</pre> - the ID of the "isaac_resource" that resembles this floor.
+        </li>
+        <li>
+            <pre>played_character</pre> - the ID of the played_character from the above section who went through this floor
+        </li>
+        <li>
+            <pre>video</pre> - the 11-character ID of the video. See "videos" table.
+        </li>
+        <li>
+            <pre>action</pre> - same as above. a counter that counts up (+1) for every action that was taken by this character. Can be used to sort all actions chronologically.
+        </li>
+        <li>
+            <pre>run_number</pre> - same as above: a submission can have multiple runs. This is a counter that starts at 1 and is incremented for every run. Example:
+            <ul>
+                <li>Run 1: game_character = Isaac; run_number = 1</li>
+                <li>Run 2: game_character = Maggie; run_number = 2</li>
+            </ul>
+        </li>
+        <li>
+            <pre>floor_number</pre> - starts at 1 and increments for every floor after that. can be used to sort floors in the order they appeared in the run.
+        </li>
+        <li>
+            <pre>died_from</pre> - if the character died on this floor, the ID of the "isaac_resource" that killed the character will be here. Otherwise this will be null.
+        </li>
+        <li>
+            <pre>submission</pre> - the ID of the submission this floor belongs to.
+        </li>
+        <li>
+            <pre>duration</pre> - how long did NL stay on this floor in seconds?
+        </li>
+    </ul>
+
+    <h2>Query Examples</h2>
+
+    <p>Find all floors from the first isaac episode (in chronological order)</p>
+    <p class="sql">
+        <span class="r">select</span> played_floors.<span class="b">floor</span>, played_floors.<span class="b">floor_number</span><br />
+        <span class="r">from</span> played_floors<br />
+        <span class="r">join</span> video_submissions <span class="r">on</span> video_submissions.<span class="b">id</span> = played_floors.<span class="b">submission</span><br />
+        <span class="r">where</span> video_submissions.<span class="b">video</span> = <span class="g">'c5PLC6nmOO4'</span><br />
+        <span class="r">and</span> video_submissions.<span class="b">latest</span> = <span class="b">true</span><br />
+        <span class="r">order by</span> played_floors.<span class="b">floor_number</span> <span class="r">asc</span>;
+    </p>
+
+    <p>Find all floors on which NL died by bombing himself</p>
+    <p class="sql">
+        <span class="r">select</span> played_floors.<span class="b">floor</span>, played_floors.<span class="b">floor_number</span>, played_floors.<span class="b">died_from</span><br />
+        <span class="r">from</span> played_floors<br />
+        <span class="r">join</span> video_submissions <span class="r">on</span> video_submissions.<span class="b">id</span> = played_floors.<span class="b">submission</span><br />
+        <span class="r">where</span> played_floors.<span class="b">died_from</span> = <span class="g">'BombedHimself'</span><br />
+        <span class="r">and</span> video_submissions.<span class="b">latest</span> = <span class="b">true</span>;
+    </p>
+
+    <p>Find the floor that was visited the most</p>
+    <p class="sql">
+        <span class="r">select</span> <span class="b">floor</span>, <span class="b">count(floor)</span> <span class="r">as</span> <span class="b">times_visited</span><br />
+        <span class="r">from</span> played_floors<br />
+        <span class="r">group by</span> <span class="b">floor</span><br />
+        <span class="r">order by</span> <span class="b">times_visited</span> <span class="r">desc</span>;
+    </p>
+
+    <p>Find the floor Northernlion spent the most time on</p>
+    <p class="sql">
+        <span class="r">select</span> played_floors.<span class="b">floor</span>, played_floors.<span class="b">duration</span><br />
+        <span class="r">from</span> played_floors<br />
+        <span class="r">join</span> video_submissions <span class="r">on</span> video_submissions.<span class="b">id</span> = played_floors.<span class="b">submission</span><br />
+        <span class="r">where</span> video_submissions.<span class="b">latest</span> = <span class="b">true</span><br />
+        <span class="r">and</span> played_floors.<span class="b">duration</span> = (<span class="r">select</span> <span class="b">max(duration)</span> <span class="r">from</span> played_floors);
+    </p>
+
+    <p>...including the video title</p>
+    <p class="sql">
+        <span class="r">select</span> played_floors.<span class="b">floor</span>, played_floors.<span class="b">duration</span>, videos.<span class="b">title</span><br />
+        <span class="r">from</span> played_floors<br />
+        <span class="r">join</span> video_submissions <span class="r">on</span> video_submissions.<span class="b">id</span> = played_floors.<span class="b">submission</span><br />
+        <span class="r">join</span> videos <span class="r">on</span> videos.<span class="b">id</span> = video_submissions.<span class="b">video</span><br />
+        <span class="r">where</span> video_submissions.<span class="b">latest</span> = <span class="b">true</span><br />
+        <span class="r">and</span> played_floors.<span class="b">duration</span> = (<span class="r">select</span> <span class="b">max(duration)</span> <span class="r">from</span> played_floors);
+    </p>
+
+    <hr />
+
+    <h1><br />gameplay_events</h1>
+    <p>All gameplay events. Probably the most interesting table of all.</p>
+    <img src="~/img/table_gameplay_events.png" />
+
+    <ul>
+        <li>
+            <pre>id</pre> - Primary Key.
+        </li>
+        <li>
+            <pre>event_type</pre> - what type of event it was:
+            <partial name="_GameplayEventTypeListPartial" />
+        </li>
+        <li>
+            <pre>resource_one</pre> - the first isaac_resource that was part of this event. For example:
+            <ul>
+                <li>item collected: this will be the ID of the item.</li>
+                <li>transformation progress: this will be the ID of the item that triggered the transformation progress.</li>
+                <li>pill used: this will be the ID of the pill.</li>
+            </ul>
+        </li>
+        <li>
+            <pre>resource_two</pre> - the second isaac_resource that was part of this event (if needed). For example:
+            <ul>
+                <li>item collected: this will be the ID of the item source.</li>
+                <li>transformation progress: this will the the ID of the transformation towards which progress was made</li>
+                <li>pill used: NULL</li>
+            </ul>
+        </li>
+        <li>
+            <pre>resource_three</pre> - integer that is only used for counting transformation progress. badly named I must admit :/
+        </li>
+        <li>
+            <pre>played_floor</pre> - the ID of the played_floor on which this event happened
+        </li>
+        <li>
+            <pre>video</pre> - the 11-character ID of the video. See "videos" table.
+        </li>
+        <li>
+            <pre>action</pre> - same as above. a counter that counts up (+1) for every action that was taken by this character. Can be used to sort all actions chronologically.
+        </li>
+        <li>
+            <pre>played_character</pre> - the ID of the played_character from the above section to whom this event belongs.
+        </li>
+        <li>
+            <pre>in_consequence_of</pre> - reference to another gameplay event. Only used for:
+            <ul>
+                <li>Transformation Progress: what gameplay event triggered transformation progress? (will be "item collected" in most cases)</li>
+                <li>Transformation Complete: what gameplay event triggered transformation? (will also be "item collected" in most cases)</li>
+                <li>Lost the run: the "character died" event that triggered the loss</li>
+            </ul>
+        </li>
+        <li>
+            <pre>run_number</pre> - same as above: a submission can have multiple runs. This is a counter that starts at 1 and is incremented for every run. Example:
+            <ul>
+                <li>Run 1: game_character = Isaac; run_number = 1</li>
+                <li>Run 2: game_character = Maggie; run_number = 2</li>
+            </ul>
+        </li>
+        <li>
+            <pre>player</pre> - Player 1 or 2. Used for runs including Jacob & Esau as well as possible future 2-player mode.
+        </li>
+        <li>
+            <pre>floor_number</pre> - same as above: starts at 1 and increments for every floor after that. can be used to sort events by floors in the order they appeared in the run.
+        </li>
+        <li>
+            <pre>submission</pre> - the ID of the submission this floor belongs to.
+        </li>
+        <li>
+            <pre>was_rerolled</pre> - true for items that were rerolled before being taken, touched or absorbed. false for everything else.
+        </li>
+    </ul>
+
+
+    <h2>Query Examples</h2>
+
+    <p>All events of a run in chronological order</p>
+    <p class="sql">
+        <span class="r">select</span> <span class="b">*</span> <span class="r">from</span> gameplay_events<br />
+        <span class="r">join</span> video_submissions <span class="r">on</span> video_submissions.<span class="b">id</span> = gameplay_events.<span class="b">submission</span><br />
+        <span class="r">where</span> video_submissions.<span class="b">video</span> = <span class="g">'c5PLC6nmOO4'</span><br />
+        <span class="r">and</span> video_submissions.<span class="b">latest</span> = <span class="b">true</span><br />
+        <span class="r">order by</span> gameplay_events.<span class="b">action</span> <span class="r">asc</span>;
+    </p>
+
+    <span class=""></span>
+    <span class="r"></span>
+    <span class="b"></span>
+    <span class="g"></span>
+
+    <div style="width: 100%; height: 500px;"></div>
+</main>
+
+
+
