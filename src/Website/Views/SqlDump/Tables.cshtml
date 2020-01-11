@@ -27,14 +27,14 @@
         An episode can be broken down into a series of one-to-many relationships:
     </p>
     <ul>
-        <li>An episode has potentially multiple characters that were played</li>
+        <li>An episode consists of multiple played characters</li>
         <li>A character went through multiple floors</li>
         <li>A floor had multiple gamplay events.</li>
     </ul>
     <p>The corresponding tables:</p>
     <ul>
         <li><pre>video_submissions</pre> all isaac episodes</li>
-        <li><pre>played_characters</pre> the characters that were played in those submissions</li>
+        <li><pre>played_characters</pre> the characters that were played in those submitted episodes</li>
         <li><pre>played_floors</pre> the floors the characters went through</li>
         <li><pre>gameplay_events</pre> the events that happened on those floors</li>
     </ul>

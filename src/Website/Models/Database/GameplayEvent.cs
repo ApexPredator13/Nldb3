@@ -50,5 +50,8 @@ namespace Website.Models.Database
 
         [JsonProperty("played_floor")]
         public int PlayedFloorId { get; set; }
+
+        [JsonProperty("latest")]
+        public bool Latest { get; set; } = false;
     }
 }

@@ -4,7 +4,6 @@ using System;
 using System.Threading.Tasks;
 using Website.Models.Admin;
 using Website.Services;
-using Website.Infrastructure;
 
 namespace Website.Data
 {
@@ -26,9 +25,32 @@ namespace Website.Data
                 return 0;
             }
 
-            return await _npgsql.NonQuery(
-                "DELETE FROM video_submissions WHERE id = @Id",
+            var videoId = await _npgsql.ScalarString("SELECT video FROM video_submissions WHERE id = @Id;",
                 _npgsql.Parameter("@Id", NpgsqlDbType.Integer, submissionId));
+
+            if (videoId is null)
+            {
+                return 0;
+            }
+
+            var dbChanges = await _npgsql.NonQuery(
+                "DELETE FROM video_submissions WHERE id = @Id;",
+                _npgsql.Parameter("@Id", NpgsqlDbType.Integer, submissionId));
+
+            var remainingSubmission = await _npgsql.ScalarInt("SELECT MAX(id) FROM video_submissions WHERE video = @VideoId;",
+               _npgsql.Parameter("@VideoId", NpgsqlDbType.Text, videoId));
+
+            if (!remainingSubmission.HasValue || remainingSubmission.Value is 0)
+            {
+                return dbChanges;
+            }
+
+            dbChanges += await _npgsql.NonQuery("UPDATE video_submissions SET latest = TRUE WHERE id = @Id;", _npgsql.Parameter("@Id", NpgsqlDbType.Integer, remainingSubmission.Value));
+            dbChanges += await _npgsql.NonQuery("UPDATE played_characters SET latest = TRUE WHERE submission = @Id;", _npgsql.Parameter("@Id", NpgsqlDbType.Integer, remainingSubmission.Value));
+            dbChanges += await _npgsql.NonQuery("UPDATE played_floors SET latest = TRUE WHERE submission = @Id;", _npgsql.Parameter("@Id", NpgsqlDbType.Integer, remainingSubmission.Value));
+            dbChanges += await _npgsql.NonQuery("UPDATE gameplay_events SET latest = TRUE WHERE submission = @Id;", _npgsql.Parameter("@Id", NpgsqlDbType.Integer, remainingSubmission.Value));
+
+            return dbChanges;
         }
 
         public async Task<int> UpdateGameplayEventType(UpdateGameplayEventType updateGameplayEventType)
@@ -188,7 +210,8 @@ namespace Website.Data
                         "player, " +
                         "floor_number, " +
                         "submission, " +
-                        "was_rerolled) " +
+                        "was_rerolled," +
+                        "latest) " +
                     "VALUES (" +
                         "@EventType, " +
                         "@ResourceOne, " +
@@ -202,7 +225,8 @@ namespace Website.Data
                         "@Player, " +
                         "@FloorNumber, " +
                         "@Submission, " +
-                        "@WasRerolled" +
+                        "@WasRerolled, " +
+                        "@Latest" +
                     ");";
 
                 return await _npgsql.NonQuery(commandText,
@@ -218,7 +242,8 @@ namespace Website.Data
                     _npgsql.Parameter("@Player", NpgsqlDbType.Integer, insertEvent.NewEvent.Player ?? (object)DBNull.Value),
                     _npgsql.Parameter("@FloorNumber", NpgsqlDbType.Integer, insertEvent.FloorNumber),
                     _npgsql.Parameter("@Submission", NpgsqlDbType.Integer, gameplayEvent.Submission),
-                    _npgsql.Parameter("@WasRerolled", NpgsqlDbType.Boolean, insertEvent.NewEvent.Rerolled)
+                    _npgsql.Parameter("@WasRerolled", NpgsqlDbType.Boolean, insertEvent.NewEvent.Rerolled),
+                    _npgsql.Parameter("@Latest", NpgsqlDbType.Boolean, gameplayEvent.Latest)
                 );
             }
             else

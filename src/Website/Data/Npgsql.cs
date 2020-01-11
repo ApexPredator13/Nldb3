@@ -30,6 +30,37 @@ namespace Website.Data
             return await command.ExecuteNonQueryAsync();
         }
 
+        public async Task<int?> ScalarInt(string commandText, params NpgsqlParameter[] parameters)
+        {
+            using var connection = await Connect();
+            using var command = new NpgsqlCommand(commandText, connection);
+            command.Parameters.AddRange(parameters);
+            try
+            {
+                return System.Convert.ToInt32(await command.ExecuteScalarAsync());
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public async Task<string?> ScalarString(string commandText, params NpgsqlParameter[] parameters)
+        {
+            using var connection = await Connect();
+            using var command = new NpgsqlCommand(commandText, connection);
+            command.Parameters.AddRange(parameters);
+
+            try
+            {
+                return System.Convert.ToString(await command.ExecuteScalarAsync());
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         public NpgsqlParameter Parameter(string parameterName, NpgsqlDbType type, object value)
             => new NpgsqlParameter(parameterName, type) { NpgsqlValue = value };
     }

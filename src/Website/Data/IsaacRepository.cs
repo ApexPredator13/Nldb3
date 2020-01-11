@@ -441,7 +441,7 @@ namespace Website.Data
                 "LEFT JOIN public.video_submissions_userdata d ON d.submission = s.id " +
                 "LEFT JOIN identity.\"AspNetUsers\" u ON u.\"Id\" = d.user_id " +
                 "WHERE s.video = @VideoId" +
-                $"{(submissionId is null ? string.Empty : " AND id = @SubmissionId")}; ";
+                $"{(submissionId is null ? " AND s.latest = TRUE" : " AND s.id = @SubmissionId")}; ";
 
             using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand(query, c);
@@ -549,7 +549,7 @@ namespace Website.Data
                 "FROM played_characters pc " +
                 "LEFT JOIN isaac_resources c ON c.id = pc.game_character " +
                 "LEFT JOIN isaac_resources d ON d.id = pc.died_from " +
-                $"WHERE pc.video = @VideoId{(submissionId is null ? string.Empty : " AND pc.submission = @SubmissionId")} " +
+                $"WHERE pc.video = @VideoId{(submissionId is null ? " AND pc.latest = TRUE" : " AND pc.submission = @SubmissionId")} " +
                 "GROUP BY pc.submission, pc.id, c.id, d.id " +
                 "ORDER BY pc.run_number ASC, pc.action ASC; ";
 
@@ -690,7 +690,7 @@ namespace Website.Data
                 "FROM played_floors pf " +
                 "LEFT JOIN isaac_resources f ON f.id = pf.floor " +
                 "LEFT JOIN isaac_resources d ON d.id = pf.died_from " +
-                $"WHERE pf.video = @VideoId{(submissionId is null ? string.Empty : " AND pf.submission = @SubmissionId")} " +
+                $"WHERE pf.video = @VideoId{(submissionId is null ? " AND pf.latest = TRUE " : " AND pf.submission = @SubmissionId")} " +
                 "GROUP BY pf.id, f.id, d.id " +
                 "ORDER BY pf.run_number ASC, pf.action ASC; ";
 
@@ -759,7 +759,7 @@ namespace Website.Data
 
             var query =
                 "SELECT " +
-                    "e.id, e.event_type, e.action, e.resource_three, e.run_number, e.player, e.floor_number, e.submission, e.was_rerolled, e.played_character, e.played_floor, " +
+                    "e.id, e.event_type, e.action, e.resource_three, e.run_number, e.player, e.floor_number, e.submission, e.was_rerolled, e.played_character, e.played_floor, e.latest, " +
                     "r1.id, r1.name, r1.type, r1.exists_in, r1.x, r1.game_mode, r1.color, r1.display_order, r1.difficulty, r1.tags, " +
                     "r2.id, r2.name, r2.type, r2.exists_in, r2.x, r2.game_mode, r2.color, r2.display_order, r2.difficulty, r2.tags " +
                 "FROM gameplay_events e " +
@@ -789,6 +789,7 @@ namespace Website.Data
                     WasRerolled = r.GetBoolean(i++),
                     PlayedCharacterId = r.GetInt32(i++),
                     PlayedFloorId = r.GetInt32(i++),
+                    Latest = r.GetBoolean(i++),
                     Resource1 = new IsaacResource()
                     {
                         Id = r.GetString(i++),
@@ -837,7 +838,7 @@ namespace Website.Data
                 "FROM gameplay_events e " +
                 "LEFT JOIN isaac_resources r1 ON r1.id = e.resource_one " +
                 "LEFT JOIN isaac_resources r2 ON r2.id = e.resource_two " +
-                $"WHERE e.video = @VideoId{(submissionId is null ? string.Empty : " AND e.submission = @SubmissionId")} " +
+                $"WHERE e.video = @VideoId{(submissionId is null ? " AND e.latest = TRUE " : " AND e.submission = @SubmissionId")} " +
                 "GROUP BY e.submission, e.id, r1.id, r2.id " +
                 "ORDER BY e.run_number ASC, e.action ASC;";
 

@@ -286,7 +286,7 @@
         Every 'isaac episode' described in the table above can have multiple played characters, so every entry in this table is what you call <span class="orange">'a run'</span>.
         Most of the time there will only be a single character per submission, but sometimes there can be quite a few (for example episodes where Northernlion plays as Keeper or The Lost).
     </p>
-    <img src="~/img/table_mod_video_played_characters.png" />
+    <img src="~/img/table_played_characters.png" />
 
     <ul>
         <li>
@@ -317,40 +317,49 @@
         <li>
             <pre>seed</pre> - the seed for the run. If Northernlion didn't show the seed, this will be null.
         </li>
+        <li>
+            <pre>latest</pre> - same as above: true if  this is part of the newest submission for this episode.
+        </li>
     </ul>
 
 
     <h2>Query Examples</h2>
     <p>
         Finding all characters and deaths from the infamous "Trainwreck" episode. <br />
-        As described in the last section, the submission table has to be included to only get the "latest" submission instead of all submissions to eliminate duplicate data.
+        As described in the last section, always check for the "latest" data.
     </p>
     <p class="sql">
-        <span class="r">select</span> played_characters.<span class="b">game_character</span>, played_characters.<span class="b">died_from</span><br />
-        <span class="r">from</span> played_characters<br />
-        <span class="r">join</span> video_submissions <span class="r">on</span> played_characters.<span class="b">submission</span> = video_submissions.<span class="b">id</span><br />
-        <span class="r">where</span> video_submissions.<span class="b">latest</span> = <span class="b">true</span><br />
-        <span class="r">and</span> video_submissions.<span class="b">video</span> = <span class="g">'JfDnrW-pnXU'</span>;
+        <span class="r">select</span> <span class="b">game_character</span>, <span class="b">died_from</span> <span class="r">from</span> played_characters <span class="r">where</span> <span class="b">video</span> = <span class="g">'JfDnrW-pnXU'</span> <span class="r">and</span> <span class="b">latest</span> = <span class="b">true</span>;
     </p>
 
     <p>Finding all characters NL killed by "Bombing Himself"</p>
     <p class="sql">
-        <span class="r">select</span> played_characters.<span class="b">game_character</span>, played_characters.<span class="b">died_from</span><br />
-        <span class="r">from</span> played_characters<br />
-        <span class="r">join</span> video_submissions <span class="r">on</span> played_characters.<span class="b">submission</span> = video_submissions.<span class="b">id</span><br />
-        <span class="r">where</span> video_submissions.<span class="b">latest</span> = <span class="b">true</span><br />
-        <span class="r">and</span> played_characters.<span class="b">died_from</span> = <span class="g">'BombedHimself'</span>;
+        <span class="r">select</span> <span class="b">game_character</span>, <span class="b">died_from</span> <span class="r">from</span> played_characters <span class="r">where</span> <span class="b">died_from</span> = <span class="g">'BombedHimself'</span> <span class="r">and</span> <span class="b">latest</span> = <span class="b">true</span>;
     </p>
 
-    <p>Same as above, but with video title and sorted by release date:</p>
+    <p>
+        Same as above, but with video title and sorted by release date.<br />
+        Because everything references the "video" table, you can get the video title with a simple join:
+    </p>
     <p class="sql">
         <span class="r">select</span> videos.<span class="b">title</span>, played_characters.<span class="b">game_character</span>, played_characters.<span class="b">died_from</span><br />
         <span class="r">from</span> played_characters<br />
-        <span class="r">join</span> video_submissions <span class="r">on</span> played_characters.<span class="b">submission</span> = video_submissions.<span class="b">id</span><br />
-        <span class="r">join</span> videos <span class="r">on</span> videos.<span class="b">id</span> = video_submissions.<span class="b">video</span><br />
-        <span class="r">where</span> video_submissions.<span class="b">latest</span> = <span class="b">true</span><br />
-        <span class="r">and</span> played_characters.<span class="b">died_from</span> = <span class="g">'BombedHimself'</span><br />
+        <span class="r">join</span> videos <span class="r">on</span> videos.<span class="b">id</span> = played_characters.<span class="b">video</span><br />
+        <span class="r">where</span> played_characters.<span class="b">died_from</span> = <span class="g">'BombedHimself'</span><br />
+        <span class="r">and</span> played_characters.<span class="b">latest</span> = <span class="b">true</span><br />
         <span class="r">order by</span> videos.<span class="b">published</span> <span class="r">desc</span>;
+    </p>
+
+    <p>
+        Find all characters NL killed on a sunday:
+    </p>
+    <p class="sql">
+        <span class="r">select</span> videos.<span class="b">title</span>, played_characters.<span class="b">game_character</span>, played_characters.<span class="b">died_from</span><br />
+        <span class="r">from</span> played_characters<br />
+        <span class="r">join</span> videos <span class="r">on</span> videos.<span class="b">id</span> = played_characters.<span class="b">video</span><br />
+        <span class="r">where</span> played_characters.<span class="b">died_from</span> <span class="r">is not null</span><br />
+        <span class="r">and</span> played_characters.<span class="b">latest</span> = <span class="b">true</span><br />
+        <span class="r">and</span> <span class="b">extract(DOW</span> <span class="r">from</span> videos.<span class="b">published)</span> = <span class="b">5</span>;
     </p>
 
     <hr />
@@ -358,7 +367,7 @@
 
     <h1><br />played_floors</h1>
     <p>Saves all floors a "played_character" from the last section went through.</p>
-    <img src="~/img/table_mod_video_played_floor.png" />
+    <img src="~/img/table_played_floor.png" />
 
     <ul>
         <li>
@@ -528,7 +537,7 @@
         <span class="r">join</span> video_submissions <span class="r">on</span> video_submissions.<span class="b">id</span> = gameplay_events.<span class="b">submission</span><br />
         <span class="r">where</span> video_submissions.<span class="b">video</span> = <span class="g">'c5PLC6nmOO4'</span><br />
         <span class="r">and</span> video_submissions.<span class="b">latest</span> = <span class="b">true</span><br />
-        <span class="r">order by</span> gameplay_events.<span class="b">action</span> <span class="r">asc</span>;
+        <span class="r">order by</span> gameplay_events.<span class="b">run_number</span>, gameplay_events.<span class="b">action</span>;
     </p>
 
     <span class=""></span>
