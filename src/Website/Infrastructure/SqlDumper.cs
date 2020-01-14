@@ -50,6 +50,7 @@ namespace Website.Infrastructure
                     "--exclude-table-data=quote_votes " +
                     "--exclude-table-data=video_submissions_userdata " +
                     "--exclude-table-data=quotes_userdata " +
+                    "--exclude-table-data=discussion_topics_userdata " +
                     $"nldb_new > {outputFilePath}";
 
                 // writes batch file
@@ -97,7 +98,8 @@ namespace Website.Infrastructure
                     $"-n public " +
                     $"--exclude-table-data=quote_votes " +
                     "--exclude-table-data=video_submissions_userdata " +
-                    $"--exclude-table-data=quotes_userdata nldb_new > {outputFilePath}";
+                    $"--exclude-table-data=quotes_userdata " +
+                    $"nldb_new > {outputFilePath}";
 
                 var processInfo = new ProcessStartInfo("/bin/bash", dumpDatabaseLine)
                 {

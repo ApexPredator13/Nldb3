@@ -927,7 +927,7 @@ SubmitVideoPage.prototype = {
             this.menu_Main();
         } else {
             this.history.addEvent({
-                EventType: 8,
+                EventType: 19,
                 RelatedResource1: trinketId,
                 Player: this.playerOneOrTwo
             });

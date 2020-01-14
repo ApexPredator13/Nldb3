@@ -367,7 +367,7 @@
 
     <h1><br />played_floors</h1>
     <p>Saves all floors a "played_character" from the last section went through.</p>
-    <img src="~/img/table_played_floor.png" />
+    <img src="~/img/table_played_floors.png" />
 
     <ul>
         <li>
@@ -404,27 +404,21 @@
         <li>
             <pre>duration</pre> - how long did NL stay on this floor in seconds?
         </li>
+        <li>
+            <pre>latest</pre> - same as above: true if  this is part of the newest submission for this episode.
+        </li>
     </ul>
 
     <h2>Query Examples</h2>
 
     <p>Find all floors from the first isaac episode (in chronological order)</p>
     <p class="sql">
-        <span class="r">select</span> played_floors.<span class="b">floor</span>, played_floors.<span class="b">floor_number</span><br />
-        <span class="r">from</span> played_floors<br />
-        <span class="r">join</span> video_submissions <span class="r">on</span> video_submissions.<span class="b">id</span> = played_floors.<span class="b">submission</span><br />
-        <span class="r">where</span> video_submissions.<span class="b">video</span> = <span class="g">'c5PLC6nmOO4'</span><br />
-        <span class="r">and</span> video_submissions.<span class="b">latest</span> = <span class="b">true</span><br />
-        <span class="r">order by</span> played_floors.<span class="b">floor_number</span> <span class="r">asc</span>;
+        <span class="r">select</span> <span class="b">*</span> <span class="r">from</span> played_floors <span class="r">where</span> <span class="b">video</span> = <span class="g">'c5PLC6nmOO4'</span> <span class="r">and</span> <span class="b">latest</span> = <span class="b">true</span> <span class="r">order by</span> <span class="b">floor_number</span>;
     </p>
 
     <p>Find all floors on which NL died by bombing himself</p>
     <p class="sql">
-        <span class="r">select</span> played_floors.<span class="b">floor</span>, played_floors.<span class="b">floor_number</span>, played_floors.<span class="b">died_from</span><br />
-        <span class="r">from</span> played_floors<br />
-        <span class="r">join</span> video_submissions <span class="r">on</span> video_submissions.<span class="b">id</span> = played_floors.<span class="b">submission</span><br />
-        <span class="r">where</span> played_floors.<span class="b">died_from</span> = <span class="g">'BombedHimself'</span><br />
-        <span class="r">and</span> video_submissions.<span class="b">latest</span> = <span class="b">true</span>;
+        <span class="r">select</span> <span class="b">*</span> <span class="r">from</span> played_floors <span class="r">where</span> <span class="b">died_from</span> = <span class="g">'BombedHimself'</span> <span class="r">and</span> <span class="b">latest</span> = <span class="b">true</span>;
     </p>
 
     <p>Find the floor that was visited the most</p>
@@ -437,20 +431,18 @@
 
     <p>Find the floor Northernlion spent the most time on</p>
     <p class="sql">
-        <span class="r">select</span> played_floors.<span class="b">floor</span>, played_floors.<span class="b">duration</span><br />
+        <span class="r">select</span> <span class="b">floor</span>, <span class="b">duration</span><br />
         <span class="r">from</span> played_floors<br />
-        <span class="r">join</span> video_submissions <span class="r">on</span> video_submissions.<span class="b">id</span> = played_floors.<span class="b">submission</span><br />
-        <span class="r">where</span> video_submissions.<span class="b">latest</span> = <span class="b">true</span><br />
-        <span class="r">and</span> played_floors.<span class="b">duration</span> = (<span class="r">select</span> <span class="b">max(duration)</span> <span class="r">from</span> played_floors);
+        <span class="r">where</span> <span class="b">latest</span> = <span class="b">true</span><br />
+        <span class="r">and</span> <span class="b">duration</span> = (<span class="r">select</span> <span class="b">max(duration)</span> <span class="r">from</span> played_floors);
     </p>
 
     <p>...including the video title</p>
     <p class="sql">
         <span class="r">select</span> played_floors.<span class="b">floor</span>, played_floors.<span class="b">duration</span>, videos.<span class="b">title</span><br />
         <span class="r">from</span> played_floors<br />
-        <span class="r">join</span> video_submissions <span class="r">on</span> video_submissions.<span class="b">id</span> = played_floors.<span class="b">submission</span><br />
-        <span class="r">join</span> videos <span class="r">on</span> videos.<span class="b">id</span> = video_submissions.<span class="b">video</span><br />
-        <span class="r">where</span> video_submissions.<span class="b">latest</span> = <span class="b">true</span><br />
+        <span class="r">join</span> videos <span class="r">on</span> videos.<span class="b">id</span> = played_floors.<span class="b">video</span><br />
+        <span class="r">where</span> played_floors.<span class="b">latest</span> = <span class="b">true</span><br />
         <span class="r">and</span> played_floors.<span class="b">duration</span> = (<span class="r">select</span> <span class="b">max(duration)</span> <span class="r">from</span> played_floors);
     </p>
 
@@ -475,6 +467,7 @@
                 <li>transformation progress: this will be the ID of the item that triggered the transformation progress.</li>
                 <li>pill used: this will be the ID of the pill.</li>
             </ul>
+            Have a look at the next paragraph for details about how events correlate to resource_one and resource_two.
         </li>
         <li>
             <pre>resource_two</pre> - the second isaac_resource that was part of this event (if needed). For example:
@@ -528,22 +521,176 @@
         </li>
     </ul>
 
+    <p>
+        <br /><br />
+        The very general "resource_one" and "resource_two" approach for all gameplay events might make it a little confusing about what is what.<br />
+        Here is a list of how gameplay events correlate with resource_one and -two:
+    </p>
+    <partial name="_GameplayEventResourcesListPartial" />
+
 
     <h2>Query Examples</h2>
 
-    <p>All events of a run in chronological order</p>
+    <p>All events of an episode in chronological order</p>
     <p class="sql">
         <span class="r">select</span> <span class="b">*</span> <span class="r">from</span> gameplay_events<br />
-        <span class="r">join</span> video_submissions <span class="r">on</span> video_submissions.<span class="b">id</span> = gameplay_events.<span class="b">submission</span><br />
-        <span class="r">where</span> video_submissions.<span class="b">video</span> = <span class="g">'c5PLC6nmOO4'</span><br />
-        <span class="r">and</span> video_submissions.<span class="b">latest</span> = <span class="b">true</span><br />
-        <span class="r">order by</span> gameplay_events.<span class="b">run_number</span>, gameplay_events.<span class="b">action</span>;
+        <span class="r">where</span> <span class="b">video</span> = <span class="g">'c5PLC6nmOO4'</span><br />
+        <span class="r">and</span> <span class="b">latest</span> = <span class="b">true</span><br />
+        <span class="r">order by</span> <span class="b">run_number</span>, <span class="b">action</span>;
     </p>
 
-    <span class=""></span>
-    <span class="r"></span>
-    <span class="b"></span>
-    <span class="g"></span>
+    <p>The events from the first floors of all 3 runs from the 'Trainwreck' episode, in chronological order</p>
+    <p class="sql">
+        <span class="r">select</span> <span class="b">*</span> <span class="r">from</span> gameplay_events<br />
+        <span class="r">where</span> <span class="b">video</span> = <span class="g">'JfDnrW-pnXU'</span><br />
+        <span class="r">and</span> <span class="b">latest</span> = <span class="b">true</span><br />
+        <span class="r">and</span> <span class="b">floor_number</span> = <span class="b">1</span><br />
+        <span class="r">order by</span> <span class="b">run_number</span>, <span class="b">action</span>;
+    </p>
+
+    <p>Count Bossfights ordered by encounters</p>
+    <p class="sql">
+        <span class="r">select</span> <span class="b">resource_one</span>, <span class="b">count(resource_one)</span> <span class="r">as</span> <span class="b">encounters</span><br />
+        <span class="r">from</span> gameplay_events<br />
+        <span class="r">where</span> <span class="b">event_type</span> = <span class="b">4</span><br />
+        <span class="r">and</span> <span class="b">latest</span> = <span class="b">true</span><br />
+        <span class="r">order by</span> <span class="b">encounters</span> <span class="r">desc</span>;
+    </p>
+
+    <p>Get all items that triggered a transformation:</p>
+    <p class="sql">
+        <span class="r">select</span> <span class="b">resource_one</span> <span class="r">as</span> <span class="b">item</span>, <span class="b">resource_two</span> <span class="r">as</span> <span class="b">transformation</span><br />
+        <span class="r">from</span> gameplay_events<br />
+        <span class="r">where</span> <span class="b">event_type</span> = <span class="b">11</span><br />
+        <span class="r">and</span> <span class="b">latest</span> = <span class="b">true</span>;
+    </p>
+
+    <p>...with their real names instead of their ID, retrieved by a join on isaac_resources:</p>
+    <p class="sql">
+        <span class="r">select</span> items.<span class="b">name</span>, transformations.<span class="b">name</span><br />
+        <span class="r">from</span> gameplay_events<br />
+        <span class="r">join</span> isaac_resources <span class="r">as</span> <span class="b">items</span> <span class="r">on</span> gameplay_events.<span class="b">resource_one</span> = items.<span class="b">id</span><br />
+        <span class="r">join</span> isaac_resources <span class="r">as</span> <span class="b">transformations</span> <span class="r">on</span> gameplay_events.<span class="b">resource_two</span> = transformations.<span class="b">id</span><br />
+        <span class="r">where</span> <span class="b">event_type</span> = <span class="b">11</span><br />
+        <span class="r">and</span> <span class="b">latest</span> = <span class="b">true</span>;
+    </p>
+
+    <p>Mom-kills on sunday releases: with a simple join on the videos table</p>
+    <p class="sql">
+        <span class="r">select</span> gameplay_events.<span class="b">resource_one</span>, <span class="b">count(</span>gameplay_events.<span class="b">resource_one)</span> <span class="r">as</span> <span class="b">sunday_encounters</span><br />
+        <span class="r">from</span> gameplay_events<br />
+        <span class="r">join</span> videos <span class="r">on</span> gameplay_events.<span class="b">video</span> = videos.<span class="b">id</span><br />
+        <span class="r">where</span> gameplay_events.<span class="b">event_type</span> = <span class="b">4</span><br />
+        <span class="r">and</span> gameplay_events.<span class="b">resource_one</span> = <span class="g">'Mom'</span><br />
+        <span class="r">and</span> gameplay_events.<span class="b">latest</span> = <span class="b">true</span><br />
+        <span class="r">and</span> <span class="b">extract(DOW</span> <span class="r">from</span> videos.<span class="b">published)</span> = <span class="b">0</span><br />
+        <span class="r">group by</span> gameplay_events.<span class="b">resource_one</span>;
+    </p>
+
+    <p>
+        Find all guppy-items that were collected after already being guppy:<br />
+        resource_three counts the steps towards a transformation, so a simple check on > 3 is enough:
+    </p>
+    <p class="sql">
+        <span class="r">select</span> <span class="b">*</span> <span class="r">from</span> gameplay_events<br />
+        <span class="r">where</span> <span class="b">event_type</span> = <span class="b">12</span><br />
+        <span class="r">and</span> <span class="b">resource_three</span> > <span class="b">3</span><br />
+        <span class="r">and</span> <span class="b">resource_two</span> = <span class="g">'Guppy'</span><br />
+        <span class="r">and</span> <span class="b">latest</span> = <span class="b">true</span>;
+    </p>
+
+
+    <hr />
+
+    <h1><br />discussion_topics</h1>
+    <p>Stores general themes, discussion topics and tangents NL went on.</p>
+    <img src="~/img/table_discussion_topics.png" />
+
+    <ul>
+        <li><pre>id</pre> - Primary key.</li>
+        <li><pre>video</pre> - the 11-character youtube video ID</li>
+        <li><pre>topic</pre> - the tangent, topic or theme</li>
+        <li><pre>submitted_at</pre> - timestamp when it was submitted</li>
+    </ul>
+
+
+    <hr />
+
+    <h1><br />quotes</h1>
+    <p>Stores funny NL-quotes users submitted</p>
+    <img src="~/img/table_quotes.png" />
+
+    <ul>
+        <li><pre>id</pre> - primary key</li>
+        <li><pre>video</pre> - the 11-character youtube video ID</li>
+        <li><pre>content</pre> - the actual quote text</li>
+        <li><pre>at</pre> - how many seconds into the video the quote starts. can be used to directly link to the quote on youtube</li>
+        <li><pre>submitted_at</pre> - timestamp when the quote was submitted</li>
+    </ul>
+
+    <h2>Query Examples</h2>
+
+    <p>
+        Get all quotes for an episode
+    </p>
+    <p class="sql">
+        <span class="r">select</span> <span class="b">*</span> <span class="r">from</span> quotes <span class="r">where</span> <span class="b">video</span> = <span class="g">'c5PLC6nmOO4'</span>;
+    </p>
+
+    <p>
+        Search quotes containing the f-word
+    </p>
+    <p class="sql">
+        <span class="r">select</span> <span class="b">*</span> <span class="r">from</span> quotes <span class="r">where</span> <span class="b">lower(content)</span> <span class="b">like(<span class="g">'%fridge%'</span></span><span class="b">)</span>;
+    </p>
+    <p>
+        Search quotes for videos that have "cat" in the title (by joining the video table)
+    </p>
+    <p class="sql">
+        <span class="r">select</span> videos.<span class="b">title</span>, quotes.<span class="b">content</span><br />
+        <span class="r">from</span> quotes<br />
+        <span class="r">join</span> videos <span class="r">on</span> quotes.<span class="b">video</span> = videos.<span class="b">id</span><br />
+        <span class="r">where</span> <span class="b">lower(</span>videos.<span class="b">title) like (</span><span class="g">'%cat%'</span><span class="b">)</span>;
+    </p>
+
+
+
+    <hr />
+
+    <h1><br />thumbnails</h1>
+    <p>Stores thumbnail info that was pulled from youtube. Not all that interesting.</p>
+
+
+    <img src="~/img/table_thumbnails.png" />
+
+    <ul>
+        <li><pre>id</pre> - primary key</li>
+        <li><pre>url</pre> - full URL to the thumbnail image</li>
+        <li><pre>width</pre> - image width</li>
+        <li><pre>height</pre> - image height</li>
+        <li><pre>video</pre> - the 11-character youtube video ID to which this thumbnail belongs to</li>
+    </ul>
+
+
+    <hr />
+
+    <h1><br />transformative_resources</h1>
+    <p>This table is used internally to automatically determine transformation progress throughout a run.</p>
+    <img src="~/img/table_transformative_resources.png" />
+
+    <ul>
+        <li><pre>id</pre> - primary key</li>
+        <li><pre>isaac_resource</pre> - the ID of the item, pill... that contributes to the transformation.</li>
+        <li><pre>transformation</pre> - the ID of the transformation to which it contributes</li>
+        <li>
+            <pre>counts_multiple_times</pre> - whether or not the item can contribute to the transformation progress multiple times. example: 
+            eating multiple "puberty"-pills will increase progress every time, but picking up "guppy's paw" multiple times will not!
+        </li>
+        <li><pre>requires_title_content</pre> - if the transformation progress only counts if the video title contains a specific set of characters, for example "community remix"</li>
+        <li><pre>valid_from</pre> - video releasedate must be higher than this for it to count</li>
+        <li><pre>valid_until</pre> - video releasedate must be smaller that this for it to count</li>
+        <li><pre>steps_needed</pre> - how many things must be collected before transformation happens? Is 3 in all cases so far.</li>
+    </ul>
 
     <div style="width: 100%; height: 500px;"></div>
 </main>
