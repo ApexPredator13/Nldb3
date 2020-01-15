@@ -554,6 +554,7 @@
         <span class="r">from</span> gameplay_events<br />
         <span class="r">where</span> <span class="b">event_type</span> = <span class="b">4</span><br />
         <span class="r">and</span> <span class="b">latest</span> = <span class="b">true</span><br />
+        <span class="r">group by</span> <span class="b">resource_one</span><br />
         <span class="r">order by</span> <span class="b">encounters</span> <span class="r">desc</span>;
     </p>
 

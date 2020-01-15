@@ -6,6 +6,7 @@ using Website.Models;
 using Website.Models.Admin;
 using Website.Models.Database;
 using Website.Models.Database.Enums;
+using Website.Models.Resource;
 using Website.Models.SubmitEpisode;
 
 namespace Website.Services
@@ -32,5 +33,6 @@ namespace Website.Services
         Task<List<string>> GetVideosThatNeedYoutubeUpdate(int amount, bool updateVideosAfterwards = false);
         Task<MaxVideoStats> GetMaxVideoStats();
         Task<List<AdminSubmission>> GetSubmissions(int limit, int offset);
+        Task<List<VideoContributor>> GetContributorsForVideo(string videoId);
     }
 }

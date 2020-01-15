@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Website.Models;
 using Website.Models.Database;
+using Website.Models.Resource;
 using Website.Services;
 
 namespace Website.Controllers
@@ -25,6 +27,12 @@ namespace Website.Controllers
             }
 
             return await _videoRepository.GetVideos(request);
+        }
+
+        [HttpGet("{videoId}/Contributors")]
+        public async Task<List<VideoContributor>> GetContributors([FromRoute] string videoId)
+        {
+            return await _videoRepository.GetContributorsForVideo(videoId);
         }
 
         [HttpGet("{id}")]

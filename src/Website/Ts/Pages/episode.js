@@ -1,4 +1,4 @@
-﻿import { Html, Div, id, div, H1, Hr, h2, hr, p, style, t } from "../Framework/renderer";
+﻿import { Html, Div, id, div, H1, Hr, h2, hr, p, style, t, P, cl, span } from "../Framework/renderer";
 import { initRouter, registerPage, setTitle, setOnLoadPageType, PAGE_TYPE_EPISODE } from "../Framework/router";
 import { get } from "../Framework/http";
 import { renderEventsTable } from "../Components/Video/events-table";
@@ -88,8 +88,10 @@ EpisodePage.prototype = {
         this.videoData.then(video => {
             new Html([
                 H1(t(video.title)),
+                Div(id('contributors')),
                 Hr()
             ], this.headerContainerId);
+            this.getContributors(video.id);
         })
         // improvement: catch
     },
@@ -97,6 +99,39 @@ EpisodePage.prototype = {
     setDocumentTitle: function () {
         this.videoData.then(video => setTitle(video.title))
         // improvement: catch
+    },
+
+    getContributors: function (videoId) {
+        get('/Api/Videos/' + videoId + '/Contributors').then(contributors => {
+            if (contributors && contributors.length > 0) {
+
+                const result = [];
+                for (let i = 0; i < contributors.length; ++i) {
+                    if (!result.some(c => c === contributors[i].user_name)) {
+                        result.push(contributors[i].user_name);
+                    }
+                }
+
+                new Html([
+                    P(
+                        t('♥ Contributed by: '),
+                        ...result.map((contributor, index) => {
+                            if (index === result.length - 1) {
+                                return span(t(contributor), cl('orange'));
+                            } else {
+                                return span(
+                                    span(
+                                        t(contributor),
+                                        cl('orange')
+                                    ),
+                                    t(', ')
+                                );
+                            }
+                        })
+                    )
+                ], 'contributors')
+            }
+        })
     }
 }
 

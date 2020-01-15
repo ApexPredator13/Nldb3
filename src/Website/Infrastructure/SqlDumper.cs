@@ -47,10 +47,10 @@ namespace Website.Infrastructure
                     $"-U {username} " +
                     $"-h {host} " +
                     "-n public " +
-                    "--exclude-table-data=quote_votes " +
-                    "--exclude-table-data=video_submissions_userdata " +
-                    "--exclude-table-data=quotes_userdata " +
-                    "--exclude-table-data=discussion_topics_userdata " +
+                    "--exclude-table=quote_votes " +
+                    "--exclude-table=video_submissions_userdata " +
+                    "--exclude-table=quotes_userdata " +
+                    "--exclude-table=discussion_topics_userdata " +
                     $"nldb_new > {outputFilePath}";
 
                 // writes batch file
@@ -96,9 +96,10 @@ namespace Website.Infrastructure
                     $"-U {username} " +
                     $"-h {host} " +
                     $"-n public " +
-                    $"--exclude-table-data=quote_votes " +
-                    "--exclude-table-data=video_submissions_userdata " +
-                    $"--exclude-table-data=quotes_userdata " +
+                    "--exclude-table=quote_votes " +
+                    "--exclude-table=video_submissions_userdata " +
+                    "--exclude-table=quotes_userdata " +
+                    "--exclude-table=discussion_topics_userdata " +
                     $"nldb_new > {outputFilePath}";
 
                 var processInfo = new ProcessStartInfo("/bin/bash", dumpDatabaseLine)

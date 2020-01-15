@@ -18,6 +18,7 @@ using Website.Models;
 using Microsoft.Extensions.Logging;
 using Website.Models.Admin;
 using Website.Infrastructure;
+using Website.Models.Resource;
 
 namespace Website.Data
 {
@@ -354,6 +355,38 @@ namespace Website.Data
                 q.Parameters.AddWithValue("@Cap", NpgsqlDbType.Boolean, updatedVideo.ContentDetails.Caption.ToLower() == "true");
 
                 result += await q.ExecuteNonQueryAsync();
+            }
+
+            return result;
+        }
+
+
+        public async Task<List<VideoContributor>> GetContributorsForVideo(string videoId)
+        {
+            var result = new List<VideoContributor>();
+
+            var commandText =
+                "SELECT u.id, i.\"UserName\" " +
+                "FROM public.video_submissions s " +
+                "LEFT JOIN public.video_submissions_userdata u ON u.submission = s.id " +
+                "LEFT JOIN identity.\"AspNetUsers\" i ON i.\"Id\" = u.user_id " +
+                "WHERE s.video = @VideoId " +
+                "ORDER BY s.id DESC;";
+
+            using var connection = await _npgsql.Connect();
+            using var command = new NpgsqlCommand(commandText, connection);
+            command.Parameters.AddWithValue("@VideoId", NpgsqlDbType.Text, videoId);
+            using var reader = await command.ExecuteReaderAsync();
+
+            if (reader.HasRows)
+            {
+                while (reader.Read())
+                {
+                    result.Add(new VideoContributor(
+                        reader.GetInt32(0), 
+                        reader.IsDBNull(1) ? null : reader.GetString(1)
+                    ));
+                }
             }
 
             return result;
