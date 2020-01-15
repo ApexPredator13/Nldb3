@@ -29,15 +29,15 @@ namespace Website.Data
 
         public async Task<ResourceType> GetResourceTypeFromId(string id)
         {
-            using var c = await _npgsql.Connect();
-            using var q = new NpgsqlCommand("SELECT type FROM isaac_resources WHERE id = @Id;", c);
-            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, id);
-            using var r = await q.ExecuteReaderAsync();
+            using var connection = await _npgsql.Connect();
+            using var command = new NpgsqlCommand("SELECT type FROM isaac_resources WHERE id = @Id;", connection);
+            command.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, id);
+            using var reader = await command.ExecuteReaderAsync();
 
-            if (r.HasRows)
+            if (reader.HasRows)
             {
-                r.Read();
-                return (ResourceType)r.GetInt32(0);
+                reader.Read();
+                return (ResourceType)reader.GetInt32(0);
             }
             else
             {
@@ -46,19 +46,15 @@ namespace Website.Data
         }
 
         public async Task<int> ChangeDisplayOrder(ChangeDisplayOrder displayOrder)
-        {
-            using var c = await _npgsql.Connect();
-            using var q = new NpgsqlCommand("UPDATE isaac_resources SET display_order = @NewOrder WHERE id = @Id;", c);
-            q.Parameters.AddWithValue("@NewOrder", NpgsqlDbType.Integer, displayOrder.DisplayOrder ?? (object)DBNull.Value);
-            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, displayOrder.ResourceId);
-            return await q.ExecuteNonQueryAsync();
-        }
+            => await _npgsql.NonQuery("UPDATE isaac_resources SET display_order = @NewOrder WHERE id = @Id;",
+                _npgsql.Parameter("@NewOrder", NpgsqlDbType.Integer, displayOrder.DisplayOrder ?? (object)DBNull.Value),
+                _npgsql.Parameter("@Id", NpgsqlDbType.Text, displayOrder.ResourceId));
 
         public async Task<List<(int amount, IsaacResource item)>> GetTransformationItemRanking(string transformationId)
         {
             var result = new List<(int amount, IsaacResource item)>();
 
-            var query =
+            var commandText =
                 "SELECT COUNT(e.resource_one) AS item_count, r.id, r.name, r.type, r.exists_in, r.x, r.game_mode, r.color, r.display_order, r.difficulty, r.tags " +
                 "FROM gameplay_events e " +
                 "LEFT JOIN isaac_resources r ON r.id = e.resource_one " +
@@ -67,29 +63,29 @@ namespace Website.Data
                 "GROUP BY r.id " +
                 "ORDER BY item_count DESC, r.name ASC;";
 
-            using var c = await _npgsql.Connect();
-            using var q = new NpgsqlCommand(query, c);
-            q.Parameters.AddWithValue("@TransformationId", NpgsqlDbType.Text, transformationId);
-            using var r = await q.ExecuteReaderAsync();
+            using var connection = await _npgsql.Connect();
+            using var command = new NpgsqlCommand(commandText, connection);
+            command.Parameters.AddWithValue("@TransformationId", NpgsqlDbType.Text, transformationId);
+            using var reader = await command.ExecuteReaderAsync();
 
-            if (r.HasRows)
+            if (reader.HasRows)
             {
-                while (r.Read())
+                while (reader.Read())
                 {
-                    var amount = r.GetInt32(0);
+                    var amount = reader.GetInt32(0);
                     var resource = new IsaacResource()
                     {
-                        Id = r.GetString(1),
-                        Name = r.GetString(2),
-                        ResourceType = (ResourceType)r.GetInt32(3),
-                        ExistsIn = (ExistsIn)r.GetInt32(4),
-                        CssCoordinates = (NpgsqlBox)r.GetValue(5),
-                        GameMode = (GameMode)r.GetInt32(6),
-                        Color = r.GetString(7),
+                        Id = reader.GetString(1),
+                        Name = reader.GetString(2),
+                        ResourceType = (ResourceType)reader.GetInt32(3),
+                        ExistsIn = (ExistsIn)reader.GetInt32(4),
+                        CssCoordinates = (NpgsqlBox)reader.GetValue(5),
+                        GameMode = (GameMode)reader.GetInt32(6),
+                        Color = reader.GetString(7),
                         Mod = null,
-                        DisplayOrder = r.IsDBNull(8) ? null : (int?)r.GetInt32(8),
-                        Difficulty = r.IsDBNull(9) ? null : (int?)r.GetInt32(9),
-                        Tags = r.IsDBNull(10) ? null : ((int[])r[10]).Select(x => (Tag)x).ToList()
+                        DisplayOrder = reader.IsDBNull(8) ? null : (int?)reader.GetInt32(8),
+                        Difficulty = reader.IsDBNull(9) ? null : (int?)reader.GetInt32(9),
+                        Tags = reader.IsDBNull(10) ? null : ((int[])reader[10]).Select(x => (Tag)x).ToList()
                     };
                     result.Add((amount, resource));
                 }
@@ -104,7 +100,7 @@ namespace Website.Data
 
             string resourceName = resourceNumber == 1 ? "resource_one" : "resource_two";
 
-            var query =
+            var commandText =
                 "SELECT COUNT(f.id) AS floor_count, r.id, r.name, r.type, r.exists_in, r.x, r.game_mode, r.color, r.display_order, r.difficulty, r.tags " +
                 "FROM gameplay_events e " +
                 "LEFT JOIN played_floors f ON f.id = e.played_floor " +
@@ -114,35 +110,35 @@ namespace Website.Data
                 $"GROUP BY r.id " +
                 $"ORDER BY floor_count DESC, r.name ASC;";
 
-            using var c = await _npgsql.Connect();
-            using var q = new NpgsqlCommand(query, c);
-            q.Parameters.AddWithValue("@ResourceId", NpgsqlDbType.Text, resourceId);
+            using var connection = await _npgsql.Connect();
+            using var command = new NpgsqlCommand(commandText, connection);
+            command.Parameters.AddWithValue("@ResourceId", NpgsqlDbType.Text, resourceId);
             
             if (eventType.HasValue)
             {
-                q.Parameters.AddWithValue("@EventType", NpgsqlDbType.Integer, (int)eventType.Value);
+                command.Parameters.AddWithValue("@EventType", NpgsqlDbType.Integer, (int)eventType.Value);
             }
             
-            using var r = await q.ExecuteReaderAsync();
+            using var reader = await command.ExecuteReaderAsync();
 
-            if (r.HasRows)
+            if (reader.HasRows)
             {
-                while (r.Read())
+                while (reader.Read())
                 {
-                    var amount = r.GetInt32(0);
+                    var amount = reader.GetInt32(0);
                     var resource = new IsaacResource()
                     {
-                        Id = r.GetString(1),
-                        Name = r.GetString(2),
-                        ResourceType = (ResourceType)r.GetInt32(3),
-                        ExistsIn = (ExistsIn)r.GetInt32(4),
-                        CssCoordinates = (NpgsqlBox)r.GetValue(5),
-                        GameMode = (GameMode)r.GetInt32(6),
-                        Color = r.GetString(7),
+                        Id = reader.GetString(1),
+                        Name = reader.GetString(2),
+                        ResourceType = (ResourceType)reader.GetInt32(3),
+                        ExistsIn = (ExistsIn)reader.GetInt32(4),
+                        CssCoordinates = (NpgsqlBox)reader.GetValue(5),
+                        GameMode = (GameMode)reader.GetInt32(6),
+                        Color = reader.GetString(7),
                         Mod = null,
-                        DisplayOrder = r.IsDBNull(8) ? null : (int?)r.GetInt32(8),
-                        Difficulty = r.IsDBNull(9) ? null : (int?)r.GetInt32(9),
-                        Tags = r.IsDBNull(10) ? null : ((int[])r[10]).Select(x => (Tag)x).ToList()
+                        DisplayOrder = reader.IsDBNull(8) ? null : (int?)reader.GetInt32(8),
+                        Difficulty = reader.IsDBNull(9) ? null : (int?)reader.GetInt32(9),
+                        Tags = reader.IsDBNull(10) ? null : ((int[])reader[10]).Select(x => (Tag)x).ToList()
                     };
                     result.Add((amount, resource));
                 }
@@ -157,7 +153,7 @@ namespace Website.Data
 
             string resourceName = resourceNumber == 1 ? "resource_one" : "resource_two";
 
-            var query =
+            var commandText =
                 "SELECT COUNT(c.resource_one) AS curse_count, r.id, r.name, r.type, r.exists_in, r.x, r.game_mode, r.color, r.display_order, r.difficulty, r.tags " +
                 "FROM gameplay_events e " +
                 "LEFT JOIN gameplay_events c ON c.played_floor = e.played_floor " +
@@ -167,29 +163,29 @@ namespace Website.Data
                 "GROUP BY r.id " +
                 "ORDER BY curse_count DESC, r.name ASC;";
 
-            using var c = await _npgsql.Connect();
-            using var q = new NpgsqlCommand(query, c);
-            q.Parameters.AddWithValue("@ResourceId", NpgsqlDbType.Text, resourceId);
-            using var r = await q.ExecuteReaderAsync();
+            using var connection = await _npgsql.Connect();
+            using var command = new NpgsqlCommand(commandText, connection);
+            command.Parameters.AddWithValue("@ResourceId", NpgsqlDbType.Text, resourceId);
+            using var reader = await command.ExecuteReaderAsync();
 
-            if (r.HasRows)
+            if (reader.HasRows)
             {
-                while(r.Read())
+                while(reader.Read())
                 {
-                    var amount = r.GetInt32(0);
+                    var amount = reader.GetInt32(0);
                     var resource = new IsaacResource()
                     {
-                        Id = r.GetString(1),
-                        Name = r.GetString(2),
-                        ResourceType = (ResourceType)r.GetInt32(3),
-                        ExistsIn = (ExistsIn)r.GetInt32(4),
-                        CssCoordinates = (NpgsqlBox)r.GetValue(5),
-                        GameMode = (GameMode)r.GetInt32(6),
-                        Color = r.GetString(7),
+                        Id = reader.GetString(1),
+                        Name = reader.GetString(2),
+                        ResourceType = (ResourceType)reader.GetInt32(3),
+                        ExistsIn = (ExistsIn)reader.GetInt32(4),
+                        CssCoordinates = (NpgsqlBox)reader.GetValue(5),
+                        GameMode = (GameMode)reader.GetInt32(6),
+                        Color = reader.GetString(7),
                         Mod = null,
-                        DisplayOrder = r.IsDBNull(8) ? null : (int?)r.GetInt32(8),
-                        Difficulty = r.IsDBNull(9) ? null : (int?)r.GetInt32(9),
-                        Tags = r.IsDBNull(10) ? null : ((int[])r[10]).Select(x => (Tag)x).ToList()
+                        DisplayOrder = reader.IsDBNull(8) ? null : (int?)reader.GetInt32(8),
+                        Difficulty = reader.IsDBNull(9) ? null : (int?)reader.GetInt32(9),
+                        Tags = reader.IsDBNull(10) ? null : ((int[])reader[10]).Select(x => (Tag)x).ToList()
                     };
                     result.Add((amount, resource));
                 }
@@ -204,7 +200,7 @@ namespace Website.Data
 
             string resourceName = resourceNumber == 1 ? "resource_one" : "resource_two";
 
-            var query =
+            var commandText =
                 "SELECT COUNT(pc.game_character) AS gc_count, r.id, r.name, r.type, r.exists_in, r.x, r.game_mode, r.color, r.display_order, r.difficulty, r.tags " +
                 "FROM gameplay_events e " +
                 "LEFT JOIN played_characters pc ON pc.id = e.played_character " +
@@ -213,28 +209,28 @@ namespace Website.Data
                 "GROUP BY r.id " +
                 "ORDER BY gc_count DESC, r.name ASC;";
 
-            using var c = await _npgsql.Connect();
-            using var q = new NpgsqlCommand(query, c);
-            q.Parameters.AddWithValue("@ResourceId", NpgsqlDbType.Text, resourceId);
-            using var r = await q.ExecuteReaderAsync();
-            if (r.HasRows)
+            using var connection = await _npgsql.Connect();
+            using var command = new NpgsqlCommand(commandText, connection);
+            command.Parameters.AddWithValue("@ResourceId", NpgsqlDbType.Text, resourceId);
+            using var reader = await command.ExecuteReaderAsync();
+            if (reader.HasRows)
             {
-                while (r.Read())
+                while (reader.Read())
                 {
-                    var amount = r.GetInt32(0);
+                    var amount = reader.GetInt32(0);
                     var resource = new IsaacResource()
                     {
-                        Id = r.GetString(1),
-                        Name = r.GetString(2),
-                        ResourceType = (ResourceType)r.GetInt32(3),
-                        ExistsIn = (ExistsIn)r.GetInt32(4),
-                        CssCoordinates = (NpgsqlBox)r.GetValue(5),
-                        GameMode = (GameMode)r.GetInt32(6),
-                        Color = r.GetString(7),
+                        Id = reader.GetString(1),
+                        Name = reader.GetString(2),
+                        ResourceType = (ResourceType)reader.GetInt32(3),
+                        ExistsIn = (ExistsIn)reader.GetInt32(4),
+                        CssCoordinates = (NpgsqlBox)reader.GetValue(5),
+                        GameMode = (GameMode)reader.GetInt32(6),
+                        Color = reader.GetString(7),
                         Mod = null,
-                        DisplayOrder = r.IsDBNull(8) ? null : (int?)r.GetInt32(8),
-                        Difficulty = r.IsDBNull(9) ? null : (int?)r.GetInt32(9),
-                        Tags = r.IsDBNull(10) ? null : ((int[])r[10]).Select(x => (Tag)x).ToList()
+                        DisplayOrder = reader.IsDBNull(8) ? null : (int?)reader.GetInt32(8),
+                        Difficulty = reader.IsDBNull(9) ? null : (int?)reader.GetInt32(9),
+                        Tags = reader.IsDBNull(10) ? null : ((int[])reader[10]).Select(x => (Tag)x).ToList()
                     };
 
                     result.Add((amount, resource));
@@ -248,7 +244,7 @@ namespace Website.Data
         {
             var result = new List<(int amount, IsaacResource foundAt)>();
 
-            var query = 
+            var commandText = 
                 "SELECT COUNT(e.resource_two) as r2c, r.id, r.name, r.type, r.exists_in, r.x, r.game_mode, r.color, r.display_order, r.difficulty, r.tags " +
                 "FROM gameplay_events e " +
                 "LEFT JOIN isaac_resources r ON r.id = e.resource_two " +
@@ -257,29 +253,29 @@ namespace Website.Data
                 "GROUP BY r.id " +
                 "ORDER BY r2c DESC, r.id ASC;";
 
-            using var c = await _npgsql.Connect();
-            using var q = new NpgsqlCommand(query, c);
-            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, itemId);
-            using var r = await q.ExecuteReaderAsync();
+            using var connection = await _npgsql.Connect();
+            using var command = new NpgsqlCommand(commandText, connection);
+            command.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, itemId);
+            using var reader = await command.ExecuteReaderAsync();
 
-            if (r.HasRows)
+            if (reader.HasRows)
             {
-                while(r.Read())
+                while(reader.Read())
                 {
-                    var amount = r.GetInt32(0);
+                    var amount = reader.GetInt32(0);
                     var resource = new IsaacResource()
                     {
-                        Id = r.GetString(1),
-                        Name = r.GetString(2),
-                        ResourceType = (ResourceType)r.GetInt32(3),
-                        ExistsIn = (ExistsIn)r.GetInt32(4),
-                        CssCoordinates = (NpgsqlBox)r.GetValue(5),
-                        GameMode = (GameMode)r.GetInt32(6),
-                        Color = r.GetString(7),
+                        Id = reader.GetString(1),
+                        Name = reader.GetString(2),
+                        ResourceType = (ResourceType)reader.GetInt32(3),
+                        ExistsIn = (ExistsIn)reader.GetInt32(4),
+                        CssCoordinates = (NpgsqlBox)reader.GetValue(5),
+                        GameMode = (GameMode)reader.GetInt32(6),
+                        Color = reader.GetString(7),
                         Mod = null,
-                        DisplayOrder = r.IsDBNull(8) ? null : (int?)r.GetInt32(8),
-                        Difficulty = r.IsDBNull(9) ? null : (int?)r.GetInt32(9),
-                        Tags = r.IsDBNull(10) ? null : ((int[])r[10]).Select(x => (Tag)x).ToList()
+                        DisplayOrder = reader.IsDBNull(8) ? null : (int?)reader.GetInt32(8),
+                        Difficulty = reader.IsDBNull(9) ? null : (int?)reader.GetInt32(9),
+                        Tags = reader.IsDBNull(10) ? null : ((int[])reader[10]).Select(x => (Tag)x).ToList()
                     };
 
                     result.Add((amount, resource));
@@ -290,21 +286,8 @@ namespace Website.Data
         }
 
         public async Task<string?> GetResourceNameFromId(string id)
-        {
-            using var c = await _npgsql.Connect();
-            using var q = new NpgsqlCommand("SELECT name FROM isaac_resources WHERE id = @Id;", c);
-            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, id);
-            using var r = await q.ExecuteReaderAsync();
-            if (r.HasRows)
-            {
-                r.Read();
-                return r.GetString(0);
-            }
-            else
-            {
-                return null;
-            }
-        }
+            => await _npgsql.ScalarString("SELECT name FROM isaac_resources WHERE id = @Id;",
+                _npgsql.Parameter("@Id", NpgsqlDbType.Text, id));
 
         public async Task<List<DateTime>> GetEncounteredIsaacResourceTimestamps(string isaacResourceId, int resourceNumber, GameplayEventType? eventType = null)
         {
@@ -313,20 +296,20 @@ namespace Website.Data
             string resourceNumberString = resourceNumber is 1 ? "resource_one" : "resource_two";
             string eventTypeFragment = eventType.HasValue ? "AND event_type = @EventType" : string.Empty;
 
-            using var c = await _npgsql.Connect();
-            using var q = new NpgsqlCommand($"SELECT v.published FROM gameplay_events g LEFT JOIN videos v ON v.id = g.video WHERE g.{resourceNumberString} = @Id {eventTypeFragment} ORDER BY v.published ASC;", c);
-            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, isaacResourceId);
+            using var connection = await _npgsql.Connect();
+            using var command = new NpgsqlCommand($"SELECT v.published FROM gameplay_events g LEFT JOIN videos v ON v.id = g.video WHERE g.{resourceNumberString} = @Id {eventTypeFragment} ORDER BY v.published ASC;", connection);
+            command.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, isaacResourceId);
             if (eventType.HasValue)
             {
-                q.Parameters.AddWithValue("@EventType", NpgsqlDbType.Integer, (int)eventType.Value);
+                command.Parameters.AddWithValue("@EventType", NpgsqlDbType.Integer, (int)eventType.Value);
             }
 
-            using var r = await q.ExecuteReaderAsync();
-            if (r.HasRows)
+            using var reader = await command.ExecuteReaderAsync();
+            if (reader.HasRows)
             {
-                while (r.Read())
+                while (reader.Read())
                 {
-                    result.Add(r.GetDateTime(0));
+                    result.Add(reader.GetDateTime(0));
                 }
             }
 
@@ -379,17 +362,17 @@ namespace Website.Data
             sb.Append(");");
 
 
-            using var con = await _npgsql.Connect();
-            using var q = new NpgsqlCommand(sb.ToString(), con);
-            q.Parameters.AddRange(p.ToArray());
-            using var r = await q.ExecuteReaderAsync();
+            using var connection = await _npgsql.Connect();
+            using var command = new NpgsqlCommand(sb.ToString(), connection);
+            command.Parameters.AddRange(p.ToArray());
+            using var reader = await command.ExecuteReaderAsync();
 
-            if (r.HasRows)
+            if (reader.HasRows)
             {
-                while (r.Read())
+                while (reader.Read())
                 {
-                    var box = (NpgsqlBox)r[1];
-                    allImages.Add(r.GetString(0), new IsaacResourceImage((int)box.Left, (int)box.Top, (int)box.Height, (int)box.Width, (ResourceType)r.GetInt32(2)));
+                    var box = (NpgsqlBox)reader[1];
+                    allImages.Add(reader.GetString(0), new IsaacResourceImage((int)box.Left, (int)box.Top, (int)box.Height, (int)box.Width, (ResourceType)reader.GetInt32(2)));
                 }
             }
 
@@ -420,22 +403,18 @@ namespace Website.Data
 
         public async Task<bool> CoordinatesAreTaken(int x, int y, int h, int w)
         {
-            var query = "SELECT 1 FROM isaac_resources WHERE x && @X IS TRUE;";
-
-            using var c = await _npgsql.Connect();
-            using var q = new NpgsqlCommand(query, c);
-            q.Parameters.AddWithValue("@X", NpgsqlDbType.Box, CreateBoxCoordinatesFromScreenCoordinates(x, y, w, h));
-
-            using var r = await q.ExecuteReaderAsync();
-
-            return r.HasRows;
+            using var connection = await _npgsql.Connect();
+            using var command = new NpgsqlCommand("SELECT 1 FROM isaac_resources WHERE x && @X IS TRUE;", connection);
+            command.Parameters.AddWithValue("@X", NpgsqlDbType.Box, CreateBoxCoordinatesFromScreenCoordinates(x, y, w, h));
+            using var reader = await command.ExecuteReaderAsync();
+            return reader.HasRows;
         }
 
         public async Task<List<SubmittedEpisode>> GetSubmittedEpisodesForVideo(string videoId, int? submissionId = null)
         {
             var result = new List<SubmittedEpisode>();
 
-            string query = 
+            string commandText = 
                 "SELECT s.id, s.s_type, s.latest, u.\"UserName\" " +
                 "FROM public.video_submissions s " +
                 "LEFT JOIN public.video_submissions_userdata d ON d.submission = s.id " +
@@ -443,26 +422,26 @@ namespace Website.Data
                 "WHERE s.video = @VideoId" +
                 $"{(submissionId is null ? " AND s.latest = TRUE" : " AND s.id = @SubmissionId")}; ";
 
-            using var c = await _npgsql.Connect();
-            using var q = new NpgsqlCommand(query, c);
-            q.Parameters.AddWithValue("@VideoId", NpgsqlDbType.Text, videoId);
-            if (submissionId != null) q.Parameters.AddWithValue("@SubmissionId", NpgsqlDbType.Integer, submissionId.Value);
+            using var connection = await _npgsql.Connect();
+            using var command = new NpgsqlCommand(commandText, connection);
+            command.Parameters.AddWithValue("@VideoId", NpgsqlDbType.Text, videoId);
+            if (submissionId != null) command.Parameters.AddWithValue("@SubmissionId", NpgsqlDbType.Integer, submissionId.Value);
 
-            using var r = await q.ExecuteReaderAsync();
+            using var reader = await command.ExecuteReaderAsync();
 
-            if (r.HasRows)
+            if (reader.HasRows)
             {
-                while (r.Read())
+                while (reader.Read())
                 {
                     int i = 0;
                     var e = new SubmittedEpisode
                     {
-                        Id = r.GetInt32(i++),
-                        SubmissionType = (SubmissionType)r.GetInt32(i++),
-                        Latest = r.GetBoolean(i++),
+                        Id = reader.GetInt32(i++),
+                        SubmissionType = (SubmissionType)reader.GetInt32(i++),
+                        Latest = reader.GetBoolean(i++),
                         PlayedCharacters = new List<PlayedCharacter>(),
                         Video = videoId,
-                        UserName = r.IsDBNull(i++) ? "[unknown]" : r.GetString(i - 1)
+                        UserName = reader.IsDBNull(i++) ? "[unknown]" : reader.GetString(i - 1)
                     };
                     result.Add(e);
                 }
@@ -475,7 +454,7 @@ namespace Website.Data
         {
             PlayedCharacter? result = default;
 
-            string query =
+            string commandText =
                 "SELECT " +
                     "pc.id, pc.action, pc.run_number, pc.submission, pc.seed, " +
                     "c.id, c.name, c.type, c.exists_in, c.x, c.game_mode, c.color, c.display_order, c.difficulty, c.tags, " +
@@ -485,51 +464,51 @@ namespace Website.Data
                 "LEFT JOIN isaac_resources d ON d.id = pc.died_from " +
                 $"WHERE id = @Id;";
 
-            using var c = await _npgsql.Connect();
-            using var q = new NpgsqlCommand(query, c);
-            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Integer, playedCharacterId);
-            using var r = await q.ExecuteReaderAsync();
+            using var connection = await _npgsql.Connect();
+            using var command = new NpgsqlCommand(commandText, connection);
+            command.Parameters.AddWithValue("@Id", NpgsqlDbType.Integer, playedCharacterId);
+            using var reader = await command.ExecuteReaderAsync();
 
-            if (r.HasRows)
+            if (reader.HasRows)
             {
-                r.Read();
+                reader.Read();
                 int i = 0;
                 result = new PlayedCharacter
                 {
-                    Id = r.GetInt32(i++),
-                    Action = r.GetInt32(i++),
-                    RunNumber = r.GetInt32(i++),
-                    Submission = r.GetInt32(i++),
-                    Seed = r.IsDBNull(i++) ? null : r.GetString(i - 1),
+                    Id = reader.GetInt32(i++),
+                    Action = reader.GetInt32(i++),
+                    RunNumber = reader.GetInt32(i++),
+                    Submission = reader.GetInt32(i++),
+                    Seed = reader.IsDBNull(i++) ? null : reader.GetString(i - 1),
                     GameCharacter = new IsaacResource()
                     {
-                        Id = r.GetString(i++),
-                        Name = r.GetString(i++),
-                        ResourceType = (ResourceType)r.GetInt32(i++),
-                        ExistsIn = (ExistsIn)r.GetInt32(i++),
-                        CssCoordinates = (NpgsqlBox)r[i++],
-                        GameMode = (GameMode)r.GetInt32(i++),
-                        Color = r.GetString(i++),
-                        DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                        Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                        Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Tag)x).ToList(),
+                        Id = reader.GetString(i++),
+                        Name = reader.GetString(i++),
+                        ResourceType = (ResourceType)reader.GetInt32(i++),
+                        ExistsIn = (ExistsIn)reader.GetInt32(i++),
+                        CssCoordinates = (NpgsqlBox)reader[i++],
+                        GameMode = (GameMode)reader.GetInt32(i++),
+                        Color = reader.GetString(i++),
+                        DisplayOrder = reader.IsDBNull(i++) ? null : (int?)reader.GetInt32(i - 1),
+                        Difficulty = reader.IsDBNull(i++) ? null : (int?)reader.GetInt32(i - 1),
+                        Tags = reader.IsDBNull(i++) ? null : ((int[])reader[i - 1]).Select(x => (Tag)x).ToList(),
                     }
                 };
 
-                if (!r.IsDBNull(i))
+                if (!reader.IsDBNull(i))
                 {
                     result.DiedFrom = new IsaacResource()
                     {
-                        Id = r.GetString(i++),
-                        Name = r.GetString(i++),
-                        ResourceType = (ResourceType)r.GetInt32(i++),
-                        ExistsIn = (ExistsIn)r.GetInt32(i++),
-                        CssCoordinates = (NpgsqlBox)r[i++],
-                        GameMode = (GameMode)r.GetInt32(i++),
-                        Color = r.GetString(i++),
-                        DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                        Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                        Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Tag)x).ToList()
+                        Id = reader.GetString(i++),
+                        Name = reader.GetString(i++),
+                        ResourceType = (ResourceType)reader.GetInt32(i++),
+                        ExistsIn = (ExistsIn)reader.GetInt32(i++),
+                        CssCoordinates = (NpgsqlBox)reader[i++],
+                        GameMode = (GameMode)reader.GetInt32(i++),
+                        Color = reader.GetString(i++),
+                        DisplayOrder = reader.IsDBNull(i++) ? null : (int?)reader.GetInt32(i - 1),
+                        Difficulty = reader.IsDBNull(i++) ? null : (int?)reader.GetInt32(i - 1),
+                        Tags = reader.IsDBNull(i++) ? null : ((int[])reader[i - 1]).Select(x => (Tag)x).ToList()
                     };
                 }
             }
@@ -541,7 +520,7 @@ namespace Website.Data
         {
             var result = new List<PlayedCharacter>();
 
-            string query = 
+            string commandText = 
                 "SELECT " +
                     "pc.id, pc.action, pc.run_number, pc.submission, pc.seed, " +
                     "c.id, c.name, c.type, c.exists_in, c.x, c.game_mode, c.color, c.display_order, c.difficulty, c.tags, " +
@@ -553,54 +532,54 @@ namespace Website.Data
                 "GROUP BY pc.submission, pc.id, c.id, d.id " +
                 "ORDER BY pc.run_number ASC, pc.action ASC; ";
 
-            using var c = await _npgsql.Connect();
-            using var q = new NpgsqlCommand(query, c);
-            q.Parameters.AddWithValue("@VideoId", NpgsqlDbType.Text, videoId);
-            if (submissionId != null) q.Parameters.AddWithValue("@SubmissionId", NpgsqlDbType.Integer, submissionId.Value);
+            using var connection = await _npgsql.Connect();
+            using var command = new NpgsqlCommand(commandText, connection);
+            command.Parameters.AddWithValue("@VideoId", NpgsqlDbType.Text, videoId);
+            if (submissionId != null) command.Parameters.AddWithValue("@SubmissionId", NpgsqlDbType.Integer, submissionId.Value);
 
-            using var r = await q.ExecuteReaderAsync();
+            using var reader = await command.ExecuteReaderAsync();
 
-            if (r.HasRows)
+            if (reader.HasRows)
             {
-                while (r.Read())
+                while (reader.Read())
                 {
                     int i = 0;
                     var playedCharacter = new PlayedCharacter
                     {
-                        Id = r.GetInt32(i++),
-                        Action = r.GetInt32(i++),
-                        RunNumber = r.GetInt32(i++),
-                        Submission = r.GetInt32(i++),
-                        Seed = r.IsDBNull(i++) ? null : r.GetString(i - 1),
+                        Id = reader.GetInt32(i++),
+                        Action = reader.GetInt32(i++),
+                        RunNumber = reader.GetInt32(i++),
+                        Submission = reader.GetInt32(i++),
+                        Seed = reader.IsDBNull(i++) ? null : reader.GetString(i - 1),
                         GameCharacter = new IsaacResource()
                         {
-                            Id = r.GetString(i++),
-                            Name = r.GetString(i++),
-                            ResourceType = (ResourceType)r.GetInt32(i++),
-                            ExistsIn = (ExistsIn)r.GetInt32(i++),
-                            CssCoordinates = (NpgsqlBox)r[i++],
-                            GameMode = (GameMode)r.GetInt32(i++),
-                            Color = r.GetString(i++),
-                            DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                            Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                            Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Tag)x).ToList(),
+                            Id = reader.GetString(i++),
+                            Name = reader.GetString(i++),
+                            ResourceType = (ResourceType)reader.GetInt32(i++),
+                            ExistsIn = (ExistsIn)reader.GetInt32(i++),
+                            CssCoordinates = (NpgsqlBox)reader[i++],
+                            GameMode = (GameMode)reader.GetInt32(i++),
+                            Color = reader.GetString(i++),
+                            DisplayOrder = reader.IsDBNull(i++) ? null : (int?)reader.GetInt32(i - 1),
+                            Difficulty = reader.IsDBNull(i++) ? null : (int?)reader.GetInt32(i - 1),
+                            Tags = reader.IsDBNull(i++) ? null : ((int[])reader[i - 1]).Select(x => (Tag)x).ToList(),
                         }
                     };
 
-                    if (!r.IsDBNull(i))
+                    if (!reader.IsDBNull(i))
                     {
                         playedCharacter.DiedFrom = new IsaacResource()
                         {
-                            Id = r.GetString(i++),
-                            Name = r.GetString(i++),
-                            ResourceType = (ResourceType)r.GetInt32(i++),
-                            ExistsIn = (ExistsIn)r.GetInt32(i++),
-                            CssCoordinates = (NpgsqlBox)r[i++],
-                            GameMode = (GameMode)r.GetInt32(i++),
-                            Color = r.GetString(i++),
-                            DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                            Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                            Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Tag)x).ToList()
+                            Id = reader.GetString(i++),
+                            Name = reader.GetString(i++),
+                            ResourceType = (ResourceType)reader.GetInt32(i++),
+                            ExistsIn = (ExistsIn)reader.GetInt32(i++),
+                            CssCoordinates = (NpgsqlBox)reader[i++],
+                            GameMode = (GameMode)reader.GetInt32(i++),
+                            Color = reader.GetString(i++),
+                            DisplayOrder = reader.IsDBNull(i++) ? null : (int?)reader.GetInt32(i - 1),
+                            Difficulty = reader.IsDBNull(i++) ? null : (int?)reader.GetInt32(i - 1),
+                            Tags = reader.IsDBNull(i++) ? null : ((int[])reader[i - 1]).Select(x => (Tag)x).ToList()
                         };
                     }
 
@@ -615,7 +594,7 @@ namespace Website.Data
         {
             PlayedFloor? result = default;
 
-            string query =
+            string commandText =
                 "SELECT " +
                     "pf.id, pf.action, pf.run_number, pf.floor_number, pf.submission, pf.duration, " +
                     "f.id, f.name, f.type, f.exists_in, f.x, f.game_mode, f.color, f.display_order, f.difficulty, f.tags, " +
@@ -625,52 +604,52 @@ namespace Website.Data
                 "LEFT JOIN isaac_resources d ON d.id = pf.died_from " +
                 "WHERE id = @Id;";
 
-            using var c = await _npgsql.Connect();
-            using var q = new NpgsqlCommand(query, c);
-            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Integer, id);
-            using var r = await q.ExecuteReaderAsync();
+            using var connection = await _npgsql.Connect();
+            using var command = new NpgsqlCommand(commandText, connection);
+            command.Parameters.AddWithValue("@Id", NpgsqlDbType.Integer, id);
+            using var reader = await command.ExecuteReaderAsync();
 
-            if (r.HasRows)
+            if (reader.HasRows)
             {
-                r.Read();
+                reader.Read();
                 int i = 0;
                 result = new PlayedFloor()
                 {
-                    Id = r.GetInt32(i++),
-                    Action = r.GetInt32(i++),
-                    RunNumber = r.GetInt32(i++),
-                    FloorNumber = r.GetInt32(i++),
-                    Submission = r.GetInt32(i++),
-                    Duration = r.GetInt32(i++),
+                    Id = reader.GetInt32(i++),
+                    Action = reader.GetInt32(i++),
+                    RunNumber = reader.GetInt32(i++),
+                    FloorNumber = reader.GetInt32(i++),
+                    Submission = reader.GetInt32(i++),
+                    Duration = reader.GetInt32(i++),
                     Floor = new IsaacResource()
                     {
-                        Id = r.GetString(i++),
-                        Name = r.GetString(i++),
-                        ResourceType = (ResourceType)r.GetInt32(i++),
-                        ExistsIn = (ExistsIn)r.GetInt32(i++),
-                        CssCoordinates = (NpgsqlBox)r[i++],
-                        GameMode = (GameMode)r.GetInt32(i++),
-                        Color = r.GetString(i++),
-                        DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                        Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                        Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Tag)x).ToList()
+                        Id = reader.GetString(i++),
+                        Name = reader.GetString(i++),
+                        ResourceType = (ResourceType)reader.GetInt32(i++),
+                        ExistsIn = (ExistsIn)reader.GetInt32(i++),
+                        CssCoordinates = (NpgsqlBox)reader[i++],
+                        GameMode = (GameMode)reader.GetInt32(i++),
+                        Color = reader.GetString(i++),
+                        DisplayOrder = reader.IsDBNull(i++) ? null : (int?)reader.GetInt32(i - 1),
+                        Difficulty = reader.IsDBNull(i++) ? null : (int?)reader.GetInt32(i - 1),
+                        Tags = reader.IsDBNull(i++) ? null : ((int[])reader[i - 1]).Select(x => (Tag)x).ToList()
                     }
                 };
 
-                if (!r.IsDBNull(i))
+                if (!reader.IsDBNull(i))
                 {
                     result.DiedFrom = new IsaacResource()
                     {
-                        Id = r.GetString(i++),
-                        Name = r.GetString(i++),
-                        ResourceType = (ResourceType)r.GetInt32(i++),
-                        ExistsIn = (ExistsIn)r.GetInt32(i++),
-                        CssCoordinates = (NpgsqlBox)r[i++],
-                        GameMode = (GameMode)r.GetInt32(i++),
-                        Color = r.GetString(i++),
-                        DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                        Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                        Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Tag)x).ToList()
+                        Id = reader.GetString(i++),
+                        Name = reader.GetString(i++),
+                        ResourceType = (ResourceType)reader.GetInt32(i++),
+                        ExistsIn = (ExistsIn)reader.GetInt32(i++),
+                        CssCoordinates = (NpgsqlBox)reader[i++],
+                        GameMode = (GameMode)reader.GetInt32(i++),
+                        Color = reader.GetString(i++),
+                        DisplayOrder = reader.IsDBNull(i++) ? null : (int?)reader.GetInt32(i - 1),
+                        Difficulty = reader.IsDBNull(i++) ? null : (int?)reader.GetInt32(i - 1),
+                        Tags = reader.IsDBNull(i++) ? null : ((int[])reader[i - 1]).Select(x => (Tag)x).ToList()
                     };
                 }
             }
@@ -682,7 +661,7 @@ namespace Website.Data
         {
             var result = new List<PlayedFloor>();
 
-            string query =
+            string commandText =
                 "SELECT " +
                     "pf.id, pf.action, pf.run_number, pf.floor_number, pf.submission, pf.duration, " +
                     "f.id, f.name, f.type, f.exists_in, f.x, f.game_mode, f.color, f.display_order, f.difficulty, f.tags, " +
@@ -694,55 +673,55 @@ namespace Website.Data
                 "GROUP BY pf.id, f.id, d.id " +
                 "ORDER BY pf.run_number ASC, pf.action ASC; ";
 
-            using var c = await _npgsql.Connect();
-            using var q = new NpgsqlCommand(query, c);
-            q.Parameters.AddWithValue("@VideoId", NpgsqlDbType.Text, videoId);
-            if (submissionId != null) q.Parameters.AddWithValue("@SubmissionId", NpgsqlDbType.Integer, submissionId.Value);
+            using var connection = await _npgsql.Connect();
+            using var command = new NpgsqlCommand(commandText, connection);
+            command.Parameters.AddWithValue("@VideoId", NpgsqlDbType.Text, videoId);
+            if (submissionId != null) command.Parameters.AddWithValue("@SubmissionId", NpgsqlDbType.Integer, submissionId.Value);
 
-            using var r = await q.ExecuteReaderAsync();
+            using var reader = await command.ExecuteReaderAsync();
 
-            if (r.HasRows)
+            if (reader.HasRows)
             {
-                while (r.Read())
+                while (reader.Read())
                 {
                     int i = 0;
                     var floor = new PlayedFloor()
                     {
-                        Id = r.GetInt32(i++),
-                        Action = r.GetInt32(i++),
-                        RunNumber = r.GetInt32(i++),
-                        FloorNumber = r.GetInt32(i++),
-                        Submission = r.GetInt32(i++),
-                        Duration = r.GetInt32(i++),
+                        Id = reader.GetInt32(i++),
+                        Action = reader.GetInt32(i++),
+                        RunNumber = reader.GetInt32(i++),
+                        FloorNumber = reader.GetInt32(i++),
+                        Submission = reader.GetInt32(i++),
+                        Duration = reader.GetInt32(i++),
                         Floor = new IsaacResource()
                         {
-                            Id = r.GetString(i++),
-                            Name = r.GetString(i++),
-                            ResourceType = (ResourceType)r.GetInt32(i++),
-                            ExistsIn = (ExistsIn)r.GetInt32(i++),
-                            CssCoordinates = (NpgsqlBox)r[i++],
-                            GameMode = (GameMode)r.GetInt32(i++),
-                            Color = r.GetString(i++),
-                            DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                            Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                            Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Tag)x).ToList()
+                            Id = reader.GetString(i++),
+                            Name = reader.GetString(i++),
+                            ResourceType = (ResourceType)reader.GetInt32(i++),
+                            ExistsIn = (ExistsIn)reader.GetInt32(i++),
+                            CssCoordinates = (NpgsqlBox)reader[i++],
+                            GameMode = (GameMode)reader.GetInt32(i++),
+                            Color = reader.GetString(i++),
+                            DisplayOrder = reader.IsDBNull(i++) ? null : (int?)reader.GetInt32(i - 1),
+                            Difficulty = reader.IsDBNull(i++) ? null : (int?)reader.GetInt32(i - 1),
+                            Tags = reader.IsDBNull(i++) ? null : ((int[])reader[i - 1]).Select(x => (Tag)x).ToList()
                         }
                     };
 
-                    if (!r.IsDBNull(i))
+                    if (!reader.IsDBNull(i))
                     {
                         floor.DiedFrom = new IsaacResource()
                         {
-                            Id = r.GetString(i++),
-                            Name = r.GetString(i++),
-                            ResourceType = (ResourceType)r.GetInt32(i++),
-                            ExistsIn = (ExistsIn)r.GetInt32(i++),
-                            CssCoordinates = (NpgsqlBox)r[i++],
-                            GameMode = (GameMode)r.GetInt32(i++),
-                            Color = r.GetString(i++),
-                            DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                            Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                            Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Tag)x).ToList()
+                            Id = reader.GetString(i++),
+                            Name = reader.GetString(i++),
+                            ResourceType = (ResourceType)reader.GetInt32(i++),
+                            ExistsIn = (ExistsIn)reader.GetInt32(i++),
+                            CssCoordinates = (NpgsqlBox)reader[i++],
+                            GameMode = (GameMode)reader.GetInt32(i++),
+                            Color = reader.GetString(i++),
+                            DisplayOrder = reader.IsDBNull(i++) ? null : (int?)reader.GetInt32(i - 1),
+                            Difficulty = reader.IsDBNull(i++) ? null : (int?)reader.GetInt32(i - 1),
+                            Tags = reader.IsDBNull(i++) ? null : ((int[])reader[i - 1]).Select(x => (Tag)x).ToList()
                         };
                     }
 
@@ -753,11 +732,12 @@ namespace Website.Data
             return result;
         }
 
+
         public async Task<GameplayEvent?> GetGameplayEventById(int id)
         {
             GameplayEvent? result = default;
 
-            var query =
+            var commandText =
                 "SELECT " +
                     "e.id, e.event_type, e.action, e.resource_three, e.run_number, e.player, e.floor_number, e.submission, e.was_rerolled, e.played_character, e.played_floor, e.latest, " +
                     "r1.id, r1.name, r1.type, r1.exists_in, r1.x, r1.game_mode, r1.color, r1.display_order, r1.difficulty, r1.tags, " +
@@ -767,58 +747,58 @@ namespace Website.Data
                 "LEFT JOIN isaac_resources r2 ON r2.id = e.resource_two " +
                 $"WHERE e.id = @Id;";
 
-            var c = await _npgsql.Connect();
-            var q = new NpgsqlCommand(query, c);
-            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Integer, id);
-            var r = await q.ExecuteReaderAsync();
+            var connection = await _npgsql.Connect();
+            var command = new NpgsqlCommand(commandText, connection);
+            command.Parameters.AddWithValue("@Id", NpgsqlDbType.Integer, id);
+            var reader = await command.ExecuteReaderAsync();
 
-            if (r.HasRows)
+            if (reader.HasRows)
             {
-                r.Read();
+                reader.Read();
                 int i = 0;
                 result = new GameplayEvent()
                 {
-                    Id = r.GetInt32(i++),
-                    EventType = (GameplayEventType)r.GetInt32(i++),
-                    Action = r.GetInt32(i++),
-                    Resource3 = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                    RunNumber = r.GetInt32(i++),
-                    Player = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                    FloorNumber = r.GetInt32(i++),
-                    Submission = r.GetInt32(i++),
-                    WasRerolled = r.GetBoolean(i++),
-                    PlayedCharacterId = r.GetInt32(i++),
-                    PlayedFloorId = r.GetInt32(i++),
-                    Latest = r.GetBoolean(i++),
+                    Id = reader.GetInt32(i++),
+                    EventType = (GameplayEventType)reader.GetInt32(i++),
+                    Action = reader.GetInt32(i++),
+                    Resource3 = reader.IsDBNull(i++) ? null : (int?)reader.GetInt32(i - 1),
+                    RunNumber = reader.GetInt32(i++),
+                    Player = reader.IsDBNull(i++) ? null : (int?)reader.GetInt32(i - 1),
+                    FloorNumber = reader.GetInt32(i++),
+                    Submission = reader.GetInt32(i++),
+                    WasRerolled = reader.GetBoolean(i++),
+                    PlayedCharacterId = reader.GetInt32(i++),
+                    PlayedFloorId = reader.GetInt32(i++),
+                    Latest = reader.GetBoolean(i++),
                     Resource1 = new IsaacResource()
                     {
-                        Id = r.GetString(i++),
-                        Name = r.GetString(i++),
-                        ResourceType = (ResourceType)r.GetInt32(i++),
-                        ExistsIn = (ExistsIn)r.GetInt32(i++),
-                        CssCoordinates = (NpgsqlBox)r[i++],
-                        GameMode = (GameMode)r.GetInt32(i++),
-                        Color = r.GetString(i++),
-                        DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                        Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                        Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Tag)x).ToList(),
+                        Id = reader.GetString(i++),
+                        Name = reader.GetString(i++),
+                        ResourceType = (ResourceType)reader.GetInt32(i++),
+                        ExistsIn = (ExistsIn)reader.GetInt32(i++),
+                        CssCoordinates = (NpgsqlBox)reader[i++],
+                        GameMode = (GameMode)reader.GetInt32(i++),
+                        Color = reader.GetString(i++),
+                        DisplayOrder = reader.IsDBNull(i++) ? null : (int?)reader.GetInt32(i - 1),
+                        Difficulty = reader.IsDBNull(i++) ? null : (int?)reader.GetInt32(i - 1),
+                        Tags = reader.IsDBNull(i++) ? null : ((int[])reader[i - 1]).Select(x => (Tag)x).ToList(),
                     }
                 };
 
-                if (!r.IsDBNull(i))
+                if (!reader.IsDBNull(i))
                 {
                     result.Resource2 = new IsaacResource()
                     {
-                        Id = r.GetString(i++),
-                        Name = r.GetString(i++),
-                        ResourceType = (ResourceType)r.GetInt32(i++),
-                        ExistsIn = (ExistsIn)r.GetInt32(i++),
-                        CssCoordinates = (NpgsqlBox)r[i++],
-                        GameMode = (GameMode)r.GetInt32(i++),
-                        Color = r.GetString(i++),
-                        DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                        Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                        Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Tag)x).ToList()
+                        Id = reader.GetString(i++),
+                        Name = reader.GetString(i++),
+                        ResourceType = (ResourceType)reader.GetInt32(i++),
+                        ExistsIn = (ExistsIn)reader.GetInt32(i++),
+                        CssCoordinates = (NpgsqlBox)reader[i++],
+                        GameMode = (GameMode)reader.GetInt32(i++),
+                        Color = reader.GetString(i++),
+                        DisplayOrder = reader.IsDBNull(i++) ? null : (int?)reader.GetInt32(i - 1),
+                        Difficulty = reader.IsDBNull(i++) ? null : (int?)reader.GetInt32(i - 1),
+                        Tags = reader.IsDBNull(i++) ? null : ((int[])reader[i - 1]).Select(x => (Tag)x).ToList()
                     };
                 }
             }
@@ -826,11 +806,12 @@ namespace Website.Data
             return result;
         }
 
+
         public async Task<List<GameplayEvent>> GetGameplayEventsForVideo(string videoId, int? submissionId = null)
         {
             var result = new List<GameplayEvent>();
 
-            var query =
+            var commandText =
                 "SELECT " +
                     "e.id, e.event_type, e.action, e.resource_three, e.run_number, e.player, e.floor_number, e.submission, e.was_rerolled, e.played_character, e.played_floor, " +
                     "r1.id, r1.name, r1.type, r1.exists_in, r1.x, r1.game_mode, r1.color, r1.display_order, r1.difficulty, r1.tags, " +
@@ -842,60 +823,60 @@ namespace Website.Data
                 "GROUP BY e.submission, e.id, r1.id, r2.id " +
                 "ORDER BY e.run_number ASC, e.action ASC;";
 
-            using var c = await _npgsql.Connect();
-            using var q = new NpgsqlCommand(query, c);
-            q.Parameters.AddWithValue("@VideoId", NpgsqlDbType.Text, videoId);
-            if (submissionId != null) q.Parameters.AddWithValue("@SubmissionId", NpgsqlDbType.Integer, submissionId.Value);
+            using var connection = await _npgsql.Connect();
+            using var command = new NpgsqlCommand(commandText, connection);
+            command.Parameters.AddWithValue("@VideoId", NpgsqlDbType.Text, videoId);
+            if (submissionId != null) command.Parameters.AddWithValue("@SubmissionId", NpgsqlDbType.Integer, submissionId.Value);
 
-            using var r = await q.ExecuteReaderAsync();
+            using var reader = await command.ExecuteReaderAsync();
 
-            if (r.HasRows)
+            if (reader.HasRows)
             {
-                while (r.Read())
+                while (reader.Read())
                 {
                     int i = 0;
                     var gameplayEvent = new GameplayEvent()
                     {
-                        Id = r.GetInt32(i++),
-                        EventType = (GameplayEventType)r.GetInt32(i++),
-                        Action = r.GetInt32(i++),
-                        Resource3 = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                        RunNumber = r.GetInt32(i++),
-                        Player = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                        FloorNumber = r.GetInt32(i++),
-                        Submission = r.GetInt32(i++),
-                        WasRerolled = r.GetBoolean(i++),
-                        PlayedCharacterId = r.GetInt32(i++),
-                        PlayedFloorId = r.GetInt32(i++),
+                        Id = reader.GetInt32(i++),
+                        EventType = (GameplayEventType)reader.GetInt32(i++),
+                        Action = reader.GetInt32(i++),
+                        Resource3 = reader.IsDBNull(i++) ? null : (int?)reader.GetInt32(i - 1),
+                        RunNumber = reader.GetInt32(i++),
+                        Player = reader.IsDBNull(i++) ? null : (int?)reader.GetInt32(i - 1),
+                        FloorNumber = reader.GetInt32(i++),
+                        Submission = reader.GetInt32(i++),
+                        WasRerolled = reader.GetBoolean(i++),
+                        PlayedCharacterId = reader.GetInt32(i++),
+                        PlayedFloorId = reader.GetInt32(i++),
                         Resource1 = new IsaacResource()
                         {
-                            Id = r.GetString(i++),
-                            Name = r.GetString(i++),
-                            ResourceType = (ResourceType)r.GetInt32(i++),
-                            ExistsIn = (ExistsIn)r.GetInt32(i++),
-                            CssCoordinates = (NpgsqlBox)r[i++],
-                            GameMode = (GameMode)r.GetInt32(i++),
-                            Color = r.GetString(i++),
-                            DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                            Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                            Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Tag)x).ToList(),
+                            Id = reader.GetString(i++),
+                            Name = reader.GetString(i++),
+                            ResourceType = (ResourceType)reader.GetInt32(i++),
+                            ExistsIn = (ExistsIn)reader.GetInt32(i++),
+                            CssCoordinates = (NpgsqlBox)reader[i++],
+                            GameMode = (GameMode)reader.GetInt32(i++),
+                            Color = reader.GetString(i++),
+                            DisplayOrder = reader.IsDBNull(i++) ? null : (int?)reader.GetInt32(i - 1),
+                            Difficulty = reader.IsDBNull(i++) ? null : (int?)reader.GetInt32(i - 1),
+                            Tags = reader.IsDBNull(i++) ? null : ((int[])reader[i - 1]).Select(x => (Tag)x).ToList(),
                         }
                     };
 
-                    if (!r.IsDBNull(i))
+                    if (!reader.IsDBNull(i))
                     {
                         gameplayEvent.Resource2 = new IsaacResource()
                         {
-                            Id = r.GetString(i++),
-                            Name = r.GetString(i++),
-                            ResourceType = (ResourceType)r.GetInt32(i++),
-                            ExistsIn = (ExistsIn)r.GetInt32(i++),
-                            CssCoordinates = (NpgsqlBox)r[i++],
-                            GameMode = (GameMode)r.GetInt32(i++),
-                            Color = r.GetString(i++),
-                            DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                            Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                            Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Tag)x).ToList()
+                            Id = reader.GetString(i++),
+                            Name = reader.GetString(i++),
+                            ResourceType = (ResourceType)reader.GetInt32(i++),
+                            ExistsIn = (ExistsIn)reader.GetInt32(i++),
+                            CssCoordinates = (NpgsqlBox)reader[i++],
+                            GameMode = (GameMode)reader.GetInt32(i++),
+                            Color = reader.GetString(i++),
+                            DisplayOrder = reader.IsDBNull(i++) ? null : (int?)reader.GetInt32(i - 1),
+                            Difficulty = reader.IsDBNull(i++) ? null : (int?)reader.GetInt32(i - 1),
+                            Tags = reader.IsDBNull(i++) ? null : ((int[])reader[i - 1]).Select(x => (Tag)x).ToList()
                         };
                     }
 
@@ -906,103 +887,79 @@ namespace Website.Data
             return result;
         }
 
+
         public async Task<int> UpdateExistsIn(string id, ExistsIn newExistsIn)
-        {
-            using var c = await _npgsql.Connect();
-            using var q = new NpgsqlCommand("UPDATE isaac_resources SET exists_in = @E WHERE id = @I;", c);
-            q.Parameters.AddWithValue("@E", NpgsqlDbType.Integer, (int)newExistsIn);
-            q.Parameters.AddWithValue("@I", NpgsqlDbType.Text, id);
-            return await q.ExecuteNonQueryAsync();
-        }
+            => await _npgsql.NonQuery("UPDATE isaac_resources SET exists_in = @E WHERE id = @I;",
+                _npgsql.Parameter("@E", NpgsqlDbType.Integer, (int)newExistsIn),
+                _npgsql.Parameter("@I", NpgsqlDbType.Text, id));
+
 
         public async Task<int> UpdateGameMode(string id, GameMode newGameMode)
-        {
-            using var c = await _npgsql.Connect();
-            using var q = new NpgsqlCommand("UPDATE isaac_resources SET game_mode = @G WHERE id = @I;", c);
-            q.Parameters.AddWithValue("@G", NpgsqlDbType.Integer, (int)newGameMode);
-            q.Parameters.AddWithValue("@I", NpgsqlDbType.Text, id);
-            return await q.ExecuteNonQueryAsync();
-        }
+            => await _npgsql.NonQuery("UPDATE isaac_resources SET game_mode = @G WHERE id = @I;",
+                _npgsql.Parameter("@G", NpgsqlDbType.Integer, (int)newGameMode),
+                _npgsql.Parameter("@I", NpgsqlDbType.Text, id));
+
 
         public async Task<int> UpdateName(string id, string newName)
-        {
-            using var c = await _npgsql.Connect();
-            using var q = new NpgsqlCommand("UPDATE isaac_resources SET name = @N WHERE id = @I;", c);
-            q.Parameters.AddWithValue("@N", NpgsqlDbType.Text, newName);
-            q.Parameters.AddWithValue("@I", NpgsqlDbType.Text, id);
-            return await q.ExecuteNonQueryAsync();
-        }
+            => await _npgsql.NonQuery("UPDATE isaac_resources SET name = @N WHERE id = @I;",
+                _npgsql.Parameter("@N", NpgsqlDbType.Text, newName),
+                _npgsql.Parameter("@I", NpgsqlDbType.Text, id));
+
 
         public async Task<int> UpdateId(string oldId, string newId)
-        {
-            using var c = await _npgsql.Connect();
-            using var q = new NpgsqlCommand("UPDATE isaac_resources SET id = @NewId WHERE id = @OldId;", c);
-            q.Parameters.AddWithValue("@NewId", NpgsqlDbType.Text, newId);
-            q.Parameters.AddWithValue("@OldId", NpgsqlDbType.Text, oldId);
-            return await q.ExecuteNonQueryAsync();
-        }
+            => await _npgsql.NonQuery("UPDATE isaac_resources SET id = @NewId WHERE id = @OldId;",
+                _npgsql.Parameter("@NewId", NpgsqlDbType.Text, newId),
+                _npgsql.Parameter("@OldId", NpgsqlDbType.Text, oldId));
+
 
         public async Task<int> CountResources(ResourceType type = ResourceType.Unspecified)
         {
-            string query = type == ResourceType.Unspecified
+            var commandText = type == ResourceType.Unspecified
                 ? "SELECT COUNT(*) FROM isaac_resources;"
                 : "SELECT COUNT(*) FROM isaac_resources WHERE type = @Type;";
 
-            using var c = await _npgsql.Connect();
-            using var q = new NpgsqlCommand(query, c);
+            using var connection = await _npgsql.Connect();
+            using var command = new NpgsqlCommand(commandText, connection);
 
             if (type != ResourceType.Unspecified)
             {
-                q.Parameters.AddWithValue("@Type", NpgsqlDbType.Integer, (int)type);
+                command.Parameters.AddWithValue("@Type", NpgsqlDbType.Integer, (int)type);
             }
 
-            var result = Convert.ToInt32(await q.ExecuteScalarAsync());
+            var result = Convert.ToInt32(await command.ExecuteScalarAsync());
             return result;
         }
 
+
         public async Task<string?> GetFirstResourceIdFromName(string name)
-        {
-            using var c = await _npgsql.Connect();
-            using var q = new NpgsqlCommand("SELECT id FROM isaac_resources WHERE name = @Name", c);
-            q.Parameters.AddWithValue("@Name", NpgsqlDbType.Text, name);
-            return Convert.ToString(await q.ExecuteScalarAsync());
-        }
+            => await _npgsql.ScalarString("SELECT id FROM isaac_resources WHERE name = @Name",
+                _npgsql.Parameter("@Name", NpgsqlDbType.Text, name));
+
 
         public async Task<string?> SaveResource(CreateIsaacResource resource, int x, int y, int w, int h)
-        {
-            Console.WriteLine("Saving Resource " + resource.Id);
-            string query = "INSERT INTO isaac_resources (id, name, type, exists_in, x, game_mode, color, mod, display_order, difficulty, tags) VALUES (" +
-                "@I, @N, @D, @E, @X, @M, @C, @L, @O, @U, @T) RETURNING id;";
+            => await _npgsql.ScalarString(
+                "INSERT INTO isaac_resources (id, name, type, exists_in, x, game_mode, color, mod, display_order, difficulty, tags) VALUES (@I, @N, @D, @E, @X, @M, @C, @L, @O, @U, @T) RETURNING id;",
+                _npgsql.Parameter("@I", NpgsqlDbType.Text, resource.Id),
+                _npgsql.Parameter("@N", NpgsqlDbType.Text, resource.Name),
+                _npgsql.Parameter("@D", NpgsqlDbType.Integer, (int)resource.ResourceType),
+                _npgsql.Parameter("@E", NpgsqlDbType.Integer, (int)resource.ExistsIn),
+                _npgsql.Parameter("@X", NpgsqlDbType.Box, CreateBoxCoordinatesFromScreenCoordinates(x, y, w, h)),
+                _npgsql.Parameter("@M", NpgsqlDbType.Integer, (int)resource.GameMode),
+                _npgsql.Parameter("@C", NpgsqlDbType.Text, resource.Color),
+                _npgsql.Parameter("@L", NpgsqlDbType.Integer, resource.FromMod ?? (object)DBNull.Value),
+                _npgsql.Parameter("@O", NpgsqlDbType.Integer, resource.DisplayOrder ?? (object)DBNull.Value),
+                _npgsql.Parameter("@U", NpgsqlDbType.Integer, resource.Difficulty ?? (object)DBNull.Value),
+                _npgsql.Parameter("@T", NpgsqlDbType.Array | NpgsqlDbType.Integer, resource.Tags?.Select(x => (int)x).ToArray() ?? (object)DBNull.Value));
 
-            using var c = await _npgsql.Connect();
-            using var q = new NpgsqlCommand(query, c);
-            q.Parameters.AddWithValue("@I", NpgsqlDbType.Text, resource.Id);
-            q.Parameters.AddWithValue("@N", NpgsqlDbType.Text, resource.Name);
-            q.Parameters.AddWithValue("@D", NpgsqlDbType.Integer, (int)resource.ResourceType);
-            q.Parameters.AddWithValue("@E", NpgsqlDbType.Integer, (int)resource.ExistsIn);
-            q.Parameters.AddWithValue("@X", NpgsqlDbType.Box, CreateBoxCoordinatesFromScreenCoordinates(x, y, w, h));
-            q.Parameters.AddWithValue("@M", NpgsqlDbType.Integer, (int)resource.GameMode);
-            q.Parameters.AddWithValue("@C", NpgsqlDbType.Text, resource.Color);
-            q.Parameters.AddWithValue("@L", NpgsqlDbType.Integer, resource.FromMod ?? (object)DBNull.Value);
-            q.Parameters.AddWithValue("@O", NpgsqlDbType.Integer, resource.DisplayOrder ?? (object)DBNull.Value);
-            q.Parameters.AddWithValue("@U", NpgsqlDbType.Integer, resource.Difficulty ?? (object)DBNull.Value);
-            q.Parameters.AddWithValue("@T", NpgsqlDbType.Array | NpgsqlDbType.Integer, resource.Tags?.Select(x => (int)x).ToArray() ?? (object)DBNull.Value);
-
-            return Convert.ToString(await q.ExecuteScalarAsync());
-        }
 
         public async Task<int> UpdateIconCoordinates(string resourceId, int x, int y, int w, int h)
-        {
-            using var c = await _npgsql.Connect();
-            using var q = new NpgsqlCommand("UPDATE isaac_resources SET x = @X WHERE id = @I;", c);
-            q.Parameters.AddWithValue("@X", NpgsqlDbType.Box, CreateBoxCoordinatesFromScreenCoordinates(x, y, w, h));
-            q.Parameters.AddWithValue("@I", NpgsqlDbType.Text, resourceId);
-            return await q.ExecuteNonQueryAsync();
-        }
+            => await _npgsql.NonQuery("UPDATE isaac_resources SET x = @X WHERE id = @I;",
+                _npgsql.Parameter("@X", NpgsqlDbType.Box, CreateBoxCoordinatesFromScreenCoordinates(x, y, w, h)),
+                _npgsql.Parameter("@I", NpgsqlDbType.Text, resourceId));
+
 
         private string GetOrderByClause(ResourceOrderBy orderBy, string prefix, bool asc)
-        {
-            return orderBy switch
+            => orderBy switch
             {
                 ResourceOrderBy.Color => $"{prefix}.color {(asc ? "ASC" : "DESC")}",
                 ResourceOrderBy.Difficulty => $"{prefix}.difficulty {(asc ? "ASC" : "DESC")} NULLS LAST",
@@ -1014,7 +971,7 @@ namespace Website.Data
                 ResourceOrderBy.Type => $"{prefix}.type {(asc ? "ASC" : "DESC")}",
                 _ => $"{prefix}.id",
             };
-        }
+
 
         #region StatementCreatorsForGetResources
 
@@ -1027,6 +984,7 @@ namespace Website.Data
                 s.Append($", m.id, m.name, u.id, u.url, u.name");
             }
         }
+
 
         private void CreateFromAndJoinStatementFromRequest(StringBuilder s, GetResource request)
         {
@@ -1072,6 +1030,7 @@ namespace Website.Data
             return parameters;
         }
 
+
         private void CreateGroupByStatementForRequest(StringBuilder s, GetResource request)
         {
             s.Append(" GROUP BY i.id");
@@ -1081,6 +1040,7 @@ namespace Website.Data
                 s.Append(", m.id, u.id");
             }
         }
+
 
         private void CreateOrderByStatementForRequest(StringBuilder s, GetResource request)
         {
@@ -1096,6 +1056,7 @@ namespace Website.Data
 
         #endregion
 
+
         public async Task<List<IsaacResource>> GetResources(GetResource request)
         {
             var resources = new List<IsaacResource>();
@@ -1110,32 +1071,32 @@ namespace Website.Data
             CreateOrderByStatementForRequest(s, request);
 
             // ...Execute
-            using var c = await _npgsql.Connect();
-            using var q = new NpgsqlCommand(s.ToString(), c);
-            q.Parameters.AddRange(parameters.ToArray());
+            using var connection = await _npgsql.Connect();
+            using var command = new NpgsqlCommand(s.ToString(), connection);
+            command.Parameters.AddRange(parameters.ToArray());
 
-            using var r = await q.ExecuteReaderAsync();
+            using var reader = await command.ExecuteReaderAsync();
 
-            if (r.HasRows)
+            if (reader.HasRows)
             {
-                while (r.Read())
+                while (reader.Read())
                 {
                     int i = 0;
-                    var resourceId = r.GetString(i);
+                    var resourceId = reader.GetString(i);
                     if (!resources.Any(x => x.Id == resourceId))
                     {
                         resources.Add(new IsaacResource()
                         {
-                            Id = r.GetString(i++),
-                            Name = r.GetString(i++),
-                            ResourceType = (ResourceType)r.GetInt32(i++),
-                            ExistsIn = (ExistsIn)r.GetInt32(i++),
-                            CssCoordinates = (NpgsqlBox)r[i++],
-                            GameMode = (GameMode)r.GetInt32(i++),
-                            Color = r.GetString(i++),
-                            DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                            Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                            Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Tag)x).ToList()
+                            Id = reader.GetString(i++),
+                            Name = reader.GetString(i++),
+                            ResourceType = (ResourceType)reader.GetInt32(i++),
+                            ExistsIn = (ExistsIn)reader.GetInt32(i++),
+                            CssCoordinates = (NpgsqlBox)reader[i++],
+                            GameMode = (GameMode)reader.GetInt32(i++),
+                            Color = reader.GetString(i++),
+                            DisplayOrder = reader.IsDBNull(i++) ? null : (int?)reader.GetInt32(i - 1),
+                            Difficulty = reader.IsDBNull(i++) ? null : (int?)reader.GetInt32(i - 1),
+                            Tags = reader.IsDBNull(i++) ? null : ((int[])reader[i - 1]).Select(x => (Tag)x).ToList()
                         });
                     }
                     else i += 10;
@@ -1144,23 +1105,23 @@ namespace Website.Data
 
                     if (request.IncludeMod)
                     {
-                        if (!r.IsDBNull(i) && currentResource.Mod is null)
+                        if (!reader.IsDBNull(i) && currentResource.Mod is null)
                         {
                             resources.First(x => x.Id == resourceId).Mod = new Mod()
                             {
-                                Id = r.GetInt32(i++),
-                                ModName = r.GetString(i++),
+                                Id = reader.GetInt32(i++),
+                                ModName = reader.GetString(i++),
                             };
                         }
                         else i += 2;
 
-                        if (!r.IsDBNull(i) && currentResource.Mod != null && !currentResource.Mod!.ModUrls.Any(x => x.Id == r.GetInt32(i)))
+                        if (!reader.IsDBNull(i) && currentResource.Mod != null && !currentResource.Mod!.ModUrls.Any(x => x.Id == reader.GetInt32(i)))
                         {
                             currentResource.Mod!.ModUrls.Add(new ModUrl()
                             {
-                                Id = r.GetInt32(i++),
-                                Url = r.GetString(i++),
-                                LinkText = r.GetString(i++)
+                                Id = reader.GetInt32(i++),
+                                Url = reader.GetString(i++),
+                                LinkText = reader.GetString(i++)
                             });
                         }
                         else i += 3;
@@ -1193,54 +1154,54 @@ namespace Website.Data
 
             s.Append(" WHERE i.id = @Id; ");
 
-            using var c = await _npgsql.Connect();
-            using var q = new NpgsqlCommand(s.ToString(), c);
-            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, id);
+            using var connection = await _npgsql.Connect();
+            using var command = new NpgsqlCommand(s.ToString(), connection);
+            command.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, id);
 
-            using var r = await q.ExecuteReaderAsync();
+            using var reader = await command.ExecuteReaderAsync();
 
-            if (r.HasRows)
+            if (reader.HasRows)
             {
-                while (r.Read())
+                while (reader.Read())
                 {
                     int i = 0;
                     if (result is null)
                     {
                         result = new IsaacResource()
                         {
-                            Id = r.GetString(i++),
-                            Name = r.GetString(i++),
-                            ResourceType = (ResourceType)r.GetInt32(i++),
-                            ExistsIn = (ExistsIn)r.GetInt32(i++),
-                            CssCoordinates = (NpgsqlBox)r[i++],
-                            GameMode = (GameMode)r.GetInt32(i++),
-                            Color = r.GetString(i++),
-                            DisplayOrder = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                            Difficulty = r.IsDBNull(i++) ? null : (int?)r.GetInt32(i - 1),
-                            Tags = r.IsDBNull(i++) ? null : ((int[])r[i - 1]).Select(x => (Tag)x).ToList()
+                            Id = reader.GetString(i++),
+                            Name = reader.GetString(i++),
+                            ResourceType = (ResourceType)reader.GetInt32(i++),
+                            ExistsIn = (ExistsIn)reader.GetInt32(i++),
+                            CssCoordinates = (NpgsqlBox)reader[i++],
+                            GameMode = (GameMode)reader.GetInt32(i++),
+                            Color = reader.GetString(i++),
+                            DisplayOrder = reader.IsDBNull(i++) ? null : (int?)reader.GetInt32(i - 1),
+                            Difficulty = reader.IsDBNull(i++) ? null : (int?)reader.GetInt32(i - 1),
+                            Tags = reader.IsDBNull(i++) ? null : ((int[])reader[i - 1]).Select(x => (Tag)x).ToList()
                         };
                     }
                     else i += 10;
 
                     if (includeMod)
                     {
-                        if (!r.IsDBNull(i) && result.Mod is null)
+                        if (!reader.IsDBNull(i) && result.Mod is null)
                         {
                             result.Mod = new Mod()
                             {
-                                Id = r.GetInt32(i++),
-                                ModName = r.GetString(i++),
+                                Id = reader.GetInt32(i++),
+                                ModName = reader.GetString(i++),
                             };
                         }
                         else i += 2;
 
-                        if (!r.IsDBNull(i) && result.Mod != null && !result.Mod.ModUrls.Any(x => x.Id == r.GetInt32(i)))
+                        if (!reader.IsDBNull(i) && result.Mod != null && !result.Mod.ModUrls.Any(x => x.Id == reader.GetInt32(i)))
                         {
                             result.Mod.ModUrls.Add(new ModUrl()
                             {
-                                Id = r.GetInt32(i++),
-                                Url = r.GetString(i++),
-                                LinkText = r.GetString(i++)
+                                Id = reader.GetInt32(i++),
+                                Url = reader.GetString(i++),
+                                LinkText = reader.GetString(i++)
                             });
                         }
                         else i += 3;
@@ -1253,63 +1214,57 @@ namespace Website.Data
 
 
         public async Task<int> DeleteResource(string resourceId)
-        {
-            using var c = await _npgsql.Connect();
-            using var q = new NpgsqlCommand("DELETE FROM isaac_resources WHERE id = @Id; ", c);
-            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, resourceId);
-            return await q.ExecuteNonQueryAsync();
-        }
+            => await _npgsql.NonQuery("DELETE FROM isaac_resources WHERE id = @Id;",
+                _npgsql.Parameter("@Id", NpgsqlDbType.Text, resourceId));
 
 
         public async Task<bool> ResourceExists(string resourceId)
         {
-            using var c = await _npgsql.Connect();
-            using var q = new NpgsqlCommand("SELECT id FROM isaac_resources WHERE id = @Id;", c);
-            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, resourceId);
-            using var r = await q.ExecuteReaderAsync();
-            return r.HasRows;
+            using var connection = await _npgsql.Connect();
+            using var command = new NpgsqlCommand("SELECT id FROM isaac_resources WHERE id = @Id;", connection);
+            command.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, resourceId);
+            using var reader = await command.ExecuteReaderAsync();
+            return reader.HasRows;
         }
+
 
         public async Task<int> MakeTransformative(MakeIsaacResourceTransformative model)
         {
-            string query =
+            string commandText =
                 "INSERT INTO transformative_resources (id, isaac_resource, transformation, counts_multiple_times, requires_title_content, valid_from, valid_until, steps_needed) " +
                 $"VALUES (DEFAULT, @IR, @TR, @CM, @RT, {(model.ValidFrom.HasValue ? "@VF" : "DEFAULT")}, {(model.ValidUntil.HasValue ? "@VU" : "DEFAULT")}, @SN) RETURNING id;";
 
-            using var c = await _npgsql.Connect();
-            using var q = new NpgsqlCommand(query, c);
-            q.Parameters.AddWithValue("@IR", NpgsqlDbType.Text, model.ResourceId);
-            q.Parameters.AddWithValue("@TR", NpgsqlDbType.Text, model.TransformationId);
-            q.Parameters.AddWithValue("@CM", NpgsqlDbType.Boolean, model.CanCountMultipleTimes);
-            q.Parameters.AddWithValue("@RT", NpgsqlDbType.Text, model.RequiresTitleContent ?? (object)DBNull.Value);
-            q.Parameters.AddWithValue("@SN", NpgsqlDbType.Integer, model.StepsNeeded);
-            if (model.ValidFrom.HasValue) q.Parameters.AddWithValue("@VF", NpgsqlDbType.TimestampTz, model.ValidFrom ?? (object)DBNull.Value);
-            if (model.ValidUntil.HasValue) q.Parameters.AddWithValue("@VU", NpgsqlDbType.TimestampTz, model.ValidUntil ?? (object)DBNull.Value);
+            using var connection = await _npgsql.Connect();
+            using var command = new NpgsqlCommand(commandText, connection);
+            command.Parameters.AddWithValue("@IR", NpgsqlDbType.Text, model.ResourceId);
+            command.Parameters.AddWithValue("@TR", NpgsqlDbType.Text, model.TransformationId);
+            command.Parameters.AddWithValue("@CM", NpgsqlDbType.Boolean, model.CanCountMultipleTimes);
+            command.Parameters.AddWithValue("@RT", NpgsqlDbType.Text, model.RequiresTitleContent ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@SN", NpgsqlDbType.Integer, model.StepsNeeded);
+            if (model.ValidFrom.HasValue) command.Parameters.AddWithValue("@VF", NpgsqlDbType.TimestampTz, model.ValidFrom ?? (object)DBNull.Value);
+            if (model.ValidUntil.HasValue) command.Parameters.AddWithValue("@VU", NpgsqlDbType.TimestampTz, model.ValidUntil ?? (object)DBNull.Value);
 
-            return Convert.ToInt32(await q.ExecuteScalarAsync());
+            return Convert.ToInt32(await command.ExecuteScalarAsync());
         }
+
 
         public async Task<int> DeleteSubmission(int submissionId)
-        {
-            var commandText = "DELETE FROM video_submissions WHERE id = @Id;";
-            using var c = await _npgsql.Connect();
-            using var q = new NpgsqlCommand(commandText, c);
-            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Integer, submissionId);
-            return await q.ExecuteNonQueryAsync();
-        }
+            => await _npgsql.NonQuery("DELETE FROM video_submissions WHERE id = @Id;",
+                _npgsql.Parameter("@Id", NpgsqlDbType.Integer, submissionId));
+
 
         public async Task<bool> HasTags(string resourceId, params Tag[] effects)
         {
             bool hasEffects = false;
 
-            using var c = await _npgsql.Connect();
-            using var q = new NpgsqlCommand($"SELECT 1 FROM isaac_resources WHERE id = @Resource AND tags @> @RequiredEffects; ", c);
-            q.Parameters.AddWithValue("@Resource", NpgsqlDbType.Text, resourceId);
-            q.Parameters.AddWithValue("@RequiredEffects", NpgsqlDbType.Array | NpgsqlDbType.Integer, effects.Select(x => (int)x).ToArray());
+            using var connection = await _npgsql.Connect();
+            using var command = new NpgsqlCommand($"SELECT 1 FROM isaac_resources WHERE id = @Resource AND tags @> @RequiredEffects; ", connection);
+            command.Parameters.AddWithValue("@Resource", NpgsqlDbType.Text, resourceId);
+            command.Parameters.AddWithValue("@RequiredEffects", NpgsqlDbType.Array | NpgsqlDbType.Integer, effects.Select(x => (int)x).ToArray());
 
-            using var r = await q.ExecuteReaderAsync();
+            using var reader = await command.ExecuteReaderAsync();
 
-            if (r.HasRows)
+            if (reader.HasRows)
             {
                 hasEffects = true;
             }
@@ -1317,60 +1272,58 @@ namespace Website.Data
             return hasEffects;
         }
 
+
         public async Task<List<(string transformation, bool countsMultipleTimes, int stepsNeeded)>> GetTransformationData(string resourceId, string videoTitle, DateTime videoReleasedate)
         {
             var result = new List<(string, bool, int)>();
 
-            using var c = await _npgsql.Connect();
-            using var q = new NpgsqlCommand(
+            var commandText =
                 "SELECT t.isaac_resource, t.transformation, t.counts_multiple_times, t.requires_title_content, t.valid_from, t.valid_until, t.steps_needed " +
                 "FROM transformative_resources t " +
                 "WHERE isaac_resource = @I " +
                 "AND valid_from <= @R " +
-                "AND valid_until >= @R; ", c);
-            q.Parameters.AddWithValue("@I", NpgsqlDbType.Text, resourceId);
-            q.Parameters.AddWithValue("@R", NpgsqlDbType.TimestampTz, videoReleasedate);
+                "AND valid_until >= @R;";
 
-            using var r = await q.ExecuteReaderAsync();
+            using var connection = await _npgsql.Connect();
+            using var command = new NpgsqlCommand(commandText, connection);
 
-            if (r.HasRows)
+            command.Parameters.AddWithValue("@I", NpgsqlDbType.Text, resourceId);
+            command.Parameters.AddWithValue("@R", NpgsqlDbType.TimestampTz, videoReleasedate);
+
+            using var reader = await command.ExecuteReaderAsync();
+
+            if (reader.HasRows)
             {
-                while (r.Read())
+                while (reader.Read())
                 {
-                    string? requiredTitleContent = r.IsDBNull(3) ? null : r.GetString(3);
+                    string? requiredTitleContent = reader.IsDBNull(3) ? null : reader.GetString(3);
 
                     if (requiredTitleContent != null && !videoTitle.ToLower().Contains(requiredTitleContent.ToLower()))
                     {
                         continue;
                     }
 
-                    result.Add((r.GetString(1), r.GetBoolean(2), r.GetInt32(6)));
+                    result.Add((reader.GetString(1), reader.GetBoolean(2), reader.GetInt32(6)));
                 }
             }
 
             return result;
         }
 
+
         public async Task<int> AddTag(string id, Tag tag)
-        {
-            using var c = await _npgsql.Connect();
-            using var q = new NpgsqlCommand("UPDATE isaac_resources SET tags = tags || ARRAY[@T] WHERE id = @Id;", c);
-            q.Parameters.AddWithValue("@T", NpgsqlDbType.Integer, (int)tag);
-            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, id);
-            return await q.ExecuteNonQueryAsync();
-        }
+            => await _npgsql.NonQuery("UPDATE isaac_resources SET tags = tags || ARRAY[@T] WHERE id = @Id;",
+                _npgsql.Parameter("@T", NpgsqlDbType.Integer, (int)tag),
+                _npgsql.Parameter("@Id", NpgsqlDbType.Text, id));
+
 
         public async Task<int> ClearTags(string id)
-        {
-            using var c = await _npgsql.Connect();
-            using var q = new NpgsqlCommand("UPDATE isaac_resources SET tags = NULL WHERE id = @Id;", c);
-            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, id);
-            return await q.ExecuteNonQueryAsync();
-        }
+            => await _npgsql.NonQuery("UPDATE isaac_resources SET tags = NULL WHERE id = @Id;",
+                _npgsql.Parameter("@Id", NpgsqlDbType.Text, id));
+
 
         public List<AvailableStats> GetAvailableStats(IsaacResource resource)
-        {
-            return resource.ResourceType switch
+            => resource.ResourceType switch
             {
                 ResourceType.Boss => new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History, AvailableStats.Floor },
                 ResourceType.Character => new List<AvailableStats>() { AvailableStats.Curse, AvailableStats.History },
@@ -1389,10 +1342,11 @@ namespace Website.Data
                 ResourceType.Trinket => new List<AvailableStats>() { AvailableStats.Character, AvailableStats.Curse, AvailableStats.History, AvailableStats.Floor },
                 _ => new List<AvailableStats>(),
             };
-        }
+
 
         public int GetResourceNumber(IsaacResource resource)
             => GetResourceNumber(resource.ResourceType);
+
 
         public int GetResourceNumber(ResourceType resourceType) 
             => resourceType switch
@@ -1402,24 +1356,17 @@ namespace Website.Data
                 _ => 1
             };
 
+
         public async Task<int> UpdateColor(ChangeColor changeColor)
-        {
-            using var c = await _npgsql.Connect();
-            using var q = new NpgsqlCommand("UPDATE isaac_resources SET color = @Color WHERE id = @Id;", c);
-            q.Parameters.AddWithValue("@Color", NpgsqlDbType.Text, changeColor.Color);
-            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, changeColor.ResourceId);
-            return await q.ExecuteNonQueryAsync();
-        }
+            => await _npgsql.NonQuery("UPDATE isaac_resources SET color = @Color WHERE id = @Id;",
+                _npgsql.Parameter("@Color", NpgsqlDbType.Text, changeColor.Color),
+                _npgsql.Parameter("@Id", NpgsqlDbType.Text, changeColor.ResourceId));
+
 
         public async Task<int> UpdateMod(ChangeMod changeMod)
-        {
-            using var c = await _npgsql.Connect();
-            using var q = new NpgsqlCommand("UPDATE isaac_resources SET mod = @ModId WHERE id = @ResourceId;", c);
-            q.Parameters.AddWithValue("@ModId", NpgsqlDbType.Integer, changeMod.ModId ?? (object)DBNull.Value);
-            q.Parameters.AddWithValue("@ResourceId", NpgsqlDbType.Text, changeMod.ResourceId);
-            return await q.ExecuteNonQueryAsync();
-        }
-
+            => await _npgsql.NonQuery("UPDATE isaac_resources SET mod = @ModId WHERE id = @ResourceId;",
+                _npgsql.Parameter("@ModId", NpgsqlDbType.Integer, changeMod.ModId ?? (object)DBNull.Value),
+                _npgsql.Parameter("@ResourceId", NpgsqlDbType.Text, changeMod.ResourceId));
     }
 }
 

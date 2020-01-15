@@ -16,15 +16,10 @@ using Microsoft.Extensions.Primitives;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Hangfire.Dashboard;
-using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
-using IdentityServer4;
-using IdentityServer4.EntityFramework;
 using System.Reflection;
-using IdentityServer4.Services;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Website

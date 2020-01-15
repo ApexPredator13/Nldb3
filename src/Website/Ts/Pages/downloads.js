@@ -1,5 +1,5 @@
 ﻿import { Html, Div, h1, t, span, hr, h3, a, href, cl, p, br, event, attr } from "../Framework/renderer";
-import { registerPage, initRouter, navigate } from "../Framework/router";
+import { registerPage, initRouter } from "../Framework/router";
 import { Link } from "./_link-creator";
 
 /**
@@ -21,10 +21,10 @@ DownloadsPage.prototype = {
                 ),
                 hr(),
                 h3(
-                    t('SQL dump of the Database')
+                    t('Database Dump')
                 ),
                 p(
-                    t("Note: Don't download this unless you know how to operate a SQL database."),
+                    t("Note: Don't download this unless you know how to use a SQL database."),
                     cl('orange')
                 ),
                 p(

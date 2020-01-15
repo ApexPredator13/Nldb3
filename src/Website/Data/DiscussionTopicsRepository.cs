@@ -37,16 +37,16 @@ namespace Website.Data
             using var connection = await _npgsql.Connect();
             using var command = new NpgsqlCommand(commandText, connection);
             command.Parameters.AddWithValue("@V", NpgsqlDbType.Text, videoId);
-            using var r = await command.ExecuteReaderAsync();
+            using var reader = await command.ExecuteReaderAsync();
 
-            if (r.HasRows)
+            if (reader.HasRows)
             {
-                while (r.Read())
+                while (reader.Read())
                 {
                     foundTopics.Add(new DiscussionTopic()
                     {
-                        VideoId = r.GetString(0),
-                        Topic = r.GetString(1)
+                        VideoId = reader.GetString(0),
+                        Topic = reader.GetString(1)
                     });
                 }
             }

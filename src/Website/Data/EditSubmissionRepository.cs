@@ -55,34 +55,31 @@ namespace Website.Data
 
         public async Task<int> UpdateGameplayEventType(UpdateGameplayEventType updateGameplayEventType)
         {
-            if (updateGameplayEventType.GameplayEventId is null)
+            if (!updateGameplayEventType.GameplayEventId.HasValue)
             {
                 return 0;
             }
 
-            var commandText = "UPDATE gameplay_events SET event_type = @NewEventType WHERE id = @Id;";
-            var c = await _npgsql.Connect();
-            var q = new NpgsqlCommand(commandText, c);
-            q.Parameters.AddWithValue("@NewEventType", NpgsqlDbType.Integer, (int)updateGameplayEventType.NewGameplayEventType);
-            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Integer, updateGameplayEventType.GameplayEventId.Value);
-            return await q.ExecuteNonQueryAsync();
+            return await _npgsql.NonQuery("UPDATE gameplay_events SET event_type = @NewEventType WHERE id = @Id;",
+                _npgsql.Parameter("@NewEventType", NpgsqlDbType.Integer, (int)updateGameplayEventType.NewGameplayEventType),
+                _npgsql.Parameter("@Id", NpgsqlDbType.Integer, updateGameplayEventType.GameplayEventId.Value));
         }
 
+
         public async Task<int> IncrementActionNumberAfterEventWithId(IncrementActionNumberAfterEventWithId incrementActionNumberAfterEventWithId)
-        {
-            return await IncrementActionNumberAfterEventWithId(
+            => await IncrementActionNumberAfterEventWithId(
                 incrementActionNumberAfterEventWithId.SubmissionId, 
                 incrementActionNumberAfterEventWithId.EventId, 
                 incrementActionNumberAfterEventWithId.IncrementByAmount);
-        }
+
 
         public async Task<int> IncrementActionNumberAfterEventWithId(int submissionId, int eventId, int incrementByAmount = 1)
         {
             // get action and run number of the event after which a new event is inserted
-            using var c = await _npgsql.Connect();
-            using var q = new NpgsqlCommand("SELECT action, run_number FROM gameplay_events WHERE id = @Id", c);
-            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Integer, eventId);
-            using var reader = await q.ExecuteReaderAsync();
+            using var connection = await _npgsql.Connect();
+            using var commandText = new NpgsqlCommand("SELECT action, run_number FROM gameplay_events WHERE id = @Id", connection);
+            commandText.Parameters.AddWithValue("@Id", NpgsqlDbType.Integer, eventId);
+            using var reader = await commandText.ExecuteReaderAsync();
 
             if (!reader.HasRows)
             {
