@@ -8,7 +8,7 @@ namespace Website.Services
 {
     public interface IQuoteRepository
     {
-        Task<int> SaveQuote(SubmittedQuote quote, string userId);
+        Task<int?> SaveQuote(SubmittedQuote quote, string userId);
         Task<int> DeleteQuote(int quoteId, string userId);
         Task<List<Quote>> GetQuotesForVideo(string videoId, string? userId);
         Task<Quote?> GetQuoteById(int id, string? userId);

@@ -35,7 +35,7 @@ ManageQuotesPage.prototype = {
 
     /** loads the user, displays error if user is not logged in */
     loadUser: function () {
-        getUser().then(user => {
+        getUser(false).then(user => {
             if (user) {
                 this.loadQuotes();
             } else {

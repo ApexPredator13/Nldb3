@@ -14,7 +14,7 @@ async function createHeaders(body, authorized) {
     }
 
     if (authorized) {
-        const user = await getUser();
+        const user = await getUser(false);
         if (user) {
             headers.set('Authorization', `${user.token_type} ${user.access_token}`);
         }

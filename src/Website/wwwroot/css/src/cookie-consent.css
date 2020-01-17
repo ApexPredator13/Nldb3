@@ -1,0 +1,10 @@
+﻿#cookie-consent-box {
+    width: 100%;
+    position: fixed;
+    bottom: 0;
+    background-color: rgba(255,255,255,0.7);
+    border-top: 1px solid white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}

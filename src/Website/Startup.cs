@@ -38,13 +38,6 @@ namespace Website
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.Configure<CookiePolicyOptions>(options =>
-            {
-                // This lambda determines whether user consent for non-essential cookies is needed for a given request.
-                options.CheckConsentNeeded = context => true;
-                options.MinimumSameSitePolicy = SameSiteMode.None;
-            });
-
             // nldb stuff
             services.AddTransient<ISqlDumper, SqlDumper>();
             services.AddSingleton<IHttpClientProvider, HttpClientProvider>();
@@ -225,7 +218,6 @@ namespace Website
                 app.UseHsts();
             }
 
-            app.UseCookiePolicy();
             app.UseHttpsRedirection();
             
             app.UseStaticFiles();

@@ -103,7 +103,7 @@ function timelinePopupContent(currentFloor, currentCharacter) {
     const secondsString = `${seconds.toString(10)} ${seconds === 1 ? 'second' : 'seconds'}`;
 
     const wonTheRun = currentFloor.events.filter(event => event.event_type === 16);
-    const lostTheRun = currentFloor.events.filter(event => event.event_type === 17);
+    const lostTheRun = currentFloor.events.filter(event => event.event_type === 1);
 
     let bossfightCounter = 1;
     const bossfightSectionElements = numberOfBossfights === 0 ? [p(

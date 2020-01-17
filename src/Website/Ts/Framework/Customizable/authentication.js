@@ -5,7 +5,6 @@ import { getConfig } from './config.development';
 
 let userWasFoundActionsExecuted = false;
 
-
 /** 
  *  returns a usermanager instance, creates one if necessary 
  *  @returns {UserManager}
@@ -35,6 +34,7 @@ function getUserManager() {
     };
 
     var userManager = new UserManager(settings);
+    userManager.clearStaleState();
     window.userManager = userManager;
     return window.userManager;
 }
@@ -44,7 +44,7 @@ function getUserManager() {
  * returns the currently logged in user, or null if no user was found
  * @returns {Promise<User|null>}
  */
-const getUser = async () => {
+const getUser = async (checkSilentSignin) => {
     const userManager = getUserManager();
 
     /** @type {User|null} */
@@ -72,7 +72,7 @@ const getUser = async () => {
         }
 
         // check if user is logged in on the oidc-provider
-        if (!user) {
+        if (!user && checkSilentSignin) {
             user = await userManager.signinSilent();
         }
 

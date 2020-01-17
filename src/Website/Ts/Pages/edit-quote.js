@@ -38,7 +38,7 @@ EditQuotePage.prototype = {
 
 
     loadUser: function () {
-        getUser().then(user => {
+        getUser(false).then(user => {
             if (user) {
                 this.loadQuoteAndDisplayForm();
             } else {
@@ -128,7 +128,7 @@ EditQuotePage.prototype = {
     },
 
     deleteQuote: function () {
-        getUser().then(user => {
+        getUser(false).then(user => {
             if (user) {
                 const headers = new Headers();
                 headers.append('Authorization', `${user.token_type} ${user.access_token}`);

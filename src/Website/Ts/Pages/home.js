@@ -70,11 +70,7 @@ HomePage.prototype = {
             get('/api/frontpage'),
         ]).then(([topUsers, data]) => {
             const link = new Link();
-
-            const restUsers = topUsers.slice(3);
-            for (let i = 3; i < topUsers.length; ++i) {
-                restUsers.push({ e: ['span', topUsers[i].name + (i === topUsers.length - 1 ? '' : ', ')] })
-            }
+            console.log(topUsers);
 
             new Html([
                 Div(
@@ -103,10 +99,10 @@ HomePage.prototype = {
                         ),
 
                         div(
-                            style('padding: 0 20%; background-color: transparent; font-size: 1.1rem; border-top: none'),
+                            style('padding: 0 20%; background-color: transparent; font-size: 1.1rem; border-top: none; grid-column-start: 1; grid-column-end: 3;'),
                             p(
                                 attr({ style: 'padding-top: 0', id: 'major-contributors' }),
-                                t(restUsers.map(user => user.name).join(', '))
+                                t(topUsers.slice(3).map(user => user.name).join(', '))
                             )
                         )
                     ),

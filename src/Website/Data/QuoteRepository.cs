@@ -72,7 +72,7 @@ namespace Website.Data
                 _npgsql.Parameter("@Q", NpgsqlDbType.Integer, result),
                 _npgsql.Parameter("@U", NpgsqlDbType.Text, userId));
 
-            return result.Value;
+            return result;
         }
 
         public async Task<int> DeleteQuote(int quoteId, string userId)

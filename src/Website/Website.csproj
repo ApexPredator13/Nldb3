@@ -106,6 +106,7 @@
     <None Include="Ts\Framework\Customizable\authentication.js" />
     <None Include="Ts\Framework\Customizable\config.development.js" />
     <None Include="Ts\Framework\Customizable\config.production.js" />
+    <None Include="Ts\Framework\Customizable\Layout\cookie-consent.js" />
     <None Include="Ts\Framework\Customizable\global-chart-options.js" />
     <None Include="Ts\Framework\Customizable\Layout\main.js" />
     <None Include="Ts\Framework\Customizable\Layout\modal-content.js" />

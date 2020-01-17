@@ -211,7 +211,7 @@ Videos.prototype = {
      */
     submitVideoEvent: function (e, videoId) {
         addClassIfNotExists(e.target, 'progress');
-        getUser().then(user => {
+        getUser(true).then(user => {
             if (!user) {
                 modal(false, notLoggedIn());
             } else {

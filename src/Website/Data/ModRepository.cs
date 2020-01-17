@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Npgsql;
+﻿using Npgsql;
 using NpgsqlTypes;
 using System;
 using System.Collections.Generic;
@@ -7,7 +6,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Website.Models.Admin;
 using Website.Models.Database;
-using Website.Models.Database.Enums;
 using Website.Models.SubmitEpisode;
 using Website.Services;
 

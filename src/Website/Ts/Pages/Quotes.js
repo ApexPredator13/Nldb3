@@ -122,7 +122,7 @@ QuotesPage.prototype = {
 
 
     loadUserLoggedInSection: function () {
-        getUser().then(user => {
+        getUser(false).then(user => {
             if (user) {
                 new Html([
                     Div(

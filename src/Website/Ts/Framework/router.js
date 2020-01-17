@@ -3,6 +3,7 @@ import { renderMainContainer } from './Customizable/Layout/main';
 import { setGlobalChartOptions } from './Customizable/global-chart-options';
 import { getConfig } from './Customizable/config.development';
 import { removeUser } from './Customizable/authentication';
+import { renderCookieConsentIfNeeded } from './Customizable/Layout/cookie-consent';
 
 const PAGE_TYPE_EPISODE = 1;
 const PAGE_TYPE_ISAAC_RESOURCE = 2;
@@ -138,6 +139,7 @@ const initRouter = () => {
         // render layout
         renderNavigation();
         renderMainContainer();
+        renderCookieConsentIfNeeded();
 
         // delay enough so that initial popstate event that some browsers trigger on load will be skipped
         setTimeout(() => {

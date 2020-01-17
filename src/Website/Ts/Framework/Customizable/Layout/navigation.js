@@ -15,7 +15,7 @@ export function renderNavigation() {
         resolve();
     }).then(() => {
         // after that, try to load the logged in user
-        getUser().then(user => {
+        getUser(true).then(user => {
             if (!user) {
                 new Html([userNotLoggedIn()], authContainerId);
             } else {
