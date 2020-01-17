@@ -136,7 +136,8 @@ namespace Website
             });
 
             var certPath = Path.Combine(_env.ContentRootPath, "nldb.pfx");
-            var cert = new X509Certificate2(certPath, Config["CertificatePassword"]);
+            var certPass = Config["CertificatePassword"];
+            var cert = new X509Certificate2(certPath, certPass);
             if (cert is null)
             {
                 throw new Exception("no signing certificate found");
@@ -249,7 +250,7 @@ namespace Website
             // BackgroundJob.Enqueue<IMigrateOldDatabase>(migrator => migrator.MigrateUsersQuotesVideosAndRuns());
 
             RecurringJob.AddOrUpdate<ISqlDumper>(dumper => dumper.Dump(), Cron.Minutely());
-            RecurringJob.AddOrUpdate<IVideoRepository>("update-videos", repo => repo.GetVideosThatNeedYoutubeUpdate(5, true), Cron.Minutely);
+            RecurringJob.AddOrUpdate<IVideoRepository>("update-videos", repo => repo.GetVideosThatNeedYoutubeUpdate(5, true), Cron.Hourly);
         }
     }
 }

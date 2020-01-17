@@ -383,7 +383,7 @@ namespace Website.Data
                 while (reader.Read())
                 {
                     result.Add(new VideoContributor(
-                        reader.GetInt32(0), 
+                        reader.IsDBNull(0) ? 0 : reader.GetInt32(0), 
                         reader.IsDBNull(1) ? null : reader.GetString(1)
                     ));
                 }
