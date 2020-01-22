@@ -17,8 +17,12 @@ namespace Website.Controllers
         }
 
         [HttpGet]
-        public FileResult DownloadFile()
+        public ActionResult DownloadFile()
         {
+            if (Infrastructure.SqlDumper.currentlyRecreatingDump) {
+                return BadRequest("The SQL Dump is currently being recreated. Please wait a few seconds and try again.");
+            }
+
             var sqlDumpPath = Path.Combine(_env.WebRootPath, "dump", "nldb_dump.sql");
             return PhysicalFile(sqlDumpPath, "APPLICATION/octet-stream", "NorthernlionDatabase_SQL_Dump.sql");
         }

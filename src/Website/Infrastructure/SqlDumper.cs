@@ -10,6 +10,8 @@ namespace Website.Infrastructure
 {
     public class SqlDumper : ISqlDumper
     {
+        public static bool currentlyRecreatingDump = false;
+        
         private readonly IConfiguration _config;
         private readonly IWebHostEnvironment _env;
 
@@ -115,6 +117,8 @@ namespace Website.Infrastructure
                 WorkingDirectory = _env.ContentRootPath
             };
 
+            currentlyRecreatingDump = true;
+
             var process = Process.Start(processInfo);
 
             while (!process.StandardOutput.EndOfStream)
@@ -127,6 +131,8 @@ namespace Website.Infrastructure
             }
             process.WaitForExit();
             process.Close();
+
+            currentlyRecreatingDump = false;
             // }
         }
     }

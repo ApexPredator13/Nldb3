@@ -1,4 +1,12 @@
-﻿#topics {
+﻿#overhaul-warning {
+    border: 1px solid orange;
+    background-color: rgba(255, 200, 138, 0.3);
+    border-radius: 0.5rem;
+    width: 50%;
+    margin: 0.5rem auto;
+}
+
+#topics {
     display: flex;
     flex-direction: column;
 }
@@ -7,6 +15,8 @@
     display: flex;
     justify-content: center;
 }
+
+
 
 .topic {
     background-color: rgba(255,255,255,0.1);

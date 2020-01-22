@@ -27,6 +27,11 @@ Link.prototype = {
         return '';
     },
 
+    /** /ReportBug */
+    reportBug: function() {
+        return '/ReportBug';
+    },
+
     /**
      * /DeleteQuote/{quoteId}
      * @param {number} quoteId - the quote that should be deleted
