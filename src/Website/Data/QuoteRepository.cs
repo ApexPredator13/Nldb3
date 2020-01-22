@@ -415,7 +415,7 @@ namespace Website.Data
                         QuoteText = reader.GetString(2),
                         At = reader.GetInt32(3),
                         SubmissionTime = reader.GetDateTime(4),
-                        Contributor = reader.GetString(5)
+                        Contributor = reader.IsDBNull(5) ? "[Unknown]" : reader.GetString(5)
                     });
                 }
             }
