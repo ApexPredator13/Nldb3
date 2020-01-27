@@ -1000,6 +1000,12 @@ namespace Website.Migrations
                 videoCounter++;
 
                 _logger.LogInformation($"processing video '{videoId}' ({videoCounter}/{videoTotal})");
+                if (!await _videoRepository.VideoExists(videoId))
+                {
+                    _logger.LogWarning($"Video {videoId} does not exist!");
+                    continue;
+                }
+
                 var submission = new SubmittedCompleteEpisode()
                 {
                     VideoId = videoId

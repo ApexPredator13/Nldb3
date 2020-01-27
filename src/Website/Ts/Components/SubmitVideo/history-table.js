@@ -92,18 +92,27 @@ HistoryTable.prototype = {
     addFloor: function(floor) {
 
         // add time to finished floor
-        const currentFloor = this.getCurrentFloor();
-        if (currentFloor) {
-            const currentPlayerTime = this.youtubePlayer.getCurrentTime();
-            const timeSoFar = this.recordedFloorTimeSoFar();
-            const timeSpentOnThisFloor = currentPlayerTime - timeSoFar;
-            currentFloor.Duration = timeSpentOnThisFloor;
-        }
+        this.addDurationToCurrentFloor();
 
         // then add the next
         const currentCharacter = this.getCurrentCharacter();
         currentCharacter.PlayedFloors.push(floor);
         this.reloadHistory();
+    },
+
+    /**
+     * gets the current timestamp from the youtube video player, gets time from all floors so far, and saves the difference of those two to the floor object.
+     * does nothing if the duration is already set or if there is no floor selected yet.
+     * @param {SubmittableFloor} floor - the floor that should get the duration
+     */
+    addDurationToCurrentFloor() {
+        const floor = this.getCurrentFloor();
+        if (floor && floor.Duration === null) {
+            const currentPlayerTime = this.youtubePlayer.getCurrentTime();
+            const timeSoFar = this.recordedFloorTimeSoFar();
+            const timeSpentOnThisFloor = currentPlayerTime - timeSoFar;
+            floor.Duration = timeSpentOnThisFloor;
+        }
     },
 
     /**

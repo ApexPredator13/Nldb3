@@ -27,9 +27,14 @@ Link.prototype = {
         return '';
     },
 
-    /** /ReportBug */
-    reportBug: function() {
-        return '/ReportBug';
+    /** /ReportProblem */
+    reportProblem: function() {
+        return '/ReportProblem';
+    },
+
+    /** /ProblemReported */
+    problemSubmitted: function() {
+        return '/ProblemSubmitted';
     },
 
     /**

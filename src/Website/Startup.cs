@@ -243,13 +243,13 @@ namespace Website
                 endpoints.MapControllerRoute("default", "{controller=home}/{action=index}/{id?}");
             });
 
+            app.PrepareDatabase();
             app.ApplyEntityFrameworkDatabaseMigrations();
             app.CreateIdentityserverEntriesIfNecessary(true);
             app.CreateRequiredUserAccountsIfMissing(true);
 
             // BackgroundJob.Enqueue<IMigrateOldDatabase>(migrator => migrator.MigrateUsersQuotesVideosAndRuns());
-
-            RecurringJob.AddOrUpdate<ISqlDumper>(dumper => dumper.Dump(), Cron.Hourly());
+            RecurringJob.AddOrUpdate<ISqlDumper>("sql-dump", dumper => dumper.Dump(), Cron.Hourly());
             RecurringJob.AddOrUpdate<IVideoRepository>("update-videos", repo => repo.GetVideosThatNeedYoutubeUpdate(5, true), Cron.Hourly);
         }
     }

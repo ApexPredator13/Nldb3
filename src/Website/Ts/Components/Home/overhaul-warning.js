@@ -13,8 +13,8 @@ function overhaulWarning() {
             t('If you run into any issues (or if you have any suggestions), '),
             a(
                 t('submitting a quick bug report'),
-                href(link.reportBug()),
-                event('click', e => navigate(link.reportBug(), e))
+                href(link.reportProblem()),
+                event('click', e => navigate(link.reportProblem(), e))
             ),
             t(' or '),
             a(

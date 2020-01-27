@@ -16,6 +16,15 @@ namespace Website.Infrastructure
 {
     public static class ApplicationBuilderExtensions
     {
+        public static void PrepareDatabase(this IApplicationBuilder app)
+        {
+            using var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope();
+            var npgsql = serviceScope.ServiceProvider.GetRequiredService<INpgsql>();
+            var hostingEnvironment = serviceScope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Hosting.IWebHostEnvironment>();
+            var dbManager = new DbManager(npgsql, hostingEnvironment);
+            dbManager.CreateAllTablesIfNotExists();
+        }
+
         public static void ApplyEntityFrameworkDatabaseMigrations(this IApplicationBuilder app)
         {
             using var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope();
@@ -128,12 +137,6 @@ namespace Website.Infrastructure
             // clear test user account if required
             if (resetTestaccount)
             {
-                var x = userManager.FindByNameAsync("Graxn").Result;
-                if (x != null)
-                {
-                    userManager.DeleteAsync(x).Wait();
-                }
-
                 var testEmail = config["TestuserEmail"];
                 var testUser = userManager.FindByEmailAsync(testEmail).Result;
                 if (testUser != null)
@@ -167,7 +170,7 @@ namespace Website.Infrastructure
             using var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope();
             var dbManager = serviceScope.ServiceProvider.GetRequiredService<IDbManager>();
             dbManager.DropTablesInDevMode();
-            dbManager.CreateAllTables();
+            dbManager.CreateAllTablesIfNotExists();
         }
     }
 }

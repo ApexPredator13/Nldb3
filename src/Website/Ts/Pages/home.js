@@ -69,8 +69,8 @@ HomePage.prototype = {
     /** loads fun & facts from the server and displays it */
     renderBelowTheFoldContent: function () {
         Promise.all([
-            get('/api/frontpage/top-users'),
-            get('/api/frontpage'),
+            get('/frontpage/top-users'),
+            get('/frontpage'),
         ]).then(([topUsers, data]) => {
             const link = new Link();
             console.log(topUsers);

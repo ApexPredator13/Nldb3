@@ -7,20 +7,20 @@
 @inject Website.Services.IVideoRepository _videoRepository
 @inject Website.Services.IIsaacRepository _isaacRepository
 
-<script src="~/js/dist/runtime.min.js"></script>
-<script src="~/js/dist/vendor.min.js"></script>
-<script src="~/js/dist/framework.min.js"></script>
+<script src="~/js/dist/runtime.min.js" asp-append-version="true"></script>
+<script src="~/js/dist/vendor.min.js" asp-append-version="true"></script>
+<script src="~/js/dist/framework.min.js" asp-append-version="true"></script>
 
 @switch (pathLowercase)
 {
     case "/":
-        <script src="~/js/dist/home.min.js"></script>
+        <script src="~/js/dist/home.min.js" asp-append-version="true"></script>
         break;
     case "/downloads":
-        <script src="~/js/dist/downloads.min.js"></script>
+        <script src="~/js/dist/downloads.min.js" asp-append-version="true"></script>
         break;
     case "/episodes":
-        <script src="~/js/dist/episodes.min.js"></script>
+        <script src="~/js/dist/episodes.min.js" asp-append-version="true"></script>
         break;
     case "/items":
     case "/bosses":
@@ -35,35 +35,38 @@
     case "/tarotcards":
     case "/trinkets":
     case "/otherconsumables":
-        <script src="~/js/dist/resource_overview.min.js"></script>
+        <script src="~/js/dist/resource_overview.min.js" asp-append-version="true"></script>
         break;
     case "/sqldump/setup":
-        <script src="~/js/dist/sql_dump_description.min.js"></script>
+        <script src="~/js/dist/sql_dump_description.min.js" asp-append-version="true"></script>
         break;
     case "/sqldump/tables":
-        <script src="~/js/dist/sql_dump_tables.min.js"></script>
+        <script src="~/js/dist/sql_dump_tables.min.js" asp-append-version="true"></script>
         break;
     case "/quotes":
-        <script src="~/js/dist/quotes.min.js"></script>
+        <script src="~/js/dist/quotes.min.js" asp-append-version="true"></script>
+        break;
+    case "/reportproblem":
+        <script src="~/js/dist/submit_problem.min.js" asp-append-version="true"></script>
         break;
 
     @* check if video ID was requested: 11 characters + leading slash *@
     case string potentialVideoId when potentialVideoId.Length == 12 && await _videoRepository.VideoExists(path.Substring(1)):
-        <script src="~/js/dist/episode.min.js"></script>
+        <script src="~/js/dist/episode.min.js" asp-append-version="true"></script>
         break;
 
     @* check if a isaac resource was requested *@
     case string isaacResource when await _isaacRepository.ResourceExists(path.Substring(1)):
-        <script src="~/js/dist/resource.min.js"></script>
+        <script src="~/js/dist/resource.min.js" asp-append-version="true"></script>
         break;
 
     @* if nothing was found, just return 'Home' *@
     default:
-        <script src="~/js/dist/home.min.js"></script>
+        <script src="~/js/dist/home.min.js" asp-append-version="true"></script>
         break;
 }
 
 
-<script src="~/js/dist/all_remaining_pages.min.js" async defer></script>
+<script src="~/js/dist/all_remaining_pages.min.js" async defer asp-append-version="true"></script>
 
 

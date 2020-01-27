@@ -1802,6 +1802,7 @@ SubmitVideoPage.prototype = {
         if (choice === 'cancel') {
             this.menu_DidNlDoAnotherRun();
         } else {
+            this.history.addDurationToCurrentFloor();
             this.menu_ChooseNextFloor();
         }
     },
@@ -1826,6 +1827,7 @@ SubmitVideoPage.prototype = {
         if (choice === 'cancel') {
             this.menu_DidNlDoAnotherRun();
         } else {
+            this.history.addDurationToCurrentFloor();
             this.menu_WhatCharacterWasChosen();
         }
     },

@@ -3,6 +3,6 @@
     public interface IDbManager
     {
         void DropTablesInDevMode();
-        void CreateAllTables();
+        void CreateAllTablesIfNotExists();
     }
 }

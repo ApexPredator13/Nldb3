@@ -482,7 +482,7 @@ namespace Website.Data
                 gameplayAction = 1;
                 transformationProgress.Clear();
                 lastDeath = null;
-                cumulativeVideoLength = 0;
+                // cumulativeVideoLength = 0; - don't reset this?
 
                 // save character
                 s.Append($"INSERT INTO played_characters (game_character, submission, action, video, run_number, died_from, seed, latest) VALUES (@CCharacter{characterCounter}, CURRVAL(pg_get_serial_sequence('video_submissions', 'id')), @CAction{characterCounter}, @CVideo{characterCounter}, @CRunNumber{characterCounter}, NULL, @Seed{characterCounter}, TRUE); ");

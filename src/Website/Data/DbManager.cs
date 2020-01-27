@@ -32,12 +32,12 @@ namespace Website.Data
                 return;
             }
 
-            string query = "DROP TABLE IF EXISTS discussion_topics, quotes_userdata, video_submissions_userdata, quote_votes, quotes, mods, mod_url, isaac_resources, tags, thumbnails, videos, video_submissions, played_characters, played_floors, gameplay_events, transformative_resources; ";
+            string query = "DROP TABLE IF EXISTS quote_votes, discussion_topics_userdata, discussion_topics, quotes_userdata, video_submissions_userdata, quotes, mods, mod_url, isaac_resources, tags, thumbnails, videos, video_submissions, played_characters, played_floors, gameplay_events, transformative_resources; ";
 
             Execute(query);
         }
 
-        public void CreateAllTables()
+        public void CreateAllTablesIfNotExists()
         {
             CreateModTables();
             CreateIsaacResourcesTable();
@@ -49,12 +49,36 @@ namespace Website.Data
             CreateGameplayEventsTable();
             CreateQuotesTable();
             CreateDiscussionTopicsTable();
+            CreateDiscussionTopicsUserdataTable();
+            CreateProblemReportTable();
+        }
+
+        private void CreateProblemReportTable()
+        {
+            var commandText = "CREATE TABLE IF NOT EXISTS problem_reports (" +
+                "id SERIAL PRIMARY KEY, " +
+                "report TEXT NOT NULL" +
+            ");";
+
+            Execute(commandText);
+        }
+
+        private void CreateDiscussionTopicsUserdataTable()
+        {
+            var commandText = 
+                "CREATE TABLE IF NOT EXISTS discussion_topics_userdata (" +
+                    "id SERIAL PRIMARY KEY, " +
+                    "discussion_topic INTEGER NOT NULL REFERENCES discussion_topics (id) " +
+                    "ON UPDATE CASCADE ON DELETE CASCADE, user_id TEXT NOT NULL" +
+                ");";
+            
+            Execute(commandText);
         }
 
         private void CreateDiscussionTopicsTable()
         {
             string query =
-                "CREATE TABLE discussion_topics (" +
+                "CREATE TABLE IF NOT EXISTS discussion_topics (" +
                     "id SERIAL PRIMARY KEY, " +
                     "video TEXT NOT NULL REFERENCES videos (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
                     "topic TEXT NOT NULL, " +
@@ -82,14 +106,13 @@ namespace Website.Data
                 "); " +
                 
                 "CREATE TABLE IF NOT EXISTS quote_votes (" +
-                    "id SERIAL, " +
+                    "id SERIAL NOT NULL, " +
                     "vote INTEGER NOT NULL, " +
-                    "user_id TEXT, " +
+                    "user_id TEXT NOT NULL, " +
                     "quote INTEGER NOT NULL REFERENCES quotes (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
-                    "voted_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()" +
-                "); " +
-
-                "ALTER TABLE quote_votes ADD CONSTRAINT quote_votes_pk PRIMARY KEY (quote, user_id);";
+                    "voted_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(), " +
+                    "PRIMARY KEY (id, user_id)" +
+                ");";
 
             Execute(query);
         }
@@ -130,22 +153,21 @@ namespace Website.Data
                 "); " +
 
                 // create default entries
-                "INSERT INTO isaac_resources (id, name, type, exists_in, x, game_mode, color, mod, display_order, difficulty) VALUES " +
-                $"('MissingCharacter', 'Missing Character', {(int)ResourceType.Character}, {(int)ExistsIn.Nowhere}, '((-1,-1),(-1,-1))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
-                $"('MissingCurse', 'Missing Curse', {(int)ResourceType.Curse}, {(int)ExistsIn.Nowhere}, '((-1,-1),(-1,-1))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
-                $"('MissingOtherEvent', 'Missing Event', {(int)ResourceType.OtherEvent}, {(int)ExistsIn.Nowhere}, '((-1,-1),(-1,-1))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
-                $"('MissingFloor', 'Missing Floor', {(int)ResourceType.Floor}, {(int)ExistsIn.Nowhere}, '((-1,-1),(-1,-1))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
-                $"('MissingItem', 'Missing Item', {(int)ResourceType.Item}, {(int)ExistsIn.Nowhere}, '((-1,-1),(-1,-1))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
-                $"('MissingItemSource', 'Missing Itemsource', {(int)ResourceType.ItemSource}, {(int)ExistsIn.Nowhere}, '((-1,-1),(-1,-1))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
-                $"('MissingPill', 'Missing Pill', {(int)ResourceType.Pill}, {(int)ExistsIn.Nowhere}, '((-1,-1),(-1,-1))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
-                $"('MissingRune', 'Missing Rune', {(int)ResourceType.Rune}, {(int)ExistsIn.Nowhere}, '((-1,-1),(-1,-1))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
-                $"('MissingTarotCard', 'Missing Tarot Card', {(int)ResourceType.TarotCard}, {(int)ExistsIn.Nowhere}, '((-1,-1),(-1,-1))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
-                $"('MissingEnemy', 'Missing Enemy', {(int)ResourceType.Enemy}, {(int)ExistsIn.Nowhere}, '((-1,-1),(-1,-1))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
-                $"('MissingTransformation', 'Missing Transformation', {(int)ResourceType.Transformation}, {(int)ExistsIn.Nowhere}, '((-1,-1),(-1,-1))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
-                $"('MissingTrinket', 'Missing Trinket', {(int)ResourceType.Trinket}, {(int)ExistsIn.Nowhere}, '((-1,-1),(-1,-1))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
-                $"('MissingBoss', 'Missing Boss', {(int)ResourceType.Boss}, {(int)ExistsIn.Nowhere}, '((-1,-1),(-1,-1))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
-                $"('MissingReroll', 'Missing Reroll', {(int)ResourceType.CharacterReroll}, {(int)ExistsIn.Nowhere}, '((-1,-1),(-1,-1))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL), " +
-                $"('DeletedResource', 'Deleted Resource', {(int)ResourceType.Unspecified}, {(int)ExistsIn.Nowhere}, '((-1,-1),(-1,-1))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL); ";
+                $"INSERT INTO isaac_resources (id, name, type, exists_in, x, game_mode, color, mod, display_order, difficulty) VALUES ('MissingCharacter', 'Missing Character', {(int)ResourceType.Character}, {(int)ExistsIn.Nowhere}, '((-1,-1),(-1,-1))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL) ON CONFLICT (id) DO NOTHING; " +
+                $"INSERT INTO isaac_resources (id, name, type, exists_in, x, game_mode, color, mod, display_order, difficulty) VALUES ('MissingCurse', 'Missing Curse', {(int)ResourceType.Curse}, {(int)ExistsIn.Nowhere}, '((-1,-1),(-1,-1))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL) ON CONFLICT (id) DO NOTHING; " +
+                $"INSERT INTO isaac_resources (id, name, type, exists_in, x, game_mode, color, mod, display_order, difficulty) VALUES ('MissingOtherEvent', 'Missing Event', {(int)ResourceType.OtherEvent}, {(int)ExistsIn.Nowhere}, '((-1,-1),(-1,-1))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL) ON CONFLICT (id) DO NOTHING; " +
+                $"INSERT INTO isaac_resources (id, name, type, exists_in, x, game_mode, color, mod, display_order, difficulty) VALUES ('MissingFloor', 'Missing Floor', {(int)ResourceType.Floor}, {(int)ExistsIn.Nowhere}, '((-1,-1),(-1,-1))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL) ON CONFLICT (id) DO NOTHING; " +
+                $"INSERT INTO isaac_resources (id, name, type, exists_in, x, game_mode, color, mod, display_order, difficulty) VALUES ('MissingItem', 'Missing Item', {(int)ResourceType.Item}, {(int)ExistsIn.Nowhere}, '((-1,-1),(-1,-1))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL) ON CONFLICT (id) DO NOTHING; " +
+                $"INSERT INTO isaac_resources (id, name, type, exists_in, x, game_mode, color, mod, display_order, difficulty) VALUES ('MissingItemSource', 'Missing Itemsource', {(int)ResourceType.ItemSource}, {(int)ExistsIn.Nowhere}, '((-1,-1),(-1,-1))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL) ON CONFLICT (id) DO NOTHING; " +
+                $"INSERT INTO isaac_resources (id, name, type, exists_in, x, game_mode, color, mod, display_order, difficulty) VALUES ('MissingPill', 'Missing Pill', {(int)ResourceType.Pill}, {(int)ExistsIn.Nowhere}, '((-1,-1),(-1,-1))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL) ON CONFLICT (id) DO NOTHING; " +
+                $"INSERT INTO isaac_resources (id, name, type, exists_in, x, game_mode, color, mod, display_order, difficulty) VALUES ('MissingRune', 'Missing Rune', {(int)ResourceType.Rune}, {(int)ExistsIn.Nowhere}, '((-1,-1),(-1,-1))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL) ON CONFLICT (id) DO NOTHING; " +
+                $"INSERT INTO isaac_resources (id, name, type, exists_in, x, game_mode, color, mod, display_order, difficulty) VALUES ('MissingTarotCard', 'Missing Tarot Card', {(int)ResourceType.TarotCard}, {(int)ExistsIn.Nowhere}, '((-1,-1),(-1,-1))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL) ON CONFLICT (id) DO NOTHING; " +
+                $"INSERT INTO isaac_resources (id, name, type, exists_in, x, game_mode, color, mod, display_order, difficulty) VALUES ('MissingEnemy', 'Missing Enemy', {(int)ResourceType.Enemy}, {(int)ExistsIn.Nowhere}, '((-1,-1),(-1,-1))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL) ON CONFLICT (id) DO NOTHING; " +
+                $"INSERT INTO isaac_resources (id, name, type, exists_in, x, game_mode, color, mod, display_order, difficulty) VALUES ('MissingTransformation', 'Missing Transformation', {(int)ResourceType.Transformation}, {(int)ExistsIn.Nowhere}, '((-1,-1),(-1,-1))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL) ON CONFLICT (id) DO NOTHING; " +
+                $"INSERT INTO isaac_resources (id, name, type, exists_in, x, game_mode, color, mod, display_order, difficulty) VALUES ('MissingTrinket', 'Missing Trinket', {(int)ResourceType.Trinket}, {(int)ExistsIn.Nowhere}, '((-1,-1),(-1,-1))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL) ON CONFLICT (id) DO NOTHING; " +
+                $"INSERT INTO isaac_resources (id, name, type, exists_in, x, game_mode, color, mod, display_order, difficulty) VALUES ('MissingBoss', 'Missing Boss', {(int)ResourceType.Boss}, {(int)ExistsIn.Nowhere}, '((-1,-1),(-1,-1))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL) ON CONFLICT (id) DO NOTHING; " +
+                $"INSERT INTO isaac_resources (id, name, type, exists_in, x, game_mode, color, mod, display_order, difficulty) VALUES ('MissingReroll', 'Missing Reroll', {(int)ResourceType.CharacterReroll}, {(int)ExistsIn.Nowhere}, '((-1,-1),(-1,-1))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL) ON CONFLICT (id) DO NOTHING; " +
+                $"INSERT INTO isaac_resources (id, name, type, exists_in, x, game_mode, color, mod, display_order, difficulty) VALUES ('DeletedResource', 'Deleted Resource', {(int)ResourceType.Unspecified}, {(int)ExistsIn.Nowhere}, '((-1,-1),(-1,-1))', {(int)GameMode.Unspecified}, DEFAULT, NULL, NULL, NULL) ON CONFLICT (id) DO NOTHING; ";
 
             Execute(query);
         }
@@ -172,9 +194,9 @@ namespace Website.Data
                     "last_updated TIMESTAMP DEFAULT NULL" +
                 "); " +
 
-                "CREATE INDEX video_title_index ON videos (title); " +
+                "CREATE INDEX IF NOT EXISTS video_title_index ON videos (title); " +
                 
-                "CREATE TABLE thumbnails (" +
+                "CREATE TABLE IF NOT EXISTS thumbnails (" +
                     "id SERIAL PRIMARY KEY, " +
                     "url TEXT NOT NULL, " +
                     "width INTEGER, " +
@@ -195,7 +217,7 @@ namespace Website.Data
                     "latest BOOLEAN NOT NULL DEFAULT TRUE" +
                 "); " +
                 
-                "CREATE TABLE video_submissions_userdata (" +
+                "CREATE TABLE IF NOT EXISTS video_submissions_userdata (" +
                     "id SERIAL PRIMARY KEY, " +
                     "submission INTEGER NOT NULL REFERENCES video_submissions (id) ON UPDATE CASCADE ON DELETE CASCADE, " +
                     "user_id TEXT" +

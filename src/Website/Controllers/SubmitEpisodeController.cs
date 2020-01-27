@@ -33,6 +33,8 @@ namespace Website.Controllers
                 return BadRequest("User was not found or is not logged in.");
             }
 
+            await _videoRepository.UpdateVideoWithYoutubeData(episode.VideoId);
+
             try
             {
                 await _videoRepository.SubmitEpisode(episode, user.Id, SubmissionType.New);

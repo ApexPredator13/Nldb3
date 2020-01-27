@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
 using NpgsqlTypes;
@@ -8,19 +9,33 @@ using System.Linq;
 using System.Threading.Tasks;
 using Website.Models.FrontPage;
 using Website.Services;
+using Website.Infrastructure;
 
 namespace Website.Controllers
 {
-    [Area("api"), Route("[area]/frontpage"), ApiController]
+    [Route("frontpage"), ApiController]
     public class FrontpageController : Controller
     {
-        private readonly INpgsql _connector;
+        private readonly INpgsql _npgsql;
         private readonly IConfiguration _config;
+        private readonly IHttpContextAccessor _contextAccessor;
 
-        public FrontpageController(INpgsql connector, IConfiguration config)
+        public FrontpageController(INpgsql connector, IConfiguration config, IHttpContextAccessor contextAccessor)
         {
             _config = config;
-            _connector = connector;
+            _npgsql = connector;
+            _contextAccessor = contextAccessor;
+        }
+
+        [HttpPost, Route("bug_report")]
+        public async Task<ActionResult> BugReport([FromForm] BugReport bugReport)
+        {
+            await _npgsql.NonQuery(
+                "INSERT INTO problem_reports (id, report) VALUES (DEFAULT, @Report);", 
+                _npgsql.Parameter("@Report", NpgsqlDbType.Text, bugReport.Text));
+
+            await Task.Delay(1000);
+            return Ok();
         }
 
         [HttpGet("top-users")]
@@ -38,7 +53,7 @@ namespace Website.Controllers
                 "ORDER BY submission_count DESC " +
                 "LIMIT 25;";
 
-            using var connection = await _connector.Connect();
+            using var connection = await _npgsql.Connect();
             using var command = new NpgsqlCommand(commandText, connection);
             command.Parameters.AddWithValue("@AdminUsername", NpgsqlDbType.Text, _config["AdminUsername"]);
             using var reader = await command.ExecuteReaderAsync();
@@ -111,7 +126,7 @@ namespace Website.Controllers
                     "video_count.video_count AS video_count " +
                 "FROM floor_count, event_data, character_count, playtime, video_count;";
 
-            using var connection = await _connector.Connect();
+            using var connection = await _npgsql.Connect();
             using var command = new NpgsqlCommand(commandText, connection);
             using var reader = await command.ExecuteReaderAsync();
 

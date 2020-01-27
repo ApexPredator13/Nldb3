@@ -8,6 +8,8 @@ import { registerQuotesPage } from "./quotes";
 import { registerManageQuotesPage } from "./manage-quotes";
 import { registerEditQuotePage } from "./edit-quote";
 import { registerConfirmDeleteQuotePage } from "./confirm-delete-quote";
+import { registerReportProblemPage } from "./submit-problem";
+import { registerProblemSubmittedPage } from "./problem_submitted";
 
 (() => {
     registerEpisodePage();
@@ -20,4 +22,6 @@ import { registerConfirmDeleteQuotePage } from "./confirm-delete-quote";
     registerManageQuotesPage();
     registerEditQuotePage();
     registerConfirmDeleteQuotePage();
+    registerReportProblemPage();
+    registerProblemSubmittedPage();
 })();
