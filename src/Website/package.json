@@ -13,9 +13,12 @@
     "@types/chart.js": "^2.7.55",
     "@types/youtube": "0.0.38",
     "clean-webpack-plugin": "^2.0.1",
+    "css-loader": "^3.4.2",
+    "mini-css-extract-plugin": "^0.9.0",
+    "optimize-css-assets-webpack-plugin": "^5.0.3",
     "ts-loader": "^5.3.3",
     "typescript": "3.7.2",
-    "webpack": "^4.41.2",
+    "webpack": "^4.41.5",
     "webpack-cli": "^3.3.10"
   },
   "dependencies": {

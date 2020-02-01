@@ -61,6 +61,18 @@ namespace Website.Data
             }
         }
 
+        public NpgsqlCommand Command(NpgsqlConnection connection, string commandText, params NpgsqlParameter[] parameters)
+        {
+            var command = new NpgsqlCommand(commandText, connection);
+
+            foreach (var parameter in parameters)
+            {
+                command.Parameters.Add(parameter);
+            }
+            
+            return command;
+        }
+
         public NpgsqlParameter Parameter(string parameterName, NpgsqlDbType type, object value)
             => new NpgsqlParameter(parameterName, type) { NpgsqlValue = value };
     }

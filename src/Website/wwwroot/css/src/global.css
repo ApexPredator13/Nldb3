@@ -127,3 +127,7 @@ pre {
     display: inline;
     margin: 0 0.3rem;
 }
+
+.btn-rng {
+    width: 300px;
+}

@@ -11,5 +11,6 @@ namespace Website.Services
         NpgsqlParameter Parameter(string parameterName, NpgsqlDbType type, object value);
         Task<int?> ScalarInt(string commandText, params NpgsqlParameter[] parameters);
         Task<string?> ScalarString(string commandText, params NpgsqlParameter[] parameters);
+        NpgsqlCommand Command(NpgsqlConnection connection, string commandText, params NpgsqlParameter[] parameters);
     }
 }

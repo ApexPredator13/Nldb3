@@ -50,7 +50,7 @@ HomePage.prototype = {
                     div(
                         cl('topics-row'),
                         topic('Floors', "-946", link.resourceOverview(RO_FLOORS)),
-                        topic('Random Episode Generator', "-1369", '/'),
+                        topic('Random Episode Generator', "-1369", link.randomEpisode()),
                         topic('Transformations', "-1228", link.resourceOverview(RO_TRANS))
                     ),
                 ),

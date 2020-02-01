@@ -10,6 +10,7 @@ import { registerEditQuotePage } from "./edit-quote";
 import { registerConfirmDeleteQuotePage } from "./confirm-delete-quote";
 import { registerReportProblemPage } from "./submit-problem";
 import { registerProblemSubmittedPage } from "./problem_submitted";
+import { registerRandomEpisodeGeneratorPage } from "./random-episode-generator";
 
 (() => {
     registerEpisodePage();
@@ -24,4 +25,5 @@ import { registerProblemSubmittedPage } from "./problem_submitted";
     registerConfirmDeleteQuotePage();
     registerReportProblemPage();
     registerProblemSubmittedPage();
+    registerRandomEpisodeGeneratorPage();
 })();

@@ -50,6 +50,10 @@
         <script src="~/js/dist/submit_problem.min.js" asp-append-version="true"></script>
         break;
 
+    case "/randomepisodegenerator":
+        <script src="~/js/dist/random_episode.min.js" asp-append-version="true"></script>
+        break;
+
     @* check if video ID was requested: 11 characters + leading slash *@
     case string potentialVideoId when potentialVideoId.Length == 12 && await _videoRepository.VideoExists(path.Substring(1)):
         <script src="~/js/dist/episode.min.js" asp-append-version="true"></script>

@@ -27,6 +27,11 @@ Link.prototype = {
         return '';
     },
 
+    /** /RandomEpisodeGenerator */
+    randomEpisode: function() {
+        return '/RandomEpisodeGenerator';
+    },
+
     /** /ReportProblem */
     reportProblem: function() {
         return '/ReportProblem';
