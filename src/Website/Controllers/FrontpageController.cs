@@ -5,11 +5,9 @@ using Npgsql;
 using NpgsqlTypes;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Website.Models.FrontPage;
 using Website.Services;
-using Website.Infrastructure;
 
 namespace Website.Controllers
 {

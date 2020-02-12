@@ -37,9 +37,10 @@ namespace Website.Data
             command.Parameters.AddRange(parameters);
             try
             {
-                return System.Convert.ToInt32(await command.ExecuteScalarAsync());
+                var result = await command.ExecuteScalarAsync();
+                return System.Convert.ToInt32(result);
             }
-            catch
+            catch (System.Exception _e)
             {
                 return null;
             }

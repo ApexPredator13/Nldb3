@@ -3,6 +3,7 @@ const CleanWebpackPlugin = require('clean-webpack-plugin');
 const webpack = require('webpack');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
 
 const configuration = 'development';
 
@@ -40,7 +41,13 @@ module.exports = {
                 filename: '[name].css',
                 chunkFilename: '[id].css',
         }),
-        new OptimizeCssAssetsPlugin()
+        new OptimizeCssAssetsPlugin(),
+        new CopyPlugin([
+            { 
+                from: path.resolve(__dirname, 'node_modules', 'oidc-client', 'dist', 'oidc-client.slim.min.js'),
+                to: path.resolve(__dirname, 'wwwroot', 'js', 'oidc-client.slim.min.js')
+            }
+        ])
     ],
     module: {
         rules: [

@@ -56,7 +56,7 @@ namespace Website.Controllers
         [Route("vote"), Authorize, HttpPost]
         public async Task<OkResult> Vote([FromBody] SubmittedQuoteVote vote)
         {
-            await _quoteRepository.Vote(vote, _userManager.GetUserId(HttpContext.User));
+            var result = await _quoteRepository.Vote(vote, _userManager.GetUserId(HttpContext.User));
             return Ok();
         }
 

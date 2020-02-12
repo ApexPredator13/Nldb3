@@ -58,21 +58,17 @@ namespace Website.Data
                 return null;
             }
 
-            int? result = await _npgsql.ScalarInt("INSERT INTO quotes (id, video, content, at, submitted_at) VALUES (DEFAULT, @V, @C, @A, DEFAULT) RETURNING id;",
-                _npgsql.Parameter("@Q", NpgsqlDbType.Integer, quote.VideoId),
+            var id = await _npgsql.ScalarInt(
+                "INSERT INTO quotes (video, content, at) VALUES (@V, @C, @A) RETURNING id;",
+                _npgsql.Parameter("@V", NpgsqlDbType.Text, quote.VideoId),
                 _npgsql.Parameter("@C", NpgsqlDbType.Text, quote.Content),
                 _npgsql.Parameter("@A", NpgsqlDbType.Integer, quote.At.Value));
 
-            if (!result.HasValue)
-            {
-                return null;
-            }
-
-            await _npgsql.NonQuery("INSERT INTO quotes_userdata (quote, user_id) VALUES (@Q, @U);",
-                _npgsql.Parameter("@Q", NpgsqlDbType.Integer, result),
-                _npgsql.Parameter("@U", NpgsqlDbType.Text, userId));
-
-            return result;
+            await _npgsql.NonQuery("INSERT INTO quotes_userdata (quote, user_id) VALUES (@Q, @I);",
+                _npgsql.Parameter("@Q", NpgsqlDbType.Integer, id),
+                _npgsql.Parameter("@I", NpgsqlDbType.Text, userId));
+            
+            return id;
         }
 
         public async Task<int> DeleteQuote(int quoteId, string userId)
@@ -219,7 +215,7 @@ namespace Website.Data
             var commandText =
                 "INSERT INTO quote_votes (id, vote, user_id, quote, voted_at) " +
                 "VALUES (DEFAULT, @V, @U, @Q, DEFAULT) " +
-                "ON CONFLICT ON CONSTRAINT quote_votes_pk DO UPDATE " +
+                "ON CONFLICT ON CONSTRAINT quote_votes_pkey DO UPDATE " +
                 "SET vote = @V " +
                 "WHERE quote_votes.user_id = @U " +
                 "AND quote_votes.quote = @Q " +
