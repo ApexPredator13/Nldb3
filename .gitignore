@@ -12,6 +12,8 @@
 # temporary copy of js file
 /src/Website/wwwroot/js/oidc-client.min.js
 /src/Website/wwwroot/js/oidc-client.js
+/src/Website/wwwroot/js/oidc-client.slim.min.js
+/src/Website/wwwroot/js/oidc-client.slim.js
 
 # sql dump of the database
 /src/Website/wwwroot/dump/*
