@@ -45,6 +45,7 @@ const DID_BLACK_RUN_ABSORB_ANOTHER_ITEM = 20;
 const DID_REROLL_TRIGGER_TRANSFORMATION = 21;
 const DID_REROLL_TRIGGER_ANOTHER_TRANSFORMATION = 22;
 const CONFIRM_DOWN_TO_NEXT_FLOOR = 23;
+const OTHER_EVENTS = 24;
 
 
 const beforeUnloadEvent = e => {
@@ -274,9 +275,13 @@ function SubmitVideoPage(parameters) {
         { id: 'no', name: 'No, move on!', x: 665, y: 0, w: 35, h: 35 }
     ]);
     this.staticResources.set(CONFIRM_DOWN_TO_NEXT_FLOOR, [
-        { id: 'confirm', name: 'Yes, down to the next floor!', x: 1050, y: 0, w: 35, h: 30 },
+        { id: 'confirm', name: 'Yes, down to the next floor!', x: 1050, y: 0, w: 35, h: 35 },
         { id: 'cancel', name: 'No, CANCEL!', x: 1085, y: 0, w: 35, h: 30 }
     ]);
+    this.staticResources.set(OTHER_EVENTS, [
+        { id: 'c', name: 'NL used the Clicker', x: 1225, y: 0, w: 35, h: 35 },
+        { id: 'r', name: 'NL died and respawned (Extra Lives)', x: 1260, y: 0, w: 35, h: 35 }
+    ])
 
 
     // render initial menu
@@ -537,24 +542,13 @@ SubmitVideoPage.prototype = {
     menu_WhatOtherEventHappened: function () {
         this.display(
             H2(t('What other event happened?')),
-            P(
-                span(
-                    t('NL used the CLICKER'),
-                    cl('u', 'hand'),
-                    event('click', () => this.process_OtherGameplayEventWasChosen('clicker'))
-                )
-            ),
-            P(
-                span(
-                    t('NL DIED and RESPAWNED, because of extra lives or a special item/trinket.'),
-                    cl('u', 'hand'),
-                    event('click', () => this.process_OtherGameplayEventWasChosen('respawn'))
-                )
-            ),
+            Div(id('oe')),
             Div(
                 this.backToMainMenu()
             )
         );
+
+        new Boxes(this, 'oe', this.process_OtherGameplayEventWasChosen, this.getStaticResource(OTHER_EVENTS), 1, false, '/img/gameplay_events.png');
     },
 
 
@@ -563,9 +557,9 @@ SubmitVideoPage.prototype = {
      * @param {'clicker'|'reroll-transform'|'respawn'} otherEvent
      */
     process_OtherGameplayEventWasChosen: function(otherEvent) {
-        if (otherEvent === 'clicker') {
+        if (otherEvent === 'c') {
             this.menu_WhatCharacterDidNlChangeInto();
-        } else if (otherEvent === 'respawn') {
+        } else if (otherEvent === 'r') {
             this.menu_WhatKilledNlBeforeRespawning();
         } else {
             this.menu_Main();
