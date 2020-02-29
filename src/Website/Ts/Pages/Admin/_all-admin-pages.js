@@ -19,6 +19,8 @@ import { registerInsertGameplayEventPage } from "./insert-gameplay-event";
 import { registerDeleteEventPage } from "./delete-event";
 import { registerDeleteSubmissionPage } from "./delete-submission";
 import { registerResourcesPage } from './resources';
+import { registerTestEmailSentPage } from "./test-email-sent";
+import { registerSendTestEmailPage } from "./send-test-email";
 
 
 (() => {
@@ -43,5 +45,7 @@ import { registerResourcesPage } from './resources';
     registerDeleteEventPage();
     registerDeleteSubmissionPage();
     registerResourcesPage();
+    registerTestEmailSentPage();
+    registerSendTestEmailPage();
 })();
 

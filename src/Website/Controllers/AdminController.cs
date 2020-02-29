@@ -1,6 +1,7 @@
 ﻿using Google.Apis.YouTube.v3.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Website.Models.Admin;
@@ -17,14 +18,31 @@ namespace Website.Controllers
         private readonly IIsaacRepository _isaacRepository;
         private readonly IIsaacIconManager _iconManager;
         private readonly IEditSubmissionRepository _editSubmissionRepository;
+        private readonly IEmailService _emailService;
 
-        public AdminController(IVideoRepository videoRepository, IModRepository modRepository, IIsaacRepository isaacRepository, IIsaacIconManager iconManager, IEditSubmissionRepository editSubmissionRepository)
+        public AdminController(IVideoRepository videoRepository, IModRepository modRepository, IIsaacRepository isaacRepository, IIsaacIconManager iconManager, IEditSubmissionRepository editSubmissionRepository, IEmailService emailService)
         {
             _videoRepository = videoRepository;
             _modRepository = modRepository;
             _isaacRepository = isaacRepository;
             _iconManager = iconManager;
             _editSubmissionRepository = editSubmissionRepository;
+            _emailService = emailService;
+        }
+
+        [HttpPost("email_test")]
+        public async Task<ActionResult> EmailTest([FromForm] EmailTest model)
+        {
+            try
+            {
+                await _emailService.SendEmailAsync(model.To, model.Subject, model.HtmlMessage);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+
+            return Ok();
         }
 
         [HttpPost("save_or_update_videos")]

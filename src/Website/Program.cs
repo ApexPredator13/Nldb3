@@ -23,7 +23,7 @@ namespace Website
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
-                    webBuilder.UseUrls("https://localhost:5005");
+                    webBuilder.UseUrls("http://localhost:5005");
                 });
     }
 }

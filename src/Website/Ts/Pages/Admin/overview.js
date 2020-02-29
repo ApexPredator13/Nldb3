@@ -54,6 +54,13 @@ AdminOverview.prototype = {
                     cl('u', 'hand'),
                     event('click', e => navigate(this.link.submissions(), e))
                 )
+            ),
+            P(
+                span(
+                    t('Test Email-Service'),
+                    cl('u', 'hand'),
+                    event('click', e => navigate(this.link.sendTestEmail(), e))
+                )
             )
         ]);
     }

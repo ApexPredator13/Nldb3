@@ -21,6 +21,7 @@ using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.AspNetCore.HttpOverrides;
 
 namespace Website
 {
@@ -146,7 +147,12 @@ namespace Website
             var migrationsAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
             services.AddIdentityServer(config =>
             {
-                config.IssuerUri = "https://www.northernlion-db.com";
+                if (_env.IsProduction())
+                {
+                    config.PublicOrigin = "https://northernlion-db.com";
+                }
+
+                config.IssuerUri = "https://northernlion-db.com";
                 config.UserInteraction.LogoutUrl = "/Account/Logout";
                 config.UserInteraction.ErrorUrl = "/Error";
             })
@@ -188,6 +194,7 @@ namespace Website
                 x.AllowAnyHeader();
                 x.AllowAnyMethod();
             });
+
 
             app.Use((context, next) =>
             {
@@ -245,13 +252,13 @@ namespace Website
 
             app.PrepareDatabase();
             app.ApplyEntityFrameworkDatabaseMigrations();
-            app.CreateIdentityserverEntriesIfNecessary(true);
-            app.CreateRequiredUserAccountsIfMissing(true);
+            app.CreateIdentityserverEntriesIfNecessary(env.IsDevelopment() ? true : false);
+            app.CreateRequiredUserAccountsIfMissing(env.IsDevelopment() ? true : false);
 
             //BackgroundJob.Enqueue<IMigrateOldDatabase>(migrator => migrator.MigrateUsersQuotesVideosAndRuns());
-            BackgroundJob.Enqueue<IMigrateOldDatabase>(migrator => migrator.MigrateQuotes());
+            //BackgroundJob.Enqueue<IMigrateOldDatabase>(migrator => migrator.MigrateQuotes());
             RecurringJob.AddOrUpdate<ISqlDumper>("sql-dump", dumper => dumper.Dump(), Cron.Hourly());
-            RecurringJob.AddOrUpdate<IVideoRepository>("update-videos", repo => repo.GetVideosThatNeedYoutubeUpdate(5, true), Cron.Hourly);
+            RecurringJob.AddOrUpdate<IVideoRepository>("update-videos", repo => repo.GetVideosThatNeedYoutubeUpdate(40, true), Cron.Hourly);
         }
     }
 }

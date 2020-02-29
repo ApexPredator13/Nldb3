@@ -1,5 +1,5 @@
 ﻿export function getConfig() {
     return {
-        baseUrlWithoutTrailingSlash: 'https://www.northernlion-db.com'
+        baseUrlWithoutTrailingSlash: 'https://northernlion-db.com'
     }
 }

@@ -6,6 +6,16 @@ function AdminLink() { }
 
 AdminLink.prototype = {
 
+    /** /Admin/TestEmailSent */
+    testEmailSent: function() {
+        return '/Admin/TestEmailSent';
+    },
+
+    /** /Admin/SendTestEmail */
+    sendTestEmail: function() {
+        return '/Admin/SendTestEmail';
+    },
+
     /**
      * /Admin/DeleteModLink/{id}/{text}
      * @param {number} linkId - the ID of the link

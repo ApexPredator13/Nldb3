@@ -5,7 +5,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 
-const configuration = 'development';
+const configuration = 'production';
 
 module.exports = {
     entry: {
@@ -60,8 +60,8 @@ module.exports = {
             }
         ]
     },
-    devtool: 'inline-source-map',
-    mode: 'development',
+    //devtool: 'inline-source-map',
+    mode: 'production',
     externals: {
         moment: 'moment'
     },

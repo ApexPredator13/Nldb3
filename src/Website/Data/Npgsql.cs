@@ -40,7 +40,7 @@ namespace Website.Data
                 var result = await command.ExecuteScalarAsync();
                 return System.Convert.ToInt32(result);
             }
-            catch (System.Exception _e)
+            catch
             {
                 return null;
             }
