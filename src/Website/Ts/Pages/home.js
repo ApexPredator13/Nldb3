@@ -73,7 +73,6 @@ HomePage.prototype = {
             get('/frontpage'),
         ]).then(([topUsers, data]) => {
             const link = new Link();
-            console.log(topUsers);
 
             new Html([
                 Div(
@@ -124,7 +123,7 @@ HomePage.prototype = {
                         statImage('0', '-1610', link.resourceOverview(RO_CHARACTERS)),
                         statText(`...played ${data.characters_played.toString(10)} characters`),
                         statImage('-150', '-1560', link.isaacResource('Maggie'), PAGE_TYPE_ISAAC_RESOURCE),
-                        statText(`...lost ${data.average_deaths.toString(10)} runs`),
+                        statText(`...has a ${(data.average_deaths * 100).toFixed(2)}% chance of losing`),
 
                         statHeader('On an average run, Northernlion...'),
                         statImage('-50', '-1610', link.isaacResource('TheDSix'), PAGE_TYPE_ISAAC_RESOURCE),
