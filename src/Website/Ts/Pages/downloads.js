@@ -42,7 +42,7 @@ DownloadsPage.prototype = {
                 ),
                 a(
                     t('Download SQL Dump'),
-                    href('Api/Downloads/DownloadFile')
+                    href('Api/Downloads')
                 ),
                 p(
                     t('After downloading, '),

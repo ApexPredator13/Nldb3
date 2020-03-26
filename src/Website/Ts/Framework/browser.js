@@ -21,7 +21,6 @@ const setZIndex = (e, zIndex) => {
  */
 const enableButton = (button) => {
     if (button.hasAttribute('disabled')) {
-        console.log('removing "disabled" attribute on ', button);
         button.removeAttribute('disabled');
     }
 }
@@ -32,7 +31,6 @@ const enableButton = (button) => {
  */
 const disableButton = (button) => {
     if (!button.hasAttribute('disabled')) {
-        console.log('adding "disabled"="true" on ', button);
         button.setAttribute('disabled', 'true');
     }
 }

@@ -57,7 +57,6 @@ ConfirmDeleteQuotePage.prototype = {
                                 const headers = createHeaders(undefined, true);
                                 disableButton(e.target);
                                 disableButton(document.getElementById('cancel'));
-                                console.log(`/Api/Quotes/${this.quoteId}`);
                                 fetch(`/Api/Quotes/${this.quoteId}`, { headers: headers, method: 'DELETE' }).then(response => {
                                     if (response.ok) {
                                         navigate(this.link.manageMyQuotes(), e);

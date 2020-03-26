@@ -13,5 +13,7 @@ namespace Website.Controllers
         public IActionResult Index() => View();
 
         public ViewResult SilentSignin() => View();
+
+        public OkResult Error() => Ok();
     }
 }

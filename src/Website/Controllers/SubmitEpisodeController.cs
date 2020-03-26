@@ -9,7 +9,7 @@ using Website.Services;
 
 namespace Website.Controllers
 {
-    [Authorize, ApiController, Route("SubmitEpisode")]
+    [ApiController, Route("SubmitEpisode")]
     public class SubmitEpisodeController : Controller
     {
         public const string Controllername = "SubmitEpisode";
@@ -21,6 +21,13 @@ namespace Website.Controllers
         {
             _videoRepository = videoRepository;
             _userManager = userManager;
+        }
+
+        [HttpGet("currently_adding/{id}")]
+        public async Task<ActionResult> CurrentlyAdding(string id)
+        {
+            await _videoRepository.SetVideoIsCurrentlyBeingAdded(id);
+            return Ok();
         }
 
         [HttpPost, Authorize]

@@ -60,7 +60,7 @@ const getUser = async (checkSilentSignin) => {
     try {
         // check if user logged himself in right now
         if (window.location.href.indexOf('?code=') !== -1) {
-            user = await userManager.signinRedirectCallback()
+            user = await userManager.signinRedirectCallback();
             if (user) {
                 removeHashAndQuerystring();
             }
@@ -86,9 +86,25 @@ const getUser = async (checkSilentSignin) => {
             return null;
         }
     } catch (e) {
+        if (e instanceof Error) {
+            if (e.message.toLowerCase().indexOf('future') !== -1) {
+                window.alert('Login Failed! Possible Reasons: Your system clock is out of sync. Login time does not match the time of this action, so it was prohibited.');
+            }
+        }
+        removeHashAndQuerystring();
+        await userManager.clearStaleState();
         await userManager.removeUser();
         return null;
     }
+}
+
+const createCustomErrorMessage = (obj, prop) => {
+    const potentialErrormessage = obj[prop];
+    if (potentialErrormessage && typeof(potentialErrormessage) === 'string' && potentialErrormessage.toLowerCase().indexOf('future') !== -1) {
+        return 'Login Failed! Possible Reasons: Your system clock is out of sync. Login time does not match the time of this action, so it was prohibited.';
+    }
+
+    return null;
 }
 
 /** redirects the user to the login page */

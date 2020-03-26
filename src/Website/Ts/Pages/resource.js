@@ -554,7 +554,6 @@ ResourcePage.prototype = {
      */
     fillDatasetWithRandomColor: function (dataSet) {
         if (!dataSet.backgroundColor || !Array.isArray(dataSet.backgroundColor) || !Array.isArray(dataSet.borderColor)) {
-            console.error('no dataset backgroundColor!', dataSet);
             return;
         }
 

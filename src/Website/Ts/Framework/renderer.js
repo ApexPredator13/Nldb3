@@ -69,13 +69,7 @@ HtmlMaker.prototype = Object.create(HtmlBuffer.prototype);
 
 HtmlMaker.prototype.build = function (...args) {
     for (const arg of args) {
-        try {
-            arg.call(this);
-        }
-        catch (e) {
-            console.warn('failed to render:', arg);
-            console.error('error:', e);
-        }
+        arg.call(this);
     }
 }
 
@@ -362,13 +356,7 @@ function Parent(type, ...contents) {
     return function () {
         this.buffer.data.push(NEW_ELEMENT, type);
         for (let i = 0; i < contents.length; ++i) {
-            try {
-                contents[i].call(this);
-            } catch (e) {
-                console.warn('error! cannot call', contents[i], contents);
-                console.error(e)
-            }
-            //contents[i].call(this);
+            contents[i].call(this);
         }
     }
 }
@@ -377,13 +365,7 @@ function Child(type, ...contents) {
     return function () {
         this.buffer.data.push(CHILD_START, NEW_ELEMENT, type);
         for (let i = 0; i < contents.length; ++i) {
-            try {
-                contents[i].call(this);
-            } catch (e) {
-                console.warn('error! cannot call', contents[i], contents);
-                console.error(e)
-            }
-            //contents[i].call(this);
+            contents[i].call(this);
         }
         this.buffer.data.push(CHILD_END);
     }

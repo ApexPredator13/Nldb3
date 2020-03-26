@@ -22,6 +22,8 @@ using System.Security.Cryptography.X509Certificates;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.Extensions.FileProviders;
 
 namespace Website
 {
@@ -56,6 +58,12 @@ namespace Website
             services.AddTransient<IEmailService, EmailService>();
             services.AddTransient<IBarGraphCreator, BarGraphCreator>();
             services.AddTransient<IDiscussionTopicsRepository, DiscussionTopicsRepository>();
+
+            // necessary to receive youtube push notifications
+            services.Configure<KestrelServerOptions>(options =>
+            {
+                options.AllowSynchronousIO = true;
+            });
 
             // hangfire
             services.AddHangfire(config => config
@@ -154,7 +162,6 @@ namespace Website
 
                 config.IssuerUri = "https://northernlion-db.com";
                 config.UserInteraction.LogoutUrl = "/Account/Logout";
-                config.UserInteraction.ErrorUrl = "/Error";
             })
                 .AddSigningCredential(cert)
                 .AddAspNetIdentity<IdentityUser>()
@@ -196,22 +203,29 @@ namespace Website
             });
 
 
-            app.Use((context, next) =>
-            {
-                var csp = new StringValues(
-                    "default-src 'self'; " +
-                    "frame-src 'self' https://www.youtube.com; " +
-                    "style-src 'self' 'unsafe-inline' fonts.googleapis.com; " +
-                    "font-src 'self' fonts.gstatic.com; " +
-                    "img-src 'self' https://i.ytimg.com; " +
-                    "block-all-mixed-content; " +
-                    (env.IsDevelopment()
-                        ? "script-src 'self' 'unsafe-eval' 'unsafe-inline' www.youtube.com s.ytimg.com; "
-                        : "script-src 'self' www.youtube.com; s.ytimg.com;")
-                    );
+            // app.Use((context, next) =>
+            // {
+            //     var csp = new StringValues(
+            //         "default-src 'self'; " +
+            //         "frame-src 'self' https://*.youtube.com; " +
+            //         "style-src 'self' 'unsafe-inline' fonts.googleapis.com; " +
+            //         "font-src 'self' fonts.gstatic.com; " +
+            //         "img-src 'self' i.ytimg.com s.ytimg.com; " +
+            //         "block-all-mixed-content; " +
+            //         "object-src 'none'; " +
+            //         "frame-ancestors 'self'; " +
+            //         (env.IsDevelopment()
+            //             ? "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.youtube.com s.ytimg.com 'sha256-bBR11t3xOeLLkccl6Pn1hYbkHCL+JE4CLkgBydaPSE0='; "
+            //             : "script-src 'self' https://*.youtube.com s.ytimg.com 'sha256-bBR11t3xOeLLkccl6Pn1hYbkHCL+JE4CLkgBydaPSE0=';")
+            //         );
 
-                context.Response.Headers.Add("Content-Security-Policy", csp);
-                return next();
+            //     context.Response.Headers.Add("Content-Security-Policy", csp);
+            //     return next();
+            // });
+
+            app.UseForwardedHeaders(new ForwardedHeadersOptions
+            {
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
             });
 
             if (env.IsDevelopment())
@@ -224,10 +238,9 @@ namespace Website
                 app.UseExceptionHandler("/Home/Error");
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
+                app.UseHttpsRedirection();
             }
 
-            app.UseHttpsRedirection();
-            
             app.UseStaticFiles();
 
             app.UseRouting();

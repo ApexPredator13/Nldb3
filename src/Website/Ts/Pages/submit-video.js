@@ -53,6 +53,8 @@ const beforeUnloadEvent = e => {
     e.returnValue = '';
 }
 
+let interval = 0;
+
 
 /**
  * the 'Submit Video' page
@@ -60,6 +62,11 @@ const beforeUnloadEvent = e => {
  * @param {string[]} parameters - route parameters. parameters[0] is the youtube video ID
  */
 function SubmitVideoPage(parameters) {
+
+    // mark video as 'is currently being added'
+    interval = window.setInterval(() => {
+        fetch(`/SubmitEpisode/currently_adding/${parameters[0]}`, { method: 'GET' })
+    }, 12000);
 
     // prevent user from navigating away
     dontLetUserNavigateAway(this, this.askUserIfHeReallyWantsToLeave);
@@ -2211,6 +2218,11 @@ function registerSubmitVideoPage() {
 
         // remove beforeUnload event
         window.removeEventListener('beforeunload', beforeUnloadEvent);
+
+        // clear 'video is currently being added' interval
+        if (interval) {
+            clearInterval(interval)
+        }
     }
 
     registerPage(SubmitVideoPage, 'Loading data...', ['SubmitVideo', '{id}'], undefined, cleanup);

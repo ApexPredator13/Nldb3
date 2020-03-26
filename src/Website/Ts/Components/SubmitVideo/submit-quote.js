@@ -164,14 +164,12 @@ SubmitVideoQuotesSection.prototype = {
     /** disables the 'submit quote' button */
     disableSubmitButton: function () {
         disableButton(this.getSubmitButton());
-        console.log('disabled', this.getSubmitButton().disabled);
     },
 
     /** enables the 'submit quote' button */
     enableSubmitButton: function () {
         if (this.canEnableSubmitButton) {
             enableButton(this.getSubmitButton());
-            console.log('disabled', this.getSubmitButton().disabled);
         }
     },
 

@@ -170,7 +170,7 @@ function FormHelper() {
             }
             const bodyText = await response.text();
             return bodyText;
-        } catch {
+        } catch (e) {
             return 'An error has occurred!';
         }
     }

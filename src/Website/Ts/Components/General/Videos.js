@@ -1,4 +1,4 @@
-﻿import { Div, div, Html, Tbody, td, a, th, cl, id, t, tr, thead, H1, p, P, do_nothing, select, option, attr, input, Table, tbody, modal, event, href, span } from "../../Framework/renderer";
+﻿import { Div, div, Html, Tbody, td, a, th, cl, id, t, tr, thead, H1, p, P, do_nothing, select, option, attr, input, Table, tbody, modal, event, href, span, style } from "../../Framework/renderer";
 import { get } from "../../Framework/http";
 import { addClassIfNotExists, removeClassIfExists } from "../../Framework/browser";
 import { getUser } from "../../Framework/Customizable/authentication";
@@ -146,6 +146,7 @@ function Videos(containerId, header, description, from = null, to = null, resour
                         t('HD'),
                         attr({ title: 'Is at least 720p?' })
                     ),
+                    th(),
                     th()
                 )
             ),
@@ -294,7 +295,7 @@ Videos.prototype = {
                     )
                 )
             ], this.paginationId);
-        }).catch(e => console.error(e));
+        });
     },
 
 
@@ -344,7 +345,6 @@ Videos.prototype = {
      */
     createVideos: function (request) {
         request.then(videoResult => {
-            console.log(videoResult);
             const table = document.getElementById(this.videoTableId);
             table.removeChild(table.lastElementChild);
 
@@ -352,15 +352,22 @@ Videos.prototype = {
                 Tbody(
                     id(this.videoTableBodyId),
                     ...videoResult.videos.map(video => {
+
+                        const videoIsCurrentlyBeingAdded = video.currently_adding && video.currently_adding > Date.now() - 20000;
+
                         return tr(
                             td(
                                 video.submission_count > 0 ? a(
                                     t(video.title),
+                                    videoIsCurrentlyBeingAdded ? style("color: orange") : do_nothing,
+                                    videoIsCurrentlyBeingAdded ? attr({title: "video is currently being added!"}) : do_nothing,
                                     href(this.link.episode(video.id)),
                                     event('click', e => navigate(this.link.episode(video.id), e, PAGE_TYPE_EPISODE))
                                 ) : span(
                                     t(video.title),
-                                    cl('gray')
+                                    cl('gray'),
+                                    videoIsCurrentlyBeingAdded ? style("color: darkorange") : do_nothing,
+                                    videoIsCurrentlyBeingAdded ? attr({title: "video is currently being added!"}) : do_nothing,
                                 )
                             ),
                             td(
@@ -399,12 +406,21 @@ Videos.prototype = {
                                 cl('hand', 'u'),
                                 t('Submit'),
                                 event('click', e => this.submitVideoEvent(e, video.id))
+                            ),
+                            td(
+                                video.submission_count > 0 && video.info_missing ? span(
+                                    t('❗'),
+                                    attr({
+                                        title: 'Needs to be resubmitted because pills, trinkets, runes... are now supported!',
+                                        style: 'cursor: help'
+                                    })
+                                ) : do_nothing
                             )
                         )
                     })
                 )
             ], this.videoTableId, true, false);
-        }).catch(e => console.error(e));
+        });
     }
 }
 

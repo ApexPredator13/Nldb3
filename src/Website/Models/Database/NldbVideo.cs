@@ -59,5 +59,11 @@ namespace Website.Models.Database
 
         [JsonProperty("ratio")]
         public decimal LikeDislikeRatio { get; set; } = 0.0m;
+
+        [JsonProperty("currently_adding")]
+        public long? CurrentlyAdding { get; set; } = null;
+
+        [JsonProperty("info_missing")]
+        public bool InfoMissing { get; set; }
     }
 }

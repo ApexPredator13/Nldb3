@@ -466,6 +466,12 @@ namespace Website.Data
             s.Append("UPDATE played_floors SET latest = FALSE WHERE video = @LatestVideoId; ");
             s.Append("UPDATE played_characters SET latest = FALSE WHERE video = @LatestVideoId; ");
             s.Append("UPDATE gameplay_events SET latest = FALSE WHERE video = @LatestVideoId; ");
+            
+            if (type == SubmissionType.New)
+            {
+                s.Append("UPDATE videos SET info_missing = FALSE WHERE id = @LatestVideoId; ");
+            }
+
             parameters.Add(new NpgsqlParameter("@LatestVideoId", NpgsqlDbType.Text) { Value = episode.VideoId });
 
             s.Append("INSERT INTO video_submissions (video, s_type, latest) VALUES (@Video, @Type, TRUE); ");
@@ -701,7 +707,7 @@ namespace Website.Data
             NldbVideo? result = null;
             string query = 
                 "SELECT " +
-                    "v.id, v.title, v.published AT TIME ZONE 'UTC', v.duration, v.needs_update, v.likes, v.dislikes, v.view_count, v.favorite_count, v.comment_count, v.tags, v.is_3d, v.is_hd, v.cc, " +
+                    "v.id, v.title, v.published AT TIME ZONE 'UTC', v.duration, v.needs_update, v.likes, v.dislikes, v.view_count, v.favorite_count, v.comment_count, v.tags, v.is_3d, v.is_hd, v.cc, v.currently_adding, " +
                     "t.id, t.url, t.width, t.height " +
                 "FROM videos v " +
                 "LEFT JOIN thumbnails t ON t.video = v.id " +
@@ -737,6 +743,7 @@ namespace Website.Data
                             Is3D = r.IsDBNull(i++) ? false : r.GetBoolean(i - 1),
                             IsHD = r.IsDBNull(i++) ? false : r.GetBoolean(i - 1),
                             HasCaption = r.IsDBNull(i++) ? false : r.GetBoolean(i - 1),
+                            CurrentlyAdding = r.IsDBNull(i++) ? null : (long?)r.GetInt64(i - 1),
                             Submissions = new List<SubmittedEpisode>(),
                             Thumbnails = new List<NldbThumbnail>()
                         };
@@ -831,9 +838,9 @@ namespace Website.Data
             // SELECT
             s.Append(
                 "SELECT" +
-                    " v.id, v.title, v.published, v.duration, v.needs_update, v.likes, v.dislikes," +
+                    " v.id, v.title, v.published, v.duration, v.needs_update, v.likes, v.dislikes, v.currently_adding, v.info_missing," +
                     " v.view_count, v.favorite_count, v.comment_count, v.tags, v.is_3d, v.is_hd, v.cc," +
-                    " ((100::numeric * v.dislikes::numeric) / (v.likes::numeric +  v.dislikes::numeric)) AS like_dislike_ratio," +
+                    " (100::numeric * v.dislikes::numeric) / GREATEST((v.likes::numeric +  v.dislikes::numeric), 1) AS like_dislike_ratio," +
                     " COUNT(s.id) AS submission_count");
 
             // FROM
@@ -936,6 +943,8 @@ namespace Website.Data
                         RequiresUpdate = r.GetBoolean(i++),
                         Likes = r.IsDBNull(i++) ? (int?)null : r.GetInt32(i - 1),
                         Dislikes = r.IsDBNull(i++) ? (int?)null : r.GetInt32(i - 1),
+                        CurrentlyAdding = r.IsDBNull(i++) ? (long?)null : r.GetInt64(i - 1),
+                        InfoMissing = r.GetBoolean(i++),
                         ViewCount = r.IsDBNull(i++) ? (int?)null : r.GetInt32(i - 1),
                         FavoriteCount = r.IsDBNull(i++) ? (int?)null : r.GetInt32(i - 1),
                         CommentCount = r.IsDBNull(i++) ? (int?)null : r.GetInt32(i - 1),
@@ -953,6 +962,17 @@ namespace Website.Data
 
             result.VideoCount = await countVideosTask;
             return result;
+        }
+
+        public async Task<int> SetVideoIsCurrentlyBeingAdded(string videoId)
+        {
+            var dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+            var currentTime = DateTimeOffset.Now.ToUniversalTime().ToUnixTimeMilliseconds();
+            return await _npgsql.NonQuery(
+                "UPDATE videos SET currently_adding = @CurrentlyAdding WHERE id = @Id;",
+                _npgsql.Parameter("@CurrentlyAdding", NpgsqlDbType.Bigint, currentTime),
+                _npgsql.Parameter("@Id", NpgsqlDbType.Text, videoId)
+            );
         }
 
         public async Task<int> SetThumbnails(ThumbnailDetails thumbnailDetails, string videoId)
