@@ -748,7 +748,7 @@ namespace Website.Data
                             Thumbnails = new List<NldbThumbnail>()
                         };
                     }
-                    else i += 14;
+                    else i += 15;
 
                     if (!r.IsDBNull(i) && !result.Thumbnails.Any(x => x.Id == r.GetInt32(i)))
                     {
