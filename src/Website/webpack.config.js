@@ -11,8 +11,11 @@ module.exports = (env, argv) => {
         console.warn('WARNING - webpack mode not detected, defaulting to \'production\'.');
     }
 
-    const mode = argv.mode || 'development';
+    const mode = argv.mode ? argv.mode : 'development';
     console.log('webpack runs in ' + mode + ' mode.');
+
+    const configFileName = mode === 'development' ? './config.development.js' : './config.production.js';
+    console.log('config ' + configFileName + ' is used.');
 
     return {
         entry: {
@@ -36,13 +39,19 @@ module.exports = (env, argv) => {
             filename: '[name].min.js'
         },
         resolve: {
+            alias: {
+                [path.resolve(__dirname, 'Ts/Framework/Customizable/config.development.js')] :
+                    mode === 'development' 
+                    ? path.resolve(__dirname, 'Ts/Framework/Customizable/config.development.js')
+                    : path.resolve(__dirname, 'Ts/Framework/Customizable/config.production.js')
+            },
             extensions: [ '.js' ]
         },
         plugins: [
             new CleanWebpackPlugin(),
             new webpack.NormalModuleReplacementPlugin(
                 /Framework[\//]Customizable[\//]config.development.js/,
-                mode === 'development' ? './config.development.js' : './config.production.js'
+                configFileName
             ),
             new MiniCssExtractPlugin({
                     filename: '[name].css',
