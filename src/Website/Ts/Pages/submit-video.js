@@ -776,14 +776,20 @@ SubmitVideoPage.prototype = {
                     cl('display-inline'),
                     input(
                         attr({ type: 'text', maxlength: '4', id: 'seed-1', size: '4', spellcheck: 'false' }),
-                        event('input', e => { this.uppercase(e); this.validateSeed(); })
+                        event('input', e => { this.uppercase(e); this.validateSeed(); this.skipToNextInput(e); })
                     ),
                     span(
                         t(' ')
                     ),
                     input(
                         attr({ type: 'text', maxlength: '4', id: 'seed-2', size: '4', spellcheck: 'false' }),
-                        event('input', e => { this.uppercase(e); this.validateSeed(); })
+                        event('input', e => { this.uppercase(e); this.validateSeed(); }),
+                        event('keydown', e => {
+                            const btn = document.getElementById('submit-seed-button')
+                            if (!btn.disabled) {
+                                btn.click();
+                            }
+                        })
                     )
                 ),
                 button(
@@ -802,6 +808,8 @@ SubmitVideoPage.prototype = {
                 )
             )
         );
+
+        document.getElementById('seed-1').focus();
     },
 
 
@@ -998,6 +1006,17 @@ SubmitVideoPage.prototype = {
             button.disabled = true;
         } else {
             button.disabled = false;
+        }
+    },
+
+    
+    /**
+     * checks whether the seed input is 4 characters long and places the cursor into the next input field
+     * @param {Event} e - the raw input event
+     */
+    skipToNextInput: function(e) {
+        if (e.target.value.length === 4) {
+            document.getElementById('seed-2').focus();
         }
     },
 

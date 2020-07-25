@@ -1,4 +1,4 @@
-﻿import { Div, Html, t, cl, div, attr, id, event } from "../../Framework/renderer";
+﻿import { Div, Html, t, cl, div, attr, id, event, do_nothing } from "../../Framework/renderer";
 import { isaacImage } from "./isaac-image";
 import "../../Framework/Customizable/typedefs"
 
@@ -13,8 +13,10 @@ import "../../Framework/Customizable/typedefs"
  * @param {boolean=} [upscale] - upscales the image
  * @param {number=} [limit] - limits the resources to the provided amount
  * @param {replaceContent=} [replaceContent] - if true, replaces content in the container
- * @param {number} id - the ID of the boxes, if more than one set is displayed at once
+ * @param {number=} id - the ID of the boxes, if more than one set is displayed at once
  */
+
+
 function Boxes(caller, containerId, sub, resources, id = 1, upscale = true, imagePath = '/img/isaac.png', limit = null, replaceContent = true) {
 
     this.caller = caller;
@@ -66,8 +68,17 @@ Boxes.prototype = {
                     const s = `${width}${padding}`;
 
                     return div(
-                        attr({ i: resource.id, style: s, class: 'box', id: `b${this.id}${index}` }),
+                        attr({ i: resource.id, style: s, class: 'box', id: `b${this.id}${index}`, tabindex: "0" }),
                         event('click', e => this.boxClickEvent(e)),
+                        event('keydown', e => {
+                            if (e.key === 'Enter') {
+                                e.target.style.border = '3px solid white';
+                                setTimeout(() => {
+                                    e.target.click();
+                                }, 100);
+                                
+                            }
+                        }),
 
                         div(
                             t(resource.name)
@@ -90,7 +101,7 @@ Boxes.prototype = {
         if (this.sub) {
             this.sub.call(this.caller, attributeValue);
         }
-    }
+    },
 }
 
 

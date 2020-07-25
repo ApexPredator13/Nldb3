@@ -29,7 +29,8 @@ function Searchbox(caller, sub, searchboxId, resources, displayType, containerId
                 cl('dd-search'),
                 input(
                     attr({ type: 'text', class: 'dd-searchbox', placeholder: 'filter...' }),
-                    event('input', this.filter)
+                    event('input', this.filter),
+                    event('keydown', this.keyboardEvent)
                 )
             ),
             div(
@@ -118,6 +119,28 @@ Searchbox.prototype = {
         if (searchBoxes && searchBoxes.length > 0) {
             const firstSearchBox = searchBoxes[0];
             firstSearchBox.focus();
+        }
+    },
+
+    /**
+     * selects the top element in the searchbox
+     * @param {Event} e - the raw keydown event 
+     */
+    keyboardEvent: function(e) {
+        if (e.key === 'Enter') {
+            const elements = e.target.parentElement.parentElement.getElementsByClassName('dd-line');
+            for (let i = 0; i < elements.length; ++i) {
+                const element = elements[i];
+                if (!element.classList.contains('display-none')) {
+                    element.style.backgroundColor = 'rgba(255,255,255,0.3)';
+                    element.style.border = '1px solid white;'
+                    setTimeout(() => {
+                        console.log('click', element);
+                        element.click();
+                    }, 100);
+                    break;
+                }
+            }
         }
     },
 
