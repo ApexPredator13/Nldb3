@@ -15,6 +15,13 @@ RandomEpisodeGeneratorPage.prototype = {
             ),
             Hr(),
             Div(
+                button(
+                    t('All Versions'),
+                    cl('btn-rng'),
+                    event('click', e => this.getEpisode('all', e))
+                )
+            ),
+            Div(
                 h4(
                     t('Flash Versions'),
                     br(),

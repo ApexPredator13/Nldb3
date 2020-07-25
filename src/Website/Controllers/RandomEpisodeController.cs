@@ -24,6 +24,10 @@ namespace Website.Controllers
 
             using var command = type.ToLower() switch
             {
+                "all"
+                => _npgsql.Command(
+                    connection,
+                    "SELECT id FROM videos ORDER BY RANDOM() LIMIT 1;"),
                 "vanilla" 
                 => _npgsql.Command(
                     connection, 
