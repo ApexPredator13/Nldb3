@@ -103,6 +103,8 @@ Searchbox.prototype = {
                 )
             ], `s${this.searchboxId.toString(10)}`, true, true);
         }
+
+        this.tryFocusOnSearchbox();
     },
 
 
@@ -116,6 +118,16 @@ Searchbox.prototype = {
         if (searchBoxes && searchBoxes.length > 0) {
             const firstSearchBox = searchBoxes[0];
             firstSearchBox.focus();
+        }
+    },
+
+    /**
+     * focuses on the first searchbox input element on the page
+     */
+    tryFocusOnSearchbox: function() {
+        const searchboxes = document.getElementsByClassName('dd-searchbox');
+        if (searchboxes && searchboxes.length > 0 && searchboxes[0].focus) {
+            searchboxes[0].focus();
         }
     },
 
