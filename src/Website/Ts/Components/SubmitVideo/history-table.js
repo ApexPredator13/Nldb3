@@ -430,6 +430,27 @@ HistoryTable.prototype = {
 
 
     /**
+     * checks whether there is a 'Bossfight' event on the current floor
+     */
+    currentFloorHasBossfight: function() {
+        const currentFloor = this.getCurrentFloor();
+        
+        if (currentFloor) {
+            const events = currentFloor.GameplayEvents;
+            if (events && events.length > 0) {
+                for (let i = 0; i < events.length; ++i) {
+                    if (events[i].EventType === 4) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    },
+
+
+    /**
      * removes a floor from a character for good.
      * @param {RemoveHistoryElement} data - data necessary to remove the floor
      */

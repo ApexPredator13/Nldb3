@@ -46,6 +46,7 @@ const DID_REROLL_TRIGGER_TRANSFORMATION = 21;
 const DID_REROLL_TRIGGER_ANOTHER_TRANSFORMATION = 22;
 const CONFIRM_DOWN_TO_NEXT_FLOOR = 23;
 const OTHER_EVENTS = 24;
+const CONFIRM_NO_BOSSFIGHT_ON_THIS_FLOOR = 25;
 
 
 const beforeUnloadEvent = e => {
@@ -288,7 +289,11 @@ function SubmitVideoPage(parameters) {
     this.staticResources.set(OTHER_EVENTS, [
         { id: 'c', name: 'NL used the Clicker', x: 1225, y: 0, w: 35, h: 35 },
         { id: 'r', name: 'NL died and respawned (Extra Lives)', x: 1260, y: 0, w: 35, h: 35 }
-    ])
+    ]);
+    this.staticResources.set(CONFIRM_NO_BOSSFIGHT_ON_THIS_FLOOR, [
+        { id: 'confirm', name: 'Yes, there really was no bossfight', x: 1050, y: 0, w: 35, h: 35 },
+        { id: 'cancel', name: 'No, CANCEL!', x: 1085, y: 0, w: 35, h: 30 }
+    ]);
 
 
     // render initial menu
@@ -1083,7 +1088,7 @@ SubmitVideoPage.prototype = {
             case 15: this.menu_HowWasTheCharacterRerolled(); break;
             case 1: this.menu_ConfirmNlDied(); break;
             case 16: this.menu_ConfirmNlWon(); break;
-            case 3: this.menu_ConfirmNextFloor(); break;
+            case 3: this.process_CheckBossWasSelected(); break;
             case 5: this.menu_SelectPill(); break;
             case 6: this.menu_ChooseTarotCard(); break;
             case 7: this.menu_ChooseRune(); break;
@@ -1091,6 +1096,37 @@ SubmitVideoPage.prototype = {
             case 20: this.menu_WhatOtherEventHappened(); break;
             case 21: this.menu_WhatOtherEventHappened(); break;
             default: this.menu_Main(); break;
+        }
+    },
+
+    /** checks if a boss was selected on the floor, and shows a warning if not */
+    process_CheckBossWasSelected: function() {
+        if (!this.history.currentFloorHasBossfight()) {
+            this.display(
+                H2(
+                    t('Warning! No bossfight was selected for this floor.'),
+                    style('color: orange')
+                ),
+                Hr(),
+                P(t('Is this correct?')),
+                Div(id('no-bf-bosses'))
+            ),
+            new Boxes(this, 'no-bf-bosses', this.process_NoBossfightSelected, this.getStaticResource(CONFIRM_NO_BOSSFIGHT_ON_THIS_FLOOR), 1, false, '/img/gameplay_events.png');
+        } else {
+            this.menu_ConfirmNextFloor();
+        }
+    },
+
+
+    /**
+     * processes whether the user confirmed that there was indeed no bossfight on this floor
+     * @param {'confirm'|'cancel'} choice 
+     */
+    process_NoBossfightSelected: function(choice) {
+        if (choice === 'confirm') {
+            this.menu_ConfirmNextFloor();
+        } else {
+            this.menu_Main();
         }
     },
 
@@ -1102,7 +1138,7 @@ SubmitVideoPage.prototype = {
             P(t('This cant be undone!')),
             Div(id('confirm'))
         );
-        new Boxes(this, 'confirm', this.process_ConfirmNextFloorChoice, this.getStaticResource(CONFIRM_DOWN_TO_NEXT_FLOOR), 1, false, '/img/gameplay_events.png')
+        new Boxes(this, 'confirm', this.process_ConfirmNextFloorChoice, this.getStaticResource(CONFIRM_DOWN_TO_NEXT_FLOOR), 1, false, '/img/gameplay_events.png');
     },
 
 
