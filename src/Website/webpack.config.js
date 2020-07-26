@@ -1,6 +1,5 @@
 ﻿const path = require('path');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
-const webpack = require('webpack');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
@@ -49,10 +48,6 @@ module.exports = (env, argv) => {
         },
         plugins: [
             new CleanWebpackPlugin(),
-            new webpack.NormalModuleReplacementPlugin(
-                /Framework[\//]Customizable[\//]config.development.js/,
-                configFileName
-            ),
             new MiniCssExtractPlugin({
                     filename: '[name].css',
             }),
