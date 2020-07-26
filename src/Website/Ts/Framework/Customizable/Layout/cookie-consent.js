@@ -21,7 +21,7 @@ function renderCookieConsentIfNeeded() {
                     t(
                         'This website will not use cookies to track users in any way. However, if you '
                         + 'choose to interact with parts of this website that are made possible with the help of external software providers '
-                        + '(login via facebook, google, twitch, steam, twitter or the embedded youtube player), these providers '
+                        + '(login via google, twitch, steam, twitter or the embedded youtube player), these providers '
                         + 'might set cookies that can track users.'
                     )
                 )

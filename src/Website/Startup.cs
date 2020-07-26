@@ -107,11 +107,6 @@ namespace Website
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
             services.AddAuthentication()
-                .AddFacebook(options =>
-                {
-                    options.AppId = Config["FacebookAppId"];
-                    options.AppSecret = Config["FacebookAppSecret"];
-                })
                 .AddTwitter(options =>
                 {
                     options.ConsumerKey = Config["TwitterConsumerKey"];

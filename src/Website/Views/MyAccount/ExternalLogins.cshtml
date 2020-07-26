@@ -23,9 +23,6 @@
                 @(currentLogin.ProviderDisplayName ?? currentLogin.LoginProvider)
                 @switch ((currentLogin.ProviderDisplayName ?? currentLogin.LoginProvider).ToLower())
                 {
-                    case "facebook":
-                        <partial name="_IconFacebookPartial" />
-                        break;
                     case "twitter":
                         <partial name="_IconTwitterPartial" />
                         break;
@@ -67,9 +64,6 @@
             @(otherLogin.DisplayName ?? otherLogin.Name)
             @switch ((otherLogin.DisplayName ?? otherLogin.Name).ToLower())
             {
-                case "facebook":
-                    <partial name="_IconFacebookPartial" />
-                    break;
                 case "twitter":
                     <partial name="_IconTwitterPartial" />
                     break;
