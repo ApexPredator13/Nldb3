@@ -6,9 +6,9 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using Website.Data;
 using Website.Services;
 
@@ -16,9 +16,21 @@ namespace Website.Infrastructure
 {
     public static class ApplicationBuilderExtensions
     {
+        public static IServiceScope CreateScope(IApplicationBuilder app)
+        {
+            var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>();
+
+            if (serviceScope is null)
+            {
+                throw new NullReferenceException("Service Scope is null...?");
+            }
+
+            return serviceScope.CreateScope();
+        }
+
         public static void PrepareDatabase(this IApplicationBuilder app)
         {
-            using var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope();
+            using var serviceScope = CreateScope(app);
             var npgsql = serviceScope.ServiceProvider.GetRequiredService<INpgsql>();
             var hostingEnvironment = serviceScope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Hosting.IWebHostEnvironment>();
             var dbManager = new DbManager(npgsql, hostingEnvironment);
@@ -27,24 +39,36 @@ namespace Website.Infrastructure
 
         public static void ApplyEntityFrameworkDatabaseMigrations(this IApplicationBuilder app)
         {
-            using var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope();
+            using var serviceScope = CreateScope(app);
 
             var applicationDbContext = serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             var applicationDbContextMigrator = applicationDbContext.GetInfrastructure().GetService<IMigrator>();
-            applicationDbContextMigrator.Migrate();
+
+            if (applicationDbContextMigrator is not null)
+            {
+                applicationDbContextMigrator.Migrate();
+            }
 
             var configurationDbContext = serviceScope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
             var configurationDbContextMigrator = configurationDbContext.GetInfrastructure().GetService<IMigrator>();
-            configurationDbContextMigrator.Migrate();
+
+            if (configurationDbContextMigrator is not null)
+            {
+                configurationDbContextMigrator.Migrate();
+            }
 
             var persistedGrantDbContext = serviceScope.ServiceProvider.GetRequiredService<PersistedGrantDbContext>();
             var persistedGrantDbContextMigrator = persistedGrantDbContext.GetInfrastructure().GetService<IMigrator>();
-            persistedGrantDbContextMigrator.Migrate();
+            
+            if (persistedGrantDbContextMigrator is not null)
+            {
+                persistedGrantDbContextMigrator.Migrate();
+            }
         }
 
         public static void CreateIdentityserverEntriesIfNecessary(this IApplicationBuilder app, bool deleteExistingData = false)
         {
-            using var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope();
+            using var serviceScope = CreateScope(app);
             var configurationDbContext = serviceScope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
             var config = serviceScope.ServiceProvider.GetRequiredService<IConfiguration>();
 
@@ -83,7 +107,7 @@ namespace Website.Infrastructure
 
         public static void CreateRequiredUserAccountsIfMissing(this IApplicationBuilder app, bool resetTestaccount)
         {
-            using var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope();
+            using var serviceScope = CreateScope(app);
 
             // migrate identityserver 
 
@@ -148,7 +172,7 @@ namespace Website.Infrastructure
 
         public static void ResetDatabaseInDevMode(this IApplicationBuilder app)
         {
-            using var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope();
+            using var serviceScope = CreateScope(app);
             var dbManager = serviceScope.ServiceProvider.GetRequiredService<IDbManager>();
             dbManager.DropTablesInDevMode();
             dbManager.CreateAllTablesIfNotExists();

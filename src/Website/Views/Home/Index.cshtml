@@ -1,7 +1,7 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
     var path = Context.Request.Path.Value;
-    var pathLowercase = path.ToLower();
+    var pathLowercase = path!.ToLower();
 }
 
 @inject Website.Services.IVideoRepository _videoRepository

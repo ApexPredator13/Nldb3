@@ -47,7 +47,7 @@ namespace Website.Controllers
         [HttpGet, Route("{id}")]
         public async Task<List<Quote>> ForVideo([FromRoute] string id)
         {
-            string? userId = User.Identity.IsAuthenticated ? _userManager.GetUserId(User) : null;
+            string? userId = (User.Identity?.IsAuthenticated ?? false) ? _userManager.GetUserId(User) : null;
             var quotes = await _quoteRepository.GetQuotesForVideo(id, userId);
             return quotes;
         }
@@ -64,7 +64,7 @@ namespace Website.Controllers
         [HttpGet, Route("random/{amount:int}")]
         public async Task<List<Quote>> GetRandomQuotes([FromRoute] int amount)
         {
-            string? userId = User.Identity.IsAuthenticated ? _userManager.GetUserId(User) : null;
+            string? userId = (User.Identity?.IsAuthenticated ?? false) ? _userManager.GetUserId(User) : null;
             return await _quoteRepository.RandomQuotes(amount, userId);
         }
 
@@ -72,7 +72,7 @@ namespace Website.Controllers
         [HttpGet, Route("recent/{amount:int}")]
         public async Task<List<Quote>> GetNewestQuotes([FromRoute] int amount)
         {
-            string? userId = User.Identity.IsAuthenticated ? _userManager.GetUserId(User) : null;
+            string? userId = (User.Identity?.IsAuthenticated ?? false) ? _userManager.GetUserId(User) : null;
             return await _quoteRepository.NewestQuotes(amount, userId);
         }
 
@@ -80,7 +80,7 @@ namespace Website.Controllers
         [HttpGet, Route("search")]
         public async Task<List<Quote>> SearchQuoteText([FromQuery] string text)
         {
-            string? userId = User.Identity.IsAuthenticated ? _userManager.GetUserId(User) : null;
+            string? userId = (User.Identity?.IsAuthenticated ?? false) ? _userManager.GetUserId(User) : null;
             return await _quoteRepository.Search(text, userId);
         }
 

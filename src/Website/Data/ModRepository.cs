@@ -269,7 +269,7 @@ namespace Website.Data
         {
             using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand("DELETE FROM mod_url WHERE id = @Id", c);
-            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Integer, modUrlId);
+            q.Parameters.AddWithValue("@Id", NpgsqlDbType.Integer, modUrlId ?? (object)DBNull.Value);
             return await q.ExecuteNonQueryAsync();
         }
 

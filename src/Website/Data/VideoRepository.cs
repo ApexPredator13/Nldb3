@@ -168,7 +168,7 @@ namespace Website.Data
 
             using var c = await _npgsql.Connect();
             using var q = new NpgsqlCommand(query, c);
-            q.Parameters.AddWithValue("@ResourceId", NpgsqlDbType.Text, request.ResourceId);
+            q.Parameters.AddWithValue("@ResourceId", NpgsqlDbType.Text, request.ResourceId ?? string.Empty);
             return Convert.ToInt32(await q.ExecuteScalarAsync());
         }
 
@@ -329,7 +329,13 @@ namespace Website.Data
 
             foreach(var updatedVideo in updatedVideos)
             {
-                _logger.LogInformation($"updating video {updatedVideo.Id ?? "no id found"}: {updatedVideo.Snippet.Title ?? "no title found"}");
+                if (updatedVideo is null || string.IsNullOrWhiteSpace(updatedVideo.Id) || string.IsNullOrWhiteSpace(updatedVideo.Snippet.Title))
+                {
+                    _logger.LogInformation($"video is null. no update possible.");
+                    continue;
+                }
+
+                _logger.LogInformation($"updating video {updatedVideo.Id}: {updatedVideo.Snippet.Title}");
 
                 string commandText =
                 "UPDATE videos SET title = @Title, published = @Pub, Duration = @Dur, " +

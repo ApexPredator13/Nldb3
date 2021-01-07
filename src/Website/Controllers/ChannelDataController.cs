@@ -59,7 +59,7 @@ namespace Website.Controllers
                     var notificationData = ConvertAtomToSyndication(Request.Body);
                     VideoListResponse? youtubeApiResult = null;
 
-                    if (notificationData.VideoId != null)
+                    if (notificationData is not null && notificationData.VideoId != null)
                     {
                         youtubeApiResult = await _videoRepository.GetYoutubeVideoData(notificationData.VideoId);
                         var lowercasedVideoTitle = youtubeApiResult.Items[0].Snippet.Title.ToLower();
@@ -113,11 +113,17 @@ namespace Website.Controllers
             }
         }
         
-        private YoutubeNotification ConvertAtomToSyndication(Stream stream)
+        private static YoutubeNotification? ConvertAtomToSyndication(Stream stream)
         {
             using var xmlReader = XmlReader.Create(stream);
             SyndicationFeed feed = SyndicationFeed.Load(xmlReader);
             var f = feed.Items.FirstOrDefault();
+
+            if (f is null)
+            {
+                return null;
+            }
+
             return new YoutubeNotification()
             {
                 ChannelId = GetElementExtensionValueByOuterName(f, "channelId"),
@@ -128,7 +134,7 @@ namespace Website.Controllers
             };
         }
 
-        private string? GetElementExtensionValueByOuterName(SyndicationItem item, string outerName)
+        private static string? GetElementExtensionValueByOuterName(SyndicationItem item, string outerName)
         {
             if (item.ElementExtensions.All(x => x.OuterName != outerName)) return null;
             return item.ElementExtensions.Single(x => x.OuterName == outerName).GetObject<XElement>().Value;

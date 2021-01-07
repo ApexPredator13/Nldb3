@@ -5,7 +5,7 @@
     <UserSecretsId>aspnet-Website-386D1BF3-0CC3-4035-B90E-CD34A50BB8B2</UserSecretsId>
     <SignAssembly>false</SignAssembly>
     <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
-    <LangVersion>8.0</LangVersion>
+    <LangVersion>preview</LangVersion>
     <Nullable>enable</Nullable>
     <NullableReferenceTypes>true</NullableReferenceTypes>
   </PropertyGroup>

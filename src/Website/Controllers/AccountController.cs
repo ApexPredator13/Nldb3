@@ -45,7 +45,7 @@ namespace Website.Controllers
         public async Task<ActionResult> Login([FromQuery] string returnUrl)
         {
             // if user is logged in already, redirect him to his profile page
-            if (User.Identity.IsAuthenticated)
+            if (User.Identity?.IsAuthenticated ?? false)
             {
                 return RedirectToAction(nameof(MyAccountController.Index), MyAccountController.Controllername);
             }
@@ -186,7 +186,7 @@ namespace Website.Controllers
             return RedirectToAction(nameof(HomeController.Index), HomeController.Controllername, "logout");
         }
 
-        private string GetExternalLoginUsername(ExternalLoginInfo info)
+        private static string GetExternalLoginUsername(ExternalLoginInfo info)
         {
             switch (info.LoginProvider.ToLower())
             {
