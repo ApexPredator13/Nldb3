@@ -10,8 +10,6 @@ using SixLabors.ImageSharp.PixelFormats;
 using Website.Services;
 using Microsoft.AspNetCore.Http;
 using SixLabors.ImageSharp.Formats.Png;
-using SixLabors.Primitives;
-using SixLabors.ImageSharp.Processing.Processors;
 
 namespace Website.Infrastructure
 {
@@ -42,7 +40,7 @@ namespace Website.Infrastructure
 
         public Image<Rgba32> GetDefaultImage()
         {
-            return Image.Load(_defaultIsaacImage);
+            return Image.Load<Rgba32>(_defaultIsaacImage);
         }
 
         public async Task<(int width, int height)> GetPostedImageSize(IFormFile file)

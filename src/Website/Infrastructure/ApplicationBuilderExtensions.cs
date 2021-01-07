@@ -146,25 +146,6 @@ namespace Website.Infrastructure
             }
         }
 
-        public static async Task MigrateOldDatabaseIfNoDataExists(this IApplicationBuilder app)
-        {
-            using var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope();
-            var migrator = serviceScope.ServiceProvider.GetRequiredService<IMigrateOldDatabase>();
-            migrator.MigrateUsers();
-            await migrator.MigrateMods();
-            await migrator.MigrateTransformations();
-            await migrator.MigrateBosses();
-            await migrator.MigrateCharacters();
-            await migrator.MigrateCurses();
-            await migrator.MigrateFloors();
-            await migrator.MigrateItems();
-            await migrator.MigrateItemSources();
-            await migrator.MigrateThreats();
-            await migrator.MigrateVideos();
-            await migrator.MigrateQuotes();
-            await migrator.MigrateRuns();
-        }
-
         public static void ResetDatabaseInDevMode(this IApplicationBuilder app)
         {
             using var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope();

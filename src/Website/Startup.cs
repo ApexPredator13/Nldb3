@@ -47,7 +47,6 @@ namespace Website
 
             services.AddTransient<INpgsql, Data.Npgsql>();
             services.AddTransient<IDbManager, DbManager>();
-            services.AddTransient<IMigrateOldDatabase, MigrateOldDatabase>();
             services.AddTransient<IIsaacIconManager, IsaacIconManager>();
             services.AddTransient<IEditSubmissionRepository, EditSubmissionRepository>();
 
@@ -150,11 +149,6 @@ namespace Website
             var migrationsAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
             services.AddIdentityServer(config =>
             {
-                if (_env.IsProduction())
-                {
-                    config.PublicOrigin = "https://northernlion-db.com";
-                }
-
                 config.IssuerUri = "https://northernlion-db.com";
                 config.UserInteraction.LogoutUrl = "/Account/Logout";
             })
