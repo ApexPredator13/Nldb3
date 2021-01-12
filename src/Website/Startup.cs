@@ -191,27 +191,6 @@ namespace Website
                 x.AllowAnyMethod();
             });
 
-
-            // app.Use((context, next) =>
-            // {
-            //     var csp = new StringValues(
-            //         "default-src 'self'; " +
-            //         "frame-src 'self' https://*.youtube.com; " +
-            //         "style-src 'self' 'unsafe-inline' fonts.googleapis.com; " +
-            //         "font-src 'self' fonts.gstatic.com; " +
-            //         "img-src 'self' i.ytimg.com s.ytimg.com; " +
-            //         "block-all-mixed-content; " +
-            //         "object-src 'none'; " +
-            //         "frame-ancestors 'self'; " +
-            //         (env.IsDevelopment()
-            //             ? "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.youtube.com s.ytimg.com 'sha256-bBR11t3xOeLLkccl6Pn1hYbkHCL+JE4CLkgBydaPSE0='; "
-            //             : "script-src 'self' https://*.youtube.com s.ytimg.com 'sha256-bBR11t3xOeLLkccl6Pn1hYbkHCL+JE4CLkgBydaPSE0=';")
-            //         );
-
-            //     context.Response.Headers.Add("Content-Security-Policy", csp);
-            //     return next();
-            // });
-
             app.UseForwardedHeaders(new ForwardedHeadersOptions
             {
                 ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
