@@ -1,4 +1,4 @@
-﻿import { Html, Div, id, span, t, attr, event } from "../../Framework/renderer";
+﻿import { Html, Div, id, span, t, attr, event, input } from "../../Framework/renderer";
 import { YoutubePlayer } from "./youtube-player";
 
 
@@ -29,6 +29,18 @@ function PlayerControls(containerId, youtubePlayer) {
                 t('▶️'),
                 attr({ id: 'play-pause', class: 'hand', title: 'Play / Pause' }),
                 event('click', () => this.playPauseClicked())
+            ),
+            input(
+                attr({
+                    type: 'checkbox'
+                }),
+                event('input', e => {
+                    if (e.target.checked) {
+                        this.autopause = true;
+                    } else {
+                        this.autopause = false;
+                    }
+                })
             )
         )
     ], containerId, true, false);
@@ -55,6 +67,10 @@ PlayerControls.prototype = {
     rewindClicked: function() {
         this.youtubePlayer.seek(-5);
     },
+
+
+    /** enables auto-pause */
+    autopause: false,
 
 
     /** plays / pauses the video */

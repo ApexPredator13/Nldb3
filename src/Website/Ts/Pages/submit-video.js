@@ -402,6 +402,7 @@ SubmitVideoPage.prototype = {
 
 
     cleanup: function () {
+        this.youtubePlayer.playVideo();
         this.tempValue = null;
         this.wasRerolled = false;
         const player = document.getElementById('current-player-container');
@@ -414,7 +415,8 @@ SubmitVideoPage.prototype = {
      * an often reused 'back to main menu' link
      * @param {string} [text] - replaces the 'Back to selection' link text
      */
-    backToMainMenu: function(text) {
+    backToMainMenu: function (text) {
+        
         return div(
             hr(),
             span(
@@ -423,7 +425,7 @@ SubmitVideoPage.prototype = {
             span(
                 t(text ? text : 'Back to selection'),
                 cl('u', 'hand'),
-                event('click', () => this.menu_Main())
+                event('click', () => { this.youtubePlayer.playVideo(); this.menu_Main(); })
             )
         );
     },
@@ -1070,6 +1072,11 @@ SubmitVideoPage.prototype = {
      * @param {string} selectedEvent - the box that was clicked in the main menu
      */
     processMainMenuSelection: function (selectedEvent) {
+
+        if (this.playerControls.autopause) {
+            this.youtubePlayer.pauseVideo();
+        }
+
         this.seedHandler.hideSeedInputElement();
 
         if (!selectedEvent) {
@@ -2198,7 +2205,7 @@ SubmitVideoPage.prototype = {
                 popover: {
                     title: 'Player Controls',
                     description: 'Sometimes it\'s convenient to go back a couple seconds or pause the video without messing with the youtube player directly. ⏪ takes you '
-                        + 'back 5 seconds, ▶️ and ⏸️ play and pause the video.',
+                        + 'back 5 seconds, ▶️ and ⏸️ play and pause the video. The checkbox pauses the video every time you select an item.',
                     position: 'bottom'
                 }
             },

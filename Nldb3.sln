@@ -9,7 +9,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{8F08CFF1
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Website", "src\Website\Website.csproj", "{7C0AF9EE-AB57-4D55-A172-C2183F03B461}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebsiteTests", "tests\WebsiteTests\WebsiteTests.csproj", "{811D715C-035B-412C-80E4-3A04A70EFB79}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebsiteTests", "tests\WebsiteTests\WebsiteTests.csproj", "{811D715C-035B-412C-80E4-3A04A70EFB79}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
