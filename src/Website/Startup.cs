@@ -228,6 +228,7 @@ namespace Website
                 // silent signin
                 endpoints.MapControllerRoute("silent_signin", "/SilentSignin", new { controller = Controllers.HomeController.Controllername, action = nameof(Controllers.HomeController.SilentSignin) });
                 endpoints.MapControllerRoute("default", "{controller=home}/{action=index}/{id?}");
+                endpoints.MapFallbackToController("index", "home");
             });
 
             app.PrepareDatabase();
