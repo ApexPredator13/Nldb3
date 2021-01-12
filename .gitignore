@@ -6,6 +6,9 @@
 # google client credential
 /src/Website/google_credential.json
 
+# AuthState
+/src/Website/AuthState/*
+
 # pfx
 /src/Website/nldb.pfx
 
