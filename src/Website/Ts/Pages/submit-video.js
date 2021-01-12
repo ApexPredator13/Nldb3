@@ -1073,7 +1073,7 @@ SubmitVideoPage.prototype = {
      */
     processMainMenuSelection: function (selectedEvent) {
 
-        if (this.playerControls.autopause) {
+        if (this.playerControls.autopause && selectedEvent !== '3') {
             this.youtubePlayer.pauseVideo();
         }
 
