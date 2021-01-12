@@ -346,9 +346,11 @@ namespace Website.Data
                 using var c = await _npgsql.Connect();
                 using var q = new NpgsqlCommand(commandText, c);
 
+                var wasParsed = DateTime.TryParse(updatedVideo.Snippet.PublishedAt, out DateTime publishedAtParsed);
+
                 q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, updatedVideo.Id);
                 q.Parameters.AddWithValue("@Title", NpgsqlDbType.Text, updatedVideo.Snippet.Title);
-                q.Parameters.AddWithValue("@Pub", NpgsqlDbType.TimestampTz, updatedVideo.Snippet.PublishedAt ?? (object)DBNull.Value);
+                q.Parameters.AddWithValue("@Pub", NpgsqlDbType.TimestampTz, wasParsed ? publishedAtParsed : (object)DBNull.Value);
                 q.Parameters.AddWithValue("@Dur", NpgsqlDbType.Integer, (int)(XmlConvert.ToTimeSpan(updatedVideo.ContentDetails.Duration).TotalSeconds));
                 q.Parameters.AddWithValue("@Likes", NpgsqlDbType.Integer, updatedVideo.Statistics.LikeCount.HasValue ? (int)updatedVideo.Statistics.LikeCount.Value : (object)DBNull.Value);
                 q.Parameters.AddWithValue("@Dislikes", NpgsqlDbType.Integer, updatedVideo.Statistics.DislikeCount.HasValue ? (int)updatedVideo.Statistics.DislikeCount : (object)DBNull.Value);
