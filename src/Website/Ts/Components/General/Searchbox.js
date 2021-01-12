@@ -135,7 +135,6 @@ Searchbox.prototype = {
                     element.style.backgroundColor = 'rgba(255,255,255,0.3)';
                     element.style.border = '1px solid white;'
                     setTimeout(() => {
-                        console.log('click', element);
                         element.click();
                     }, 100);
                     break;
