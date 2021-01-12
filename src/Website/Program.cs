@@ -22,8 +22,11 @@ namespace Website
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
+                    var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+                    var isDevelopment = environment == Environments.Development;
+
                     webBuilder.UseStartup<Startup>();
-                    webBuilder.UseUrls("https://localhost:5005");
+                    webBuilder.UseUrls(isDevelopment ? "https://localhost:5005" : "http://localhost:5005");
                 });
     }
 }
