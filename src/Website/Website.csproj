@@ -24,8 +24,8 @@
     <PackageReference Include="AspNet.Security.OAuth.Twitch" Version="5.0.0" />
     <PackageReference Include="AspNet.Security.OpenId.Steam" Version="5.0.0" />
     <PackageReference Include="BundlerMinifier.Core" Version="3.2.449" />
-    <PackageReference Include="Google.Apis.Gmail.v1" Version="1.49.0.2167" />
-    <PackageReference Include="Google.Apis.YouTube.v3" Version="1.49.0.2181" />
+    <PackageReference Include="Google.Apis.Gmail.v1" Version="1.49.0.2191" />
+    <PackageReference Include="Google.Apis.YouTube.v3" Version="1.49.0.2197" />
     <PackageReference Include="Hangfire.AspNetCore" Version="1.7.18" />
     <PackageReference Include="Hangfire.Core" Version="1.7.18" />
     <PackageReference Include="Hangfire.PostgreSql" Version="1.8.1" />
