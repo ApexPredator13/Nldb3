@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Website.Data;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,6 +25,8 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.AspNetCore.DataProtection;
+using IdentityServer4.Extensions;
 
 namespace Website
 {
@@ -178,7 +181,17 @@ namespace Website
                             npgsqlOptions.MigrationsAssembly(migrationsAssembly);
                         });
                     };
-                });
+                })
+                .AddProfileService<CustomProfileService>();
+
+            var dataFolder = Path.Combine(_env.ContentRootPath, "AuthState");
+            Directory.CreateDirectory(dataFolder);
+            var info = new DirectoryInfo(dataFolder);
+
+            services.AddDataProtection()
+                .PersistKeysToFileSystem(info)
+                .SetApplicationName("NLDB3")
+                .SetDefaultKeyLifetime(TimeSpan.FromDays(30));
         }
 
 
@@ -191,10 +204,22 @@ namespace Website
                 x.AllowAnyMethod();
             });
 
-            app.UseForwardedHeaders(new ForwardedHeadersOptions
+            app.Use(async (ctx, next) =>
             {
-                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+                ctx.SetIdentityServerOrigin(env.IsDevelopment() ? "https://localhost:5005" : "https://northernlion-db.com");
+                await next();
             });
+
+            var forwardOptions = new ForwardedHeadersOptions()
+            {
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+                RequireHeaderSymmetry = false
+            };
+
+            forwardOptions.KnownNetworks.Clear();
+            forwardOptions.KnownProxies.Clear();
+
+            app.UseForwardedHeaders(forwardOptions);
 
             if (env.IsDevelopment())
             {
