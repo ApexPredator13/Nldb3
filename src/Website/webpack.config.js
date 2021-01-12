@@ -1,5 +1,5 @@
 ﻿const path = require('path');
-const CleanWebpackPlugin = require('clean-webpack-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
@@ -35,7 +35,8 @@ module.exports = (env, argv) => {
         },
         output: {
             path: path.resolve(__dirname, 'wwwroot', 'js', 'dist'),
-            filename: '[name].min.js'
+            filename: '[name].min.js',
+            publicPath: path.resolve(__dirname, 'wwwroot')
         },
         resolve: {
             alias: {
@@ -52,12 +53,16 @@ module.exports = (env, argv) => {
                     filename: '[name].css',
             }),
             new OptimizeCssAssetsPlugin(),
-            new CopyPlugin([
-                { 
-                    from: path.resolve(__dirname, 'node_modules', 'oidc-client', 'dist', 'oidc-client.slim.min.js'),
-                    to: path.resolve(__dirname, 'wwwroot', 'js', 'oidc-client.slim.min.js')
+            new CopyPlugin(
+                {
+                    patterns: [
+                        { 
+                            from: path.resolve(__dirname, 'node_modules', 'oidc-client', 'dist', 'oidc-client.slim.min.js'),
+                            to: path.resolve(__dirname, 'wwwroot', 'js', 'oidc-client.slim.min.js')
+                        }
+                    ]
                 }
-            ])
+            )
         ],
         module: {
             rules: [
@@ -65,7 +70,7 @@ module.exports = (env, argv) => {
                     test: /\.css$/,
                     use: [
                         MiniCssExtractPlugin.loader,
-                        'css-loader',
+                        'css-loader?url=false'
                     ],
                 }
             ]

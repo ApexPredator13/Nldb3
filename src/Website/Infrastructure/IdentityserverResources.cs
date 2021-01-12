@@ -39,13 +39,13 @@ namespace Website.Infrastructure
                     Enabled = true,
                     ClientName = "Local Javascript App",
                     AllowedCorsOrigins = { 
-                        "https://www.northernlion-db.com", "https://northernlion-db.com", "https://localhost:5005", "http://localhost:5005"
+                        "https://www.northernlion-db.com", "https://northernlion-db.com", "https://localhost:5005", "https://localhost:5005"
                     },
                     RedirectUris = { 
-                        "https://www.northernlion-db.com", "https://northernlion-db.com", "https://localhost:5005", "http://localhost:5005",
-                        "https://www.northernlion-db.com/SilentSignin", "https://northernlion-db.com/SilentSignin", "https://localhost:5005/SilentSignin", "http://localhost:5005/SilentSignin" 
+                        "https://www.northernlion-db.com", "https://northernlion-db.com", "https://localhost:5005", "https://localhost:5005",
+                        "https://www.northernlion-db.com/SilentSignin", "https://northernlion-db.com/SilentSignin", "https://localhost:5005/SilentSignin", "https://localhost:5005/SilentSignin" 
                     },
-                    PostLogoutRedirectUris = { "https://www.northernlion-db.com", "https://northernlion-db.com", "https://localhost:5005", "http://localhost:5005" },
+                    PostLogoutRedirectUris = { "https://www.northernlion-db.com", "https://northernlion-db.com", "https://localhost:5005", "https://localhost:5005" },
                     RequireConsent = false,
                     RequirePkce = true
                 }

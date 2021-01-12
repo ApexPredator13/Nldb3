@@ -1,5 +1,5 @@
 ﻿export function getConfig() {
     return {
-        baseUrlWithoutTrailingSlash: 'http://localhost:5005'
+        baseUrlWithoutTrailingSlash: 'https://localhost:5005'
     }
 }
