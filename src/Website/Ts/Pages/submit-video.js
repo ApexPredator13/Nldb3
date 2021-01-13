@@ -56,6 +56,43 @@ const beforeUnloadEvent = e => {
 
 let interval = 0;
 
+let boundEventListener;
+
+
+/**
+ * decodes a string that has html entities inside of it, like &#818;
+ * @param {string} input
+ * @returns {string} the modified string
+ */
+function htmlDecode(input) {
+    var doc = new DOMParser().parseFromString(input, "text/html");
+    return doc.documentElement.textContent;
+}
+
+/**
+ * handles keypresses while on the main menu
+ * @param {KeyboardEvent} e the raw keyboard event
+ */
+function mainMenuKeyEvent(e) {
+    console.log(e.key);
+    switch (e.key.toLowerCase()) {
+        case 'i': this.processMainMenuSelection('2'); break;
+        case 'o': this.processMainMenuSelection('18'); break;
+        case 's': this.processMainMenuSelection('14'); break;
+        case 'b': this.processMainMenuSelection('4'); break;
+        case 't': this.processMainMenuSelection('8'); break;
+        case 'c': this.processMainMenuSelection('15'); break;
+        case 'e': this.processMainMenuSelection('1'); break;
+        case 'w': this.processMainMenuSelection('16'); break;
+        case 'v': this.processMainMenuSelection('20'); break;
+        case 'p': this.processMainMenuSelection('5'); break;
+        case 'a': this.processMainMenuSelection('6'); break;
+        case 'r': this.processMainMenuSelection('7'); break;
+        case 'h': this.processMainMenuSelection('10'); break;
+        case 'd': this.processMainMenuSelection('3'); break;
+    }
+}
+
 
 /**
  * the 'Submit Video' page
@@ -156,7 +193,11 @@ function SubmitVideoPage(parameters) {
                     id(this.playerAndSeedContainerId)
                 ),
                 div(
-                    id(this.menuContainerId)
+                    attr({
+                        id: this.menuContainerId,
+                        tabindex: 0,
+                        style: 'outline: none;'
+                    })
                 )
             )
         )
@@ -185,25 +226,25 @@ function SubmitVideoPage(parameters) {
     this.seedHandler = new ChangeSeed(this, this.playerAndSeedContainerId, this.youtubePlayer, this.seedHasChanged, this.history);
 
 
-    // hard-coded resources for menus
+    // hard-coded resources for menus. the '&#818;' character underscores the character that comes before it
     this.staticResources.set(MAJOR_GAMEPLAY_EVENTS, [
-        { id: '2', name: 'Item Collected', x: 70, y: 0, w: 35, h: 35 },
-        { id: '18', name: 'Item Touched', x: 595, y: 0, w: 35, h: 35 },
-        { id: '4', name: 'Bossfight', x: 140, y: 0, w: 35, h: 35 },
-        { id: '8', name: 'Trinket Taken', x: 280, y: 0, w: 35, h: 35 },
-        { id: '15', name: 'Character Reroll', x: 385, y: 0, w: 35, h: 35 },
-        { id: '14', name: 'Sucked Up Item', x: 350, y: 0, w: 35, h: 35 },
-        { id: '1', name: 'Northernlion DIED', x: 35, y: 0, w: 35, h: 35 },
-        { id: '16', name: 'Northernlion WON', x: 1155, y: 0, w: 35, h: 35 },
-        { id: '3', name: 'Down to the next floor!', x: 105, y: 0, w: 35, h: 35 },
-        { id: '20', name: 'Other Events', x: 1190, y: 0, w: 35, h: 35 }
+        { id: '2', name: htmlDecode('I&#818;tem Collected'), x: 70, y: 0, w: 35, h: 35 },
+        { id: '18', name: htmlDecode('Item To&#818;uched'), x: 595, y: 0, w: 35, h: 35 },
+        { id: '4', name: htmlDecode('B&#818;ossfight'), x: 140, y: 0, w: 35, h: 35 },
+        { id: '8', name: htmlDecode('T&#818;rinket Taken'), x: 280, y: 0, w: 35, h: 35 },
+        { id: '15', name: htmlDecode('C&#818;haracter Reroll'), x: 385, y: 0, w: 35, h: 35 },
+        { id: '14', name: htmlDecode('S&#818;ucked Up Item'), x: 350, y: 0, w: 35, h: 35 },
+        { id: '1', name: htmlDecode('Northernlion DIE&#818;D'), x: 35, y: 0, w: 35, h: 35 },
+        { id: '16', name: htmlDecode('Northernlion W&#818;ON'), x: 1155, y: 0, w: 35, h: 35 },
+        { id: '3', name: htmlDecode('D&#818;own to the next floor!'), x: 105, y: 0, w: 35, h: 35 },
+        { id: '20', name: htmlDecode('Other Ev&#818;ents'), x: 1190, y: 0, w: 35, h: 35 }
     ]);
 
     this.staticResources.set(USED_CONSUMABLES, [
-        { id: '5', name: 'Pill', x: 175, y: 0, w: 35, h: 35 },
-        { id: '6', name: 'Tarot Card', x: 210, y: 0, w: 35, h: 35 },
-        { id: '7', name: 'Rune', x: 245, y: 0, w: 35, h: 35 },
-        { id: '10', name: 'Other Consumable', x: 315, y: 0, w: 35, h: 35 }
+        { id: '5', name: htmlDecode('P&#818;ill'), x: 175, y: 0, w: 35, h: 35 },
+        { id: '6', name: htmlDecode('Ta&#818;rot Card'), x: 210, y: 0, w: 35, h: 35 },
+        { id: '7', name: htmlDecode('R&#818;une'), x: 245, y: 0, w: 35, h: 35 },
+        { id: '10', name: htmlDecode('Oth&#818;er Consumable'), x: 315, y: 0, w: 35, h: 35 }
     ]);
 
     this.staticResources.set(GAME_MODES, [
@@ -1062,6 +1103,16 @@ SubmitVideoPage.prototype = {
             )
         );
 
+        // adds underscores to boxes that can be triggered via keyboard
+
+        // focus on 'main menu container' and start listening to keyboard events
+        const ct = document.getElementById(this.menuContainerId);
+        if (ct) {
+            ct.focus();
+            boundEventListener = mainMenuKeyEvent.bind(this);
+            ct.addEventListener('keydown', boundEventListener);
+        }
+
         new Boxes(this, 'ge', this.processMainMenuSelection, gameplayEvents, 1, false, '/img/gameplay_events.png');
         new Boxes(this, 'ce', this.processMainMenuSelection, consumableEvents, 2, false, '/img/gameplay_events.png');
     },
@@ -1073,6 +1124,13 @@ SubmitVideoPage.prototype = {
      */
     processMainMenuSelection: function (selectedEvent) {
 
+        // remove the main menu event listener
+        const ct = document.getElementById(this.menuContainerId);
+        if (ct && boundEventListener) {
+            ct.removeEventListener('keydown', boundEventListener);
+        }
+
+        // pause the youtube player if 'autopause' is true. don't pause on 'down to the next floor' prompt.
         if (this.playerControls.autopause && selectedEvent !== '3') {
             this.youtubePlayer.pauseVideo();
         }
