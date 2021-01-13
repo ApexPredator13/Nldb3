@@ -791,6 +791,12 @@ SubmitVideoPage.prototype = {
 
         new Boxes(this, 'no', this.process_CurseSelected, noCurse, 1, false, '/img/gameplay_events.png');
         new Searchbox(this, this.process_CurseSelected, 2, allCurses, false, 'yes');
+
+        // focus on the 'no curse' box
+        const box = document.getElementById('b10');
+        if (box) {
+            box.focus();
+        }
     },
 
 
