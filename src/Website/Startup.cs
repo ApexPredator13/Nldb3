@@ -264,7 +264,7 @@ namespace Website
             //BackgroundJob.Enqueue<IMigrateOldDatabase>(migrator => migrator.MigrateUsersQuotesVideosAndRuns());
             //BackgroundJob.Enqueue<IMigrateOldDatabase>(migrator => migrator.MigrateQuotes());
             RecurringJob.AddOrUpdate<ISqlDumper>("sql-dump", dumper => dumper.Dump(), Cron.Hourly());
-            RecurringJob.AddOrUpdate<IVideoRepository>("update-videos", repo => repo.GetVideosThatNeedYoutubeUpdate(40, true), Cron.Hourly);
+            RecurringJob.AddOrUpdate<IVideoRepository>("update-videos", repo => repo.GetVideosThatNeedYoutubeUpdate(40, true), Cron.Hourly());
         }
     }
 }
