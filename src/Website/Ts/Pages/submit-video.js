@@ -1455,7 +1455,7 @@ SubmitVideoPage.prototype = {
         );
 
         const resources = this.getServerResource(`/Api/Resources/?ResourceType=7`);
-        new Boxes(this, 'common', this.process_CollectedItemSource, resources, 1, false, undefined, 10);
+        new Boxes(this, 'common', this.process_CollectedItemSource, resources, 1, false, undefined, 15);
         new Searchbox(this, this.process_CollectedItemSource, 2, resources, false, 'all');
     },
 
