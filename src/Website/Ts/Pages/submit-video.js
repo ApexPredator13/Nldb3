@@ -56,8 +56,6 @@ const beforeUnloadEvent = e => {
 
 let interval = 0;
 
-let boundEventListener;
-
 
 /**
  * decodes a string that has html entities inside of it, like &#818;
@@ -74,7 +72,6 @@ function htmlDecode(input) {
  * @param {KeyboardEvent} e the raw keyboard event
  */
 function mainMenuKeyEvent(e) {
-    console.log(e.key);
     switch (e.key.toLowerCase()) {
         case 'i': this.processMainMenuSelection('2'); break;
         case 'o': this.processMainMenuSelection('18'); break;
@@ -100,6 +97,8 @@ function mainMenuKeyEvent(e) {
  * @param {string[]} parameters - route parameters. parameters[0] is the youtube video ID
  */
 function SubmitVideoPage(parameters) {
+
+    window.boundEventListener = null;
 
     // mark video as 'is currently being added'
     interval = window.setInterval(() => {
@@ -443,7 +442,9 @@ SubmitVideoPage.prototype = {
 
 
     cleanup: function () {
-        this.youtubePlayer.playVideo();
+        if (this.playerControls.autopause) {
+            this.youtubePlayer.playVideo();
+        }
         this.tempValue = null;
         this.wasRerolled = false;
         const player = document.getElementById('current-player-container');
@@ -466,7 +467,12 @@ SubmitVideoPage.prototype = {
             span(
                 t(text ? text : 'Back to selection'),
                 cl('u', 'hand'),
-                event('click', () => { this.youtubePlayer.playVideo(); this.menu_Main(); })
+                event('click', () => {
+                    if (this.playerControls.autopause) {
+                        this.youtubePlayer.playVideo();
+                    }
+                    this.menu_Main();
+                })
             )
         );
     },
@@ -793,10 +799,12 @@ SubmitVideoPage.prototype = {
         new Searchbox(this, this.process_CurseSelected, 2, allCurses, false, 'yes');
 
         // focus on the 'no curse' box
-        const box = document.getElementById('b10');
-        if (box) {
-            box.focus();
-        }
+        setTimeout(() => {
+            const box = document.getElementById('b10');
+            if (box) {
+                box.focus();
+            }
+        }, 100);
     },
 
 
@@ -824,7 +832,7 @@ SubmitVideoPage.prototype = {
     menu_Seed: function () {
         this.display(
             H1(t('Did NL show the seed?')),
-            P(t('If so, you can enter it here (if can be entered later at any point!)')),
+            P(t('If so, you can enter it here (it can be entered later at any point!)')),
             Div(
                 div(
                     cl('display-inline'),
@@ -1132,8 +1140,9 @@ SubmitVideoPage.prototype = {
 
         // remove the main menu event listener
         const ct = document.getElementById(this.menuContainerId);
-        if (ct && boundEventListener) {
-            ct.removeEventListener('keydown', boundEventListener);
+        if (ct && window.boundEventListener) {
+            ct.removeEventListener('keydown', window.boundEventListener);
+            window.boundEventListener = null;
         }
 
         // pause the youtube player if 'autopause' is true. don't pause on 'down to the next floor' prompt.
