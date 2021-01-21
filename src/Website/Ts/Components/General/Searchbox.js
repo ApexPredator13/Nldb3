@@ -48,6 +48,17 @@ function Searchbox(caller, sub, searchboxId, resources, displayType, containerId
     } else {
         resources.then(resources => this.createSearchboxContent(resources));
     }
+
+    // clears the searchbox when it appears
+    // -> better usability if it was displayed by a keypress
+    setTimeout(() => {
+        var searchboxes = document.getElementsByClassName('dd-searchbox');
+        if (searchboxes && searchboxes.length) {
+            for (var i = 0; i < searchboxes.length; ++i) {
+                searchboxes[i].value = '';
+            }
+        }
+    }, 80);
 }
 
 
