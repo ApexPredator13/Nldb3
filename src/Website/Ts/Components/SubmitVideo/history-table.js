@@ -48,6 +48,9 @@ function HistoryTable(caller, videoId, historyTableContainerId, youtubePlayer, s
             ),
             table(
                 id('history'),
+                attr({
+                    style: 'margin-top: 5px; margin-bottom: 0;'
+                }),
                 tr(
                     td(
                         t('Nothing was added yet.')
