@@ -1362,7 +1362,7 @@ SubmitVideoPage.prototype = {
         );
 
         const resources = this.getServerResource(`/Api/Resources/?ResourceType=7`);
-        new Boxes(this, 'common', this.process_CollectedTouchedItemSource, resources, 1, false, undefined, 10);
+        new Boxes(this, 'common', this.process_CollectedTouchedItemSource, resources, 1, false, undefined, 15);
         new Searchbox(this, this.process_CollectedTouchedItemSource, 2, resources, false, 'all');
     },
 
