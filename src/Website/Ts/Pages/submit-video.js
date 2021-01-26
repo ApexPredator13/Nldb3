@@ -252,7 +252,8 @@ function SubmitVideoPage(parameters) {
         { id: '5', name: 'A Special Challenge', x: 910, y: 0, w: 35, h: 35 },
         { id: '9', name: 'Community-Requested Challenge', x: 980, y: 0, w: 35, h: 35 },
         { id: '6', name: 'A Special Seed', x: 945, y: 0, w: 35, h: 35 },
-        { id: '7', name: 'Something else / modded content', x: 1015, y: 0, w: 35, h: 35 }
+        { id: '7', name: 'Something else / modded content', x: 1015, y: 0, w: 35, h: 35 },
+        { id: '11', name: 'Daily Run', x: 1295, y: 0, w: 35, h: 35 }
     ]);
 
     this.staticResources.set(NO_STARTING_ITEMS, [

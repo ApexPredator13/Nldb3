@@ -12,6 +12,7 @@
         Unspecified,
         HardAndNormal,
         CommunityChallenge,
-        GreedAndGreedier
+        GreedAndGreedier,
+        DailyRun
     }
 }
