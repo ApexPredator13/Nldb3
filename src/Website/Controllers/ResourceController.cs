@@ -76,7 +76,7 @@ namespace Website.Controllers
         [HttpGet("next-floorset/{currentFloorId}")]
         public async Task<List<IsaacResource>> GetNextFloorset([FromRoute] string currentFloorId)
         {
-            if (Enum.TryParse(typeof(Tag), $"ComesAfter{currentFloorId}", out object? tag))
+            if (Enum.TryParse(typeof(Tag), $"ComesAfter{currentFloorId}", true, out object? tag))
             {
                 if (tag is null)
                 {
