@@ -87,16 +87,16 @@ namespace Website.Controllers
                                 $"<p><pre>{Newtonsoft.Json.JsonConvert.SerializeObject(youtubeApiResult, Newtonsoft.Json.Formatting.Indented)}</pre></p>" +
                                 "</body>");
                         }
-                        else
-                        {
-                            await _email.SendEmailAsync(_config["AdminEmail"],
-                                "Youtube Push Notification Received - Non-Isaac Video",
-                                "<body>" +
-                                "<h1>A Push Notification was received!</h1>" +
-                                $"<p><pre>{Newtonsoft.Json.JsonConvert.SerializeObject(notificationData, Newtonsoft.Json.Formatting.Indented)}</pre></p>" +
-                                $"<p><pre>{Newtonsoft.Json.JsonConvert.SerializeObject(youtubeApiResult, Newtonsoft.Json.Formatting.Indented)}</pre></p>" +
-                                "</body>");
-                        }
+                        //else
+                        //{
+                        //    await _email.SendEmailAsync(_config["AdminEmail"],
+                        //        "Youtube Push Notification Received - Non-Isaac Video",
+                        //        "<body>" +
+                        //        "<h1>A Push Notification was received!</h1>" +
+                        //        $"<p><pre>{Newtonsoft.Json.JsonConvert.SerializeObject(notificationData, Newtonsoft.Json.Formatting.Indented)}</pre></p>" +
+                        //        $"<p><pre>{Newtonsoft.Json.JsonConvert.SerializeObject(youtubeApiResult, Newtonsoft.Json.Formatting.Indented)}</pre></p>" +
+                        //        "</body>");
+                        //}
                     }
                 }
                 catch (Exception e)
