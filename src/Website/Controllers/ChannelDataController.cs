@@ -64,7 +64,7 @@ namespace Website.Controllers
                         youtubeApiResult = await _videoRepository.GetYoutubeVideoData(notificationData.VideoId);
                         var lowercasedVideoTitle = youtubeApiResult.Items[0].Snippet.Title.ToLower();
 
-                        if (lowercasedVideoTitle.Contains("isaac"))
+                        if (lowercasedVideoTitle.Contains("isaac") || lowercasedVideoTitle.Contains("repentance"))
                         {
                             var videoExists = await _videoRepository.VideoExists(youtubeApiResult.Items[0].Id);
 
