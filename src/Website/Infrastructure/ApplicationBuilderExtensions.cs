@@ -157,17 +157,6 @@ namespace Website.Infrastructure
 
                 var result = userManager.CreateAsync(removedUser).Result;
             }
-
-            // clear test user account if required
-            if (resetTestaccount)
-            {
-                var testEmail = config["TestuserEmail"];
-                var testUser = userManager.FindByEmailAsync(testEmail).Result;
-                if (testUser != null)
-                {
-                    userManager.DeleteAsync(testUser).Wait();
-                }
-            }
         }
 
         public static void ResetDatabaseInDevMode(this IApplicationBuilder app)
