@@ -1,7 +1,6 @@
-﻿using AutoFixture.Xunit2;
-using FluentAssertions;
-using Microsoft.AspNetCore.Hosting;
+﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -17,10 +16,10 @@ using Xunit;
 
 namespace WebsiteTests.Infrastructure
 {
-    [Collection("database_tests")]
+    [Collection("IntegrationTests")]
     public class IsaacIconManagerTests
     {
-        private readonly DatabaseTestFixture _fixture;
+        private readonly IntegrationTestsFixture _fixture;
         private readonly string testImage1 = Path.Combine(Directory.GetCurrentDirectory(), "contentRoot", "wwwroot", "img", "test1.png");
         private readonly string testImage2 = Path.Combine(Directory.GetCurrentDirectory(), "contentRoot", "wwwroot", "img", "test2.png");
         private readonly string testImage3 = Path.Combine(Directory.GetCurrentDirectory(), "contentRoot", "wwwroot", "img", "test3.png");
@@ -30,37 +29,41 @@ namespace WebsiteTests.Infrastructure
         private readonly string testImage7 = Path.Combine(Directory.GetCurrentDirectory(), "contentRoot", "wwwroot", "img", "embed_test.png");
         private readonly string testImage8 = Path.Combine(Directory.GetCurrentDirectory(), "contentRoot", "wwwroot", "img", "test8.png");
 
-        public IsaacIconManagerTests(DatabaseTestFixture fixture)
+        public IsaacIconManagerTests(IntegrationTestsFixture fixture)
         {
             _fixture = fixture;
         }
 
-        [Fact(DisplayName = "GetImage can open an image")]
+        [Fact(DisplayName = "#SetDefaultImage > can set the default image")]
         public void T1()
         {
-            // ARRANGE - 
-            var environment = _fixture.TestServer.Host.Services.GetService(typeof(IWebHostEnvironment)) as IWebHostEnvironment;
-            var isaacRepo = new Mock<IIsaacRepository>();
-            IIsaacIconManager iconManager = new IsaacIconManager(environment, isaacRepo.Object);
+            // arrange
+            using var scope = _fixture.CreateScope();
+            var iconManager = scope.ServiceProvider.GetRequiredService<IIsaacIconManager>();
             iconManager.SetDefaultImage(testImage1);
 
             // act
-            var image = iconManager.GetDefaultImage();
+            using var image = iconManager.GetDefaultImage();
 
             // assert
-            image.Should().NotBeNull();
-            image.Height.Should().BeGreaterOrEqualTo(1);
-            image.Width.Should().BeGreaterOrEqualTo(1);
-            image.Dispose();
+            Assert.NotNull(image);
+            Assert.Equal(60, image.Height);
+            Assert.Equal(30, image.Width);
         }
 
-        [Fact(DisplayName = "FindEmptySquare can find exact empty 30x30 square at the bottom of existing content")]
+        [Fact(DisplayName = "FindEmptySquare > finds empty space at the bottom")]
         public async Task T2()
         {
             // arrange
-            var environment = _fixture.TestServer.Host.Services.GetService(typeof(IWebHostEnvironment)) as IWebHostEnvironment;
-            var isaacRepo = new Mock<IIsaacRepository>();
-            isaacRepo.Setup(x => x.CoordinatesAreTaken(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(false);
+            using var scope = _fixture.CreateScope();
+            var environment = scope.ServiceProvider.GetRequiredService<IWebHostEnvironment>();
+
+            var isaacRepo = new Mock<IIsaacRepository>(MockBehavior.Strict);
+            isaacRepo
+                .Setup(x => x.CoordinatesAreTaken(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync(false)
+                .Verifiable();
+
             IIsaacIconManager iconManager = new IsaacIconManager(environment, isaacRepo.Object);
             iconManager.SetDefaultImage(testImage1);
 
@@ -68,17 +71,28 @@ namespace WebsiteTests.Infrastructure
             var (x, y) = await iconManager.FindEmptySquare(30, 30);
 
             // assert
-            x.Should().Be(0);
-            y.Should().Be(30);
+            Assert.Equal(0, x);
+            Assert.Equal(30, y);
+
+            isaacRepo.Verify(
+                x => x.CoordinatesAreTaken(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()), 
+                Times.Once, 
+                "the icon manager should have checked if the coordinates are already taken by another icon");
         }
 
-        [Fact(DisplayName = "FindEmptySquare can find exact empty 30x30 square at the right of existing content")]
+        [Fact(DisplayName = "FindEmptySquare > finds empty space to the right")]
         public async Task T3()
         {
             // arrange
-            var environment = _fixture.TestServer.Host.Services.GetService(typeof(IWebHostEnvironment)) as IWebHostEnvironment;
-            var isaacRepo = new Mock<IIsaacRepository>();
-            isaacRepo.Setup(x => x.CoordinatesAreTaken(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(false);
+            using var scope = _fixture.CreateScope();
+            var environment = scope.ServiceProvider.GetRequiredService<IWebHostEnvironment>();
+
+            var isaacRepo = new Mock<IIsaacRepository>(MockBehavior.Strict);
+            isaacRepo
+                .Setup(x => x.CoordinatesAreTaken(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync(false)
+                .Verifiable();
+
             IIsaacIconManager iconManager = new IsaacIconManager(environment, isaacRepo.Object);
             iconManager.SetDefaultImage(testImage2);
 
@@ -86,17 +100,28 @@ namespace WebsiteTests.Infrastructure
             var (x, y) = await iconManager.FindEmptySquare(30, 30);
 
             // assert
-            x.Should().Be(30);
-            y.Should().Be(0);
+            Assert.Equal(30, x);
+            Assert.Equal(0, y);
+
+            isaacRepo.Verify(
+                x => x.CoordinatesAreTaken(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()), 
+                Times.Once,
+                "the icon manager should have checked if the coordinates are already taken by another icon");
         }
 
-        [Fact(DisplayName = "FindEmptySquare can find exact empty 30x30 square in the middle of existing content")]
+        [Fact(DisplayName = "FindEmptySquare > finds empty space in the middle of existing pixels")]
         public async Task T4()
         {
             // arrange
-            var environment = _fixture.TestServer.Host.Services.GetService(typeof(IWebHostEnvironment)) as IWebHostEnvironment;
-            var isaacRepo = new Mock<IIsaacRepository>();
-            isaacRepo.Setup(x => x.CoordinatesAreTaken(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(false);
+            using var scope = _fixture.CreateScope();
+            var environment = scope.ServiceProvider.GetRequiredService<IWebHostEnvironment>();
+
+            var isaacRepo = new Mock<IIsaacRepository>(MockBehavior.Strict);
+            isaacRepo
+                .Setup(x => x.CoordinatesAreTaken(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync(false)
+                .Verifiable();
+
             IIsaacIconManager iconManager = new IsaacIconManager(environment, isaacRepo.Object);
             iconManager.SetDefaultImage(testImage3);
 
@@ -104,34 +129,56 @@ namespace WebsiteTests.Infrastructure
             var (x, y) = await iconManager.FindEmptySquare(30, 30);
 
             // assert
-            x.Should().Be(30);
-            y.Should().Be(30);
+            Assert.Equal(30, x);
+            Assert.Equal(30, y);
+
+            isaacRepo.Verify(
+                x => x.CoordinatesAreTaken(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()),
+                Times.Once,
+                "the icon manager should have checked if the coordinates are already taken by another icon");
         }
 
-        [Fact(DisplayName = "FindEmptySquare throws if available space in the entire image is only one pixel too tiny")]
+        [Fact(DisplayName = "FindEmptySquare > available space 1px too tiny > throws")]
         public void T5()
         {
             // arrange
-            var environment = _fixture.TestServer.Host.Services.GetService(typeof(IWebHostEnvironment)) as IWebHostEnvironment;
-            var isaacRepo = new Mock<IIsaacRepository>();
-            isaacRepo.Setup(x => x.CoordinatesAreTaken(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(false);
+            using var scope = _fixture.CreateScope();
+            var environment = scope.ServiceProvider.GetRequiredService<IWebHostEnvironment>();
+
+            var isaacRepo = new Mock<IIsaacRepository>(MockBehavior.Strict);
+            isaacRepo
+                .Setup(x => x.CoordinatesAreTaken(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync(false)
+                .Verifiable();
+
             IIsaacIconManager iconManager = new IsaacIconManager(environment, isaacRepo.Object);
             iconManager.SetDefaultImage(testImage4);
 
             // act
-            Func<Task> shouldThrow = async () => await iconManager.FindEmptySquare(30, 30);
+            async Task shouldThrow() => await iconManager.FindEmptySquare(30, 30);
 
             // assert
-            shouldThrow.Should().Throw<Exception>();
+            Assert.ThrowsAsync<Exception>(shouldThrow);
+
+            isaacRepo.Verify(
+                x => x.CoordinatesAreTaken(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()),
+                Times.Never,
+                "if the image is too small, no check should be performed by the icon manager");
         }
 
-        [Fact(DisplayName = "FindEmptySquare skips an available space if it is taken by another image, and takes the next available.")]
+        [Fact(DisplayName = "FindEmptySquare > free pixel space taken by other icon > skips until space is available.")]
         public async Task T6()
         {
             // arrange
-            var environment = _fixture.TestServer.Host.Services.GetService(typeof(IWebHostEnvironment)) as IWebHostEnvironment;
-            var isaacRepo = new Mock<IIsaacRepository>();
-            isaacRepo.SetupSequence(x => x.CoordinatesAreTaken(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(true).ReturnsAsync(false);
+            using var scope = _fixture.CreateScope();
+            var environment = scope.ServiceProvider.GetRequiredService<IWebHostEnvironment>();
+
+            var isaacRepo = new Mock<IIsaacRepository>(MockBehavior.Strict);
+            isaacRepo
+                .SetupSequence(x => x.CoordinatesAreTaken(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync(true)
+                .ReturnsAsync(false);
+
             IIsaacIconManager iconManager = new IsaacIconManager(environment, isaacRepo.Object);
             iconManager.SetDefaultImage(testImage5);
 
@@ -139,49 +186,50 @@ namespace WebsiteTests.Infrastructure
             var (x, y) = await iconManager.FindEmptySquare(30, 30);
 
             // assert
-            x.Should().Be(60);
-            y.Should().Be(60);
+            Assert.Equal(60, x);
+            Assert.Equal(60, y);
         }
 
-        [Fact(DisplayName = "GetPostedImageSize returns correct image size")]
+        [Fact(DisplayName = "GetPostedImageSize > can return correct image size")]
         public async Task T7()
         {
             // arrange
-            var environment = _fixture.TestServer.Host.Services.GetService(typeof(IWebHostEnvironment)) as IWebHostEnvironment;
-            var isaacRepo = new Mock<IIsaacRepository>();
-            IIsaacIconManager iconManager = new IsaacIconManager(environment, isaacRepo.Object);
+            using var scope = _fixture.CreateScope();
+            var iconManager = scope.ServiceProvider.GetRequiredService<IIsaacIconManager>();
 
             using var fs = new FileStream(testImage1, FileMode.Open);
             var file = new FormFile(fs, 0, fs.Length, "name", "image.png");
 
             // act
-            var (w, h) = await iconManager.GetPostedImageSize(file);
+            var (width, height) = await iconManager.GetPostedImageSize(file);
 
             // assert
-            w.Should().Be(30);
-            h.Should().Be(60);
+            Assert.Equal(30, width);
+            Assert.Equal(60, height);
         }
 
-        [Fact(DisplayName = "EmbedIcon can embed an icon in a bigger image")]
+        [Fact(DisplayName = "EmbedIcon > can embed icon into a bigger image")]
         public void T8()
         {
             // arrange
+            // create test image by copying image one
             File.Copy(testImage1, testImage7, true);
-            var environment = _fixture.TestServer.Host.Services.GetService(typeof(IWebHostEnvironment)) as IWebHostEnvironment;
-            var isaacRepo = new Mock<IIsaacRepository>();
-            IIsaacIconManager iconManager = new IsaacIconManager(environment, isaacRepo.Object);
+
+            using var scope = _fixture.CreateScope();
+            var iconManager = scope.ServiceProvider.GetRequiredService<IIsaacIconManager>();
             iconManager.SetDefaultImage(testImage7);
 
+            // act
+            // embed image6 into image7
             using (var fs = new FileStream(testImage6, FileMode.Open))
             {
                 var postedFile = new FormFile(fs, 0, fs.Length, "icon", "icon.png");
-
-                // act
                 iconManager.EmbedIcon(postedFile, 0, 30);
             }
 
-            // assert - compare top and lower half of the images
-            using var img = Image.Load(testImage7);
+            // assert
+            // compare all pixels - they should be the same now
+            using Image<Rgba32> img = Image.Load<Rgba32>(testImage7);
             for (var y = 0; y < 30; y++)
             {
                 for (var x = 0; x < 30; x++)
@@ -190,25 +238,27 @@ namespace WebsiteTests.Infrastructure
 
                     // exchange (255,255,255,0) with (0,0,0,0), because they are effectively the same
                     // imagesharp seems to always write (0,0,0,0), but the original image can have pixels with (255,255,255,0)
-                    if (topPixel == new SixLabors.ImageSharp.PixelFormats.Rgba32(255, 255, 255, 0))
+                    if (topPixel == new Rgba32(255, 255, 255, 0))
                     {
-                        topPixel = new SixLabors.ImageSharp.PixelFormats.Rgba32(0, 0, 0, 0);
+                        topPixel = new Rgba32(0, 0, 0, 0);
                     }
 
                     var bottomPixel = img[x, y + 30];
-
-                    topPixel.Equals(bottomPixel).Should().BeTrue();
+                    if (bottomPixel == new Rgba32(255, 255, 255, 0))
+                    {
+                        bottomPixel = new Rgba32(0, 0, 0, 0);
+                    }
+                    Assert.True(topPixel.Equals(bottomPixel));
                 }
             }
         }
 
-        [Fact(DisplayName = "ClearRectangle can set an area in the picture to (0,0,0,0)")]
+        [Fact(DisplayName = "ClearRectangle > can set clear an area in the picture to (0,0,0,0)")]
         public void T9()
         {
             // arrange
-            var environment = _fixture.TestServer.Host.Services.GetService(typeof(IWebHostEnvironment)) as IWebHostEnvironment;
-            var isaacRepo = new Mock<IIsaacRepository>();
-            IIsaacIconManager iconManager = new IsaacIconManager(environment, isaacRepo.Object);
+            using var scope = _fixture.CreateScope();
+            var iconManager = scope.ServiceProvider.GetRequiredService<IIsaacIconManager>();
             iconManager.SetDefaultImage(testImage8);
 
             // act
@@ -216,12 +266,12 @@ namespace WebsiteTests.Infrastructure
 
             // assert - make sure the entire bottom is now clear
             var emptyPixel = new Rgba32(0, 0, 0, 0);
-            using var img = Image.Load(testImage8);
+            using Image<Rgba32> img = Image.Load<Rgba32>(testImage8);
             for (int y = 30; y < 60; y++)
             {
                 for (int x = 0; x < 30; x++)
                 {
-                    img[x, y].Equals(emptyPixel).Should().BeTrue();
+                    Assert.True(img[x, y].Equals(emptyPixel));
                 }
             }
         }
