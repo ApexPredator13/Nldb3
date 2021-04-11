@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Npgsql;
 using NpgsqlTypes;
 using System.Threading.Tasks;
@@ -9,15 +10,21 @@ namespace Website.Data
     public class Npgsql : INpgsql
     {
         private readonly IConfiguration _config;
+        private readonly IWebHostEnvironment _env;
 
-        public Npgsql(IConfiguration config)
+        public Npgsql(IConfiguration config, IWebHostEnvironment env)
         {
             _config = config;
+            _env = env;
         }
 
         public async Task<NpgsqlConnection> Connect()
         {
-            var connection = new NpgsqlConnection(_config.GetConnectionString("DefaultConnection"));
+            var connectionString = _env.EnvironmentName == "Testing"
+                ? _config.GetConnectionString("TestConnection")
+                : _config.GetConnectionString("DefaultConnection");
+
+            var connection = new NpgsqlConnection(connectionString);
             await connection.OpenAsync();
             return connection;
         }
