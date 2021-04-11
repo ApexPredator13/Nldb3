@@ -21,6 +21,7 @@ import { registerDeleteSubmissionPage } from "./delete-submission";
 import { registerResourcesPage } from './resources';
 import { registerTestEmailSentPage } from "./test-email-sent";
 import { registerSendTestEmailPage } from "./send-test-email";
+import { registerTransformationsOverviewPage } from "./transformations-overview";
 
 
 (() => {
@@ -47,5 +48,6 @@ import { registerSendTestEmailPage } from "./send-test-email";
     registerResourcesPage();
     registerTestEmailSentPage();
     registerSendTestEmailPage();
+    registerTransformationsOverviewPage();
 })();
 

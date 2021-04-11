@@ -219,6 +219,22 @@ AdminLink.prototype = {
      */
     deleteSubmission: function (id, videoId) {
         return `/Admin/DeleteSubmission/${id.toString(10)}/${videoId}`;
+    },
+
+
+    /**
+     * /Admin/TransformationsOverview
+     */
+    transformationsOverview: function () {
+        return `/Admin/TransformationsOverview`;
+    },
+
+    /**
+     * /Admin/EditTransformation/{id}
+     * @param {string} id - the transformation ID
+     */
+    editTransformation: function (id) {
+
     }
 };
 
