@@ -68,19 +68,25 @@ namespace Website
             });
 
             // hangfire
-            services.AddHangfire(config => config
-                .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
-                .UseSimpleAssemblyNameTypeSerializer()
-                .UseRecommendedSerializerSettings()
-                .UsePostgreSqlStorage(Config.GetConnectionString("DefaultConnection"), new PostgreSqlStorageOptions()
-                {
-                    QueuePollInterval = TimeSpan.FromMinutes(1)
-                })
-            );
-            services.AddHangfireServer();
+            if (_env.EnvironmentName != "Testing")
+            {
+                services.AddHangfire(config => config
+                    .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+                    .UseSimpleAssemblyNameTypeSerializer()
+                    .UseRecommendedSerializerSettings()
+                    .UsePostgreSqlStorage(Config.GetConnectionString("DefaultConnection"), new PostgreSqlStorageOptions()
+                    {
+                        QueuePollInterval = TimeSpan.FromMinutes(1)
+                    })
+                );
+                services.AddHangfireServer();
+            }
 
             // entity framework
-            var dbContextConnectionString = Config.GetConnectionString("DefaultConnection");
+            var dbContextConnectionString = _env.EnvironmentName == "Testing" 
+                ? Config.GetConnectionString("TestConnection") 
+                : Config.GetConnectionString("DefaultConnection");
+
             services.AddDbContext<ApplicationDbContext>(options => {
                 options.UseNpgsql(dbContextConnectionString, npgsqlOptions =>
                 {
@@ -240,13 +246,16 @@ namespace Website
             app.UseIdentityServer();
             app.UseAuthorization();
 
-            app.UseHangfireDashboard("/hangfire", new DashboardOptions()
+            if (env.EnvironmentName != "Testing")
             {
-                Authorization = new List<IDashboardAuthorizationFilter>()
+                app.UseHangfireDashboard("/hangfire", new DashboardOptions()
+                {
+                    Authorization = new List<IDashboardAuthorizationFilter>()
                 {
                     new HangfireAuthorizationFilter()
                 }
-            });
+                });
+            }
 
             app.UseEndpoints(endpoints =>
             {
@@ -261,10 +270,11 @@ namespace Website
             app.CreateIdentityserverEntriesIfNecessary(env.IsDevelopment() ? true : false);
             app.CreateRequiredUserAccountsIfMissing(env.IsDevelopment() ? true : false);
 
-            //BackgroundJob.Enqueue<IMigrateOldDatabase>(migrator => migrator.MigrateUsersQuotesVideosAndRuns());
-            //BackgroundJob.Enqueue<IMigrateOldDatabase>(migrator => migrator.MigrateQuotes());
-            RecurringJob.AddOrUpdate<ISqlDumper>("sql-dump", dumper => dumper.Dump(), Cron.Hourly());
-            RecurringJob.AddOrUpdate<IVideoRepository>("update-videos", repo => repo.GetVideosThatNeedYoutubeUpdate(40, true), Cron.Hourly());
+            if (env.EnvironmentName != "Testing")
+            {
+                RecurringJob.AddOrUpdate<ISqlDumper>("sql-dump", dumper => dumper.Dump(), Cron.Hourly());
+                RecurringJob.AddOrUpdate<IVideoRepository>("update-videos", repo => repo.GetVideosThatNeedYoutubeUpdate(40, true), Cron.Hourly());
+            }
         }
     }
 }
