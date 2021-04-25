@@ -1,6 +1,4 @@
-﻿using IdentityServer4.EntityFramework.DbContexts;
-using IdentityServer4.EntityFramework.Mappers;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
@@ -48,61 +46,6 @@ namespace Website.Infrastructure
             {
                 applicationDbContextMigrator.Migrate();
             }
-
-            var configurationDbContext = serviceScope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
-            var configurationDbContextMigrator = configurationDbContext.GetInfrastructure().GetService<IMigrator>();
-
-            if (configurationDbContextMigrator is not null)
-            {
-                configurationDbContextMigrator.Migrate();
-            }
-
-            var persistedGrantDbContext = serviceScope.ServiceProvider.GetRequiredService<PersistedGrantDbContext>();
-            var persistedGrantDbContextMigrator = persistedGrantDbContext.GetInfrastructure().GetService<IMigrator>();
-            
-            if (persistedGrantDbContextMigrator is not null)
-            {
-                persistedGrantDbContextMigrator.Migrate();
-            }
-        }
-
-        public static void CreateIdentityserverEntriesIfNecessary(this IApplicationBuilder app, bool deleteExistingData = false)
-        {
-            using var serviceScope = CreateScope(app);
-            var configurationDbContext = serviceScope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
-            var config = serviceScope.ServiceProvider.GetRequiredService<IConfiguration>();
-
-            if (deleteExistingData)
-            {
-                var clients = configurationDbContext.Clients.ToList();
-                var identityResources = configurationDbContext.IdentityResources.ToList();
-
-                configurationDbContext.Clients.RemoveRange(clients);
-                configurationDbContext.IdentityResources.RemoveRange(identityResources);
-                configurationDbContext.SaveChanges();
-            }
-
-            if (!configurationDbContext.Clients.Any())
-            {
-                var clients = IdentityserverResources.Clients(config);
-
-                foreach (var client in clients)
-                {
-                    configurationDbContext.Clients.Add(client.ToEntity());
-                }
-            }
-
-            if (!configurationDbContext.IdentityResources.Any())
-            {
-                var identityResources = IdentityserverResources.IdentityResources();
-
-                foreach (var identityResource in identityResources)
-                {
-                    configurationDbContext.IdentityResources.Add(identityResource.ToEntity());
-                }
-            }
-
-            configurationDbContext.SaveChanges();
         }
 
         public static void CreateRequiredUserAccountsIfMissing(this IApplicationBuilder app, bool resetTestaccount)

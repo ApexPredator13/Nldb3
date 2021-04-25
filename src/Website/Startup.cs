@@ -3,30 +3,26 @@ using System.Collections.Generic;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Website.Data;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Website.Infrastructure;
 using Website.Services;
 using Microsoft.Extensions.Hosting;
-using Website.Migrations;
-using Microsoft.Extensions.Primitives;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Hangfire.Dashboard;
 using System.Security.Claims;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
-using System.Reflection;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
-using Microsoft.Extensions.FileProviders;
 using Microsoft.AspNetCore.DataProtection;
-using IdentityServer4.Extensions;
+using Microsoft.AspNetCore.Authentication.Cookies;
+
+using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace Website
 {
@@ -92,6 +88,7 @@ namespace Website
                 {
                     npgsqlOptions.MigrationsHistoryTable(HistoryRepository.DefaultTableName, "identity");
                 });
+                options.UseOpenIddict();
             });
 
             // identity
@@ -115,6 +112,10 @@ namespace Website
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
             services.AddAuthentication()
+                .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+                {
+                    options.LoginPath = "/Account/Login";
+                })
                 .AddTwitter(options =>
                 {
                     options.ConsumerKey = Config["TwitterConsumerKey"];
@@ -135,6 +136,8 @@ namespace Website
                     options.ClientSecret = _env.IsDevelopment() ? Config["TwitchClientSecret_Development"] : Config["TwitchClientSecret_Production"];
                 });
 
+            services.AddControllersWithViews();
+
             services.AddMvc()
                 .AddRazorRuntimeCompilation()   // necessary during .net core 3 preview only? maybe safe to remove this line later
                 .AddNewtonsoftJson();
@@ -147,48 +150,62 @@ namespace Website
                 });
             });
 
-            var certPath = Path.Combine(_env.ContentRootPath, "nldb.pfx");
-            var certPass = Config["CertificatePassword"];
-            var cert = new X509Certificate2(certPath, certPass);
-            if (cert is null)
+            var signingCertificatePath = Path.Combine(_env.ContentRootPath, "nldb.pfx");
+            var signingCertificatePassword = Config["CertificatePassword"];
+            var signingCertificate = new X509Certificate2(signingCertificatePath, signingCertificatePassword);
+            if (signingCertificate is null)
             {
                 throw new Exception("no signing certificate found");
             }
 
-            var migrationsAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
-            services.AddIdentityServer(config =>
+
+            var encryptionCertificatePath = Path.Combine(_env.ContentRootPath, "nldb_enc.pfx");
+            var encryptionCertificatePassword = Config["EncryptionCertificatePassword"];
+            var encryptionCertificate = new X509Certificate2(encryptionCertificatePath, encryptionCertificatePassword);
+            if (encryptionCertificate is null)
             {
-                config.IssuerUri = "https://northernlion-db.com";
-                config.UserInteraction.LogoutUrl = "/Account/Logout";
+                throw new Exception("no signing certificate found");
+            }
+
+
+
+            services.AddOpenIddict()
+            .AddCore(options =>
+                {
+                    options.UseEntityFrameworkCore()
+                        .UseDbContext<ApplicationDbContext>();
+                })
+
+            // Register the OpenIddict server components.
+            .AddServer(options =>
+            {
+                options.SetAuthorizationEndpointUris("/connect/authorize")
+                        .SetLogoutEndpointUris("/Account/Logout")
+                        .SetTokenEndpointUris("/connect/token")
+                        .SetUserinfoEndpointUris("/connect/userinfo");
+
+                options.RegisterScopes(Scopes.Email, Scopes.Profile, Scopes.Roles);
+                options.AllowAuthorizationCodeFlow()
+                        .AllowRefreshTokenFlow()
+                        .UseReferenceRefreshTokens()
+                        .UseReferenceAccessTokens();
+
+                options
+                    .AddSigningCertificate(signingCertificate)
+                    .AddEncryptionCertificate(encryptionCertificate);
+
+                options.UseAspNetCore()
+                        .EnableAuthorizationEndpointPassthrough()
+                        .EnableLogoutEndpointPassthrough()
+                        .EnableStatusCodePagesIntegration()
+                        .EnableTokenEndpointPassthrough();
             })
-                .AddSigningCredential(cert)
-                .AddAspNetIdentity<IdentityUser>()
-                .AddConfigurationStore(config =>
-                {
-                    config.DefaultSchema = "identity";
-                    config.ConfigureDbContext = builder =>
-                    {
-                        builder.UseNpgsql(dbContextConnectionString, npgsqlOptions =>
-                        {
-                            npgsqlOptions.MigrationsHistoryTable(HistoryRepository.DefaultTableName, "identity");
-                            npgsqlOptions.MigrationsAssembly(migrationsAssembly);
-                        });
-                    };
-                })
-                .AddOperationalStore(config =>
-                {
-                    config.DefaultSchema = "identity";
-                    config.EnableTokenCleanup = true;
-                    config.ConfigureDbContext = builder =>
-                    {
-                        builder.UseNpgsql(dbContextConnectionString, npgsqlOptions =>
-                        {
-                            npgsqlOptions.MigrationsHistoryTable(HistoryRepository.DefaultTableName, "identity");
-                            npgsqlOptions.MigrationsAssembly(migrationsAssembly);
-                        });
-                    };
-                })
-                .AddProfileService<CustomProfileService>();
+
+            .AddValidation(options =>
+            {
+                options.UseLocalServer();
+                options.UseAspNetCore();
+            });
 
             var dataFolder = Path.Combine(_env.ContentRootPath, "AuthState");
             Directory.CreateDirectory(dataFolder);
@@ -198,6 +215,8 @@ namespace Website
                 .PersistKeysToFileSystem(info)
                 .SetApplicationName("NLDB3")
                 .SetDefaultKeyLifetime(TimeSpan.FromDays(30));
+
+            services.AddHostedService<Worker>();
         }
 
 
@@ -208,12 +227,6 @@ namespace Website
                 x.AllowAnyOrigin();
                 x.AllowAnyHeader();
                 x.AllowAnyMethod();
-            });
-
-            app.Use(async (ctx, next) =>
-            {
-                ctx.SetIdentityServerOrigin(env.IsDevelopment() ? "https://localhost:5005" : "https://northernlion-db.com");
-                await next();
             });
 
             var forwardOptions = new ForwardedHeadersOptions()
@@ -243,7 +256,7 @@ namespace Website
 
             app.UseRouting();
 
-            app.UseIdentityServer();
+            app.UseAuthentication();
             app.UseAuthorization();
 
             if (env.EnvironmentName != "Testing")
@@ -260,14 +273,15 @@ namespace Website
             app.UseEndpoints(endpoints =>
             {
                 // silent signin
+                endpoints.MapControllerRoute("Testing", "/Testing", new { controller = Controllers.HomeController.Controllername, action = nameof(Controllers.HomeController.Testing) });
                 endpoints.MapControllerRoute("silent_signin", "/SilentSignin", new { controller = Controllers.HomeController.Controllername, action = nameof(Controllers.HomeController.SilentSignin) });
                 endpoints.MapControllerRoute("default", "{controller=home}/{action=index}/{id?}");
                 endpoints.MapFallbackToController("index", "home");
             });
 
+            app.UseWelcomePage();
             app.PrepareDatabase();
             app.ApplyEntityFrameworkDatabaseMigrations();
-            app.CreateIdentityserverEntriesIfNecessary(env.IsDevelopment() ? true : false);
             app.CreateRequiredUserAccountsIfMissing(env.IsDevelopment() ? true : false);
 
             if (env.EnvironmentName != "Testing")

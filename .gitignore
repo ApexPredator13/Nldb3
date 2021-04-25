@@ -11,6 +11,7 @@
 
 # pfx
 /src/Website/nldb.pfx
+/src/Website/nldb_enc.pfx
 
 # temporary database diagram
 /src/Website/wwwroot/img/database_diagram.png

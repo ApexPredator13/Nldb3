@@ -1,4 +1,4 @@
-﻿import { WebStorageStateStore, UserManager, User } from 'oidc-client';
+﻿import { WebStorageStateStore, UserManager, User, Log } from 'oidc-client';
 import { removeHashAndQuerystring, getHashFromUrl, loadSciptIfNotExists } from '../browser';
 import { getConfig } from './config.development';
 
@@ -10,6 +10,8 @@ let userWasFoundActionsExecuted = false;
  *  @returns {UserManager}
  */
 function getUserManager() {
+    Log.logger = console;
+    Log.level = Log.DEBUG;
     if (window.userManager) {
         return window.userManager;
     }
@@ -26,7 +28,7 @@ function getUserManager() {
         monitorSession: true,
         checkSessionInterval: 10,
         response_type: 'code',
-        scope: 'openid profile role',
+        scope: 'openid offline_access profile email roles',
         loadUserInfo: true,
         post_logout_redirect_uri: baseUrlOfThisWebsite,
         revokeAccessTokenOnSignout: true,
@@ -131,8 +133,7 @@ const isAdmin = (user) => {
         return false;
     }
 
-    const roleClaimName = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role';
-    if (user.profile[roleClaimName] === 'admin') {
+    if (user.profile['role'] === 'admin') {
         return true;
     }
 

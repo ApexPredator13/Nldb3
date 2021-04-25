@@ -2,12 +2,12 @@
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using IdentityServer4;
-using IdentityServer4.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using OpenIddict.Abstractions;
+using OpenIddict.Server.AspNetCore;
 using Website.Infrastructure;
 using Website.Models.Account;
 using Website.Services;
@@ -21,24 +21,21 @@ namespace Website.Controllers
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly IEmailService _emailSender;
-        private readonly IIdentityServerInteractionService _identityServerInteractionService;
-        private readonly IPersistedGrantService _persistedGrantService;
         private readonly IConfiguration _config;
+        private readonly IOpenIddictTokenManager _tokenManager;
 
         public AccountController(
             SignInManager<IdentityUser> signInManager,
             UserManager<IdentityUser> userManager,
             IEmailService emailSender,
-            IIdentityServerInteractionService iis,
-            IPersistedGrantService persistedGrantService,
-            IConfiguration config)
+            IConfiguration config,
+            IOpenIddictTokenManager tokenManager)
         {
             _signInManager = signInManager;
             _userManager = userManager;
             _emailSender = emailSender;
-            _identityServerInteractionService = iis;
-            _persistedGrantService = persistedGrantService;
             _config = config;
+            _tokenManager = tokenManager;
         }
 
         [HttpGet]
@@ -56,7 +53,6 @@ namespace Website.Controllers
 
             // clear external cookie
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
-            await HttpContext.SignOutAsync(IdentityServerConstants.ExternalCookieAuthenticationScheme);
 
             return View(new LoginModel());
         }
@@ -76,12 +72,6 @@ namespace Website.Controllers
             {
                 await FillViewData();
                 return View(model);
-            }
-
-            // check returnUrl - if it's invalid just throw the user back to the main page to provide a clean start
-            if (!_identityServerInteractionService.IsValidReturnUrl(returnUrl))
-            {
-                return LocalRedirect("/");
             }
 
             // find user
@@ -167,23 +157,26 @@ namespace Website.Controllers
         public ViewResult Logout() => View();
 
         [HttpPost]
-        public async Task<RedirectToActionResult> Logout([FromQuery] string? returnUrl = null)
+        public async Task<SignOutResult> Logout([FromQuery] string? returnUrl = null)
         {
             var user = await _userManager.GetUserAsync(User);
 
             if (user != null)
             {
-                var clients = IdentityserverResources.Clients(_config);
-                foreach (var client in clients)
-                {
-                    await _persistedGrantService.RemoveAllGrantsAsync(user.Id, client.ClientId);
-                }
+                var r = _tokenManager.FindBySubjectAsync(user.Id);
+                await foreach (var v in r)
+                    await _tokenManager.TryRevokeAsync(v);
             }
 
             await HttpContext.SignOutAsync();
             await _signInManager.SignOutAsync();
 
-            return RedirectToAction(nameof(HomeController.Index), HomeController.Controllername, "logout");
+            return SignOut(
+                authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+                properties: new AuthenticationProperties
+                {
+                    RedirectUri = "/#logout"
+                });
         }
 
         private static string GetExternalLoginUsername(ExternalLoginInfo info)
@@ -220,7 +213,7 @@ namespace Website.Controllers
         public async Task<ActionResult> ExternalLoginCallback(string returnUrl, string? remoteError = null)
         {
             // show error page if something went wrong or is missing
-            if (remoteError != null || !_identityServerInteractionService.IsValidReturnUrl(returnUrl))
+            if (remoteError != null)
             {
                 return RedirectToAction(nameof(ExternalLoginFailed));
             }
@@ -243,15 +236,13 @@ namespace Website.Controllers
             if (result.Succeeded)
             {
                 // clear external cookie and redirect
-                await HttpContext.SignOutAsync(IdentityServerConstants.ExternalCookieAuthenticationScheme);
                 return Redirect(returnUrl);
             }
 
             // user was here before, but login failed too many times
             else if (result.IsLockedOut)
             {
-                // clear external cookie and redirect to error page
-                await HttpContext.SignOutAsync(IdentityServerConstants.ExternalCookieAuthenticationScheme);
+                // redirect to error page
                 return RedirectToAction(nameof(ExternalLoginFailed), new { error = "Login failed too many times, please wait a minute before trying again." });
             }
 
@@ -270,11 +261,6 @@ namespace Website.Controllers
             {
                 ViewData["returnUrl"] = returnUrl;
                 return View(model);
-            }
-
-            if (!_identityServerInteractionService.IsValidReturnUrl(returnUrl))
-            {
-                return RedirectToAction(nameof(ExternalLoginFailed));
             }
 
             var info = await _signInManager.GetExternalLoginInfoAsync();
@@ -319,9 +305,8 @@ namespace Website.Controllers
                 return View(model);
             }
 
-            // sign user in and clear external cookie.
+            // sign user in
             await _signInManager.SignInAsync(newUser, false);
-            await HttpContext.SignOutAsync(IdentityServerConstants.ExternalCookieAuthenticationScheme);
 
             return Redirect(returnUrl);
         }
@@ -422,15 +407,10 @@ namespace Website.Controllers
         [HttpPost]
         public async Task<ActionResult> Register([FromForm] RegisterModel model, [FromQuery] string returnUrl)
         {
-            // check user input and returnUrl
+            // check user input
             if (!ModelState.IsValid)
             {
                 return View(model);
-            }
-
-            if (!_identityServerInteractionService.IsValidReturnUrl(returnUrl))
-            {
-                return RedirectToAction(nameof(HomeController.Index), HomeController.Controllername);
             }
 
             // create the new user
