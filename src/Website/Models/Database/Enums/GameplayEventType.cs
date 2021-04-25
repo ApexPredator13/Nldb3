@@ -24,6 +24,7 @@
         StartingTrinket,
         Clicker,
         RerollTransform,
-        Respawn
+        Respawn,
+        TaintedIsaacReplacedItem
     }
 }

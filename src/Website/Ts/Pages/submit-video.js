@@ -4,7 +4,7 @@ import { YoutubePlayer } from "../Components/SubmitVideo/youtube-player";
 import { addClassIfNotExists, removeClassIfExists } from "../Framework/browser";
 import { getConfig } from "../Framework/Customizable/config.development";
 import { get, postResponse } from "../Framework/http";
-import { Html, Div, id, div, a, iframe, attr, span, t, P, event, H2, cl, hr, Hr, style, H1, input, button, br, modal, h2, hideModal, p } from "../Framework/renderer";
+import { Html, Div, id, div, a, iframe, attr, span, t, P, event, H2, cl, hr, Hr, style, H1, input, button, br, modal, h2, hideModal, p, do_nothing } from "../Framework/renderer";
 import { registerPage, setTitle, navigate, PAGE_TYPE_EPISODE, dontLetUserNavigateAway, useRegularPopstateHandler, goBack } from "../Framework/router";
 import { PlayerControls } from "../Components/SubmitVideo/player-controls";
 import { CurrentPlayer } from "../Components/SubmitVideo/current-player";
@@ -47,6 +47,7 @@ const DID_REROLL_TRIGGER_ANOTHER_TRANSFORMATION = 22;
 const CONFIRM_DOWN_TO_NEXT_FLOOR = 23;
 const OTHER_EVENTS = 24;
 const CONFIRM_NO_BOSSFIGHT_ON_THIS_FLOOR = 25;
+const TAINTED_ISAAC_EVENTS = 26;
 
 
 const beforeUnloadEvent = e => {
@@ -334,6 +335,9 @@ function SubmitVideoPage(parameters) {
     this.staticResources.set(CONFIRM_NO_BOSSFIGHT_ON_THIS_FLOOR, [
         { id: 'confirm', name: 'Yes, there really was no bossfight', x: 1050, y: 0, w: 35, h: 35 },
         { id: 'cancel', name: 'No, CANCEL!', x: 1085, y: 0, w: 35, h: 30 }
+    ]);
+    this.staticResources.set(TAINTED_ISAAC_EVENTS, [
+        { id: 'cancel', name: 'Nothing was replaced', x: 665, y: 0, w: 35, h: 35 }
     ]);
 
 
@@ -1095,8 +1099,10 @@ SubmitVideoPage.prototype = {
     /** Displays the main select screen that will be displayed after every gameplay event choice */
     menu_Main: function () {
         this.cleanup();
+        const taintedIsaacEvents = this.getStaticResource(TAINTED_ISAAC_EVENTS);
         const gameplayEvents = this.getStaticResource(MAJOR_GAMEPLAY_EVENTS);
         const consumableEvents = this.getStaticResource(USED_CONSUMABLES);
+        const currentCharacter = this.history.getCurrentCharacter();
 
         this.display(
             H2(t('What happened?')),
@@ -1117,8 +1123,6 @@ SubmitVideoPage.prototype = {
                 )
             )
         );
-
-        // adds underscores to boxes that can be triggered via keyboard
 
         // focus on 'main menu container' and start listening to keyboard events
         const ct = document.getElementById(this.menuContainerId);
@@ -1180,6 +1184,74 @@ SubmitVideoPage.prototype = {
         }
     },
 
+    menu_WhatItemDidTaintedIsaacPutDown: function() {
+        const searchboxContent = this.getServerResource(`/Api/Resources/?ResourceType=6`);
+        const boxesContent = this.getStaticResource(TAINTED_ISAAC_EVENTS);
+        this.display(
+            H2(
+                t('Did this item replace one of Tainted Isaac\'s old items?')
+            ),
+            Div(id('no')),
+            Hr(),
+            P(
+                t('If yes, what item was replaced?')
+            ),
+            Div(id('res')),
+            Hr(),
+            Div(
+                this.backToMainMenu()
+            )
+        );
+
+        new Boxes(this, 'no', this.process_WhatItemDidTaintedIsaacPutDown, boxesContent, 2, false, '/img/gameplay_events.png');
+        new Searchbox(this, this.process_WhatItemDidTaintedIsaacPutDown, 1, searchboxContent, false, 'res', true);
+    },
+
+    process_WhatItemDidTaintedIsaacPutDown: function (item) {
+        if (item !== 'cancel')  {
+            this.history.addEvent({
+                EventType: 23,
+                RelatedResource1: item,
+                RelatedResource2: this.tempValue,
+                Player: this.playerOneOrTwo
+            });
+        }
+
+        this.menu_Main();
+    },
+
+    menu_WhatItemReplacedTheOldItem: function() {
+        const searchboxContent = this.getServerResource(`/Api/Resources/?ResourceType=6`);
+        this.display(
+            H2(
+                span(t('What is ')),
+                span(
+                    t('the new item'), 
+                    style('color: orange')
+                ),
+                span(t('?'))
+            ),
+            Div(id('res')),
+            Hr(),
+            Div(
+                this.backToMainMenu()
+            )
+        );
+
+        new Searchbox(this, this.process_WhatItemReplacedTheOldItem, 1, searchboxContent, false, 'res', true);
+    },
+
+    process_WhatItemReplacedTheOldItem: function(item) {
+        this.history.addEvent({
+            EventType: 23,
+            RelatedResource1: item,
+            RelatedResource2: this.tempValue,
+            Player: this.playerOneOrTwo
+        });
+        this.tempValue = null;
+        this.menu_Main();
+    },
+
     /** checks if a boss was selected on the floor, and shows a warning if not */
     process_CheckBossWasSelected: function() {
         if (!this.history.currentFloorHasBossfight()) {
@@ -1191,7 +1263,7 @@ SubmitVideoPage.prototype = {
                 Hr(),
                 P(t('Is this correct?')),
                 Div(id('no-bf-bosses'))
-            ),
+            );
             new Boxes(this, 'no-bf-bosses', this.process_NoBossfightSelected, this.getStaticResource(CONFIRM_NO_BOSSFIGHT_ON_THIS_FLOOR), 1, false, '/img/gameplay_events.png');
         } else {
             this.menu_ConfirmNextFloor();
@@ -1509,7 +1581,15 @@ SubmitVideoPage.prototype = {
             RelatedResource2: this.copyString(this.tempValue),
             Rerolled: this.wasRerolled
         });
-        this.menu_Main();
+
+        const currentCharacter = this.history.getCurrentCharacter();
+
+        if (currentCharacter.CharacterId === 'TaintedIsaac') {
+            this.tempValue = itemId;
+            this.menu_WhatItemDidTaintedIsaacPutDown();
+        } else {
+            this.menu_Main();
+        }
     },
 
 

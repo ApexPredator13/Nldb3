@@ -85,8 +85,18 @@ function floors(episode) {
 
 function itemProgress(playedFloor, twoPlayerMode) {
     return playedFloor.events
-        .filter(event => event.event_type === 2 || event.event_type === 18)
+        .filter(event => event.event_type === 2 || event.event_type === 18 || event.event_type === 23)
         .map(event => {
+
+            // 23: item switched out
+            // 18: item was briefly touched
+            // 2: item was collected
+            let header = 'Item Collected';
+            switch (event.event_type) {
+                case 18: header = 'Item was used briefly'; break;
+                case 23: header = 'Item was left behind'; break;
+            }
+
             return div(
                 cl('display-inline'),
                 style('position: relative; z-index: 1'),
@@ -97,21 +107,24 @@ function itemProgress(playedFloor, twoPlayerMode) {
                         cl('c'),
 
                         h3(
-                            t('Item Collected')
+                            t(header)
                         ),
                         hr(),
                         span(
                             t(event.r1.name)
                         ),
                         br(),
-                        isaacImage(event, 2),
+                        // reverse images if event was 'item left behind' instead of 'item collected / touched'
+                        isaacImage(event, event.event_type === 23 ? 1 : 2),
                         span(
                             t(' ⟹ ')
                         ),
-                        isaacImage(event, 1),
+                        isaacImage(event, event.event_type === 23 ? 2 : 1),
                         br(),
                         span(
-                            t(`From  ${event.r2.name}`)
+                            t(event.event_type === 23
+                                ? `${event.r1.name} was left behind in favor of ${event.r2.name}`
+                                : `From  ${event.r2.name}`)
                         ),
                         twoPlayerMode ? div(
                             hr(),
