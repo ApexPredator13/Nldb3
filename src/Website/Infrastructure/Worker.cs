@@ -25,6 +25,7 @@ namespace Website.Infrastructure
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
+            await Task.Delay(1000);
             using var scope = _serviceProvider.CreateScope();
 
             var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
