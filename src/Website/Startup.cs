@@ -161,7 +161,7 @@ namespace Website
 
             var encryptionCertificatePath = Path.Combine(_env.ContentRootPath, "nldb_enc.pfx");
             var encryptionCertificatePassword = Config["EncryptionCertificatePassword"];
-            var encryptionCertificate = new X509Certificate2(encryptionCertificatePath, encryptionCertificatePassword);
+            var encryptionCertificate = new X509Certificate2(encryptionCertificatePath, encryptionCertificatePassword, X509KeyStorageFlags.EphemeralKeySet);
             if (encryptionCertificate is null)
             {
                 throw new Exception("no signing certificate found");
@@ -182,7 +182,8 @@ namespace Website
                 options.SetAuthorizationEndpointUris("/connect/authorize")
                         .SetLogoutEndpointUris("/Account/Logout")
                         .SetTokenEndpointUris("/connect/token")
-                        .SetUserinfoEndpointUris("/connect/userinfo");
+                        .SetUserinfoEndpointUris("/connect/userinfo")
+                        .SetIssuer(new Uri("https://northernlion-db.com"));
 
                 options.RegisterScopes(Scopes.Email, Scopes.Profile, Scopes.Roles);
                 options.AllowAuthorizationCodeFlow()
@@ -198,7 +199,8 @@ namespace Website
                         .EnableAuthorizationEndpointPassthrough()
                         .EnableLogoutEndpointPassthrough()
                         .EnableStatusCodePagesIntegration()
-                        .EnableTokenEndpointPassthrough();
+                        .EnableTokenEndpointPassthrough()
+                        .DisableTransportSecurityRequirement();
             })
 
             .AddValidation(options =>
@@ -222,6 +224,8 @@ namespace Website
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.ApplyEntityFrameworkDatabaseMigrations();
+
             app.UseCors(x =>
             {
                 x.AllowAnyOrigin();
@@ -280,7 +284,6 @@ namespace Website
 
             app.UseWelcomePage();
             app.PrepareDatabase();
-            app.ApplyEntityFrameworkDatabaseMigrations();
             app.CreateRequiredUserAccountsIfMissing(env.IsDevelopment() ? true : false);
 
             if (env.EnvironmentName != "Testing")
