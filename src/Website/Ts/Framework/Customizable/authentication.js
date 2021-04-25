@@ -10,8 +10,6 @@ let userWasFoundActionsExecuted = false;
  *  @returns {UserManager}
  */
 function getUserManager() {
-    Log.logger = console;
-    Log.level = Log.DEBUG;
     if (window.userManager) {
         return window.userManager;
     }
