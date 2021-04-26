@@ -1,14 +1,10 @@
 ﻿using Mailjet.Client;
 using Mailjet.Client.Resources;
-using MailKit.Net.Smtp;
-using MailKit.Security;
 using Microsoft.Extensions.Configuration;
-using MimeKit;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
-using System;
 using System.Text;
 using System.Threading.Tasks;
-using Website.Models.Account;
 using Website.Services;
 
 namespace Website.Infrastructure
@@ -16,10 +12,12 @@ namespace Website.Infrastructure
     public class EmailService : IEmailService
     {
         private readonly IConfiguration _config;
+        private readonly ILogger<IEmailService> _logger;
 
-        public EmailService(IConfiguration config)
+        public EmailService(IConfiguration config, ILogger<IEmailService> logger)
         {
             _config = config;
+            _logger = logger;
         }
 
         private void OpenBodyTag(StringBuilder s) => s.Append("<html><body>");
@@ -70,17 +68,38 @@ namespace Website.Infrastructure
 
             var mailjetClient = new MailjetClient(apiKey, apiSecret);
 
-            var message = new JObject();
-            message.From(from, from);
-            message.To(email, email);
-            message.Subject(subject);
-            message.Html(htmlMessage);
-
             var request = new MailjetRequest
             {
                 Resource = Send.Resource
             }
-            .Property(Send.Messages, new JArray() { message });
+            .Property(Send.Messages, new JArray
+            {
+                new JObject
+                {
+                    {
+                        "FromEmail",
+                        from
+                    },
+                    {
+                        "Recipients",
+                        new JArray
+                        {
+                            new JObject
+                            {
+                                { "Email", email }
+                            }
+                        }
+                    },
+                    {
+                        "Subject",
+                        subject
+                    },
+                    {
+                        "Html-part",
+                        htmlMessage
+                    }
+                }
+            });
 
             var response = await mailjetClient.PostAsync(request);
             return response;
