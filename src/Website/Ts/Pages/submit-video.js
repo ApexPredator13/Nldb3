@@ -1254,7 +1254,12 @@ SubmitVideoPage.prototype = {
 
     /** checks if a boss was selected on the floor, and shows a warning if not */
     process_CheckBossWasSelected: function() {
-        if (!this.history.currentFloorHasBossfight()) {
+        const currentFloor = this.history.getCurrentFloor();
+        
+        // don't do the check on greed mode floors
+        if (currentFloor.FloorId.toLowerCase().indexOf('greedmode') !== -1) {
+            this.menu_ConfirmNextFloor();
+        } else if (!this.history.currentFloorHasBossfight()) {
             this.display(
                 H2(
                     t('Warning! No bossfight was selected for this floor.'),
@@ -1452,8 +1457,11 @@ SubmitVideoPage.prototype = {
 
     /** displays the 'What item was touched?' menu */
     menu_WhatItemWasTouched: function () {
+        const currentCharacter = this.history.getCurrentCharacter();
+        const isTaintedIsaac = currentCharacter.CharacterId === 'TaintedIsaac';
+        
         this.display(
-            H2(t('What spacebar item was touched and put down right after?')),
+            H2(t('What ' + (isTaintedIsaac ? '' : 'spacebar') + ' item was touched and put down right after?')),
             Div(
                 this.wasItemRerolled(),
             ),
@@ -1483,7 +1491,7 @@ SubmitVideoPage.prototype = {
             )
         );
 
-        new Searchbox(this, this.process_TouchedItemSelected, 1, this.getServerResource(`/Api/Resources/?ResourceType=6&RequiredTags=139`), false, 'items', true)
+        new Searchbox(this, this.process_TouchedItemSelected, 1, this.getServerResource(isTaintedIsaac ? `/Api/Resources/?ResourceType=6` : `/Api/Resources/?ResourceType=6&RequiredTags=139`), false, 'items', true)
     },
 
 
