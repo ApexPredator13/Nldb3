@@ -23,6 +23,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
 using static OpenIddict.Abstractions.OpenIddictConstants;
+using Microsoft.AspNetCore.Http;
 
 namespace Website
 {
@@ -129,11 +130,15 @@ namespace Website
                 .AddSteam(options =>
                 {
                     options.ApplicationKey = Config["SteamApplicationKey"];
+                    options.CorrelationCookie.SameSite = SameSiteMode.None;
+                    options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
                 })
                 .AddTwitch(options =>
                 {
                     options.ClientId = _env.IsDevelopment() ? Config["TwitchClientId_Development"] : Config["TwitchClientId_Production"];
                     options.ClientSecret = _env.IsDevelopment() ? Config["TwitchClientSecret_Development"] : Config["TwitchClientSecret_Production"];
+                    options.CorrelationCookie.SameSite = SameSiteMode.None;
+                    options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
                 });
 
             services.AddControllersWithViews();
