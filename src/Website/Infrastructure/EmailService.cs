@@ -1,7 +1,10 @@
-﻿using MailKit.Net.Smtp;
+﻿using Mailjet.Client;
+using Mailjet.Client.Resources;
+using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Configuration;
 using MimeKit;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Text;
 using System.Threading.Tasks;
@@ -59,33 +62,28 @@ namespace Website.Infrastructure
             return s.ToString();
         }
 
-        public async Task SendEmailAsync(string email, string subject, string htmlMessage)
+        public async Task<MailjetResponse> SendEmailAsync(string email, string subject, string htmlMessage)
         {
-            MimeMessage mail = new MimeMessage();
+            var apiKey = _config["MailjetApiKey"];
+            var apiSecret = _config["MailjetApiSecret"];
+            var from = _config["AdminEmail"];
 
-            mail.From.Add(new MailboxAddress("The Northernlion Database", "northernliondb@gmail.com"));
-            mail.To.Add(new MailboxAddress(string.Empty, email.Trim()));
-            mail.Subject = subject;
+            var mailjetClient = new MailjetClient(apiKey, apiSecret);
 
-            var builder = new BodyBuilder
+            var message = new JObject();
+            message.From(from, from);
+            message.To(email, email);
+            message.Subject(subject);
+            message.Html(htmlMessage);
+
+            var request = new MailjetRequest
             {
-                HtmlBody = htmlMessage
-            };
-
-            mail.Body = builder.ToMessageBody();
-
-            using (var client = new SmtpClient())
-            {
-                client.LocalDomain = "www.northernlion-db.com";
-
-                await client.ConnectAsync("smtp.gmail.com", 587, SecureSocketOptions.StartTlsWhenAvailable);
-                client.AuthenticationMechanisms.Remove("XOAUTH2");
-
-                await client.AuthenticateAsync("northernliondb@gmail.com", _config["AdminEmailPassword"]);
-                await client.SendAsync(mail);
-
-                await client.DisconnectAsync(true);
+                Resource = Send.Resource
             }
+            .Property(Send.Messages, new JArray() { message });
+
+            var response = await mailjetClient.PostAsync(request);
+            return response;
         }
     }
 }

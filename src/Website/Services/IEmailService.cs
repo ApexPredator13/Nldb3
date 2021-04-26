@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using Mailjet.Client;
+using System.Threading.Tasks;
 using Website.Models.Account;
 
 namespace Website.Services
@@ -8,6 +9,6 @@ namespace Website.Services
         string GenerateResetPasswordEmail(string emailAddress, string callbackUrl);
         string GenerateConfirmEmailAddressEmail(string emailAddress, string callbackUrl);
         string GenerateChangeEmailAddressEmail(string emailAddress, string callbackUrl);
-        Task SendEmailAsync(string email, string subject, string htmlMessage);
+        Task<MailjetResponse> SendEmailAsync(string email, string subject, string htmlMessage);
     }
 }
