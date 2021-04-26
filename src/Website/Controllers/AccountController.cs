@@ -398,14 +398,14 @@ namespace Website.Controllers
         public ViewResult PasswordResetSucceeded() => View();
 
         [HttpGet]
-        public ViewResult Register([FromQuery] string returnUrl)
+        public ViewResult Register([FromQuery] string? returnUrl = null)
         {
             ViewData["returnUrl"] = returnUrl;
             return View(new RegisterModel());
         }
 
         [HttpPost]
-        public async Task<ActionResult> Register([FromForm] RegisterModel model, [FromQuery] string returnUrl)
+        public async Task<ActionResult> Register([FromForm] RegisterModel model, [FromQuery] string? returnUrl = null)
         {
             // check user input
             if (!ModelState.IsValid)
@@ -440,7 +440,7 @@ namespace Website.Controllers
 
             // ...and log the user in right away
             await _signInManager.SignInAsync(user, false);
-            return Redirect(returnUrl);
+            return Redirect(returnUrl ?? Url.Action(nameof(HomeController.Index), HomeController.Controllername) ?? "/");
         }
 
         [HttpGet]
