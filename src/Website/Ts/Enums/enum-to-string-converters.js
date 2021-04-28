@@ -406,6 +406,26 @@ const convertTagToString = (t) => {
         case 283: return 'Steals Consumables';
         case 284: return 'Sets Enemies on Fire';
         case 285: return 'Farting';
+        case 286: return 'Comes After Ashpit One';
+        case 287: return 'Comes After Ashpit Two';
+        case 288: return 'Comes After Ashpit XL';
+        case 289: return 'Appears On Ashpit One';
+        case 290: return 'Appears On Ashpit Two';
+        case 291: return 'Appears On Ashpit XL';
+        case 292: return 'Comes After Dross One';
+        case 293: return 'Comes After Dross Two';
+        case 294: return 'Comes After Dross XL';
+        case 295: return 'Appears On Dross One';
+        case 296: return 'Appears On Dross Two';
+        case 297: return 'Appears On Dross XL';
+        case 298: return 'Comes After Gehenna One';
+        case 299: return 'Comes After Gehenna Two';
+        case 300: return 'Comes After Gehenna XL';
+        case 301: return 'Appears On Gehenna One';
+        case 302: return 'Appears On Gehenna Two';
+        case 303: return 'Appears On Gehenna XL';
+        case 304: return 'Comes After Home';
+        case 305: return 'Appears On Home';
         default: return '';
     }
 }

@@ -22,7 +22,7 @@ const gameplayEventTypeOptionList = (selected) => {
 }
 
 const tagsAsIsaacResources = () => {
-    return Array.from(new Array(286).keys()).map(key => {
+    return Array.from(new Array(305).keys()).map(key => {
         return {
             id: key.toString(10),
             name: convertTagToString(key),
@@ -32,7 +32,7 @@ const tagsAsIsaacResources = () => {
 }
 
 const tagsOptionList = selected => {
-    return Array.from(new Array(286).keys())
+    return Array.from(new Array(305).keys())
         .map(key => option(convertTagToString(key), key.toString(10), selected === key));
 }
 

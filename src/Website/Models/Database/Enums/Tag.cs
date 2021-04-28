@@ -287,6 +287,26 @@
         ModifiesDealChance,
         StealsConsumables,
         SetsEnemiesOnFire,
-        Farting
+        Farting,
+        ComesAfterAshpitOne,
+        ComesAfterAshpitTwo,
+        ComesAfterAshpitXl,
+        AppearsOnAshpitOne,
+        AppearsOnAshpitTwo,
+        AppearsOnAshpitXl,
+        ComesAfterDrossOne,
+        ComesAfterDrossTwo,
+        ComesAfterDrossXl,
+        AppearsOnDrossOne,
+        AppearsOnDrossTwo,
+        AppearsOnDrossXl,
+        ComesAfterGehennaOne,
+        ComesAfterGehennaTwo,
+        ComesAfterGehennaXl,
+        AppearsOnGehennaOne,
+        AppearsOnGehennaTwo,
+        AppearsOnGehennaXl,
+        ComesAfterHome,
+        AppearsOnHome
     }
 }
