@@ -76,26 +76,85 @@ namespace Website.Controllers
         [HttpGet("next-floorset/{currentFloorId}")]
         public async Task<List<IsaacResource>> GetNextFloorset([FromRoute] string currentFloorId)
         {
-            if (Enum.TryParse(typeof(Tag), $"ComesAfter{currentFloorId}", true, out object? tag))
+            List<Tag> requiredTags = currentFloorId switch
             {
-                if (tag is null)
-                {
-                    return new List<IsaacResource>();
-                }
+                "BlueWomb" => new() { Tag.ComesAfterBlueWomb },
+                "AshpitOne" => new() { Tag.ComesAfterAshpitOne },
+                "AshpitTwo" => new() { Tag.ComesAfterAshpitTwo },
+                "AshpitXL" => new() { Tag.ComesAfterAshpitXl },
+                "BasementOne" => new() { Tag.ComesAfterBasementOne },
+                "BasementTwo" => new() { Tag.ComesAfterBasementTwo },
+                "BasementXL" => new() { Tag.ComesAfterBasementXl },
+                "CatacombsOne" => new() { Tag.ComesAfterCatacombsOne },
+                "CatacombsTwo" => new() { Tag.ComesAfterCatacombsTwo },
+                "CatacombsXL" => new() { Tag.ComesAfterCatacombsXl },
+                "Cathedral" => new() { Tag.ComesAfterCathedral },
+                "CavesOne" => new() { Tag.ComesAfterCavesOne },
+                "CavesTwo" => new() { Tag.ComesAfterCavesTwo },
+                "CavesXL" => new() { Tag.ComesAfterCavesXl },
+                "CellarOne" => new() { Tag.ComesAfterCellarOne },
+                "CellarTwo" => new() { Tag.ComesAfterCellarTwo },
+                "CellarXL" => new() { Tag.ComesAfterCellarXl },
+                "Chest" => new() { Tag.ComesAfterChest },
+                "CorpseOne" => new() { Tag.ComesAfterCorpseOne },
+                "CorpseTwo" => new() { Tag.ComesAfterCorpseTwo },
+                "CorpseXL" => new() { Tag.ComesAfterCorpseXl },
+                "DankDepthsOne" => new() { Tag.ComesAfterDankDepthsOne },
+                "DankDepthsTwo" => new() { Tag.ComesAfterDankDepthsTwo },
+                "DankDepthsXL" => new() { Tag.ComesAfterDankDepthsXl },
+                "DarkRoom" => new() { Tag.ComesAfterDarkRoom },
+                "DepthsOne" => new() { Tag.ComesAfterDepthsOne },
+                "DepthsTwo" => new() { Tag.ComesAfterDepthsTwo },
+                "DepthsXL" => new() { Tag.ComesAfterDepthsXl },
+                "DownpourOne" => new() { Tag.ComesAfterDownpourOne },
+                "DownpourTwo" => new() { Tag.ComesAfterDownpourTwo },
+                "DownpourXL" => new() { Tag.ComesAfterDownpourXl },
+                "DrossOne" => new() { Tag.ComesAfterDrossOne },
+                "DrossTwo" => new() { Tag.ComesAfterDrossTwo },
+                "DrossXL" => new() { Tag.ComesAfterDrossXl },
+                "FloodedCavesOne" => new() { Tag.ComesAfterFloodedCavesOne },
+                "FloodedCavesTwo" => new() { Tag.ComesAfterFloodedCavesTwo },
+                "FloodedCavesXL" => new() { Tag.ComesAfterFloodedCavesXl },
+                "GehennaOne" => new() { Tag.ComesAfterGehennaOne },
+                "GehennaTwo" => new() { Tag.ComesAfterGehennaTwo },
+                "GehennaXL" => new() { Tag.ComesAfterGehennaXl },
+                "GreedModeBasement" => new() { Tag.ComesAfterGreedModeBasement },
+                "GreedModeCaves" => new() { Tag.ComesAfterGreedModeCaves },
+                "GreedModeDepths" => new() { Tag.ComesAfterGreedModeDepths },
+                "GreedModeSheol" => new() { Tag.ComesAfterGreedModeSheol },
+                "GreedModeTheShop" => new() { Tag.ComesAfterGreedModeTheShop },
+                "GreedModeUltraGreed" => new() { Tag.ComesAfterGreedModeUltraGreed },
+                "GreedModeWomb" => new() { Tag.ComesAfterGreedModeWomb },
+                "Home" => new() { Tag.ComesAfterHome },
+                "MausoleumOne" => new() { Tag.ComesAfterMausoleumOne },
+                "MausoleumTwo" => new() { Tag.ComesAfterMausoleumTwo },
+                "MausoleumXL" => new() { Tag.ComesAfterMausoleumXl },
+                "MinesOne" => new() { Tag.ComesAfterMinesOne },
+                "MinesTwo" => new() { Tag.ComesAfterMinesTwo },
+                "MinesXL" => new() { Tag.ComesAfterMinesXl },
+                "NecropolisOne" => new() { Tag.ComesAfterNecropolisOne },
+                "NecropolisTwo" => new() { Tag.ComesAfterNecropolisTwo },
+                "NecropolisXL" => new() { Tag.ComesAfterNecropolisXl },
+                "ScarredWombOne" => new() { Tag.ComesAfterScarredWombOne },
+                "ScarredWombTwo" => new() { Tag.ComesAfterScarredWombTwo },
+                "ScarredWombXL" => new() { Tag.ComesAfterScarredWombXl },
+                "Sheol" => new() { Tag.ComesAfterSheol },
+                "TheVoid" => new() { Tag.ComesAfterTheVoid },
+                "UteroOne" => new() { Tag.ComesAfterUteroOne },
+                "UteroTwo" => new() { Tag.ComesAfterUteroTwo },
+                "UteroXL" => new() { Tag.ComesAfterUteroXl },
+                "WombOne" => new() { Tag.ComesAfterWombOne },
+                "WombTwo" => new() { Tag.ComesAfterWombTwo },
+                "WombXL" => new() { Tag.ComesAfterWombXl },
+                _ => new()
+            };
 
-                var foundTag = (Tag)tag;
-                var foundFloors = await _isaacRepository.GetResources(new GetResource()
-                {
-                    RequiredTags = new List<Tag> { foundTag },
-                    ResourceType = ResourceType.Floor
-                });
-
-                return foundFloors;
-            }
-            else
+            return await _isaacRepository.GetResources(new()
             {
-                return new List<IsaacResource>();
-            }
+                RequiredTags = requiredTags,
+                ResourceType = ResourceType.Floor,
+                OrderBy1 = ResourceOrderBy.DisplayOrder
+            });
         }
 
         [HttpGet("{id}/Stats")]
