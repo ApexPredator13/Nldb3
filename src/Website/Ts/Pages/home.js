@@ -5,7 +5,7 @@ import { rankImage, rankName } from "../Components/Home/Rank";
 import { statHeader, statImage, statText } from "../Components/Home/stat";
 import { registerPage, initRouter, PAGE_TYPE_ISAAC_RESOURCE } from "../Framework/router";
 import { Link, RO_ITEMS, RO_ITEMSOURCES, RO_BOSSES, RO_CHARACTERS, RO_FLOORS, RO_TRANS } from "./_link-creator";
-import { overhaulWarning } from "../Components/Home/overhaul-warning";
+// import { overhaulWarning } from "../Components/Home/overhaul-warning";
 
 
 /**
@@ -28,7 +28,7 @@ HomePage.prototype = {
                 p(t('A database dedicated to the best Let\'s Play series on the internet.')),
                 hr(),
 
-                overhaulWarning(),
+                // overhaulWarning(),
 
                 div(
                     id('topics'),
