@@ -31,8 +31,6 @@ function ChangeSeed(caller, containerId, youtubePlayer, subscriberFunction, hist
 
                 // hack: keyboard input events don't get removed for some reason...
                 var container = document.getElementById('menu-container');
-                console.log('menu container: ', container);
-                console.log('event listener: ', window.boundEventListener);
 
                 if (container && window.boundEventListener) {
                     container.removeEventListener('keydown', window.boundEventListener);
