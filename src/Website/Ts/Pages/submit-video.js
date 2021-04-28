@@ -1291,9 +1291,15 @@ SubmitVideoPage.prototype = {
 
     /** displays the 'confirm: we are going down to the next floor?' menu */
     menu_ConfirmNextFloor: function () {
+        const currentFloor = this.history.getCurrentFloor();
+        let isLastCorpseFloor = currentFloor.FloorId === 'CorpseTwo' || currentFloor.FloorId === 'CorpseXL';
+
         this.display(
             H2(t('Please Confirm: Down to the next floor?')),
             P(t('This cant be undone!')),
+            Div(
+                isLastCorpseFloor ? p(t('Important Note: Don\'t select "Down to the next floor" when Isaac jumps down into the Bossfight-Hole. Just select the boss as if he is on the same floor.'), style('color: orange')) : do_nothing
+            ),
             Div(id('confirm'))
         );
         new Boxes(this, 'confirm', this.process_ConfirmNextFloorChoice, this.getStaticResource(CONFIRM_DOWN_TO_NEXT_FLOOR), 1, false, '/img/gameplay_events.png');
