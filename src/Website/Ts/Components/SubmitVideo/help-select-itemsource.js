@@ -20,7 +20,6 @@ export function helpSelectItemsource() {
             h4(
                 t('I\'m not sure what dropped the item...?'),
             ),
-            hr(),
             p(
                 t('Always select the thing that directly dropped or spawned the item. Examples:')
             ),
@@ -104,9 +103,9 @@ export function helpSelectItemsource() {
 
                     li(
                         strong(
-                            t('NL enders an'),
+                            t('NL enters an'),
                             span(
-                                t('Item Room'),
+                                t(' Item Room'),
                                 style('color: gold')
                             ),
                             t(', duplicates the item with '),
@@ -175,6 +174,13 @@ export function helpSelectItemsource() {
                         t(', because it created the item.')
                     )
                 )
+            ),
+            hr(),
+            h4(
+                t('What spawned the second knife piece?')
+            ),
+            p(
+                t('Select \'Regular Room\'')
             ),
             dismissModalSection()
         )
