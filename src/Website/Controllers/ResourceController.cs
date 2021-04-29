@@ -149,6 +149,11 @@ namespace Website.Controllers
                 _ => new()
             };
 
+            if (requiredTags.Count is 0)
+            {
+                return new();
+            }
+
             return await _isaacRepository.GetResources(new()
             {
                 RequiredTags = requiredTags,
