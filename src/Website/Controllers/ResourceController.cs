@@ -146,6 +146,9 @@ namespace Website.Controllers
                 "WombOne" => new() { Tag.ComesAfterWombOne },
                 "WombTwo" => new() { Tag.ComesAfterWombTwo },
                 "WombXL" => new() { Tag.ComesAfterWombXl },
+                "BurningBasementOne" => new() { Tag.ComesAfterBurningBasementOne },
+                "BurningBasementTwo" => new() { Tag.ComesAfterBurningBasementTwo },
+                "BurningBasementXL" => new() { Tag.ComesAfterBurningBasementXl },
                 _ => new()
             };
 
