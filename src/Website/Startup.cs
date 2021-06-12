@@ -173,6 +173,9 @@ namespace Website
             }
 
 
+            var issuer = _env.IsDevelopment() 
+                ? "https://localhost:5005" 
+                : "https://northernlion-db.com";
 
             services.AddOpenIddict()
             .AddCore(options =>
@@ -188,7 +191,7 @@ namespace Website
                         .SetLogoutEndpointUris("/Account/Logout")
                         .SetTokenEndpointUris("/connect/token")
                         .SetUserinfoEndpointUris("/connect/userinfo")
-                        .SetIssuer(new Uri("https://northernlion-db.com"));
+                        .SetIssuer(new Uri(issuer));
 
                 options.RegisterScopes(Scopes.Email, Scopes.Profile, Scopes.Roles);
                 options.AllowAuthorizationCodeFlow()
