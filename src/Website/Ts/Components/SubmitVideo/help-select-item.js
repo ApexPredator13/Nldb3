@@ -54,6 +54,13 @@ export function helpSelectItem() {
         p(
             t('Items on those floors that are dropped by chests or exploded slot machines.')
         ),
+        hr(),
+        h4(
+            t('Do I add items that exploded into consumables while NL was playing as Tainted Cain?')
+        ),
+        p(
+            t('No, those had no impact on the run at all and should be ignored. In those type of runs, only add items that were collected via Bag of Crafting.')
+        ),
         dismissModalSection()
     ))
 }
