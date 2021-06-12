@@ -522,7 +522,7 @@ namespace Website.Data
 
             string commandText = 
                 "SELECT " +
-                    "pc.id, pc.action, pc.run_number, pc.submission, pc.seed, " +
+                    "pc.id, pc.action, pc.run_number, pc.submission, pc.seed, pc.game_mode, " +
                     "c.id, c.name, c.type, c.exists_in, c.x, c.game_mode, c.color, c.display_order, c.difficulty, c.tags, " +
                     "d.id, d.name, d.type, d.exists_in, d.x, d.game_mode, d.color, d.display_order, d.difficulty, d.tags " +
                 "FROM played_characters pc " +
@@ -551,6 +551,7 @@ namespace Website.Data
                         RunNumber = reader.GetInt32(i++),
                         Submission = reader.GetInt32(i++),
                         Seed = reader.IsDBNull(i++) ? null : reader.GetString(i - 1),
+                        GameMode = (GameMode)reader.GetInt32(i++),
                         GameCharacter = new IsaacResource()
                         {
                             Id = reader.GetString(i++),

@@ -497,12 +497,13 @@ namespace Website.Data
                 // cumulativeVideoLength = 0; - don't reset this?
 
                 // save character
-                s.Append($"INSERT INTO played_characters (game_character, submission, action, video, run_number, died_from, seed, latest) VALUES (@CCharacter{characterCounter}, CURRVAL(pg_get_serial_sequence('video_submissions', 'id')), @CAction{characterCounter}, @CVideo{characterCounter}, @CRunNumber{characterCounter}, NULL, @Seed{characterCounter}, TRUE); ");
+                s.Append($"INSERT INTO played_characters (game_character, submission, action, video, run_number, died_from, seed, latest, game_mode) VALUES (@CCharacter{characterCounter}, CURRVAL(pg_get_serial_sequence('video_submissions', 'id')), @CAction{characterCounter}, @CVideo{characterCounter}, @CRunNumber{characterCounter}, NULL, @Seed{characterCounter}, TRUE, @CharacterGameMode{characterCounter}); ");
                 parameters.Add(new NpgsqlParameter($"@CCharacter{characterCounter}", NpgsqlDbType.Text) { NpgsqlValue = character.CharacterId });
                 parameters.Add(new NpgsqlParameter($"@CAction{characterCounter}", NpgsqlDbType.Integer) { NpgsqlValue = gameplayAction++ });
                 parameters.Add(new NpgsqlParameter($"@CVideo{characterCounter}", NpgsqlDbType.Text) { NpgsqlValue = episode.VideoId });
                 parameters.Add(new NpgsqlParameter($"@CRunNumber{characterCounter}", NpgsqlDbType.Integer) { NpgsqlValue = runNumber });
-                parameters.Add(new NpgsqlParameter($"@Seed{characterCounter++}", NpgsqlDbType.Text) { NpgsqlValue = string.IsNullOrEmpty(character.Seed) ? (object)DBNull.Value : character.Seed });
+                parameters.Add(new NpgsqlParameter($"@Seed{characterCounter}", NpgsqlDbType.Text) { NpgsqlValue = string.IsNullOrEmpty(character.Seed) ? (object)DBNull.Value : character.Seed });
+                parameters.Add(new NpgsqlParameter($"@CharacterGameMode{characterCounter++}", NpgsqlDbType.Integer) { NpgsqlValue = (int)character.GameMode });
 
                 for (int i = 0; i < character.PlayedFloors.Count; i++)
                 {

@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
+using Website.Models.Database.Enums;
 
 namespace Website.Models.Database
 {
@@ -28,5 +29,8 @@ namespace Website.Models.Database
 
         [JsonProperty("seed")]
         public string? Seed { get; set; }
+
+        [JsonProperty("game_mode")]
+        public GameMode GameMode { get; set; }
     }
 }
