@@ -1,8 +1,12 @@
-﻿import { Html, Div, div, t, p, strong, style, cl, h2, hr, br, span } from "../../Framework/renderer";
+﻿import { Html, Div, div, t, p, strong, style, cl, h2, hr, br, span, do_nothing, H2 } from "../../Framework/renderer";
 import { isaacImage } from "../General/isaac-image";
+import { isCoop } from "./is-coop";
 
 export function renderPlayedCharacters(video, submissionIndex, containerId) {
     video.then(video => {
+
+        let coop = isCoop(video);
+
         new Html([
             Div(
                 ...video.submissions[submissionIndex].played_characters.map(character => {
@@ -78,7 +82,8 @@ export function renderPlayedCharacters(video, submissionIndex, containerId) {
                         )
                     )
                 })
-            )
+            ),
+            H2(coop ? span(style('color: orange'), t('in co-op play!')) : do_nothing)
         ], containerId);
     });
 }

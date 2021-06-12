@@ -1,11 +1,18 @@
 ﻿import { Html, Div, div, t, style, cl, event, popup, h4, hr, br, strong, do_nothing, p, span } from "../../Framework/renderer";
 import { isaacImage } from "../General/isaac-image";
+import { isCoop } from "./is-coop";
 
 export function renderTimeline(video, submissionIndex, containerId) {
     video.then(video => {
 
+        const coop = isCoop(video);
+
         const submission = video.submissions[submissionIndex];
-        const floors = submission.played_characters.flatMap(x => x.played_floors);
+
+        // floors are identical in co-op play, so we only need to get every second floor
+        const floors = coop
+            ? submission.played_characters.filter(x => x.run_number % 2 === 0).flatMap(x => x.played_floors)
+            : submission.played_characters.flatMap(x => x.played_floors)
 
         const floorUpperElements = [];
         const floorElements = [];
@@ -55,7 +62,7 @@ export function renderTimeline(video, submissionIndex, containerId) {
                     ...bossfightEvents.map(bossfight => isaacImage(bossfight, 1, false)),
 
                     popup({ top: 50, right: 0 },
-                        timelinePopupContent(floor, submission.played_characters[floor.run_number - 1])
+                        timelinePopupContent(floor, submission.played_characters[floor.run_number - 1], coop)
                     ),
                 )
             );
@@ -91,7 +98,7 @@ export function renderTimeline(video, submissionIndex, containerId) {
 }
 
 
-function timelinePopupContent(currentFloor, currentCharacter) {
+function timelinePopupContent(currentFloor, currentCharacter, coop) {
     const bossfights = currentFloor.events.filter(event => event.event_type === 4);
     const numberOfBossfights = bossfights.length;
 
@@ -136,13 +143,13 @@ function timelinePopupContent(currentFloor, currentCharacter) {
         wonTheRun && wonTheRun.length > 0 ? div(
             hr(),
             p(
-                t(`${currentCharacter.character.name} won the run!`)
+                t(coop ? 'The team won!' : `${currentCharacter.character.name} won the run!`)
             )
         ) : do_nothing,
         lostTheRun && lostTheRun.length > 0 ? div(
             hr(),
             p(
-                t('NL was killed by')
+                t(coop ? 'Both players were killed by' : 'NL was killed by')
             ),
             isaacImage(lostTheRun[0], 1),
             p(

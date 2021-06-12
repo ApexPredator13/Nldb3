@@ -100,6 +100,17 @@ HistoryTable.prototype = {
         // then add the next
         const currentCharacter = this.getCurrentCharacter();
         currentCharacter.PlayedFloors.push(floor);
+
+        // if co-op, also add the floor to the other player
+        if (currentCharacter.GameMode === 12) {
+            const coopCharacter = this.getCoopCharacter();
+            coopCharacter.PlayedFloors.push({
+                FloorId: floor.FloorId,
+                Duraction: floor.Duration,
+                GameplayEvents: []
+            });
+        }
+
         this.reloadHistory();
     },
 
@@ -115,6 +126,13 @@ HistoryTable.prototype = {
             const timeSoFar = this.recordedFloorTimeSoFar();
             const timeSpentOnThisFloor = currentPlayerTime - timeSoFar;
             floor.Duration = timeSpentOnThisFloor;
+
+            // if coop, also add the duration to the co-op floor
+            const character = this.getCurrentCharacter();
+            if (character.GameMode === 12) {
+                const coopFloor = this.getCoopFloor();
+                coopFloor.Duration = timeSpentOnThisFloor;
+            }
         }
     },
 
@@ -122,11 +140,23 @@ HistoryTable.prototype = {
      * adds a curse to the current floor
      * @param {SubmittableGameplayEvent} event
      */
-    addCurse: function(event) {
+    addCurse: function (event) {
+
+        const currentCharacter = this.getCurrentCharacter();
         const currentFloor = this.getCurrentFloor();
+
         if (currentFloor) {
             currentFloor.GameplayEvents.unshift(event);
         }
+
+        // if co-op, also add it to the other floor
+        if (currentCharacter.GameMode === 12) {
+            const coopFloor = this.getCoopFloor();
+            if (coopFloor) {
+                coopFloor.GameplayEvents.unshift(event);
+            }
+        }
+
         this.reloadHistory();
     },
 
@@ -134,11 +164,32 @@ HistoryTable.prototype = {
      * adds a gameplay event to the current character on the current floor
      * @param {SubmittableGameplayEvent} event
      */
-    addEvent: function(event) {
-        const currentFloor = this.getCurrentFloor();
-        if (currentFloor) {
-            currentFloor.GameplayEvents.push(event);
+    addEvent: function (event) {
+        // bossfight (4) and enemy who ended (1) the run are for both players.
+        // all other events are saved individually
+        const currentCharacter = this.getCurrentCharacter();
+
+        // coop: record bossfight and run end for both players
+        // otherwise just for the current character
+        const floors = [];
+
+        if (currentCharacter.GameMode != 12) {                                                                  // normal gameplay
+            floors.push(this.getCurrentFloor());
+        } else if (currentCharacter.GameMode === 12 && event.Player === 1) {                                    // coop player 1
+            floors.push(this.getCurrentFloor());
+        } else if (currentCharacter.GameMode === 12 && event.Player === 2) {                                    // coop player 2
+            floors.push(this.getCoopFloor());
+        }  else if (currentCharacter.GameMode === 12 && (event.EventType === 4 || event.EventType === 1)) {     // coop both players
+            floors.push(this.getCurrentFloor(), this.getCoopFloor());
         }
+        
+        for (let i = 0; i < floors.length; ++i) {
+            const currentFloor = floors[i];
+            if (currentFloor) {
+                currentFloor.GameplayEvents.push(event);
+            }
+        }
+
         this.reloadHistory();
     },
 
@@ -165,12 +216,17 @@ HistoryTable.prototype = {
     },
 
     /**
-     * adds a seed to the current character
+     * adds a seed to the current character as well as the co-op character
      * @param {(string|null)} seed
      */
     addSeed: function(seed) {
         const currentCharacter = this.getCurrentCharacter();
         currentCharacter.Seed = seed;
+
+        if (currentCharacter.GameMode === 12) {
+            const coopCharacter = this.getCoopCharacter();
+            coopCharacter.Seed = seed;
+        }
     },
 
 
@@ -232,7 +288,18 @@ HistoryTable.prototype = {
      */
     getCurrentCharacter: function() {
         const currentCharacterIndex = this.dataForThisEpisode.PlayedCharacters.length - 1;
-        return this.dataForThisEpisode.PlayedCharacters[currentCharacterIndex];;
+        const currentCharacter = this.dataForThisEpisode.PlayedCharacters[currentCharacterIndex];
+        return currentCharacter.GameMode !== 12 ? currentCharacter : this.dataForThisEpisode.PlayedCharacters[currentCharacterIndex - 1];
+    },
+
+
+    /**
+     * returns the current co-op character.
+     * @returns {SubmittableCharacter}
+     */
+    getCoopCharacter: function () {
+        const currentCharacterIndex = this.dataForThisEpisode.PlayedCharacters.length - 1;
+        return this.dataForThisEpisode.PlayedCharacters[currentCharacterIndex];
     },
 
 
@@ -248,6 +315,21 @@ HistoryTable.prototype = {
 
         const currentFloorIndex = currentCharacter.PlayedFloors.length - 1;
         return currentCharacter.PlayedFloors[currentFloorIndex];
+    },
+
+
+    /**
+     * returns the current floor the co-op character is on, or null if no floor was added yet.
+     * @returns {(SubmittableFloor|null)}
+     */
+    getCoopFloor: function () {
+        const coopCharacter = this.getCoopCharacter();
+        if (!coopCharacter.PlayedFloors || coopCharacter.PlayedFloors.length === 0) {
+            return null;
+        }
+
+        const currentFloorIndex = coopCharacter.PlayedFloors.length - 1;
+        return coopCharacter.PlayedFloors[currentFloorIndex];
     },
 
 

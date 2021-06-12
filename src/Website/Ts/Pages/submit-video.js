@@ -254,7 +254,8 @@ function SubmitVideoPage(parameters) {
         { id: '9', name: 'Community-Requested Challenge', x: 980, y: 0, w: 35, h: 35 },
         { id: '6', name: 'A Special Seed', x: 945, y: 0, w: 35, h: 35 },
         { id: '7', name: 'Something else / modded content', x: 1015, y: 0, w: 35, h: 35 },
-        { id: '11', name: 'Daily Run', x: 1295, y: 0, w: 35, h: 35 }
+        { id: '11', name: 'Daily Run', x: 1295, y: 0, w: 35, h: 35 },
+        { id: '12', name: '2-Player Co-op', x: 1330, y: 0, w: 35, h: 35 }
     ]);
 
     this.staticResources.set(NO_STARTING_ITEMS, [
@@ -330,7 +331,8 @@ function SubmitVideoPage(parameters) {
     ]);
     this.staticResources.set(OTHER_EVENTS, [
         { id: 'c', name: 'NL used the Clicker', x: 1225, y: 0, w: 35, h: 35 },
-        { id: 'r', name: 'NL died and respawned (Extra Lives)', x: 1260, y: 0, w: 35, h: 35 }
+        { id: 'r', name: 'NL died and respawned (Extra Lives)', x: 1260, y: 0, w: 35, h: 35 },
+        { id: 'd', name: 'Player died in Co-op mode', x: 1365, y: 0, w: 35, h: 35 }
     ]);
     this.staticResources.set(CONFIRM_NO_BOSSFIGHT_ON_THIS_FLOOR, [
         { id: 'confirm', name: 'Yes, there really was no bossfight', x: 1050, y: 0, w: 35, h: 35 },
@@ -599,8 +601,42 @@ SubmitVideoPage.prototype = {
                 PlayedFloors: []
             }
             this.history.addCharacter(chosenCharacter);
-            this.menu_ChooseFirstFloor();
+
+            // if co-op mode is chosen, choose the second character.
+            // otherwise continue with choosing what floor we're on
+            if (mode === 12) {
+                this.menu_WhatCoopPlayerWasChosen();
+            } else {
+                this.menu_ChooseFirstFloor();
+            }
         }
+    },
+
+    /**
+     * displays the "what co-op character was chosen" menu
+     */
+    menu_WhatCoopPlayerWasChosen: function () {
+        this.display(
+            H2(t("What character was chosen by the second player?")),
+            Div(id('cb'), t(this.loading))
+        );
+        new Boxes(this, 'cb', this.process_CoopCharacter, this.getServerResource(`/Api/Resources/?ResourceType=2`), 1, false)
+    },
+
+
+    /**
+     * processes the chosen co-op character
+     * @param {string} secondCharacter
+     */
+    process_CoopCharacter: function (secondCharacter) {
+        const coopCharacter = {
+            CharacterId: secondCharacter,
+            GameMode: 12,
+            Seed: undefined,
+            PlayedFloors: []
+        };
+        this.history.addCharacter(coopCharacter);
+        this.menu_ChooseFirstFloor();
     },
 
 
@@ -620,16 +656,47 @@ SubmitVideoPage.prototype = {
 
     /**
      * processes the 'Other Event' selection and chooses what will be displayed next
-     * @param {'clicker'|'reroll-transform'|'respawn'} otherEvent
+     * @param {'c'|'r'|'d'} otherEvent
      */
     process_OtherGameplayEventWasChosen: function(otherEvent) {
         if (otherEvent === 'c') {
             this.menu_WhatCharacterDidNlChangeInto();
         } else if (otherEvent === 'r') {
             this.menu_WhatKilledNlBeforeRespawning();
+        } else if (otherEvent === 'd') {
+            this.menu_whatKilledTheCoopPlayer();
         } else {
             this.menu_Main();
         }
+    },
+
+
+    /** displays the 'What killed the coop player?' menu */
+    menu_whatKilledTheCoopPlayer: function () {
+        this.display(
+            H2(t('What killed the co-op player?')),
+            Div(id('how-die'), t(this.loading)),
+            Div(
+                this.backToMainMenu()
+            )
+        );
+
+        new Searchbox(this, this.process_WhatKilledTheCoopPlayer, 1, this.getServerResource(`/Api/Resources/?ResourceType=11`), false, 'how-die');
+    },
+
+
+    /**
+     * processes what enemy killed the co-op player, then goes back to the main menu
+     * @param {string} enemyId
+     */
+    process_WhatKilledTheCoopPlayer: function (enemyId) {
+        this.history.addEvent({
+            EventType: 24,
+            Player: this.playerOneOrTwo,
+            RelatedResource1: enemyId
+        });
+
+        this.menu_Main();
     },
 
 
@@ -899,6 +966,10 @@ SubmitVideoPage.prototype = {
 
     /** displays the 'Did we start with any items?' menu */
     menu_WasThereAStartingItem: function () {
+
+        const player = document.getElementById('current-player-container');
+        removeClassIfExists(player, 'display-none');
+
         this.display(
             H2(t('Did we start with any items?')),
             P(t('If not, click this button:')),

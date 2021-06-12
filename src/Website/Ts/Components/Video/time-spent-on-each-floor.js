@@ -1,10 +1,18 @@
 ﻿import { Html, Div, cl, canvas, attr } from "../../Framework/renderer";
 import { Chart } from 'chart.js';
+import { isCoop } from './is-coop';
 
 export function renderTimeSpentOnEachFloor(video, submissionIndex, containerId) {
     video.then(video => {
+
+        const coop = isCoop(video);
+
         const submission = video.submissions[submissionIndex];
-        const allFloors = submission.played_characters.flatMap(c => c.played_floors);
+
+        // floors are identical in co-op play, so we only need to get every second floor
+        const allFloors = coop
+            ? submission.played_characters.filter(c => c.run_number % 2 === 0).flatMap(c => c.played_floors)
+            : submission.played_characters.flatMap(c => c.played_floors);
 
         new Html([
             Div(

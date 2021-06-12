@@ -25,6 +25,7 @@
         Clicker,
         RerollTransform,
         Respawn,
-        TaintedIsaacReplacedItem
+        TaintedIsaacReplacedItem,
+        CoopPayerDeath
     }
 }

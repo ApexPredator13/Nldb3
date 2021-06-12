@@ -13,6 +13,7 @@
         HardAndNormal,
         CommunityChallenge,
         GreedAndGreedier,
-        DailyRun
+        DailyRun,
+        Coop
     }
 }
