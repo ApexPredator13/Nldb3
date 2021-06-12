@@ -1026,5 +1026,9 @@ namespace Website.Data
 
             return await q.ExecuteNonQueryAsync();
         }
+
+        public async Task<int> GetTodaysContributions()
+            => await _npgsql.ScalarInt("SELECT COUNT(*) FROM video_submissions WHERE ts > NOW() - INTERVAL '1 day';") ?? 0;
+        
     }
 }

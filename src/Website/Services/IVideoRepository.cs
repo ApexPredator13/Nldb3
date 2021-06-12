@@ -35,5 +35,6 @@ namespace Website.Services
         Task<List<AdminSubmission>> GetSubmissions(int limit, int offset);
         Task<List<VideoContributor>> GetContributorsForVideo(string videoId);
         Task<int> SetVideoIsCurrentlyBeingAdded(string videoId);
+        Task<int> GetTodaysContributions();
     }
 }

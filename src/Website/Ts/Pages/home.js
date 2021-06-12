@@ -71,11 +71,18 @@ HomePage.prototype = {
         Promise.all([
             get('/frontpage/top-users'),
             get('/frontpage'),
-        ]).then(([topUsers, data]) => {
+            get('/api/videos/today')
+        ]).then(([topUsers, data, today]) => {
+
             const link = new Link();
 
             new Html([
                 Div(
+                    div(
+                        p(
+                            t(`Today, ${today} ${today === 1 ? 'episode has' : 'episodes have'} been added to the database!`)
+                        )
+                    ),
                     div(
                         id('top-contributors-container'),
 

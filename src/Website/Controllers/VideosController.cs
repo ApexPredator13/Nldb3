@@ -18,6 +18,13 @@ namespace Website.Controllers
             _videoRepository = videoRepository;
         }
 
+        [HttpGet("today")]
+        public async Task<int> TodaysContributions()
+        {
+            return await _videoRepository.GetTodaysContributions();
+        }
+
+
         [HttpGet]
         public async Task<NldbVideoResult> GetVideos([FromQuery] IsaacSearchOptions? request = null)
         {
