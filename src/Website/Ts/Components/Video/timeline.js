@@ -14,6 +14,16 @@ export function renderTimeline(video, submissionIndex, containerId) {
             ? submission.played_characters.filter(x => x.run_number % 2 === 0).flatMap(x => x.played_floors)
             : submission.played_characters.flatMap(x => x.played_floors)
 
+        // co-op floors need to be removed from the total video time, otherwise the timeline scale will be screwed up
+        // this sums up all the floor durations if necessary
+        let removedFloorTime = 0;
+        if (coop) {
+            const fl = submission.played_characters.filter(c => c.run_number % 2 === 1).flatMap(x => x.played_floors);
+            for (let i = 0; i < fl.length; ++i) {
+                removedFloorTime += fl[i].duration;
+            }
+        }
+
         const floorUpperElements = [];
         const floorElements = [];
         const floorLowerElements = [];
@@ -35,7 +45,7 @@ export function renderTimeline(video, submissionIndex, containerId) {
             const minutes = Number(durationSplit[1]);
             const seconds = Number(durationSplit[2]);
 
-            const videoLength = hours * 3600 + minutes * 60 + seconds;
+            const videoLength = (hours * 3600 + minutes * 60 + seconds) - removedFloorTime;
             const floorLength = floor.duration - 0.01;
             const percentage = (100 * floorLength) / videoLength - 0.1;
 
