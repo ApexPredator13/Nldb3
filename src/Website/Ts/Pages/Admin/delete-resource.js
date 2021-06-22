@@ -1,4 +1,4 @@
-﻿import { Html, Div, h1, t, hr, form, attr, input, div, formButton } from "../../Framework/renderer";
+﻿import { Html, Div, h1, t, hr, form, attr, input, div, formButton, event } from "../../Framework/renderer";
 import { AdminLink } from "./_admin-link-creator";
 import { registerPage } from "../../Framework/router";
 import { FormHelper } from "../../Framework/forms";

@@ -50,7 +50,7 @@ namespace Website.Data
             }
         }
 
-        public async Task<List<AdminSubmission>> GetSubmissions(int limit, int offset)
+        public async Task<List<AdminSubmission>> GetSubmissions(int limit, int offset, bool onlyNewSubmissions = false)
         {
             var result = new List<AdminSubmission>();
 
@@ -61,11 +61,13 @@ namespace Website.Data
                     "s.s_type, " +
                     "s.latest, " +
                     "i.\"UserName\", " +
-                    "s.video " +
+                    "s.video, " +
+                    "v.published " +
                 "FROM public.video_submissions s " +
                 "LEFT JOIN public.video_submissions_userdata u ON u.submission = s.id " +
                 "LEFT JOIN identity.\"AspNetUsers\" i ON i.\"Id\" = u.user_id " +
                 "LEFT JOIN public.videos v ON v.id = s.video " +
+                (onlyNewSubmissions ? "WHERE s.s_type = 2 " : string.Empty) +
                 "ORDER BY id DESC " +
                 "LIMIT @Limit " +
                 "OFFSET @Offset;";
@@ -89,7 +91,8 @@ namespace Website.Data
                         SubmissionType = r.IsDBNull(i++) ? SubmissionType.Unknown : (SubmissionType)r.GetInt32(i - 1),
                         Latest = r.IsDBNull(i++) ? false : r.GetBoolean(i - 1),
                         UserName = r.IsDBNull(i++) ? "[USERNAME NOT FOUND]" : r.GetString(i - 1),
-                        VideoId = r.GetString(i++)
+                        VideoId = r.GetString(i++),
+                        VideoReleaseDate = r.IsDBNull(i++) ? DateTime.Now : r.GetDateTime(i - 1)
                     });
                 }
             }
@@ -367,6 +370,21 @@ namespace Website.Data
         }
 
 
+        public async Task<string?> GetUserIdForSubmission(int submissionId)
+        {
+            var commandText = 
+                "SELECT \"Id\" " +
+                "FROM \"identity\".\"AspNetUsers\" " +
+                "WHERE \"Id\" = (" +
+                    "SELECT user_id " +
+                    "FROM video_submissions_userdata " +
+                    "WHERE submission = @SubmissionId" +
+                ");";
+
+            return await _npgsql.ScalarString(commandText, _npgsql.Parameter("@SubmissionId", NpgsqlDbType.Integer, submissionId));
+        }
+
+
         public async Task<List<VideoContributor>> GetContributorsForVideo(string videoId)
         {
             var result = new List<VideoContributor>();
@@ -440,8 +458,25 @@ namespace Website.Data
             internal int Player { get; set; } = 0;
         }
 
-        public async Task SubmitEpisode(SubmittedCompleteEpisode episode, string userId, SubmissionType type = SubmissionType.New)
+        /// <summary>
+        /// writes an entire episode that was submitted by a user to the database
+        /// </summary>
+        /// <param name="episode">the episode data that was submitted by the front-end</param>
+        /// <param name="userId">the ID of the user who submitted the episode</param>
+        /// <param name="type">whether it's an "old" submission or a new one. "old" is used for episodes that were migrated from previous versions of this website</param>
+        /// <param name="tempTableNames">if the episode should be written into temporary tables (as a simulation) the table names must be provided here.</param>
+        /// <param name="session">if the episode is written into temporary tables, the connection must be provided to make sure the temp tables still exist</param>
+        /// <returns></returns>
+        public async Task SubmitEpisode(SubmittedCompleteEpisode episode, string userId, SubmissionType type = SubmissionType.New, TempTables? tempTableNames = null, NpgsqlConnection? session = null)
         {
+            // attempt to get table names from temp table data. if its null, use the real table names
+            var tableNames = tempTableNames ?? TempTables.UseRealTableNames();
+            var videoSubmissions = tableNames.TempVideoSubmissionsTable;
+            var playedFloors = tableNames.TempPlayedFloorsTable;
+            var playedCharacters = tableNames.TempPlayedCharactersTable;
+            var gameplayEvents = tableNames.TempGameplayEventsTable;
+            var submissionsUserdata = tableNames.TempVideoSubmissionsUserdataTable;
+
             // check if any mods were used
             var usedMods = await _modRepository.GetUsedModsForSubmittedEpisode(episode);
             var videoReleasedate = await GetVideoReleasedate(episode.VideoId) ?? DateTime.Now;
@@ -468,20 +503,20 @@ namespace Website.Data
 
             // save video submission
             s.Append("START TRANSACTION; ");
-            s.Append("UPDATE video_submissions SET latest = FALSE WHERE video = @LatestVideoId; ");
-            s.Append("UPDATE played_floors SET latest = FALSE WHERE video = @LatestVideoId; ");
-            s.Append("UPDATE played_characters SET latest = FALSE WHERE video = @LatestVideoId; ");
-            s.Append("UPDATE gameplay_events SET latest = FALSE WHERE video = @LatestVideoId; ");
+            s.Append($"UPDATE {videoSubmissions} SET latest = FALSE WHERE video = @LatestVideoId; ");
+            s.Append($"UPDATE {playedFloors} SET latest = FALSE WHERE video = @LatestVideoId; ");
+            s.Append($"UPDATE {playedCharacters} SET latest = FALSE WHERE video = @LatestVideoId; ");
+            s.Append($"UPDATE {gameplayEvents} SET latest = FALSE WHERE video = @LatestVideoId; ");
             
             if (type == SubmissionType.New)
             {
-                s.Append("UPDATE videos SET info_missing = FALSE WHERE id = @LatestVideoId; ");
+                s.Append($"UPDATE videos SET info_missing = FALSE WHERE id = @LatestVideoId; ");
             }
 
             parameters.Add(new NpgsqlParameter("@LatestVideoId", NpgsqlDbType.Text) { Value = episode.VideoId });
 
-            s.Append("INSERT INTO video_submissions (video, s_type, latest) VALUES (@Video, @Type, TRUE); ");
-            s.Append("INSERT INTO video_submissions_userdata (submission, user_id) VALUES (CURRVAL(pg_get_serial_sequence('video_submissions', 'id')), @Sub); ");
+            s.Append($"INSERT INTO {videoSubmissions} (video, s_type, latest) VALUES (@Video, @Type, TRUE); ");
+            s.Append($"INSERT INTO {submissionsUserdata} (submission, user_id) VALUES (CURRVAL(pg_get_serial_sequence('{videoSubmissions}', 'id')), @Sub); ");
             parameters.Add(new NpgsqlParameter("@Video", NpgsqlDbType.Text) { NpgsqlValue = episode.VideoId });
             parameters.Add(new NpgsqlParameter("@Sub", NpgsqlDbType.Text) { NpgsqlValue = userId });
             parameters.Add(new NpgsqlParameter("@Type", NpgsqlDbType.Integer) { NpgsqlValue = (int)type });
@@ -497,7 +532,7 @@ namespace Website.Data
                 // cumulativeVideoLength = 0; - don't reset this?
 
                 // save character
-                s.Append($"INSERT INTO played_characters (game_character, submission, action, video, run_number, died_from, seed, latest, game_mode) VALUES (@CCharacter{characterCounter}, CURRVAL(pg_get_serial_sequence('video_submissions', 'id')), @CAction{characterCounter}, @CVideo{characterCounter}, @CRunNumber{characterCounter}, NULL, @Seed{characterCounter}, TRUE, @CharacterGameMode{characterCounter}); ");
+                s.Append($"INSERT INTO {playedCharacters} (game_character, submission, action, video, run_number, died_from, seed, latest, game_mode) VALUES (@CCharacter{characterCounter}, CURRVAL(pg_get_serial_sequence('{videoSubmissions}', 'id')), @CAction{characterCounter}, @CVideo{characterCounter}, @CRunNumber{characterCounter}, NULL, @Seed{characterCounter}, TRUE, @CharacterGameMode{characterCounter}); ");
                 parameters.Add(new NpgsqlParameter($"@CCharacter{characterCounter}", NpgsqlDbType.Text) { NpgsqlValue = character.CharacterId });
                 parameters.Add(new NpgsqlParameter($"@CAction{characterCounter}", NpgsqlDbType.Integer) { NpgsqlValue = gameplayAction++ });
                 parameters.Add(new NpgsqlParameter($"@CVideo{characterCounter}", NpgsqlDbType.Text) { NpgsqlValue = episode.VideoId });
@@ -526,7 +561,7 @@ namespace Website.Data
                     lastFloor = floor.FloorId;
 
                     // save floor into character
-                    s.Append($"INSERT INTO played_floors (floor, played_character, video, action, run_number, floor_number, died_from, submission, duration, latest) VALUES (@FFloor{floorCounter}, CURRVAL(pg_get_serial_sequence('played_characters', 'id')), @FVideo{floorCounter}, @FAction{floorCounter}, @FRunNum{floorCounter}, @FCurrF{floorCounter}, NULL, CURRVAL(pg_get_serial_sequence('video_submissions', 'id')), @FCurrDur{floorCounter}, TRUE); ");
+                    s.Append($"INSERT INTO {playedFloors} (floor, played_character, video, action, run_number, floor_number, died_from, submission, duration, latest) VALUES (@FFloor{floorCounter}, CURRVAL(pg_get_serial_sequence('{playedCharacters}', 'id')), @FVideo{floorCounter}, @FAction{floorCounter}, @FRunNum{floorCounter}, @FCurrF{floorCounter}, NULL, CURRVAL(pg_get_serial_sequence('{videoSubmissions}', 'id')), @FCurrDur{floorCounter}, TRUE); ");
                     parameters.Add(new NpgsqlParameter($"@FFloor{floorCounter}", NpgsqlDbType.Text) { NpgsqlValue = floor.FloorId });
                     parameters.Add(new NpgsqlParameter($"@FVideo{floorCounter}", NpgsqlDbType.Text) { NpgsqlValue = episode.VideoId });
                     parameters.Add(new NpgsqlParameter($"@FAction{floorCounter}", NpgsqlDbType.Integer) { NpgsqlValue = gameplayAction++ });
@@ -543,8 +578,8 @@ namespace Website.Data
                         }
 
                         // STEP 1 - save gameplay event
-                        s.Append($"INSERT INTO gameplay_events (event_type, resource_one, resource_two, resource_three, played_floor, played_character, video, action, in_consequence_of, run_number, player, floor_number, submission, was_rerolled, latest) " +
-                                 $"VALUES (@Type{eventCounter}, @One{eventCounter}, @Two{eventCounter}, @Three{eventCounter}, CURRVAL(pg_get_serial_sequence('played_floors', 'id')), CURRVAL(pg_get_serial_sequence('played_characters', 'id')), @Video{eventCounter}, @Action{eventCounter}, NULL, @RunNumber{eventCounter}, @Player{eventCounter}, @FNum{eventCounter}, CURRVAL(pg_get_serial_sequence('video_submissions', 'id')), @WasRerolled{eventCounter}, TRUE); ");
+                        s.Append($"INSERT INTO {gameplayEvents} (event_type, resource_one, resource_two, resource_three, played_floor, played_character, video, action, in_consequence_of, run_number, player, floor_number, submission, was_rerolled, latest) " +
+                                 $"VALUES (@Type{eventCounter}, @One{eventCounter}, @Two{eventCounter}, @Three{eventCounter}, CURRVAL(pg_get_serial_sequence('{playedFloors}', 'id')), CURRVAL(pg_get_serial_sequence('{playedCharacters}', 'id')), @Video{eventCounter}, @Action{eventCounter}, NULL, @RunNumber{eventCounter}, @Player{eventCounter}, @FNum{eventCounter}, CURRVAL(pg_get_serial_sequence('{videoSubmissions}', 'id')), @WasRerolled{eventCounter}, TRUE); ");
                         parameters.Add(new NpgsqlParameter($"@Type{eventCounter}", NpgsqlDbType.Integer) { NpgsqlValue = (int)e.EventType });
                         parameters.Add(new NpgsqlParameter($"@One{eventCounter}", NpgsqlDbType.Text) { NpgsqlValue = e.RelatedResource1 });
                         parameters.Add(new NpgsqlParameter($"@Two{eventCounter}", NpgsqlDbType.Text) { NpgsqlValue = e.RelatedResource2 ?? (object)DBNull.Value });
@@ -581,8 +616,8 @@ namespace Website.Data
                                     }
 
                                     transformationProgress.Add(new TransformationProgress() { Resource = e.RelatedResource1, Transformation = transformation, Player = e.Player!.Value });
-                                    s.Append("INSERT INTO gameplay_events (event_type, resource_one, resource_two, resource_three, played_floor, played_character, video, action, in_consequence_of, run_number, player, floor_number, submission, latest) VALUES ");
-                                    s.Append($"(@Type{eventCounter}, @One{eventCounter}, @Two{eventCounter}, @Three{eventCounter}, CURRVAL(pg_get_serial_sequence('played_floors', 'id')), CURRVAL(pg_get_serial_sequence('played_characters', 'id')), @Video{eventCounter}, @Action{eventCounter}, CURRVAL(pg_get_serial_sequence('gameplay_events', 'id')) - {subtractFromSequence++}, @RunNumber{eventCounter}, @Player{eventCounter}, @FNum{eventCounter}, CURRVAL(pg_get_serial_sequence('video_submissions', 'id')), TRUE); ");
+                                    s.Append($"INSERT INTO {gameplayEvents} (event_type, resource_one, resource_two, resource_three, played_floor, played_character, video, action, in_consequence_of, run_number, player, floor_number, submission, latest) VALUES ");
+                                    s.Append($"(@Type{eventCounter}, @One{eventCounter}, @Two{eventCounter}, @Three{eventCounter}, CURRVAL(pg_get_serial_sequence('{playedFloors}', 'id')), CURRVAL(pg_get_serial_sequence('{playedCharacters}', 'id')), @Video{eventCounter}, @Action{eventCounter}, CURRVAL(pg_get_serial_sequence('{gameplayEvents}', 'id')) - {subtractFromSequence++}, @RunNumber{eventCounter}, @Player{eventCounter}, @FNum{eventCounter}, CURRVAL(pg_get_serial_sequence('{videoSubmissions}', 'id')), TRUE); ");
                                     parameters.Add(new NpgsqlParameter($"@Type{eventCounter}", NpgsqlDbType.Integer) { NpgsqlValue = (int)GameplayEventType.TransformationProgress });
                                     parameters.Add(new NpgsqlParameter($"@One{eventCounter}", NpgsqlDbType.Text) { NpgsqlValue = e.RelatedResource1 });
                                     parameters.Add(new NpgsqlParameter($"@Two{eventCounter}", NpgsqlDbType.Text) { NpgsqlValue = transformation });
@@ -596,8 +631,8 @@ namespace Website.Data
                                     // check if transformation happened after this item
                                     if (transformationProgress.Count(x => x.Transformation == transformation && x.Player == e.Player!.Value) == numberOfItemsRequired)
                                     {
-                                        s.Append("INSERT INTO gameplay_events (event_type, resource_one, resource_two, resource_three, played_floor, played_character, video, action, in_consequence_of, run_number, player, floor_number, submission, latest) VALUES ");
-                                        s.Append($"(@Type{eventCounter}, @One{eventCounter}, @Two{eventCounter}, NULL, CURRVAL(pg_get_serial_sequence('played_floors', 'id')), CURRVAL(pg_get_serial_sequence('played_characters', 'id')), @Video{eventCounter}, @Action{eventCounter}, CURRVAL(pg_get_serial_sequence('gameplay_events', 'id')) - {subtractFromSequence++}, @RunNumber{eventCounter}, @Player{eventCounter}, @FNum{eventCounter}, CURRVAL(pg_get_serial_sequence('video_submissions', 'id')), TRUE); ");
+                                        s.Append($"INSERT INTO {gameplayEvents} (event_type, resource_one, resource_two, resource_three, played_floor, played_character, video, action, in_consequence_of, run_number, player, floor_number, submission, latest) VALUES ");
+                                        s.Append($"(@Type{eventCounter}, @One{eventCounter}, @Two{eventCounter}, NULL, CURRVAL(pg_get_serial_sequence('{playedFloors}', 'id')), CURRVAL(pg_get_serial_sequence('{playedCharacters}', 'id')), @Video{eventCounter}, @Action{eventCounter}, CURRVAL(pg_get_serial_sequence('{gameplayEvents}', 'id')) - {subtractFromSequence++}, @RunNumber{eventCounter}, @Player{eventCounter}, @FNum{eventCounter}, CURRVAL(pg_get_serial_sequence('{videoSubmissions}', 'id')), TRUE); ");
                                         parameters.Add(new NpgsqlParameter($"@Type{eventCounter}", NpgsqlDbType.Integer) { NpgsqlValue = (int)GameplayEventType.TransformationComplete });
                                         parameters.Add(new NpgsqlParameter($"@One{eventCounter}", NpgsqlDbType.Text) { NpgsqlValue = e.RelatedResource1 });
                                         parameters.Add(new NpgsqlParameter($"@Two{eventCounter}", NpgsqlDbType.Text) { NpgsqlValue = transformation });
@@ -615,8 +650,8 @@ namespace Website.Data
                     // STEP 3 - down to the next floor
                     if (!isLastFloorOfTheRun)
                     {
-                        s.Append($"INSERT INTO gameplay_events (event_type, resource_one, resource_two, resource_three, played_floor, played_character, video, action, in_consequence_of, run_number, player, floor_number, submission, latest) " +
-                             $"VALUES (@Type{eventCounter}, @One{eventCounter}, NULL, NULL, CURRVAL(pg_get_serial_sequence('played_floors', 'id')), CURRVAL(pg_get_serial_sequence('played_characters', 'id')), @Video{eventCounter}, @Action{eventCounter}, NULL, @RunNumber{eventCounter}, NULL, @FNum{eventCounter}, CURRVAL(pg_get_serial_sequence('video_submissions', 'id')), TRUE); ");
+                        s.Append($"INSERT INTO {gameplayEvents} (event_type, resource_one, resource_two, resource_three, played_floor, played_character, video, action, in_consequence_of, run_number, player, floor_number, submission, latest) " +
+                             $"VALUES (@Type{eventCounter}, @One{eventCounter}, NULL, NULL, CURRVAL(pg_get_serial_sequence('{playedFloors}', 'id')), CURRVAL(pg_get_serial_sequence('{playedCharacters}', 'id')), @Video{eventCounter}, @Action{eventCounter}, NULL, @RunNumber{eventCounter}, NULL, @FNum{eventCounter}, CURRVAL(pg_get_serial_sequence('{videoSubmissions}', 'id')), TRUE); ");
                         parameters.Add(new NpgsqlParameter($"@Type{eventCounter}", NpgsqlDbType.Integer) { NpgsqlValue = (int)GameplayEventType.DownToTheNextFloor });
                         parameters.Add(new NpgsqlParameter($"@One{eventCounter}", NpgsqlDbType.Text) { NpgsqlValue = floor.FloorId });
                         parameters.Add(new NpgsqlParameter($"@Video{eventCounter}", NpgsqlDbType.Text) { NpgsqlValue = episode.VideoId });
@@ -629,18 +664,18 @@ namespace Website.Data
                 // STEP 4 - save death to character and floor, if character died
                 if (!string.IsNullOrEmpty(lastDeath))
                 {
-                    s.Append($"UPDATE played_characters SET died_from = @CDF{characterDeathCounter} WHERE id = CURRVAL(pg_get_serial_sequence('played_characters', 'id')); ");
+                    s.Append($"UPDATE {playedCharacters} SET died_from = @CDF{characterDeathCounter} WHERE id = CURRVAL(pg_get_serial_sequence('{playedCharacters}', 'id')); ");
                     parameters.Add(new NpgsqlParameter($"@CDF{characterDeathCounter++}", NpgsqlDbType.Text) { NpgsqlValue = lastDeath });
 
-                    s.Append($"UPDATE played_floors SET died_from = @FDF{floorDeathCounter} WHERE id = CURRVAL(pg_get_serial_sequence('played_floors', 'id')); ");
+                    s.Append($"UPDATE {playedFloors} SET died_from = @FDF{floorDeathCounter} WHERE id = CURRVAL(pg_get_serial_sequence('{playedFloors}', 'id')); ");
                     parameters.Add(new NpgsqlParameter($"@FDF{floorDeathCounter++}", NpgsqlDbType.Text) { NpgsqlValue = lastDeath });
                 }
 
                 // STEP 5 - won or lost the run
                 if (!string.IsNullOrEmpty(lastDeath))
                 {
-                    s.Append($"INSERT INTO gameplay_events (event_type, resource_one, resource_two, resource_three, played_floor, played_character, video, action, in_consequence_of, run_number, player, floor_number, submission, latest) " +
-                             $"VALUES (@Type{eventCounter}, @One{eventCounter}, @Two{eventCounter}, @Three{eventCounter}, CURRVAL(pg_get_serial_sequence('played_floors', 'id')), CURRVAL(pg_get_serial_sequence('played_characters', 'id')), @Video{eventCounter}, @Action{eventCounter}, NULL, @RunNumber{eventCounter}, NULL, @FNum{eventCounter}, CURRVAL(pg_get_serial_sequence('video_submissions', 'id')), TRUE); ");
+                    s.Append($"INSERT INTO {gameplayEvents} (event_type, resource_one, resource_two, resource_three, played_floor, played_character, video, action, in_consequence_of, run_number, player, floor_number, submission, latest) " +
+                             $"VALUES (@Type{eventCounter}, @One{eventCounter}, @Two{eventCounter}, @Three{eventCounter}, CURRVAL(pg_get_serial_sequence('{playedFloors}', 'id')), CURRVAL(pg_get_serial_sequence('{playedCharacters}', 'id')), @Video{eventCounter}, @Action{eventCounter}, NULL, @RunNumber{eventCounter}, NULL, @FNum{eventCounter}, CURRVAL(pg_get_serial_sequence('{videoSubmissions}', 'id')), TRUE); ");
                     parameters.Add(new NpgsqlParameter($"@Type{eventCounter}", NpgsqlDbType.Integer) { NpgsqlValue = (int)GameplayEventType.LostTheRun });
                     parameters.Add(new NpgsqlParameter($"@One{eventCounter}", NpgsqlDbType.Text) { NpgsqlValue = character.CharacterId });
                     parameters.Add(new NpgsqlParameter($"@Two{eventCounter}", NpgsqlDbType.Text) { NpgsqlValue = lastFloor });
@@ -652,8 +687,8 @@ namespace Website.Data
                 }
                 else
                 {
-                    s.Append($"INSERT INTO gameplay_events (event_type, resource_one, resource_two, resource_three, played_floor, played_character, video, action, in_consequence_of, run_number, player, floor_number, submission, latest) " +
-                             $"VALUES (@Type{eventCounter}, @One{eventCounter}, @Two{eventCounter}, @Three{eventCounter}, CURRVAL(pg_get_serial_sequence('played_floors', 'id')), CURRVAL(pg_get_serial_sequence('played_characters', 'id')), @Video{eventCounter}, @Action{eventCounter}, NULL, @RunNumber{eventCounter}, NULL, @FNum{eventCounter}, CURRVAL(pg_get_serial_sequence('video_submissions', 'id')), TRUE); ");
+                    s.Append($"INSERT INTO {gameplayEvents} (event_type, resource_one, resource_two, resource_three, played_floor, played_character, video, action, in_consequence_of, run_number, player, floor_number, submission, latest) " +
+                             $"VALUES (@Type{eventCounter}, @One{eventCounter}, @Two{eventCounter}, @Three{eventCounter}, CURRVAL(pg_get_serial_sequence('{playedFloors}', 'id')), CURRVAL(pg_get_serial_sequence('{playedCharacters}', 'id')), @Video{eventCounter}, @Action{eventCounter}, NULL, @RunNumber{eventCounter}, NULL, @FNum{eventCounter}, CURRVAL(pg_get_serial_sequence('{videoSubmissions}', 'id')), TRUE); ");
                     parameters.Add(new NpgsqlParameter($"@Type{eventCounter}", NpgsqlDbType.Integer) { NpgsqlValue = (int)GameplayEventType.WonTheRun });
                     parameters.Add(new NpgsqlParameter($"@One{eventCounter}", NpgsqlDbType.Text) { NpgsqlValue = character.CharacterId });
                     parameters.Add(new NpgsqlParameter($"@Two{eventCounter}", NpgsqlDbType.Text) { NpgsqlValue = lastFloor });
@@ -667,10 +702,20 @@ namespace Website.Data
 
             s.Append("COMMIT; ");
 
-            using var c = await _npgsql.Connect();
-            using var q = new NpgsqlCommand(s.ToString(), c);
-            q.Parameters.AddRange(parameters.ToArray());
-            await q.ExecuteNonQueryAsync();
+            // use existing connection if provided, making sure we're not disposing it
+            if (session is null)
+            {
+                using var c = await _npgsql.Connect();
+                using var q = new NpgsqlCommand(s.ToString(), c);
+                q.Parameters.AddRange(parameters.ToArray());
+                await q.ExecuteNonQueryAsync();
+            }
+            else
+            {
+                using var q = new NpgsqlCommand(s.ToString(), session);
+                q.Parameters.AddRange(parameters.ToArray());
+                await q.ExecuteNonQueryAsync();
+            }
         }
 
         public async Task<MaxVideoStats> GetMaxVideoStats()
@@ -773,19 +818,37 @@ namespace Website.Data
             return result;
         }
 
-        public async Task<NldbVideo?> GetCompleteEpisode(string videoId)
+        public async Task<NldbVideo?> GetCompleteEpisode(string videoId, TempTables? tempTableInfo = null, NpgsqlConnection? session = null)
         {
-            var getVideoData = GetVideoById(videoId);
-            var getGameplayEventsTask = _isaacRepository.GetGameplayEventsForVideo(videoId);
-            var getFloorsTask = _isaacRepository.GetFloorsForVideo(videoId);
-            var getPlayedCharactersTask = _isaacRepository.GetPlayedCharactersForVideo(videoId);
-            var getSubmittedEpisodesTask = _isaacRepository.GetSubmittedEpisodesForVideo(videoId);
+            NldbVideo? video;
+            List<SubmittedEpisode> submissions;
+            List<PlayedCharacter> playedCharacters;
+            List<PlayedFloor> playedFloors;
+            List<GameplayEvent> gameplayEvents;
 
-            var video = await getVideoData;
-            var submissions = await getSubmittedEpisodesTask;
-            var playedCharacters = await getPlayedCharactersTask;
-            var playedFloors = await getFloorsTask;
-            var gameplayEvents = await getGameplayEventsTask;
+            // if a session is used, the database request need to be run sequentially
+            if (session is not null)
+            {
+                video = await GetVideoById(videoId);
+                gameplayEvents = await _isaacRepository.GetGameplayEventsForVideo(videoId, null, tempTableInfo, session);
+                playedFloors = await _isaacRepository.GetFloorsForVideo(videoId, null, tempTableInfo, session);
+                playedCharacters = await _isaacRepository.GetPlayedCharactersForVideo(videoId, null, tempTableInfo, session);
+                submissions = await _isaacRepository.GetSubmittedEpisodesForVideo(videoId, null, tempTableInfo, session);
+            }
+            else
+            {
+                var getVideoData = GetVideoById(videoId);
+                var getGameplayEventsTask = _isaacRepository.GetGameplayEventsForVideo(videoId, null, tempTableInfo, session);
+                var getFloorsTask = _isaacRepository.GetFloorsForVideo(videoId, null, tempTableInfo, session);
+                var getPlayedCharactersTask = _isaacRepository.GetPlayedCharactersForVideo(videoId, null, tempTableInfo, session);
+                var getSubmittedEpisodesTask = _isaacRepository.GetSubmittedEpisodesForVideo(videoId, null, tempTableInfo, session);
+
+                video = await getVideoData;
+                submissions = await getSubmittedEpisodesTask;
+                playedCharacters = await getPlayedCharactersTask;
+                playedFloors = await getFloorsTask;
+                gameplayEvents = await getGameplayEventsTask;
+            }
 
             foreach (var playedCharacter in playedCharacters)
             {
@@ -815,7 +878,11 @@ namespace Website.Data
                     ?.Add(gameplayEvent);
             }
 
-            video!.Submissions = submissions;
+            if (video is not null)
+            {
+                video.Submissions = submissions;
+            }
+            
             return video;
         }
 

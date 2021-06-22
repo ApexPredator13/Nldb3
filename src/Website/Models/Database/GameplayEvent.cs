@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Website.Models.Database.Enums;
@@ -53,5 +54,40 @@ namespace Website.Models.Database
 
         [JsonProperty("latest")]
         public bool Latest { get; set; } = false;
+    }
+
+    public class GameplayEventComparer : IEqualityComparer<GameplayEvent>
+    {
+        public bool Equals(GameplayEvent? x, GameplayEvent? y)
+        {
+            if (x is null && y is null)
+            {
+                return true;
+            }
+
+            if (x is null || y is null)
+            {
+                return false;
+            }
+
+            if (x.EventType != y.EventType ||
+                x.Player != y.Player ||
+                x.Resource1.Id != y.Resource1.Id ||
+                ((x.Resource2 != null && y.Resource2 != null) && (x.Resource2.Id != y.Resource2.Id)) || 
+                x.Resource3 != y.Resource3 ||
+                x.RunNumber != y.RunNumber || 
+                x.WasRerolled != y.WasRerolled ||
+                x.FloorNumber != y.FloorNumber)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public int GetHashCode([DisallowNull] GameplayEvent obj)
+        {
+            return $"{obj.EventType}{obj.Resource1.Id}{obj.Resource2?.Id ?? string.Empty}{obj.Resource3?.ToString() ?? string.Empty}".GetHashCode();
+        }
     }
 }

@@ -61,6 +61,20 @@ AdminOverview.prototype = {
                     cl('u', 'hand'),
                     event('click', e => navigate(this.link.sendTestEmail(), e))
                 )
+            ),
+            P(
+                span(
+                    t('Edit Transformations'),
+                    cl('u', 'hand'),
+                    event('click', e => navigate(this.link.transformationsOverview(), e))
+                )
+            ),
+            P(
+                span(
+                    t('Validate Submission Transformation Correctness'),
+                    cl('u', 'hand'),
+                    event('click', e => navigate(this.link.validateSubmissions(), e))
+                )
             )
         ]);
     }

@@ -15,14 +15,14 @@ namespace Website.Services
     {
         Task SaveVideo(Video newVideo);
         Task UpdateVideoWithYoutubeData(params string[] id);
-        Task SubmitEpisode(SubmittedCompleteEpisode episode, string userId, SubmissionType type = SubmissionType.New);
+        Task SubmitEpisode(SubmittedCompleteEpisode episode, string userId, SubmissionType type = SubmissionType.New, TempTables? tempTableNames = null, Npgsql.NpgsqlConnection? session = null);
         Task SubmitLostEpisode(string videoId, string userId);
         Task<int> CountVideos(IsaacSearchOptions? request = null);
         Task<int> CountVideoSubmissions();
         Task<DateTime?> GetVideoReleasedate(string videoId);
         Task<VideoListResponse> GetYoutubeVideoData(params string[] videoIds);
         Task<NldbVideo?> GetVideoById(string videoId);
-        Task<NldbVideo?> GetCompleteEpisode(string videoId);
+        Task<NldbVideo?> GetCompleteEpisode(string videoId, TempTables? tempTableInfo = null, Npgsql.NpgsqlConnection? session = null);
         Task<string?> GetVideoTitle(string videoId);
         Task<int> SetThumbnails(ThumbnailDetails thumbnailDetails, string videoId);
         Task<int> UpdateVideosWithYoutubeData(IList<Video> updatedVideos);
@@ -32,8 +32,9 @@ namespace Website.Services
         Task<DateTime> GetFirstVideoReleaseDate();
         Task<List<string>> GetVideosThatNeedYoutubeUpdate(int amount, bool updateVideosAfterwards = false);
         Task<MaxVideoStats> GetMaxVideoStats();
-        Task<List<AdminSubmission>> GetSubmissions(int limit, int offset);
+        Task<List<AdminSubmission>> GetSubmissions(int limit, int offset, bool onlyNewSubmissions = false);
         Task<List<VideoContributor>> GetContributorsForVideo(string videoId);
+        Task<string?> GetUserIdForSubmission(int submissionId);
         Task<int> SetVideoIsCurrentlyBeingAdded(string videoId);
         Task<int> GetTodaysContributions();
     }

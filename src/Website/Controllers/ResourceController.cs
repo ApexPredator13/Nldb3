@@ -234,6 +234,13 @@ namespace Website.Controllers
 
             return result;
         }
+
+        [HttpGet("transformation-items/{id}")]
+        public async Task<List<TransformativeIsaacResource>> GetTransformationitems(string id)
+        {
+            var items = await _isaacRepository.GetTransformationItems(id);
+            return items;
+        }
     }
 }
 

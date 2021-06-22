@@ -6,6 +6,7 @@ using Website.Models.Database.Enums;
 using Website.Models.SubmitEpisode;
 using Website.Models.Admin;
 using Website.Models.Resource;
+using Npgsql;
 
 namespace Website.Services
 {
@@ -18,6 +19,7 @@ namespace Website.Services
         Task<List<IsaacResource>> GetResources(GetResource request);
         Task<int> DeleteResource(string resourceId);
         Task<int> MakeTransformative(MakeIsaacResourceTransformative model);
+        Task<int> MakeUntransformative(string transformationId, string isaacResourceId);
         Task<string?> GetFirstResourceIdFromName(string name);
         Task<List<(string transformation, bool countsMultipleTimes, int stepsNeeded)>> GetTransformationData(string resourceId, string videoTitle, DateTime videoReleasedate);
         Task<bool> HasTags(string resourceId, params Tag[] RequiredTags);
@@ -29,10 +31,10 @@ namespace Website.Services
         Task<int> UpdateIconCoordinates(string resourceId, int x, int y, int w, int h);
         Task<int> UpdateExistsIn(string id, ExistsIn newExistsIn);
         Task<int> UpdateGameMode(string id, GameMode newGameMode);
-        Task<List<GameplayEvent>> GetGameplayEventsForVideo(string videoId, int? submissionId = null);
-        Task<List<PlayedFloor>> GetFloorsForVideo(string videoId, int? submissionId = null);
-        Task<List<PlayedCharacter>> GetPlayedCharactersForVideo(string videoId, int? submissionId = null);
-        Task<List<SubmittedEpisode>> GetSubmittedEpisodesForVideo(string videoId, int? submissionId = null);
+        Task<List<GameplayEvent>> GetGameplayEventsForVideo(string videoId, int? submissionId = null, TempTables? tableData = null, NpgsqlConnection? session = null);
+        Task<List<PlayedFloor>> GetFloorsForVideo(string videoId, int? submissionId = null, TempTables? tableData = null, NpgsqlConnection? session = null);
+        Task<List<PlayedCharacter>> GetPlayedCharactersForVideo(string videoId, int? submissionId = null, TempTables? tableData = null, NpgsqlConnection? session = null);
+        Task<List<SubmittedEpisode>> GetSubmittedEpisodesForVideo(string videoId, int? submissionId = null, TempTables? tableData = null, NpgsqlConnection? session = null);
         Task<int> AddTag(string id, Tag tag);
         Task<List<DateTime>> GetEncounteredIsaacResourceTimestamps(string isaacResourceId, int resourceNumber, GameplayEventType? eventType = null);
         Task<string?> GetResourceNameFromId(string id);
@@ -52,5 +54,7 @@ namespace Website.Services
         Task<GameplayEvent?> GetGameplayEventById(int id);
         Task<PlayedCharacter?> GetPlayedCharacterById(int playedCharacterId);
         Task<PlayedFloor?> GetPlayedFloorById(int id);
+        Task<List<TransformativeIsaacResource>> GetTransformationItems(string transformationId);
+        Task<(bool allowsMultiple, string? transformationId, string? requiredTitleString)> IsTransformativeForPointInTime(string isaacResourceId, DateTime pointInTime);
     }
 }

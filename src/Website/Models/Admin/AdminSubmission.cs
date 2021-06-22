@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System;
 using Website.Models.Database.Enums;
 
 namespace Website.Models.Admin
@@ -22,6 +23,9 @@ namespace Website.Models.Admin
 
         [JsonProperty("video_id")]
         public string VideoId { get; set; } = string.Empty;
+
+        [JsonProperty("video_release_date")]
+        public DateTime VideoReleaseDate { get; set; } = DateTime.Now;
     }
 }
 

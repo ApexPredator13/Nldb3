@@ -1,4 +1,4 @@
-﻿import { a, div, Div, h1, hr, Html, id, p, t, table, tbody, td, th, thead, tr } from "../../Framework/renderer"
+﻿import { a, cl, div, Div, event, h1, hr, Html, id, p, t, Table, table, tbody, td, th, thead, tr } from "../../Framework/renderer"
 import { navigate, registerPage } from "../../Framework/router";
 import { AdminLink } from "./_admin-link-creator";
 
@@ -21,7 +21,7 @@ TransformationsOverview.prototype = {
                 ),
                 hr(),
                 div(
-                    p('loading transformations...'),
+                    p(t('loading transformations...')),
                     id('transformations')
                 )
             )
@@ -34,9 +34,9 @@ TransformationsOverview.prototype = {
     loadTransformations: function () {
         fetch('/Api/Resources/?ResourceType=12').then(function (r) {
             return r.json()
-        }).then(function (r) {
+        }).then(function (transformations) {
             new Html([
-                table(
+                Table(
                     thead(
                         tr(
                             th(t('transformation name')),
@@ -44,15 +44,19 @@ TransformationsOverview.prototype = {
                         )
                     ),
                     tbody(
-                        tr(
-                            td(t(r.name)),
-                            td(
-                                a(
-                                    t('Edit'),
-                                    event('click', e => navigate(this.link.editTransformation(e.name), e))
+                        ...transformations.map(function(transformation) {
+                            let link = new AdminLink();
+                            return tr(
+                                td(
+                                    t(transformation.name)
+                                ),
+                                td(
+                                    t('edit'),
+                                    event('click', e => navigate(link.editTransformation(transformation.id), e)),
+                                    cl('hand')
                                 )
                             )
-                        )
+                        })
                     )
                 )
             ], 'transformations', true, true)
@@ -60,13 +64,13 @@ TransformationsOverview.prototype = {
     },
 
     navigateToTransformationPage: function (id) {
-        navigate()
+        navigate(this.link.editTransformation());
     }
 }
 
 
 function registerTransformationsOverviewPage() {
-    registerPage(TransformationsOverview, 'Transformations Overview', ['Admin', 'TransformationsOverview'])
+    registerPage(TransformationsOverview, 'Transformations Overview', ['Admin', 'TransformationsOverview']);
 }
 
 export {

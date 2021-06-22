@@ -234,7 +234,23 @@ AdminLink.prototype = {
      * @param {string} id - the transformation ID
      */
     editTransformation: function (id) {
+        return `/Admin/EditTransformation/${id}`;
+    },
 
+    /**
+     * /Admin/DeleteTransformationItem/{id}
+     * @param {string} transformationId - the id of the transformation
+     * @param {string} itemId - the id of the isaac resource that should no longer be part of this transformation
+     */
+    deleteTransformationItem: function(transformationId, itemId) {
+        return `/Admin/DeleteTransformationItem/${transformationId}/${itemId}`;
+    },
+
+    /**
+     * /Admin/ValidateSubmissions
+     */
+    validateSubmissions: function() {
+        return `/Admin/ValidateSubmissions`;
     }
 };
 

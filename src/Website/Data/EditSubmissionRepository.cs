@@ -3,6 +3,7 @@ using NpgsqlTypes;
 using System;
 using System.Threading.Tasks;
 using Website.Models.Admin;
+using Website.Models.Database.Enums;
 using Website.Services;
 
 namespace Website.Data
@@ -189,15 +190,17 @@ namespace Website.Data
                 return 0;
             }
 
-            var incrementResult = await IncrementActionNumberAfterEventWithId(gameplayEvent.Submission, gameplayEvent.Id);
+            var preUpdateChanges = await IncrementTransformationProgressCounterAfterEvent(insertEvent);
+            preUpdateChanges += await IncrementActionNumberAfterEventWithId(gameplayEvent.Submission, gameplayEvent.Id);
 
-            if (incrementResult >= 0)
+            if (preUpdateChanges >= 0)
             {
                 var commandText =
                     "INSERT INTO gameplay_events (" +
                         "event_type, " +
                         "resource_one, " +
                         "resource_two, " +
+                        "resource_three, " +
                         "played_floor, " +
                         "video, " +
                         "action, " +
@@ -213,6 +216,7 @@ namespace Website.Data
                         "@EventType, " +
                         "@ResourceOne, " +
                         "@ResourceTwo, " +
+                        "@ResourceThree, " +
                         "@PlayedFloor, " +
                         "@Video, " +
                         "@Action, " +
@@ -230,6 +234,7 @@ namespace Website.Data
                     _npgsql.Parameter("@EventType", NpgsqlDbType.Integer, (int)insertEvent.NewEvent.EventType),
                     _npgsql.Parameter("@ResourceOne", NpgsqlDbType.Text, insertEvent.NewEvent.RelatedResource1),
                     _npgsql.Parameter("@ResourceTwo", NpgsqlDbType.Text, insertEvent.NewEvent.RelatedResource2 ?? (object)DBNull.Value),
+                    _npgsql.Parameter("@ResourceThree", NpgsqlDbType.Integer, insertEvent.NewEvent.RelatedResource3 ?? (object)DBNull.Value),
                     _npgsql.Parameter("@PlayedFloor", NpgsqlDbType.Integer, insertEvent.PlayedFloorId),
                     _npgsql.Parameter("@Video", NpgsqlDbType.Text, insertEvent.VideoId),
                     _npgsql.Parameter("@Action", NpgsqlDbType.Integer, gameplayEvent.Action + 1),
@@ -247,6 +252,35 @@ namespace Website.Data
             {
                 return 0;
             }
+        }
+
+        public async Task<int> IncrementTransformationProgressCounterAfterEvent(InsertGameplayEvent insertEvent)
+        {
+            if (insertEvent.NewEvent.EventType == GameplayEventType.TransformationProgress)
+            {
+                var commandText =
+                "UPDATE gameplay_events " +
+                "SET resource_three = resource_three + 1 " +
+                "WHERE event_type = @EventType " +
+                "AND resource_two = @TransformationId " +
+                "AND player = @Player " +
+                "AND played_character = @PlayedCharacter;";
+
+
+                if (insertEvent.PlayedCharacterId is not null &&
+                    insertEvent.NewEvent.RelatedResource2 is not null &&
+                    insertEvent.NewEvent.Player is not null)
+                {
+                    return await _npgsql.NonQuery(commandText,
+                        _npgsql.Parameter("@EventType", NpgsqlDbType.Integer, (int)GameplayEventType.TransformationProgress),
+                        _npgsql.Parameter("@TransformationId", NpgsqlDbType.Text, insertEvent.NewEvent.RelatedResource2),
+                        _npgsql.Parameter("@Player", NpgsqlDbType.Integer, insertEvent.NewEvent.Player),
+                        _npgsql.Parameter("@PlayedCharacter", NpgsqlDbType.Integer, insertEvent.PlayedCharacterId.Value));
+                }
+            }
+            
+
+            return 0;
         }
     }
 }

@@ -410,19 +410,26 @@ namespace Website.Data
             return reader.HasRows;
         }
 
-        public async Task<List<SubmittedEpisode>> GetSubmittedEpisodesForVideo(string videoId, int? submissionId = null)
+        public async Task<List<SubmittedEpisode>> GetSubmittedEpisodesForVideo(string videoId, int? submissionId = null, TempTables? tableData = null, NpgsqlConnection? session = null)
         {
             var result = new List<SubmittedEpisode>();
+            var publicPrefix = tableData is null ? "public." : string.Empty;
+
+            tableData ??= TempTables.UseRealTableNames();
+            var videoSubmissions = tableData.TempVideoSubmissionsTable;
+            var videoSubmissionsUserdata = tableData.TempVideoSubmissionsUserdataTable;
+
+            
 
             string commandText = 
-                "SELECT s.id, s.s_type, s.latest, u.\"UserName\" " +
-                "FROM public.video_submissions s " +
-                "LEFT JOIN public.video_submissions_userdata d ON d.submission = s.id " +
-                "LEFT JOIN identity.\"AspNetUsers\" u ON u.\"Id\" = d.user_id " +
-                "WHERE s.video = @VideoId" +
+                $"SELECT s.id, s.s_type, s.latest, u.\"UserName\" " +
+                $"FROM {publicPrefix}{videoSubmissions} s " +
+                $"LEFT JOIN {publicPrefix}{videoSubmissionsUserdata} d ON d.submission = s.id " +
+                $"LEFT JOIN identity.\"AspNetUsers\" u ON u.\"Id\" = d.user_id " +
+                $"WHERE s.video = @VideoId" +
                 $"{(submissionId is null ? " AND s.latest = TRUE" : " AND s.id = @SubmissionId")}; ";
 
-            using var connection = await _npgsql.Connect();
+            var connection = session ?? await _npgsql.Connect();
             using var command = new NpgsqlCommand(commandText, connection);
             command.Parameters.AddWithValue("@VideoId", NpgsqlDbType.Text, videoId);
             if (submissionId != null) command.Parameters.AddWithValue("@SubmissionId", NpgsqlDbType.Integer, submissionId.Value);
@@ -445,6 +452,11 @@ namespace Website.Data
                     };
                     result.Add(e);
                 }
+            }
+
+            if (session is null)
+            {
+                connection.Dispose();
             }
 
             return result;
@@ -516,23 +528,25 @@ namespace Website.Data
             return result;
         }
 
-        public async Task<List<PlayedCharacter>>GetPlayedCharactersForVideo(string videoId, int? submissionId = null)
+        public async Task<List<PlayedCharacter>>GetPlayedCharactersForVideo(string videoId, int? submissionId = null, TempTables? tableData = null, NpgsqlConnection? session = null)
         {
             var result = new List<PlayedCharacter>();
+            tableData ??= TempTables.UseRealTableNames();
+            var playedCharacters = tableData.TempPlayedCharactersTable;
 
             string commandText = 
                 "SELECT " +
                     "pc.id, pc.action, pc.run_number, pc.submission, pc.seed, pc.game_mode, " +
                     "c.id, c.name, c.type, c.exists_in, c.x, c.game_mode, c.color, c.display_order, c.difficulty, c.tags, " +
                     "d.id, d.name, d.type, d.exists_in, d.x, d.game_mode, d.color, d.display_order, d.difficulty, d.tags " +
-                "FROM played_characters pc " +
+                $"FROM {playedCharacters} pc " +
                 "LEFT JOIN isaac_resources c ON c.id = pc.game_character " +
                 "LEFT JOIN isaac_resources d ON d.id = pc.died_from " +
                 $"WHERE pc.video = @VideoId{(submissionId is null ? " AND pc.latest = TRUE" : " AND pc.submission = @SubmissionId")} " +
                 "GROUP BY pc.submission, pc.id, c.id, d.id " +
                 "ORDER BY pc.run_number ASC, pc.action ASC; ";
 
-            using var connection = await _npgsql.Connect();
+            var connection = session ?? await _npgsql.Connect();
             using var command = new NpgsqlCommand(commandText, connection);
             command.Parameters.AddWithValue("@VideoId", NpgsqlDbType.Text, videoId);
             if (submissionId != null) command.Parameters.AddWithValue("@SubmissionId", NpgsqlDbType.Integer, submissionId.Value);
@@ -586,6 +600,11 @@ namespace Website.Data
 
                     result.Add(playedCharacter);
                 }
+            }
+
+            if (session is null)
+            {
+                connection.Dispose();
             }
 
             return result;
@@ -658,23 +677,25 @@ namespace Website.Data
             return result;
         }
 
-        public async Task<List<PlayedFloor>> GetFloorsForVideo(string videoId, int? submissionId = null)
+        public async Task<List<PlayedFloor>> GetFloorsForVideo(string videoId, int? submissionId = null, TempTables? tableData = null, NpgsqlConnection? session = null)
         {
             var result = new List<PlayedFloor>();
+            tableData ??= TempTables.UseRealTableNames();
+            var playedFloors = tableData.TempPlayedFloorsTable;
 
             string commandText =
                 "SELECT " +
                     "pf.id, pf.action, pf.run_number, pf.floor_number, pf.submission, pf.duration, " +
                     "f.id, f.name, f.type, f.exists_in, f.x, f.game_mode, f.color, f.display_order, f.difficulty, f.tags, " +
                     "d.id, d.name, d.type, d.exists_in, d.x, d.game_mode, d.color, d.display_order, d.difficulty, d.tags " +
-                "FROM played_floors pf " +
+                $"FROM {playedFloors} pf " +
                 "LEFT JOIN isaac_resources f ON f.id = pf.floor " +
                 "LEFT JOIN isaac_resources d ON d.id = pf.died_from " +
                 $"WHERE pf.video = @VideoId{(submissionId is null ? " AND pf.latest = TRUE " : " AND pf.submission = @SubmissionId")} " +
                 "GROUP BY pf.id, f.id, d.id " +
                 "ORDER BY pf.run_number ASC, pf.action ASC; ";
 
-            using var connection = await _npgsql.Connect();
+            var connection = session ?? await _npgsql.Connect();
             using var command = new NpgsqlCommand(commandText, connection);
             command.Parameters.AddWithValue("@VideoId", NpgsqlDbType.Text, videoId);
             if (submissionId != null) command.Parameters.AddWithValue("@SubmissionId", NpgsqlDbType.Integer, submissionId.Value);
@@ -728,6 +749,11 @@ namespace Website.Data
 
                     result.Add(floor);
                 }
+            }
+
+            if (session is null)
+            {
+                connection.Dispose();
             }
 
             return result;
@@ -808,23 +834,25 @@ namespace Website.Data
         }
 
 
-        public async Task<List<GameplayEvent>> GetGameplayEventsForVideo(string videoId, int? submissionId = null)
+        public async Task<List<GameplayEvent>> GetGameplayEventsForVideo(string videoId, int? submissionId = null, TempTables? tableData = null, NpgsqlConnection? session = null)
         {
             var result = new List<GameplayEvent>();
+            tableData ??= TempTables.UseRealTableNames();
+            var gameplayEvents = tableData.TempGameplayEventsTable;
 
             var commandText =
                 "SELECT " +
                     "e.id, e.event_type, e.action, e.resource_three, e.run_number, e.player, e.floor_number, e.submission, e.was_rerolled, e.played_character, e.played_floor, " +
                     "r1.id, r1.name, r1.type, r1.exists_in, r1.x, r1.game_mode, r1.color, r1.display_order, r1.difficulty, r1.tags, " +
                     "r2.id, r2.name, r2.type, r2.exists_in, r2.x, r2.game_mode, r2.color, r2.display_order, r2.difficulty, r2.tags " +
-                "FROM gameplay_events e " +
+                $"FROM {gameplayEvents} e " +
                 "LEFT JOIN isaac_resources r1 ON r1.id = e.resource_one " +
                 "LEFT JOIN isaac_resources r2 ON r2.id = e.resource_two " +
                 $"WHERE e.video = @VideoId{(submissionId is null ? " AND e.latest = TRUE " : " AND e.submission = @SubmissionId")} " +
                 "GROUP BY e.submission, e.id, r1.id, r2.id " +
                 "ORDER BY e.run_number ASC, e.action ASC;";
 
-            using var connection = await _npgsql.Connect();
+            var connection = session ?? await _npgsql.Connect();
             using var command = new NpgsqlCommand(commandText, connection);
             command.Parameters.AddWithValue("@VideoId", NpgsqlDbType.Text, videoId);
             if (submissionId != null) command.Parameters.AddWithValue("@SubmissionId", NpgsqlDbType.Integer, submissionId.Value);
@@ -883,6 +911,11 @@ namespace Website.Data
 
                     result.Add(gameplayEvent);
                 }
+            }
+
+            if (session is null)
+            {
+                connection.Dispose();
             }
 
             return result;
@@ -1058,6 +1091,62 @@ namespace Website.Data
         #endregion
 
 
+        public async Task<List<TransformativeIsaacResource>> GetTransformationItems(string transformationId)
+        {
+            var resources = new List<TransformativeIsaacResource>();
+
+            var commandText =
+                "SELECT " +
+                    "i.id, i.name, i.type, i.exists_in, i.x, i.game_mode, i.color, i.display_order, i.difficulty, i.tags, " +
+                    "t.counts_multiple_times, t.requires_title_content, t.valid_from, t.valid_until, t.steps_needed " +
+                "FROM isaac_resources i " +
+                "LEFT JOIN transformative_resources t " +
+                "ON t.isaac_resource = i.id " +
+                "WHERE i.id IN (" +
+                    "SELECT isaac_resource " +
+                    "FROM transformative_resources " +
+                    "WHERE transformation = @TransformationId" +
+                ") " +
+                "ORDER BY name ASC;";
+
+            using var connection = await _npgsql.Connect();
+            using var command = _npgsql.Command(connection, commandText, _npgsql.Parameter("@TransformationId", NpgsqlDbType.Text, transformationId));
+            using var reader = await command.ExecuteReaderAsync();
+
+            if (reader.HasRows)
+            {
+                while(reader.Read())
+                {
+                    int i = 0;
+
+                    if (!resources.Any(r => r.Id == reader.GetString(0)))
+                    {
+                        resources.Add(new TransformativeIsaacResource()
+                        {
+                            Id = reader.GetString(i++),
+                            Name = reader.GetString(i++),
+                            ResourceType = (ResourceType)reader.GetInt32(i++),
+                            ExistsIn = (ExistsIn)reader.GetInt32(i++),
+                            CssCoordinates = (NpgsqlBox)reader[i++],
+                            GameMode = (GameMode)reader.GetInt32(i++),
+                            Color = reader.GetString(i++),
+                            DisplayOrder = reader.IsDBNull(i++) ? null : reader.GetInt32(i - 1),
+                            Difficulty = reader.IsDBNull(i++) ? null : reader.GetInt32(i - 1),
+                            Tags = reader.IsDBNull(i++) ? null : ((int[])reader[i - 1]).Select(x => (Tag)x).ToList(),
+                            CountsMultipleTimes = reader.GetBoolean(i++),
+                            RequiresTitleContent = reader.IsDBNull(i++) ? null : reader.GetString(i - 1),
+                            ValidFrom = reader.IsDBNull(i++) ? null : reader.GetDateTime(i - 1),
+                            ValidUntil = reader.IsDBNull(i++) ? null : reader.GetDateTime(i - 1),
+                            StepsNeeded = reader.GetInt32(i++)
+                        });
+                    }
+                }
+            }
+
+            return resources;
+        }
+
+
         public async Task<List<IsaacResource>> GetResources(GetResource request)
         {
             var resources = new List<IsaacResource>();
@@ -1229,6 +1318,32 @@ namespace Website.Data
         }
 
 
+        public async Task<(bool allowsMultiple, string? transformationId, string? requiredTitleString)> IsTransformativeForPointInTime(string isaacResourceId, DateTime pointInTime)
+        {
+            string commandText =
+                "SELECT transformation, counts_multiple_times, requires_title_content " +
+                "FROM transformative_resources " +
+                "WHERE isaac_resource = @IsaacResource " +
+                "AND valid_from <= @PointInTime " +
+                "AND valid_until >= @PointInTime;";
+
+            using var connection = await _npgsql.Connect();
+            using var command = _npgsql.Command(connection, commandText, 
+                _npgsql.Parameter("@IsaacResource", NpgsqlDbType.Text, isaacResourceId),
+                _npgsql.Parameter("@PointInTime", NpgsqlDbType.TimestampTz, pointInTime));
+
+            using var reader = await command.ExecuteReaderAsync();
+            
+            if (reader.HasRows)
+            {
+                reader.Read();
+                return (reader.GetBoolean(1), reader.GetString(0), reader.IsDBNull(2) ? null : reader.GetString(2));
+            }
+
+            return (false, null, null);
+        }
+
+
         public async Task<int> MakeTransformative(MakeIsaacResourceTransformative model)
         {
             string commandText =
@@ -1246,6 +1361,19 @@ namespace Website.Data
             if (model.ValidUntil.HasValue) command.Parameters.AddWithValue("@VU", NpgsqlDbType.TimestampTz, model.ValidUntil ?? (object)DBNull.Value);
 
             return Convert.ToInt32(await command.ExecuteScalarAsync());
+        }
+
+        public async Task<int> MakeUntransformative(string transformationId, string isaacResourceId)
+        {
+            string commandText =
+                "DELETE FROM transformative_resources " +
+                "WHERE isaac_resource = @IsaacResource " +
+                "AND transformation = @Transformation;";
+
+            return await _npgsql.NonQuery(
+                commandText,
+                _npgsql.Parameter("@IsaacResource", NpgsqlDbType.Text, isaacResourceId),
+                _npgsql.Parameter("@Transformation", NpgsqlDbType.Text, transformationId));
         }
 
 
