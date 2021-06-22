@@ -58,8 +58,17 @@ namespace Website.Controllers
         [HttpPost("~/connect/authorize")]
         public async Task<IActionResult> Authorize()
         {
-            var request = HttpContext.GetOpenIddictServerRequest() 
-                ?? throw new InvalidOperationException("The OpenID Connect request cannot be retrieved.");
+            var request = HttpContext.GetOpenIddictServerRequest();
+
+            if (request is null)
+            {
+                foreach (var cookie in Request.Cookies)
+                {
+                    Response.Cookies.Delete(cookie.Key);
+                }
+
+                return RedirectToAction("Index", "Home");
+            }
 
             // Retrieve the user principal stored in the authentication cookie.
             // If it can't be extracted, redirect the user to the login page.
