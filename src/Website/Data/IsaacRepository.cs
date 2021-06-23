@@ -1099,14 +1099,10 @@ namespace Website.Data
                 "SELECT " +
                     "i.id, i.name, i.type, i.exists_in, i.x, i.game_mode, i.color, i.display_order, i.difficulty, i.tags, " +
                     "t.counts_multiple_times, t.requires_title_content, t.valid_from, t.valid_until, t.steps_needed " +
-                "FROM isaac_resources i " +
-                "LEFT JOIN transformative_resources t " +
+                "FROM transformative_resources t " +
+                "LEFT JOIN isaac_resources i " +
                 "ON t.isaac_resource = i.id " +
-                "WHERE i.id IN (" +
-                    "SELECT isaac_resource " +
-                    "FROM transformative_resources " +
-                    "WHERE transformation = @TransformationId" +
-                ") " +
+                "WHERE t.transformation = @TransformationId " +
                 "ORDER BY name ASC;";
 
             using var connection = await _npgsql.Connect();
