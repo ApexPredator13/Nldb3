@@ -61,7 +61,7 @@ namespace Website.Infrastructure
                 ms.Position = ms.Seek(0, SeekOrigin.Begin);
             }
 
-            var image = imageDecoder.Decode<Rgba32>(Configuration.Default, ms);
+            var image = imageDecoder.Decode<Rgba32>(Configuration.Default, ms, System.Threading.CancellationToken.None);
 
             if (image != null)
             {
