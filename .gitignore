@@ -9,6 +9,9 @@
 # AuthState
 /src/Website/AuthState/*
 
+# compiled isaac image
+/src/Website/wwwroot/img/isaac.png
+
 # pfx
 /src/Website/nldb.pfx
 /src/Website/nldb_enc.pfx
