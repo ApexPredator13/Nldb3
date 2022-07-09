@@ -64,7 +64,10 @@ namespace Website.Controllers
             {
                 foreach (var cookie in Request.Cookies)
                 {
-                    Response.Cookies.Delete(cookie.Key);
+                    if (cookie.Key.ToLower().IndexOf("aspnet") != -1)
+                    {
+                        Response.Cookies.Delete(cookie.Key);
+                    }
                 }
 
                 return RedirectToAction("Index", "Home");
