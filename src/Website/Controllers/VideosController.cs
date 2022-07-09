@@ -62,6 +62,22 @@ namespace Website.Controllers
         {
             return await _videoRepository.GetMaxVideoStats();
         }
+
+        [HttpGet("remaining")]
+        public async Task<int> GetRemainingVideos()
+        {
+            return await _videoRepository.CountRemainingVideos();
+        }
+
+        [HttpGet("{videoId}/previousAndNext")]
+        public async Task<List<string?>> PreviousAndNext(string videoId)
+        {
+            return await _videoRepository.PreviousAndNext(videoId);
+        }
+
+        [HttpGet("count")]
+        public async Task<int> EpisodeCount()
+            => await _videoRepository.CountVideos();
     }
 }
 

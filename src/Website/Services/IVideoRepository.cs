@@ -37,5 +37,8 @@ namespace Website.Services
         Task<string?> GetUserIdForSubmission(int submissionId);
         Task<int> SetVideoIsCurrentlyBeingAdded(string videoId);
         Task<int> GetTodaysContributions();
+        Task<int> CountRemainingVideos();
+        Task<List<AdminSubmission>> FindSubmissions(string search, int limit, int offset);
+        Task<List<string?>> PreviousAndNext(string videoId);
     }
 }
