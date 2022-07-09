@@ -50,6 +50,59 @@ namespace Website.Data
             }
         }
 
+
+        public async Task<List<AdminSubmission>> FindSubmissions(string search, int limit, int offset)
+        {
+            var result = new List<AdminSubmission>();
+
+            var commandText =
+                "SELECT " +
+                    "s.id, " +
+                    "v.title, " +
+                    "s.s_type, " +
+                    "s.latest, " +
+                    "i.\"UserName\", " +
+                    "s.video, " +
+                    "v.published " +
+                "FROM public.video_submissions s " +
+                "LEFT JOIN public.video_submissions_userdata u ON u.submission = s.id " +
+                "LEFT JOIN identity.\"AspNetUsers\" i ON i.\"Id\" = u.user_id " +
+                "LEFT JOIN public.videos v ON v.id = s.video " +
+                "WHERE v.title ILIKE @Search " +
+                "ORDER BY id DESC " +
+                "LIMIT @Limit " +
+                "OFFSET @Offset;";
+            
+            using var c = await _npgsql.Connect();
+            using var q = new NpgsqlCommand(commandText, c);
+            q.Parameters.AddWithValue("@Offset", NpgsqlDbType.Integer, offset);
+            q.Parameters.AddWithValue("@Limit", NpgsqlDbType.Integer, limit);
+            q.Parameters.AddWithValue("@Search", NpgsqlDbType.Text, $"%{search}%");
+            using var r = await q.ExecuteReaderAsync();
+
+            if (r.HasRows)
+            {
+                while (r.Read())
+                {
+                    int i = 0;
+
+                    result.Add(new AdminSubmission()
+                    {
+                        SubmissionId = r.GetInt32(i++),
+                        VideoTitle = r.IsDBNull(i++) ? null : r.GetString(i - 1),
+                        SubmissionType = r.IsDBNull(i++) ? SubmissionType.Unknown : (SubmissionType)r.GetInt32(i - 1),
+                        Latest = r.IsDBNull(i++) ? false : r.GetBoolean(i - 1),
+                        UserName = r.IsDBNull(i++) ? "[USERNAME NOT FOUND]" : r.GetString(i - 1),
+                        VideoId = r.GetString(i++),
+                        VideoReleaseDate = r.IsDBNull(i++) ? DateTime.Now : r.GetDateTime(i - 1)
+                    });
+                }
+            }
+
+            return result;
+        }
+
+
         public async Task<List<AdminSubmission>> GetSubmissions(int limit, int offset, bool onlyNewSubmissions = false)
         {
             var result = new List<AdminSubmission>();
@@ -1096,6 +1149,32 @@ namespace Website.Data
 
         public async Task<int> GetTodaysContributions()
             => await _npgsql.ScalarInt("SELECT COUNT(*) FROM video_submissions WHERE ts > NOW() - INTERVAL '1 day';") ?? 0;
-        
+
+        public async Task<int> CountRemainingVideos()
+            => await _npgsql.ScalarInt("select (select count(*) from videos) - (select count(distinct video) from video_submissions);") ?? 0;
+
+        public async Task<List<string?>> PreviousAndNext(string videoId)
+        {
+            var nextCommand =
+                $"select v.id " +
+                $"from video_submissions vs " +
+                $"left join videos v on v.id = vs.video " +
+                $"where v.published < (select published from videos where id = @VideoId) " +
+                $"order by v.published desc " +
+                $"limit 1;";
+
+            var prevCommand =
+                $"select v.id " +
+                $"from video_submissions vs " +
+                $"left join videos v on v.id = vs.video " +
+                $"where v.published > (select published from videos where id = @VideoId) " +
+                $"order by v.published asc " +
+                $"limit 1;";
+
+            var next = await _npgsql.ScalarString(nextCommand, _npgsql.Parameter("@VideoId", NpgsqlDbType.Text, videoId));
+            var prev = await _npgsql.ScalarString(prevCommand, _npgsql.Parameter("@VideoId", NpgsqlDbType.Text, videoId));
+
+            return new() { prev, next };
+        }
     }
 }

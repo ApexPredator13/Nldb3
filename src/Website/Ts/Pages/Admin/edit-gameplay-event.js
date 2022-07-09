@@ -40,11 +40,13 @@ EditGameplayEventPage.prototype = {
                         t('Edit Event')
                     ),
                     hr(),
+
+                    // event type
                     h2(
                         t('Change Type')
                     ),
                     p(
-                        t('Current Type: ' + gameplayEventTypeToString(ev.event_type))
+                        t('Current: ' + gameplayEventTypeToString(ev.event_type))
                     ),
                     form(
                         attr({ method: 'post' }),
@@ -76,6 +78,42 @@ EditGameplayEventPage.prototype = {
                     ),
                     hr(),
 
+
+                    // resource two
+                    h2(
+                        t('Resource Two')
+                    ),
+                    p(
+                        t('Current: ' + ev.r2.id)
+                    ),
+
+                    form(
+                        attr({ method: 'post' }),
+                        event('submit', e => this.formHelper.handleSubmit(e, `/Admin/update_gameplay_event_resource_two`, true, this.link.editSubmission(this.videoId, this.submissionId), true, true, true)),
+
+                        input(
+                            attr({
+                                type: 'hidden',
+                                name: 'EventId',
+                                value: ev.id
+                            }),
+                        ),
+                        div(
+                            input(
+                                attr({
+                                    type: 'text',
+                                    name: 'NewResourceTwo'
+                                }),
+                                event('change', e => this.formHelper.validateForm(e))
+                            ),
+                        ),
+                        div(
+                            formButton(
+                                t('Change Resource Two')
+                            )
+                        )
+                    ),
+                    hr(),
                     div(
                         t('todo: update all other stuff!')
                     ),

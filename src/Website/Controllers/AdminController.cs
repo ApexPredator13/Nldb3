@@ -308,6 +308,12 @@ namespace Website.Controllers
             return await _videoRepository.GetSubmissions(limit, offset, onlyLatest ?? false);
         }
 
+        [HttpGet("FindSubmissions/{search}/{limit:int}/{offset:int}")]
+        public async Task<List<AdminSubmission>> FindSubmissions([FromRoute] string search, [FromRoute] int limit, [FromRoute] int offset, [FromRoute] bool? onlyLatest)
+        {
+            return await _videoRepository.FindSubmissions(search, limit, offset);
+        }
+
         [HttpGet("Submissions/{videoId}/{submissionId:int}/Events")]
         public async Task<List<GameplayEvent>> GetGameplayEventsForSubmission([FromRoute] string videoId, [FromRoute] int submissionId)
         {
@@ -413,6 +419,21 @@ namespace Website.Controllers
             else
             {
                 return BadRequest("Player was not updated successfully");
+            }
+        }
+
+        [HttpPost("update_gameplay_event_resource_two")]
+        public async Task<ActionResult> UpdateGameplayEventResourceTwo([FromForm] UpdateGameplayEventResourceTwo updateResourceTwo)
+        {
+            var dbChanges = await _editSubmissionRepository.UpdateGameplayEventResourceTwo(updateResourceTwo);
+
+            if (dbChanges > 0)
+            {
+                return Ok();
+            }
+            else
+            {
+                return BadRequest("Resource Two could not be updated");
             }
         }
 

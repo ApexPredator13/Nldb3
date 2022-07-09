@@ -13,6 +13,7 @@ namespace Website.Services
         Task<int> IncrementActionNumberAfterEventWithId(int submissionId, int eventId, int incrementByAmount = 1);
         Task<int> UpdateGameplayEventPlayer(UpdateGameplayEventPlayer updateGameplayEventPlayer);
         Task<int> UpdateGameplayEventWasRerolled(UpdateGameplayEventWasRerolled updateGameplayEventWasRerolled);
+        Task<int> UpdateGameplayEventResourceTwo(UpdateGameplayEventResourceTwo updateGameplayEventResourceTwo);
         Task<int> InsertGameplayEventAfterEvent(InsertGameplayEvent insertEvent);
         Task<int> DeleteGameplayEvent(DeleteGameplayEvent deleteGameplayEvent);
         Task<int> DeleteSubmission(int? submissionId);

@@ -144,6 +144,30 @@ namespace Website.Data
                 _npgsql.Parameter("@Id", NpgsqlDbType.Integer, updateGameplayEventWasRerolled.EventId));
         }
 
+        public async Task<int> UpdateGameplayEventResourceTwo(UpdateGameplayEventResourceTwo updateGameplayEventResourceTwo)
+        {
+            if (updateGameplayEventResourceTwo.EventId is null)
+            {
+                return 0;
+            }
+
+            if (updateGameplayEventResourceTwo.NewResourceTwo is null)
+            {
+                return await _npgsql.NonQuery(
+                    "UPDATE gameplay_events SET resource_two = @ResourceTwo WHERE id = @Id;",
+                    _npgsql.Parameter("@ResourceTwo", NpgsqlDbType.Text, DBNull.Value),
+                    _npgsql.Parameter("@Id", NpgsqlDbType.Integer, updateGameplayEventResourceTwo.EventId));
+            }
+            else
+            {
+                return await _npgsql.NonQuery(
+                    "UPDATE gameplay_events SET resource_two = @ResourceTwo WHERE id = @Id;",
+                    _npgsql.Parameter("@ResourceTwo", NpgsqlDbType.Text, updateGameplayEventResourceTwo.NewResourceTwo),
+                    _npgsql.Parameter("@Id", NpgsqlDbType.Integer, updateGameplayEventResourceTwo.EventId));
+            }
+            
+        }
+
         public async Task<int> DeleteGameplayEvent(DeleteGameplayEvent deleteGameplayEvent)
         {
             if (deleteGameplayEvent.GameplayEventId is null)

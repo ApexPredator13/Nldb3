@@ -1,8 +1,9 @@
-﻿import { Html, Div, h1, hr, div, id, button, event, P, cl, Table, thead, tbody, tr, td, th, t } from "../../Framework/renderer";
+﻿import { Html, Div, h1, hr, div, id, button, event, P, cl, Table, thead, tbody, tr, td, th, t, attr, input, p } from "../../Framework/renderer";
 import { get } from "../../Framework/http";
 import { registerPage, navigate } from "../../Framework/router";
 import { convertSubmissionTypeToString } from "../../Enums/enum-to-string-converters";
 import { AdminLink } from "./_admin-link-creator";
+import { FormHelper } from "../../Framework/forms";
 
 
 /**
@@ -13,6 +14,7 @@ function SubmissionsOverviewPage() {
     this.limit = 50;
     this.offset = 0;
     this.link = new AdminLink();
+    this.formHelper = new FormHelper();
 }
 
 
@@ -26,6 +28,17 @@ SubmissionsOverviewPage.prototype = {
                     t('Submissions')
                 ),
                 hr(),
+                div(
+                    p(
+                        t('search: '),
+                        input(
+                            attr({
+                                type: 'text',
+                            }),
+                            event('input', e => this.search(e))
+                        )
+                    ),
+                ),
                 div(
                     id('submissions')
                 ),
@@ -43,6 +56,15 @@ SubmissionsOverviewPage.prototype = {
         ]);
 
         this.loadSubmissions();
+    },
+
+    /**
+     * 
+     * @param {InputEvent} e
+     */
+    search: function (e) {
+        let search = e.target.value;
+        get(`/Admin/FindSubmissions/${search}/${this.limit.toString(10)}/${this.offset.toString(10)}`, true).then(submissions => this.renderSubmissions(submissions));
     },
 
 
@@ -74,60 +96,62 @@ SubmissionsOverviewPage.prototype = {
 
     /** loads submissions, displays them */
     loadSubmissions: function () {
-        get(`/Admin/Submissions/${this.limit.toString(10)}/${this.offset.toString(10)}`, true).then(submissions => {
-            if (!submissions || submissions.length === 0) {
-                new Html([
-                    P(
-                        t('No submissions found.')
-                    )
-                ], 'submissions');
-            } else {
-                new Html([
-                    Table(
-                        thead(
-                            tr(
-                                th(
-                                    t('Id')
-                                ),
-                                th(
-                                    t('Title')
-                                ),
-                                th(
-                                    t('Username')
-                                ),
-                                th(
-                                    t('Latest')
-                                ),
-                                th(
-                                    t('Type')
-                                )
+        get(`/Admin/Submissions/${this.limit.toString(10)}/${this.offset.toString(10)}`, true).then(submissions => this.renderSubmissions(submissions));
+    },
+
+    renderSubmissions: function (submissions) {
+        if (!submissions || submissions.length === 0) {
+            new Html([
+                P(
+                    t('No submissions found.')
+                )
+            ], 'submissions');
+        } else {
+            new Html([
+                Table(
+                    thead(
+                        tr(
+                            th(
+                                t('Id')
+                            ),
+                            th(
+                                t('Title')
+                            ),
+                            th(
+                                t('Username')
+                            ),
+                            th(
+                                t('Latest')
+                            ),
+                            th(
+                                t('Type')
                             )
-                        ),
-                        tbody(
-                            ...submissions.map(submission => tr(
-                                td(
-                                    cl('u', 'hand'),
-                                    t(submission.submission_id.toString(10)),
-                                    event('click', e => navigate(this.link.editSubmission(submission.video_id, submission.submission_id)))
-                                ),
-                                td(
-                                    t(submission.video_title)
-                                ),
-                                td(
-                                    t(submission.user_name)
-                                ),
-                                td(
-                                    t(submission.latest ? 'latest submission' : '')
-                                ),
-                                td(
-                                    t(convertSubmissionTypeToString(submission.submission_type))
-                                )
-                            ))
                         )
+                    ),
+                    tbody(
+                        ...submissions.map(submission => tr(
+                            td(
+                                cl('u', 'hand'),
+                                t(submission.submission_id.toString(10)),
+                                event('click', e => navigate(this.link.editSubmission(submission.video_id, submission.submission_id)))
+                            ),
+                            td(
+                                t(submission.video_title)
+                            ),
+                            td(
+                                t(submission.user_name)
+                            ),
+                            td(
+                                t(submission.latest ? 'latest submission' : '')
+                            ),
+                            td(
+                                t(convertSubmissionTypeToString(submission.submission_type))
+                            )
+                        ))
                     )
-                ], 'submissions');
-            }
-        });
+                )
+            ], 'submissions');
+        }
     }
 }
 
