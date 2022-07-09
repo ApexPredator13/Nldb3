@@ -1,6 +1,7 @@
 ﻿import { Html, Div, id } from "../Framework/renderer";
 import { Videos } from "../Components/General/Videos";
 import { registerPage, initRouter } from "../Framework/router";
+import { get } from "../Framework/http";
 
 /** 
  *  the episode overview page
@@ -12,11 +13,14 @@ EpisodesPage.prototype = {
 
     /** renders the page and displays all videos */
     renderPage: function () {
-        new Html([
-            Div(id('videos-x'))
-        ]);
 
-        new Videos('videos-x', 'A list of all Isaac episodes');
+        get('/Api/Videos/count', false, false).then(x => {
+            new Html([
+                Div(id('videos-x'))
+            ]);
+
+            new Videos('videos-x', 'A list of all ' + x + ' Isaac episodes');
+        });
     }
 }
 
