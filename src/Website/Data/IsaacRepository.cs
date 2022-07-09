@@ -1492,6 +1492,55 @@ namespace Website.Data
             => await _npgsql.NonQuery("UPDATE isaac_resources SET mod = @ModId WHERE id = @ResourceId;",
                 _npgsql.Parameter("@ModId", NpgsqlDbType.Integer, changeMod.ModId ?? (object)DBNull.Value),
                 _npgsql.Parameter("@ResourceId", NpgsqlDbType.Text, changeMod.ResourceId));
+
+        public async Task<List<IsaacResource>> MostCommonItemsForItemSource(string itemsSourceName, int amount)
+        {
+            using var connection = await _npgsql.Connect();
+
+            var commandText =
+                "SELECT COUNT(c.resource_two) AS item_count, r.id, r.name, r.type, r.exists_in, r.x, r.game_mode, r.color, r.display_order, r.difficulty, r.tags " +
+                "FROM gameplay_events e " +
+                "LEFT JOIN gameplay_events c ON c.played_floor = e.played_floor " +
+                "LEFT JOIN isaac_resources r ON r.id = c.resource_one " +
+                $"WHERE e.resource_two = @ItemSource " +
+                $"AND e.event_type = {(int)GameplayEventType.ItemCollected} " +
+                "GROUP BY r.id " +
+                "ORDER BY item_count DESC, r.name ASC " +
+                "LIMIT @Amount;";
+
+            var command = new NpgsqlCommand(commandText, connection);
+            command.Parameters.AddWithValue("@ItemSource", NpgsqlDbType.Text, itemsSourceName);
+            command.Parameters.AddWithValue("@Amount", NpgsqlDbType.Integer, amount);
+
+            using var reader = await command.ExecuteReaderAsync();
+
+            var result = new List<IsaacResource>();
+
+            if (reader.HasRows)
+            {
+                while (reader.Read())
+                {
+                    var resource = new IsaacResource()
+                    {
+                        Id = reader.GetString(1),
+                        Name = reader.GetString(2),
+                        ResourceType = (ResourceType)reader.GetInt32(3),
+                        ExistsIn = (ExistsIn)reader.GetInt32(4),
+                        CssCoordinates = (NpgsqlBox)reader.GetValue(5),
+                        GameMode = (GameMode)reader.GetInt32(6),
+                        Color = reader.GetString(7),
+                        Mod = null,
+                        DisplayOrder = reader.IsDBNull(8) ? null : (int?)reader.GetInt32(8),
+                        Difficulty = reader.IsDBNull(9) ? null : (int?)reader.GetInt32(9),
+                        Tags = reader.IsDBNull(10) ? null : ((int[])reader[10]).Select(x => (Tag)x).ToList()
+                    };
+
+                    result.Add(resource);
+                }
+            }
+
+            return result;
+        }
     }
 }
 

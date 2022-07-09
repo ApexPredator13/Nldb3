@@ -56,5 +56,6 @@ namespace Website.Services
         Task<PlayedFloor?> GetPlayedFloorById(int id);
         Task<List<TransformativeIsaacResource>> GetTransformationItems(string transformationId);
         Task<(bool allowsMultiple, string? transformationId, string? requiredTitleString)> IsTransformativeForPointInTime(string isaacResourceId, DateTime pointInTime);
+        Task<List<IsaacResource>> MostCommonItemsForItemSource(string itemsSourceName, int amount);
     }
 }

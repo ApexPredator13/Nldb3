@@ -48,6 +48,11 @@ namespace Website.Controllers
             return history;
         }
 
+        [HttpGet("most-common-items/{itemSourceId}/{amount}")]
+        public async Task<List<IsaacResource>> GetMostCommonItemsForItemSource([FromRoute] string itemSourceId, [FromRoute] int amount)
+            => await _isaacRepository.MostCommonItemsForItemSource(itemSourceId, amount);
+        
+
         [HttpGet("common-bosses-for-floor/{floorId}")]
         public async Task<List<IsaacResource>> GetRequiredTagForCommonBosses([FromRoute] string floorId)
         {
