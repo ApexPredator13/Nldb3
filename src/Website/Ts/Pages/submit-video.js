@@ -55,6 +55,8 @@ const beforeUnloadEvent = e => {
     e.returnValue = '';
 }
 
+let mouseUpEvent = null;
+let mouseDownEvent = null;
 let interval = 0;
 
 
@@ -225,6 +227,30 @@ function SubmitVideoPage(parameters) {
     /** @type {ChangeSeed} */
     this.seedHandler = new ChangeSeed(this, this.playerAndSeedContainerId, this.youtubePlayer, this.seedHasChanged, this.history);
 
+    mouseUpEvent = function (e) {
+        if (this.playerControls.autopause) {
+            if (e.button == 3) {
+                e.preventDefault();
+                this.playerControls.youtubePlayer.seek(-5);
+            } else if (e.button == 4) {
+                e.preventDefault();
+                this.playerControls.youtubePlayer.seek(5);
+            }
+        }
+    }.bind(this);
+
+    mouseDownEvent = function (e) {
+        if (this.playerControls.autopause) {
+            if (e.button == 1) {
+                e.preventDefault();
+                this.playerControls.playPauseClicked();
+                return false;
+            }
+        }
+    }.bind(this);
+
+    window.addEventListener('mouseup', mouseUpEvent);
+    window.addEventListener('mousedown', mouseDownEvent);
 
     // hard-coded resources for menus. the '&#818;' character underscores the character that comes before it
     this.staticResources.set(MAJOR_GAMEPLAY_EVENTS, [
@@ -557,6 +583,28 @@ SubmitVideoPage.prototype = {
 
     /** displays the 'What Character was Chosen?' menu */
     menu_WhatCharacterWasChosen: function () {
+
+        /**
+         *  start preloading 'most common items' for 'most common item sources'
+         *  @type Promise<IsaacResource[]> 
+         */
+        var promises = [];
+
+        this.getServerResource(`/Api/Resources/?ResourceType=7`).then(function (itemSources) {
+            for (var i = 0; i < itemSources.length; ++i) {
+                var source = itemSources[i];
+                if (source.display_order) {
+                    promises.push(this.getServerResource("/Api/Resources/most-common-items/" + source.id + "/28"));
+                }
+            }
+        }.bind(this));
+
+        Promise.all(promises).then(function () {
+        }).catch(function (e) {
+            console.error(e);
+        });
+
+        // show the menu
         this.display(
             H2(t('What character was chosen?')),
             Div(id('cb'), t(this.loading))
@@ -795,10 +843,7 @@ SubmitVideoPage.prototype = {
         this.display(
             H2(t('What floor did we start on?')),
             Div(id('first')),
-            Div(id('all')),
-            Div(
-                this.backToMainMenu()
-            )
+            Div(id('all'))
         );
         new Boxes(this, 'first', this.process_FloorWasChosen, firstFloors, 1, false);
         new Searchbox(this, this.process_FloorWasChosen, 2, allFloors, false, 'all');
@@ -1517,7 +1562,7 @@ SubmitVideoPage.prototype = {
         );
 
         const resources = this.getServerResource(`/Api/Resources/?ResourceType=7`);
-        new Boxes(this, 'common', this.process_CollectedTouchedItemSource, resources, 1, false, undefined, 15);
+        new Boxes(this, 'common', this.process_CollectedTouchedItemSource, resources, 1, false, undefined, 28);
         new Searchbox(this, this.process_CollectedTouchedItemSource, 2, resources, false, 'all');
     },
 
@@ -1613,7 +1658,7 @@ SubmitVideoPage.prototype = {
         );
 
         const resources = this.getServerResource(`/Api/Resources/?ResourceType=7`);
-        new Boxes(this, 'common', this.process_CollectedItemSource, resources, 1, false, undefined, 15);
+        new Boxes(this, 'common', this.process_CollectedItemSource, resources, 1, false, undefined, 28);
         new Searchbox(this, this.process_CollectedItemSource, 2, resources, false, 'all');
     },
 
@@ -1634,6 +1679,9 @@ SubmitVideoPage.prototype = {
             Div(
                 h2(t('What item was collected?')),
                 this.wasItemRerolled(),
+                p(t('common items')),
+                div(id('common-items'), t(this.loading)),
+                p(t('all items')),
                 div(id('items'), t(this.loading)),
                 p(
                     cl('gray'),
@@ -1650,7 +1698,10 @@ SubmitVideoPage.prototype = {
             )
         );
 
-        new Searchbox(this, this.process_CollectedItemSelected, 1, this.getServerResource(`/Api/Resources/?ResourceType=6`), false, 'items')
+        const commonItems = this.getServerResource("/Api/Resources/most-common-items/" + this.tempValue + "/28");
+
+        new Boxes(this, 'common-items', this.process_CollectedItemSelected, commonItems, 1, false, undefined, 28);
+        new Searchbox(this, this.process_CollectedItemSelected, 2, this.getServerResource(`/Api/Resources/?ResourceType=6`), false, 'items');
     },
 
 
@@ -2234,6 +2285,7 @@ SubmitVideoPage.prototype = {
         // user is allowed to leave the page unpromptet now:
         window.removeEventListener('beforeunload', beforeUnloadEvent);
         useRegularPopstateHandler();
+        window.cannotLeave = false;
 
         this.display(
             H2(t('Submission Succeeded!')),
@@ -2504,25 +2556,40 @@ SubmitVideoPage.prototype = {
 function registerSubmitVideoPage() {
     const cleanup = () => {
 
-        // reset layout
-        const nav = document.getElementById('nav');
-        if (nav) {
-            addClassIfNotExists(nav, 'w20');
-            removeClassIfExists(nav, 'display-none');
-        }
+        try {
+            // reset layout
+            const nav = document.getElementById('nav');
+            if (nav) {
+                addClassIfNotExists(nav, 'w20');
+                removeClassIfExists(nav, 'display-none');
+            }
 
-        const main = document.getElementById('main');
-        if (main) {
-            removeClassIfExists(main, 'w100');
-            addClassIfNotExists(main, 'w80');
-        }
+            const main = document.getElementById('main');
+            if (main) {
+                removeClassIfExists(main, 'w100');
+                addClassIfNotExists(main, 'w80');
+            }
 
-        // remove beforeUnload event
-        window.removeEventListener('beforeunload', beforeUnloadEvent);
+            // remove beforeUnload event
+            window.removeEventListener('beforeunload', beforeUnloadEvent);
 
-        // clear 'video is currently being added' interval
-        if (interval) {
-            clearInterval(interval)
+            // remove mouse controls
+            if (mouseUpEvent) {
+                window.removeEventListener('mouseup', mouseUpEvent);
+                mouseUpEvent = null;
+            }
+
+            if (mouseDownEvent) {
+                window.removeEventListener('mousedown', mouseDownEvent);
+                mouseDownEvent = null;
+            }
+
+            // clear 'video is currently being added' interval
+            if (interval) {
+                clearInterval(interval)
+            }
+        } catch (e) {
+            console.error(e);
         }
     }
 
