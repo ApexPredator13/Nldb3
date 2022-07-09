@@ -58,7 +58,7 @@ function Searchbox(caller, sub, searchboxId, resources, displayType, containerId
                 searchboxes[i].value = '';
             }
         }
-    }, 80);
+    }, 10);
 }
 
 
