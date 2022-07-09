@@ -1,5 +1,5 @@
-﻿import { Html, Div, id, div, H1, Hr, h2, hr, p, style, t, P, cl, span } from "../Framework/renderer";
-import { initRouter, registerPage, setTitle, setOnLoadPageType, PAGE_TYPE_EPISODE } from "../Framework/router";
+﻿import { Html, Div, id, div, H1, Hr, h2, hr, p, style, t, P, cl, span, a, href, do_nothing, event, attr } from "../Framework/renderer";
+import { initRouter, registerPage, setTitle, setOnLoadPageType, PAGE_TYPE_EPISODE, navigate } from "../Framework/router";
 import { get } from "../Framework/http";
 import { renderEventsTable } from "../Components/Video/events-table";
 import { renderVideoStats } from "../Components/Video/video-stats";
@@ -10,6 +10,7 @@ import { renderTransformationProgressChart } from "../Components/Video/transform
 import { renderPlayedCharacters } from "../Components/Video/played-characters";
 import { renderTimeSpentOnEachFloor } from "../Components/Video/time-spent-on-each-floor";
 import { renderItempickupChart } from "../Components/Video/item-pickup-chart";
+import { Link, RO_ITEMS, RO_ITEMSOURCES, RO_BOSSES, RO_CHARACTERS, RO_FLOORS, RO_TRANS } from "./_link-creator";
 
 /**
  * Displays an entire episode
@@ -18,7 +19,9 @@ import { renderItempickupChart } from "../Components/Video/item-pickup-chart";
  */
 function EpisodePage(parameters) {
     this.videoData = get(`/api/videos/${parameters[0]}`);
+    this.prevAndNext = get(`/api/videos/${parameters[0]}/previousAndNext`);
     this.headerContainerId = 'video-title';
+    this.link = new Link();
 }
 
 
@@ -85,9 +88,40 @@ EpisodePage.prototype = {
     },
 
     createPageHeader: function () {
-        this.videoData.then(video => {
+        Promise.all([
+            this.prevAndNext,
+            this.videoData
+        ]).then(([prevAndNext, video]) => {
             new Html([
-                H1(t(video.title)),
+                H1(
+                    (
+                        prevAndNext[0]
+                            ? (
+                                a(
+                                    t('↢'),
+                                    href(this.link.episode(prevAndNext[0])),
+                                    event('click', e => navigate(this.link.episode(prevAndNext[0]), e, PAGE_TYPE_EPISODE)),
+                                    style('margin-right: 25px; text-decoration: none'),
+                                    attr({title: 'Previous Video'})
+                                )
+                            )
+                            : do_nothing
+                    ),
+                    t(video.title),
+                    (
+                        prevAndNext[1]
+                            ? (
+                                a(
+                                    t('↣'),
+                                    href(this.link.episode(prevAndNext[1])),
+                                    event('click', e => navigate(this.link.episode(prevAndNext[1]), e, PAGE_TYPE_EPISODE)),
+                                    style('margin-left: 25px; text-decoration: none'),
+                                    attr({title: 'Next Video'})
+                                )
+                            )
+                            : do_nothing
+                    )
+                ),
                 Div(id('contributors')),
                 Hr()
             ], this.headerContainerId);
