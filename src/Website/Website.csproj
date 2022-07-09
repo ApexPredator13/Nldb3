@@ -51,7 +51,7 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.0-preview3" />
     <PackageReference Include="OpenIddict.AspNetCore" Version="3.0.3" />
     <PackageReference Include="OpenIddict.EntityFrameworkCore" Version="3.0.3" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.3" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="2.1.2" />
     <PackageReference Include="System.ServiceModel.Syndication" Version="6.0.0-preview.3.21201.4" />
   </ItemGroup>
 
