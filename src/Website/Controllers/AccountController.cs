@@ -124,8 +124,8 @@ namespace Website.Controllers
                 return View(model);
             }
 
-            // if he exists, attempty sign-in
-            var result = await _signInManager.PasswordSignInAsync(user.UserName!, model.Password, model.RememberMe, false);
+            // if he exists, attempt sign-in
+            var result = await _signInManager.PasswordSignInAsync(user.UserName!, model.Password, model.RememberMe, lockoutOnFailure: true);
 
             // success
             if (result.Succeeded)
@@ -137,7 +137,7 @@ namespace Website.Controllers
             if (result.IsLockedOut)
             {
                 await FillViewData();
-                ModelState.AddModelError("", "Login failed too many times, please wait a minute before trying again.");
+                ModelState.AddModelError("", "Login failed too many times, please wait 5 minutes before trying again.");
                 return View(model);
             }
 
@@ -261,7 +261,7 @@ namespace Website.Controllers
             else if (result.IsLockedOut)
             {
                 // redirect to error page
-                return RedirectToAction(nameof(ExternalLoginFailed), new { error = "Login failed too many times, please wait a minute before trying again." });
+                return RedirectToAction(nameof(ExternalLoginFailed), new { error = "Login failed too many times, please wait 5 minutes before trying again." });
             }
 
             // user was never here before, ask him to choose a username - don't clear external cookie in this case!
@@ -428,6 +428,13 @@ namespace Website.Controllers
             // check user input
             if (!ModelState.IsValid)
             {
+                return View(model);
+            }
+
+            // prevent duplicate emails
+            if (await _userManager.FindByEmailAsync(model.Email) is not null)
+            {
+                ModelState.AddModelError(string.Empty, "An account with this e-mail address already exists.");
                 return View(model);
             }
 

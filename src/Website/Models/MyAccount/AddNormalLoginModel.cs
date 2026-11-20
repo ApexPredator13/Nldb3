@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Website.Models.MyAccount
 {
@@ -10,11 +10,11 @@ namespace Website.Models.MyAccount
 
         [Required(ErrorMessage = "Please enter a password")]
         [DataType(DataType.Password)]
-        [StringLength(100, MinimumLength = 6, ErrorMessage = "The password must be at least 6 characters long")]
+        [StringLength(100, MinimumLength = 10, ErrorMessage = "The password must be at least 10 characters long")]
         public string Password { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Please confirm your new password")]
-        [StringLength(100, MinimumLength = 6, ErrorMessage = "The password must be at least 6 characters long")]
+        [StringLength(100, MinimumLength = 10, ErrorMessage = "The password must be at least 10 characters long")]
         [DataType(DataType.Password)]
         [Compare("Password", ErrorMessage = "The two passwords don't match!")]
         public string ConfirmPassword { get; set; } = string.Empty;

@@ -356,7 +356,14 @@ namespace Website.Controllers
                 return RedirectToAction(nameof(ChangePassword));
             }
 
-                var result = await _userManager.SetEmailAsync(user, model.Email);
+            var existingEmailUser = await _userManager.FindByEmailAsync(model.Email);
+            if (existingEmailUser is not null && existingEmailUser.Id != user.Id)
+            {
+                ModelState.AddModelError(string.Empty, "This e-mail address is already in use by another account.");
+                return View(model);
+            }
+
+            var result = await _userManager.SetEmailAsync(user, model.Email);
             if (!result.Succeeded)
             {
                 ModelState.AddModelError(string.Empty, "An error occurred while adding the login data to your profile. Please try again.");
@@ -421,6 +428,13 @@ namespace Website.Controllers
                 return RedirectToAction(nameof(AddNormalLogin));
             }
 
+            var existingEmailUser = await _userManager.FindByEmailAsync(model.Email);
+            if (existingEmailUser is not null && existingEmailUser.Id != user.Id)
+            {
+                ModelState.AddModelError(string.Empty, "This e-mail address is already in use by another account.");
+                return View(model);
+            }
+
             var code = await _userManager.GenerateChangeEmailTokenAsync(user, model.Email);
             var newEmail = model.Email;
             var callbackUrl = Url.Action(nameof(ChangeEmailConfirmation), Controllername, new { code, newEmail }, Request.Scheme);
@@ -445,6 +459,12 @@ namespace Website.Controllers
             {
                 var returnUrl = Url.Action(nameof(ChangeEmailConfirmation), new { newEmail, code });
                 return RedirectToAction(nameof(AccountController.Login), AccountController.Controllername, new { returnUrl });
+            }
+
+            var existingEmailUser = await _userManager.FindByEmailAsync(newEmail);
+            if (existingEmailUser is not null && existingEmailUser.Id != user.Id)
+            {
+                return RedirectToAction(nameof(EmailChangeFailed));
             }
 
             var result = await _userManager.ChangeEmailAsync(user, newEmail, code);

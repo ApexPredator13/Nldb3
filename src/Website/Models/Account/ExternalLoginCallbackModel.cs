@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace Website.Models.Account
@@ -18,6 +18,8 @@ namespace Website.Models.Account
         }
 
         [Required(ErrorMessage = "Please choose a username")]
+        [StringLength(50, MinimumLength = 2, ErrorMessage = "Username must be between 2 and 50 characters long")]
+        [RegularExpression(@"^[^<>""'\r\n\t]+$", ErrorMessage = "Username contains invalid characters")]
         [Display(Name = "Your public username")]
         public string UserName { get; set; }
 

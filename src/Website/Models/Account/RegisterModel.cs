@@ -1,10 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Website.Models.Account
 {
     public class RegisterModel
     {
         [Required(ErrorMessage = "Please pick a username")]
+        [StringLength(50, MinimumLength = 2, ErrorMessage = "Username must be between 2 and 50 characters long")]
+        [RegularExpression(@"^[^<>""'\r\n\t]+$", ErrorMessage = "Username contains invalid characters")]
         [Display(Name = "Your public username")]
         public string Username { get; set; } = string.Empty;
 
@@ -16,7 +18,7 @@ namespace Website.Models.Account
         [Required(ErrorMessage = "Please pick a password")]
         [DataType(DataType.Password)]
         [Display(Name = "Your password")]
-        [StringLength(100, MinimumLength = 6, ErrorMessage = "The password must be at least 6 characters long")]
+        [StringLength(100, MinimumLength = 10, ErrorMessage = "The password must be at least 10 characters long")]
         public string Password { get; set; } = string.Empty;
 
         [DataType(DataType.Password)]

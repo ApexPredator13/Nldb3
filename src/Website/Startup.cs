@@ -15,6 +15,7 @@ using Hangfire.PostgreSql;
 using Hangfire.Dashboard;
 using System.Security.Claims;
 using System.IO;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -92,18 +93,21 @@ namespace Website
             // identity
             services.AddIdentity<IdentityUser, IdentityRole>(options =>
             {
-                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(1);
-                options.Lockout.MaxFailedAccessAttempts = 50;
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+                options.Lockout.MaxFailedAccessAttempts = 5;
                 options.Lockout.AllowedForNewUsers = true;
                 options.Password.RequireDigit = false;
-                options.Password.RequiredLength = 6;
-                options.Password.RequiredUniqueChars = 1;
+                options.Password.RequiredLength = 10;
+                options.Password.RequiredUniqueChars = 4;
                 options.Password.RequireLowercase = false;
                 options.Password.RequireNonAlphanumeric = false;
                 options.Password.RequireUppercase = false;
                 options.SignIn.RequireConfirmedEmail = false;
                 options.SignIn.RequireConfirmedPhoneNumber = false;
+                // Keep AllowedUserNameCharacters permissive for legacy/external accounts and [removed account];
+                // new/changed usernames are validated on the input models.
                 options.User.AllowedUserNameCharacters = string.Empty;
+                // External logins (Steam/Twitch/Twitter) may have no email; non-empty email uniqueness is enforced in Account/MyAccount controllers.
                 options.User.RequireUniqueEmail = false;
             })
                 .AddDefaultTokenProviders()
@@ -199,14 +203,13 @@ namespace Website
         {
             app.ApplyEntityFrameworkDatabaseMigrations();
 
+            // headers for cloudflare tunnel
             var forwardOptions = new ForwardedHeadersOptions()
             {
                 ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+                ForwardLimit = 1,
                 RequireHeaderSymmetry = false
             };
-
-            forwardOptions.KnownIPNetworks.Clear();
-            forwardOptions.KnownProxies.Clear();
 
             app.UseForwardedHeaders(forwardOptions);
 

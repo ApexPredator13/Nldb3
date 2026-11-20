@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Website.Models.Account
 {
@@ -11,7 +11,7 @@ namespace Website.Models.Account
         [Required(ErrorMessage = "No password was provided")]
         [DataType(DataType.Password)]
         [Display(Name = "Your new password")]
-        [StringLength(100, ErrorMessage = "The password can not be longer than 100 characters")]
+        [StringLength(100, MinimumLength = 10, ErrorMessage = "The password must be between 10 and 100 characters long")]
         public string Password { get; set; } = string.Empty;
 
         [DataType(DataType.Password)]
