@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 using System;
@@ -12,6 +13,7 @@ using System.Xml;
 using System.ServiceModel.Syndication;
 using System.Xml.Linq;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Website.Models.ChannelData;
 
 namespace Website.Controllers
@@ -22,100 +24,157 @@ namespace Website.Controllers
         private readonly IVideoRepository _videoRepository;
         private readonly IEmailService _email;
         private readonly IConfiguration _config;
+        private readonly ILogger<ChannelDataController> _logger;
 
-        public ChannelDataController(IVideoRepository videoRepository, IEmailService email, IConfiguration config)
+        public ChannelDataController(
+            IVideoRepository videoRepository,
+            IEmailService email,
+            IConfiguration config,
+            ILogger<ChannelDataController> logger)
         {
             _videoRepository = videoRepository;
             _email = email;
             _config = config;
+            _logger = logger;
         }
 
         [HttpGet, HttpPost, IgnoreAntiforgeryToken]
         public async Task<ActionResult> Index()
         {
-            // subscription confirmation
-            if (Request.Query.TryGetValue("hub.challenge", out StringValues challenge))
+            var expectedChannelId = _config["NorthernlionChannelId"];
+
+            if (string.IsNullOrWhiteSpace(expectedChannelId))
             {
-                await _email.SendEmailAsync(_config["AdminEmail"],
-                    "Youtube Push Notification Subscription",
-                    "<body>" +
-                    "<h1>The youtube push notification endpoint has been triggered.</h1>" +
-                    $"<p>returning challenge with statuscode 200: <br/>{challenge.ToString()}</p>" +
-                    "</body>");
+                _logger.LogError("channel ID is missing from configuration - ChannelDataController non-functional.");
+            }
+
+            // subscription confirmation ( = if YouTube sends a GET request)
+            if (HttpMethods.IsGet(Request.Method) && Request.Query.TryGetValue("hub.challenge", out StringValues challenge))
+            {
+                var expectedTopic = $"https://www.youtube.com/xml/feeds/videos.xml?channel_id={expectedChannelId}";
+                var topicWasFound = Request.Query.TryGetValue("hub.topic", out StringValues topic);
+                var topicMatches = string.Equals(topic.ToString(), expectedTopic, StringComparison.OrdinalIgnoreCase);
+
+                if (!topicWasFound)
+                {
+                    _logger.LogWarning($"Rejected YouTube push subscription. Expected topic {topic.ToString()} was not found");
+                    return BadRequest();
+                }
+
+                if (!topicMatches)
+                {
+                    _logger.LogWarning($"Rejected YouTube push subscription. Expected topic {expectedTopic} does not match with {topic}");
+                    return BadRequest();
+                }
+
+                _logger.LogInformation($"Confirmed YouTube push notification subscription for channel {expectedChannelId}.");
 
                 return new ContentResult()
                 {
-                    Content = challenge,
-                    ContentType = Request.ContentType,
-                    StatusCode = (int?)HttpStatusCode.OK
+                    Content = challenge.ToString(),
+                    ContentType = "text/plain; charset=utf-8",
+                    StatusCode = (int)HttpStatusCode.OK
                 };
             }
 
-            // notification
-            else
+
+            // only accept GET and POST
+            if (!HttpMethods.IsPost(Request.Method))
             {
-                try 
+                return BadRequest();
+            }
+
+            // notification
+            try
+            {
+                var notificationData = ConvertAtomToSyndication(Request.Body);
+
+                if (notificationData is null || string.IsNullOrWhiteSpace(notificationData.VideoId))
                 {
-                    var notificationData = ConvertAtomToSyndication(Request.Body);
-                    VideoListResponse? youtubeApiResult = null;
+                    return Ok();
+                }
 
-                    if (notificationData is not null && notificationData.VideoId != null)
+                var channelIdOk = string.Equals(notificationData.ChannelId, expectedChannelId, StringComparison.Ordinal);
+
+                if (!channelIdOk)
+                {
+                    _logger.LogWarning("Ignored YouTube push notification for unexpected channel {ChannelId}.", notificationData.ChannelId);
+                    return Ok();
+                }
+
+                // load video data from YT API
+                var youtubeApiResult = await _videoRepository.GetYoutubeVideoData(notificationData.VideoId);
+                var video = youtubeApiResult?.Items?.FirstOrDefault();
+
+                if (video is null)
+                {
+                    return Ok();
+                }
+
+                // check if the channel ID from the API result still matches
+                var youtubeApiChannelIdOk = string.Equals(video.Snippet?.ChannelId, expectedChannelId, StringComparison.Ordinal);
+
+                if (!string.Equals(video.Snippet?.ChannelId, expectedChannelId, StringComparison.Ordinal))
+                {
+                    _logger.LogWarning($"Wrong channel ID from Youtube API for the video {video.Id}. Expected {expectedChannelId} but got {video.Snippet?.ChannelId}.");
+                    return Ok();
+                }
+
+                // check if it's an isaac episode
+                var lowercasedVideoTitle = (video.Snippet?.Title ?? string.Empty).ToLowerInvariant();
+
+                if (lowercasedVideoTitle.Contains("isaac") || lowercasedVideoTitle.Contains("repentance"))
+                {
+                    var videoExists = await _videoRepository.VideoExists(video.Id);
+
+                    if (videoExists)
                     {
-                        youtubeApiResult = await _videoRepository.GetYoutubeVideoData(notificationData.VideoId);
-                        var lowercasedVideoTitle = youtubeApiResult.Items[0].Snippet.Title.ToLower();
+                        await _videoRepository.UpdateVideosWithYoutubeData([video]);
+                    }
+                    else
+                    {
+                        await _videoRepository.SaveVideo(video);
+                    }
 
-                        if (lowercasedVideoTitle.Contains("isaac") || lowercasedVideoTitle.Contains("repentance"))
-                        {
-                            var videoExists = await _videoRepository.VideoExists(youtubeApiResult.Items[0].Id);
+                    if (video.Snippet?.Thumbnails is not null)
+                    {
+                        await _videoRepository.SetThumbnails(video.Snippet.Thumbnails, notificationData.VideoId);
+                    }
 
-                            if (videoExists)
-                            {
-                                await _videoRepository.UpdateVideosWithYoutubeData(new List<Video>() { youtubeApiResult.Items[0] });
-                            }
-                            else
-                            {
-                                await _videoRepository.SaveVideo(youtubeApiResult.Items[0]);
-                            }
+                    var adminEmail = _config["AdminEmail"];
+                    if (!string.IsNullOrWhiteSpace(adminEmail))
+                    {
+                        var encodedNotification = WebUtility.HtmlEncode(
+                            Newtonsoft.Json.JsonConvert.SerializeObject(notificationData, Newtonsoft.Json.Formatting.Indented));
+                        var encodedTitle = WebUtility.HtmlEncode(video.Snippet?.Title ?? string.Empty);
 
-                            await _videoRepository.SetThumbnails(youtubeApiResult.Items[0].Snippet.Thumbnails, notificationData.VideoId);
-
-                            await _email.SendEmailAsync(_config["AdminEmail"],
-                                "Youtube Push Notification Received - Isaac Episode",
-                                "<body>" +
-                                "<h1>A Push Notification was received!</h1>" +
-                                $"<p><pre>{Newtonsoft.Json.JsonConvert.SerializeObject(notificationData, Newtonsoft.Json.Formatting.Indented)}</pre></p>" +
-                                $"<p><pre>{Newtonsoft.Json.JsonConvert.SerializeObject(youtubeApiResult, Newtonsoft.Json.Formatting.Indented)}</pre></p>" +
-                                "</body>");
-                        }
-                        //else
-                        //{
-                        //    await _email.SendEmailAsync(_config["AdminEmail"],
-                        //        "Youtube Push Notification Received - Non-Isaac Video",
-                        //        "<body>" +
-                        //        "<h1>A Push Notification was received!</h1>" +
-                        //        $"<p><pre>{Newtonsoft.Json.JsonConvert.SerializeObject(notificationData, Newtonsoft.Json.Formatting.Indented)}</pre></p>" +
-                        //        $"<p><pre>{Newtonsoft.Json.JsonConvert.SerializeObject(youtubeApiResult, Newtonsoft.Json.Formatting.Indented)}</pre></p>" +
-                        //        "</body>");
-                        //}
+                        await _email.SendEmailAsync(adminEmail,
+                            "Youtube Push Notification Received - Isaac Episode",
+                            "<body>" +
+                            "<h1>A Push Notification was received!</h1>" +
+                            $"<p>{encodedTitle}</p>" +
+                            $"<p><pre>{encodedNotification}</pre></p>" +
+                            "</body>");
                     }
                 }
-                catch (Exception e)
-                {
-                    await _email.SendEmailAsync(_config["AdminEmail"],
-                        "[Error] Youtube Push Notification Received",
-                        "<body>" +
-                        "<h1>A Push Notification was received but was not transmitted successfully!</h1>" +
-                        $"<p>{e.Message}</p>" +
-                        "</body>");
-                }
-
-                return Ok();
             }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Failed to process YouTube push notification.");
+            }
+
+            return Ok();
         }
-        
+
         private static YoutubeNotification? ConvertAtomToSyndication(Stream stream)
         {
-            using var xmlReader = XmlReader.Create(stream);
+            var settings = new XmlReaderSettings
+            {
+                DtdProcessing = DtdProcessing.Prohibit,
+                XmlResolver = null
+            };
+
+            using var xmlReader = XmlReader.Create(stream, settings);
             SyndicationFeed feed = SyndicationFeed.Load(xmlReader);
             var f = feed.Items.FirstOrDefault();
 
@@ -128,7 +187,7 @@ namespace Website.Controllers
             {
                 ChannelId = GetElementExtensionValueByOuterName(f, "channelId"),
                 VideoId = GetElementExtensionValueByOuterName(f, "videoId"),
-                Title = f.Title.Text,
+                Title = f.Title?.Text ?? string.Empty,
                 Published = f.PublishDate.ToString("dd/MM/yyyy"),
                 Updated = f.LastUpdatedTime.ToString("dd/MM/yyyy")
             };
