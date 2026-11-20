@@ -1,8 +1,8 @@
-﻿import { modal, Div, h2, t, hr, p } from "../../Framework/renderer";
+import { modal, Div, h2, t, hr, p } from "../../Framework/renderer";
 import { dismissModalSection } from "../General/modal-contents";
 
 let youtubeScriptCreated = false;
-let createPlayerInterval = null;
+let initTimeout = null;
 
 /**
  * Creates a new youtube player and wraps its basic behavior
@@ -21,21 +21,29 @@ function YoutubePlayer(videoId) {
     /** @type {*} */
     this.player = undefined;
 
-    // window.onYouTubeIframeAPIReady will be called by automatically after the youtube iframe script has been loaded.
-    window.onYouTubeIframeAPIReady = () => this.createPlayer();
+    if (initTimeout) {
+        clearTimeout(initTimeout);
+        initTimeout = null;
+    }
 
-    // load iframe script if necessary
-    if (!youtubeScriptCreated) {
-        const youtubeScriptTag = document.createElement('script');
-        youtubeScriptTag.src = 'https://www.youtube.com/iframe_api';
-        const scriptTags = document.getElementsByTagName('script');
-        if (scriptTags && scriptTags.length > 0 && scriptTags[0].parentNode) {
-            scriptTags[0].parentNode.insertBefore(youtubeScriptTag, scriptTags[0]);
-        }
-        youtubeScriptCreated = true;
+    if (window.YT && typeof window.YT.ready === 'function') {
+        window.YT.ready(() => this.createPlayer());
     } else {
-        // if script already exists, just create the player
-        setTimeout(() => this.createPlayer(), 2000);
+        // window.onYouTubeIframeAPIReady will be called automatically after the youtube iframe script has been loaded.
+        window.onYouTubeIframeAPIReady = () => this.createPlayer();
+
+        // load iframe script if necessary
+        if (!youtubeScriptCreated) {
+            const youtubeScriptTag = document.createElement('script');
+            youtubeScriptTag.src = 'https://www.youtube.com/iframe_api';
+            const scriptTags = document.getElementsByTagName('script');
+            if (scriptTags && scriptTags.length > 0 && scriptTags[0].parentNode) {
+                scriptTags[0].parentNode.insertBefore(youtubeScriptTag, scriptTags[0]);
+            } else if (document.head) {
+                document.head.appendChild(youtubeScriptTag);
+            }
+            youtubeScriptCreated = true;
+        }
     }
 }
 
@@ -43,20 +51,36 @@ YoutubePlayer.prototype = {
 
     /** creates a new youtube player */
     createPlayer: function () {
+        if (this.player || !document.getElementById('ytplayer')) {
+            return;
+        }
 
-        let tries = 0;
+        if (initTimeout) {
+            clearTimeout(initTimeout);
+            initTimeout = null;
+        }
 
-        createPlayerInterval = window.setInterval(() => {
-            // youtube player creation fails at page load. gotta retry a couple times.
-            if (!this.player || this.player.b === null) {
-                this.player = new YT.Player('ytplayer', { videoId: this.videoId });
-            } else {
-                this.playerReady = true;
-                clearInterval(createPlayerInterval);
-                return;
+        this.player = new YT.Player('ytplayer', {
+            videoId: this.videoId,
+            playerVars: {
+                origin: window.location.origin,
+                rel: 0,
+                autoplay: 0
+            },
+            events: {
+                onReady: () => {
+                    this.playerReady = true;
+                    if (initTimeout) {
+                        clearTimeout(initTimeout);
+                        initTimeout = null;
+                    }
+                }
             }
+        });
 
-            if (tries++ >= 20) {
+        initTimeout = window.setTimeout(() => {
+            initTimeout = null;
+            if (!this.playerReady && document.getElementById('ytplayer')) {
                 modal(false,
                     Div(
                         h2(
@@ -68,10 +92,9 @@ YoutubePlayer.prototype = {
                         ),
                         dismissModalSection()
                     )
-                )
-                clearInterval(createPlayerInterval);
+                );
             }
-        }, 1000);
+        }, 20000);
     },
 
 
@@ -84,7 +107,7 @@ YoutubePlayer.prototype = {
     /** returns the current youtube player time in seconds */
     getCurrentTime: function () {
         const player = this.getYoutubePlayer();
-        if (player) {
+        if (player && typeof player.getCurrentTime === 'function') {
             return Math.floor(player.getCurrentTime());
         }
         return 0;
@@ -94,7 +117,7 @@ YoutubePlayer.prototype = {
     /** pauses the video playback */
     pauseVideo: function () {
         const player = this.getYoutubePlayer();
-        if (player) {
+        if (player && typeof player.pauseVideo === 'function') {
             player.pauseVideo();
         }
     },
@@ -103,7 +126,7 @@ YoutubePlayer.prototype = {
     /** starts video playback */
     playVideo: function () {
         const player = this.getYoutubePlayer();
-        if (player) {
+        if (player && typeof player.playVideo === 'function') {
             player.playVideo();
         }
     },
@@ -115,7 +138,7 @@ YoutubePlayer.prototype = {
      */
     getPlayerState: function() {
         const player = this.getYoutubePlayer();
-        if (player) {
+        if (player && typeof player.getPlayerState === 'function') {
             return player.getPlayerState();
         }
         return -1;
@@ -128,7 +151,7 @@ YoutubePlayer.prototype = {
      */
     seek: function (to) {
         const player = this.getYoutubePlayer();
-        if (player) {
+        if (player && typeof player.seekTo === 'function') {
             const currentTime = this.getCurrentTime();
             let newTime = currentTime + (to);
             if (newTime < 0) {

@@ -1,10 +1,9 @@
-﻿import { SubmitVideoQuotesSection } from "../Components/SubmitVideo/submit-quote.js";
+import { SubmitVideoQuotesSection } from "../Components/SubmitVideo/submit-quote.js";
 import { HistoryTable } from "../Components/SubmitVideo/history-table";
 import { YoutubePlayer } from "../Components/SubmitVideo/youtube-player";
 import { addClassIfNotExists, removeClassIfExists } from "../Framework/browser";
-import { getConfig } from "../Framework/Customizable/config.development";
 import { get, postResponse } from "../Framework/http";
-import { Html, Div, id, div, a, iframe, attr, span, t, P, event, H2, cl, hr, Hr, style, H1, input, button, br, modal, h2, hideModal, p, do_nothing } from "../Framework/renderer";
+import { Html, Div, id, div, a, attr, span, t, P, event, H2, cl, hr, Hr, style, H1, input, button, br, modal, h2, hideModal, p, do_nothing } from "../Framework/renderer";
 import { registerPage, setTitle, navigate, PAGE_TYPE_EPISODE, dontLetUserNavigateAway, useRegularPopstateHandler, goBack } from "../Framework/router";
 import { PlayerControls } from "../Components/SubmitVideo/player-controls";
 import { CurrentPlayer } from "../Components/SubmitVideo/current-player";
@@ -165,7 +164,6 @@ function SubmitVideoPage(parameters) {
     this.tempValue = null;
     
     // renders initial page
-    const origin = getConfig().baseUrlWithoutTrailingSlash;
     new Html([
         Div(
             id('menu-wrapper'),
@@ -176,12 +174,8 @@ function SubmitVideoPage(parameters) {
                 div(
                     id('youtube-player-container'),
 
-                    iframe(
-                        attr({
-                            id: 'ytplayer',
-                            src: `https://www.youtube.com/embed/${this.videoId}?enablejsapi=1&origin=${origin}&rel=0&autoplay=0`,
-                            frameborder: '0'
-                        })
+                    div(
+                        id('ytplayer')
                     )
                 ),
                 div(
