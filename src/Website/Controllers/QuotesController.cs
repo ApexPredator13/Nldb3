@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
@@ -64,6 +64,7 @@ namespace Website.Controllers
         [HttpGet, Route("random/{amount:int}")]
         public async Task<List<Quote>> GetRandomQuotes([FromRoute] int amount)
         {
+            amount = System.Math.Clamp(amount, 1, 100);
             string? userId = (User.Identity?.IsAuthenticated ?? false) ? _userManager.GetUserId(User) : null;
             return await _quoteRepository.RandomQuotes(amount, userId);
         }
@@ -72,6 +73,7 @@ namespace Website.Controllers
         [HttpGet, Route("recent/{amount:int}")]
         public async Task<List<Quote>> GetNewestQuotes([FromRoute] int amount)
         {
+            amount = System.Math.Clamp(amount, 1, 100);
             string? userId = (User.Identity?.IsAuthenticated ?? false) ? _userManager.GetUserId(User) : null;
             return await _quoteRepository.NewestQuotes(amount, userId);
         }
@@ -102,7 +104,7 @@ namespace Website.Controllers
         public async Task<ActionResult<Quote>> GetSingleQuote([FromRoute] int id)
         {
             var user = await _userManager.GetUserAsync(User);
-            var quote = await _quoteRepository.GetQuoteById(id, user.Id);
+            var quote = await _quoteRepository.GetQuoteById(id, user?.Id);
 
             if (quote is null)
             {
@@ -123,6 +125,10 @@ namespace Website.Controllers
             }
 
             var user = await _userManager.GetUserAsync(User);
+            if (user is null)
+            {
+                return Unauthorized();
+            }
 
             if (!await _quoteRepository.UserSubmittedQuote(updateQuote.Id ?? -1, user.Id))
             {
@@ -145,6 +151,10 @@ namespace Website.Controllers
         public async Task<ActionResult> Delete([FromRoute] int quoteId)
         {
             var user = await _userManager.GetUserAsync(User);
+            if (user is null)
+            {
+                return Unauthorized();
+            }
 
             if (!await _quoteRepository.UserSubmittedQuote(quoteId, user.Id))
             {

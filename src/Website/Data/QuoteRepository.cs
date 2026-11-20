@@ -392,8 +392,8 @@ namespace Website.Data
                 "FROM public.quotes q " +
                 "LEFT JOIN quotes_userdata d ON d.quote = q.id " +
                 "LEFT JOIN identity.\"AspNetUsers\" u ON u.\"Id\" = d.user_id " +
-                "WHERE LOWER(q.content) LIKE LOWER(@Search)" +
-                "ORDER BY q.submitted_at DESC;";
+                "WHERE LOWER(q.content) LIKE LOWER(@Search) " +
+                "ORDER BY q.submitted_at DESC LIMIT 200;";
 
             using var connection = await _npgsql.Connect();
             using var command = new NpgsqlCommand(commandText, connection);
