@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -25,9 +25,6 @@ namespace Website.Controllers
             _isaacRepository = isaacRepository;
             _barGraphCreator = barGraphCreator;
         }
-
-        [HttpGet("test")]
-        public BadRequestObjectResult Test() => BadRequest("This is a test");
 
         [HttpGet]
         public async Task<List<IsaacResource>> GetResources([FromQuery] GetResource searchOptions)
