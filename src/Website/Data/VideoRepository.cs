@@ -1,4 +1,4 @@
-﻿using Npgsql;
+using Npgsql;
 using NpgsqlTypes;
 using System;
 using System.Collections.Generic;
@@ -364,7 +364,7 @@ namespace Website.Data
 
             q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, newVideo.Id);
             q.Parameters.AddWithValue("@Title", NpgsqlDbType.Text, newVideo.Snippet.Title);
-            q.Parameters.AddWithValue("@Pub", NpgsqlDbType.TimestampTz, newVideo.Snippet.PublishedAt ?? (object)DBNull.Value);
+            q.Parameters.AddWithValue("@Pub", NpgsqlDbType.TimestampTz, newVideo.Snippet.PublishedAtDateTimeOffset?.ToUniversalTime() ?? (object)DBNull.Value);
             q.Parameters.AddWithValue("@Dur", NpgsqlDbType.Integer, (int)(XmlConvert.ToTimeSpan(newVideo.ContentDetails.Duration).TotalSeconds));
             q.Parameters.AddWithValue("@Likes", NpgsqlDbType.Integer, newVideo.Statistics.LikeCount.HasValue ? (int)newVideo.Statistics.LikeCount.Value : (object)DBNull.Value);
             q.Parameters.AddWithValue("@Dislikes", NpgsqlDbType.Integer, newVideo.Statistics.DislikeCount.HasValue ? (int)newVideo.Statistics.DislikeCount.Value : (object)DBNull.Value);
@@ -404,7 +404,7 @@ namespace Website.Data
 
                 q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, updatedVideo.Id);
                 q.Parameters.AddWithValue("@Title", NpgsqlDbType.Text, updatedVideo.Snippet.Title);
-                q.Parameters.AddWithValue("@Pub", NpgsqlDbType.TimestampTz, updatedVideo.Snippet.PublishedAt ?? (object)DBNull.Value);
+                q.Parameters.AddWithValue("@Pub", NpgsqlDbType.TimestampTz, updatedVideo.Snippet.PublishedAtDateTimeOffset?.ToUniversalTime() ?? (object)DBNull.Value);
                 q.Parameters.AddWithValue("@Dur", NpgsqlDbType.Integer, (int)(XmlConvert.ToTimeSpan(updatedVideo.ContentDetails.Duration).TotalSeconds));
                 q.Parameters.AddWithValue("@Likes", NpgsqlDbType.Integer, updatedVideo.Statistics.LikeCount.HasValue ? (int)updatedVideo.Statistics.LikeCount.Value : (object)DBNull.Value);
                 q.Parameters.AddWithValue("@Dislikes", NpgsqlDbType.Integer, updatedVideo.Statistics.DislikeCount.HasValue ? (int)updatedVideo.Statistics.DislikeCount : (object)DBNull.Value);
