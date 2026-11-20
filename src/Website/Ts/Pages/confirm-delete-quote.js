@@ -1,6 +1,6 @@
-﻿import { registerPage, navigate } from "../Framework/router";
+import { registerPage, navigate } from "../Framework/router";
 import { Html, Div, h1, t, hr, p, div, button, cl, event, id, modal } from "../Framework/renderer";
-import { get, createHeaders } from "../Framework/http";
+import { get, deleteResponse } from "../Framework/http";
 import { QuoteCreator } from "../Components/Quote/quote-creator";
 import { Link } from "./_link-creator";
 import { disableButton } from "../Framework/browser";
@@ -54,10 +54,9 @@ ConfirmDeleteQuotePage.prototype = {
                             t('Yes, Delete!!'),
                             cl('btn-red'),
                             event('click', e => {
-                                const headers = createHeaders(undefined, true);
                                 disableButton(e.target);
                                 disableButton(document.getElementById('cancel'));
-                                fetch(`/Api/Quotes/${this.quoteId}`, { headers: headers, method: 'DELETE' }).then(response => {
+                                deleteResponse(`/Api/Quotes/${this.quoteId}`, true).then(response => {
                                     if (response.ok) {
                                         navigate(this.link.manageMyQuotes(), e);
                                     } else {

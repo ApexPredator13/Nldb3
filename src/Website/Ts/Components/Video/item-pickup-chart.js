@@ -1,5 +1,4 @@
-﻿import { Html, Div, cl, canvas, attr } from "../../Framework/renderer";
-import 'array-flat-polyfill';
+import { Html, Div, cl, canvas, attr } from "../../Framework/renderer";
 
 export function renderItempickupChart(video, submissionIndex, containerId) {
 

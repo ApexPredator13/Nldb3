@@ -1,4 +1,4 @@
-﻿const removeHashAndQuerystring = () => {
+const removeHashAndQuerystring = () => {
     history.replaceState(null, document.title, window.location.href.split("?")[0]);
     history.replaceState(null, document.title, window.location.pathname + window.location.search);
 }
@@ -38,9 +38,10 @@ const disableButton = (button) => {
 const loadSciptIfNotExists = (src) => {
     return new Promise(resolve => {
         const scripts = document.head.getElementsByTagName('script');
-        const found = false;
+        let found = false;
         for (const script of scripts) {
-            if (script.src.toLowerCase() === src) {
+            const scriptSrc = script.getAttribute('src');
+            if (scriptSrc && scriptSrc.toLowerCase() === src.toLowerCase()) {
                 found = true;
             }
         }

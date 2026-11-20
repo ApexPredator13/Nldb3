@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -214,7 +214,7 @@ namespace Website.Controllers
                 personalData.Add(p.Name, p.GetValue(user)?.ToString() ?? "");
             }
 
-            Response.Headers.Add("Content-Disposition", "attachment; filename=PersonalData.txt");
+            Response.Headers["Content-Disposition"] = "attachment; filename=PersonalData.txt";
             return new FileContentResult(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(personalData)), "text/plain");
         }
 

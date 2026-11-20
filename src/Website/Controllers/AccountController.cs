@@ -1,13 +1,12 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
-using OpenIddict.Abstractions;
-using OpenIddict.Server.AspNetCore;
 using Website.Infrastructure;
 using Website.Models.Account;
 using Website.Services;
@@ -22,24 +21,59 @@ namespace Website.Controllers
         private readonly UserManager<IdentityUser> _userManager;
         private readonly IEmailService _emailSender;
         private readonly IConfiguration _config;
-        private readonly IOpenIddictTokenManager _tokenManager;
+        private readonly IAntiforgery _antiforgery;
 
         public AccountController(
             SignInManager<IdentityUser> signInManager,
             UserManager<IdentityUser> userManager,
             IEmailService emailSender,
             IConfiguration config,
-            IOpenIddictTokenManager tokenManager)
+            IAntiforgery antiforgery)
         {
             _signInManager = signInManager;
             _userManager = userManager;
             _emailSender = emailSender;
             _config = config;
-            _tokenManager = tokenManager;
+            _antiforgery = antiforgery;
+        }
+
+        [HttpGet("/Api/Auth/Me")]
+        public IActionResult Me()
+        {
+            var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
+
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                return Ok(new
+                {
+                    isAuthenticated = true,
+                    name = User.Identity.Name,
+                    isAdmin = User.HasClaim(ClaimTypes.Role, "admin"),
+                    csrfToken = tokens.RequestToken
+                });
+            }
+
+            return Ok(new
+            {
+                isAuthenticated = false,
+                name = (string?)null,
+                isAdmin = false,
+                csrfToken = tokens.RequestToken
+            });
+        }
+
+        private ActionResult RedirectToLocal(string? returnUrl)
+        {
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+            {
+                return Redirect(returnUrl);
+            }
+
+            return RedirectToAction(nameof(HomeController.Index), HomeController.Controllername);
         }
 
         [HttpGet]
-        public async Task<ActionResult> Login([FromQuery] string returnUrl)
+        public async Task<ActionResult> Login([FromQuery] string? returnUrl = null)
         {
             // if user is logged in already, redirect him to his profile page
             if (User.Identity?.IsAuthenticated ?? false)
@@ -58,7 +92,7 @@ namespace Website.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> Login([FromForm] LoginModel model, [FromQuery] string returnUrl)
+        public async Task<ActionResult> Login([FromForm] LoginModel model, [FromQuery] string? returnUrl = null)
         {
             // local function to prepare view data
             async Task FillViewData()
@@ -91,12 +125,12 @@ namespace Website.Controllers
             }
 
             // if he exists, attempty sign-in
-            var result = await _signInManager.PasswordSignInAsync(user.UserName, model.Password, model.RememberMe, false);
+            var result = await _signInManager.PasswordSignInAsync(user.UserName!, model.Password, model.RememberMe, false);
 
             // success
             if (result.Succeeded)
             {
-                return Redirect(returnUrl);
+                return RedirectToLocal(returnUrl);
             }
 
             // too many failed login attempts
@@ -146,7 +180,7 @@ namespace Website.Controllers
         }
 
         [HttpGet]
-        public ChallengeResult ExternalLogin([FromQuery] string provider, [FromQuery] string returnUrl)
+        public ChallengeResult ExternalLogin([FromQuery] string provider, [FromQuery] string? returnUrl = null)
         {
             var redirectUrl = Url.Action(nameof(ExternalLoginCallback), new { returnUrl });
             var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
@@ -157,26 +191,10 @@ namespace Website.Controllers
         public ViewResult Logout() => View();
 
         [HttpPost]
-        public async Task<SignOutResult> Logout([FromQuery] string? returnUrl = null)
+        public async Task<ActionResult> Logout([FromQuery] string? returnUrl = null)
         {
-            var user = await _userManager.GetUserAsync(User);
-
-            if (user != null)
-            {
-                var r = _tokenManager.FindBySubjectAsync(user.Id);
-                await foreach (var v in r)
-                    await _tokenManager.TryRevokeAsync(v);
-            }
-
-            await HttpContext.SignOutAsync();
             await _signInManager.SignOutAsync();
-
-            return SignOut(
-                authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
-                properties: new AuthenticationProperties
-                {
-                    RedirectUri = "/#logout"
-                });
+            return RedirectToLocal(returnUrl);
         }
 
         private static string GetExternalLoginUsername(ExternalLoginInfo info)
@@ -210,7 +228,7 @@ namespace Website.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult> ExternalLoginCallback(string returnUrl, string? remoteError = null)
+        public async Task<ActionResult> ExternalLoginCallback(string? returnUrl = null, string? remoteError = null)
         {
             // show error page if something went wrong or is missing
             if (remoteError != null)
@@ -236,7 +254,7 @@ namespace Website.Controllers
             if (result.Succeeded)
             {
                 // clear external cookie and redirect
-                return Redirect(returnUrl);
+                return RedirectToLocal(returnUrl);
             }
 
             // user was here before, but login failed too many times
@@ -255,7 +273,7 @@ namespace Website.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> ExternalLoginCallback([FromForm] ExternalLoginCallbackModel model, [FromQuery] string returnUrl)
+        public async Task<ActionResult> ExternalLoginCallback([FromForm] ExternalLoginCallbackModel model, [FromQuery] string? returnUrl = null)
         {
             if (!ModelState.IsValid)
             {
@@ -308,7 +326,7 @@ namespace Website.Controllers
             // sign user in
             await _signInManager.SignInAsync(newUser, false);
 
-            return Redirect(returnUrl);
+            return RedirectToLocal(returnUrl);
         }
 
         [HttpGet]
@@ -440,7 +458,7 @@ namespace Website.Controllers
 
             // ...and log the user in right away
             await _signInManager.SignInAsync(user, false);
-            return Redirect(returnUrl ?? Url.Action(nameof(HomeController.Index), HomeController.Controllername) ?? "/");
+            return RedirectToLocal(returnUrl);
         }
 
         [HttpGet]

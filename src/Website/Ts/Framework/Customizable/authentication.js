@@ -1,147 +1,116 @@
-﻿import { WebStorageStateStore, UserManager, User, Log } from 'oidc-client';
-import { removeHashAndQuerystring, getHashFromUrl, loadSciptIfNotExists } from '../browser';
-import { getConfig } from './config.development';
-
+import { loadSciptIfNotExists } from '../browser';
 
 let userWasFoundActionsExecuted = false;
-
-/** 
- *  returns a usermanager instance, creates one if necessary 
- *  @returns {UserManager}
- */
-function getUserManager() {
-    if (window.userManager) {
-        return window.userManager;
-    }
-
-    const config = getConfig();
-    const baseUrlOfThisWebsite = config.baseUrlWithoutTrailingSlash;
-
-    const settings = {
-        authority: baseUrlOfThisWebsite,
-        client_id: 'local-javascript-app',
-        redirect_uri: baseUrlOfThisWebsite,
-        silent_redirect_uri: `${baseUrlOfThisWebsite}/SilentSignin`,
-        automaticSilentRenew: true,
-        monitorSession: true,
-        checkSessionInterval: 10,
-        response_type: 'code',
-        scope: 'openid offline_access profile email roles',
-        loadUserInfo: true,
-        post_logout_redirect_uri: baseUrlOfThisWebsite,
-        revokeAccessTokenOnSignout: true,
-        userStore: new WebStorageStateStore({ store: window.sessionStorage })
-    };
-
-    var userManager = new UserManager(settings);
-    userManager.clearStaleState();
-    window.userManager = userManager;
-    return window.userManager;
-}
-
+let cachedAuthState = null;
+let pendingAuthPromise = null;
 
 /**
- * returns the currently logged in user, or null if no user was found
- * @returns {Promise<User|null>}
+ * Fetches current auth state and CSRF token from the backend using same-origin cookies.
+ * @param {boolean} forceRefresh
+ * @returns {Promise<{ user: object|null, csrfToken: string|null }>}
  */
-const getUser = async (checkSilentSignin) => {
-    const userManager = getUserManager();
-
-    /** @type {User|null} */
-    let user = null;
-
-    // check if logout happened
-    if (getHashFromUrl() === 'logout') {
-        removeHashAndQuerystring();
-        await userManager.removeUser();
-        return null;
+async function fetchAuthState(forceRefresh = false) {
+    if (!forceRefresh && cachedAuthState) {
+        return cachedAuthState;
     }
 
-    try {
-        // check if user logged himself in right now
-        if (window.location.href.indexOf('?code=') !== -1) {
-            user = await userManager.signinRedirectCallback();
-            if (user) {
-                removeHashAndQuerystring();
-            }
-        }
-
-        // check if user exists already
-        if (!user) {
-            user = await userManager.getUser();
-        }
-
-        // check if user is logged in on the oidc-provider
-        if (!user && checkSilentSignin) {
-            user = await userManager.signinSilent();
-        }
-
-        // if user exists, do after-login-setup and return user,
-        // otherwise do cleanup and return null
-        if (user) {
-            await userLoggedInSetup(user);
-            return user;
-        } else {
-            await userManager.removeUser();
-            return null;
-        }
-    } catch (e) {
-        if (e instanceof Error) {
-            if (e.message.toLowerCase().indexOf('future') !== -1) {
-                window.alert('Login Failed! Possible Reasons: Your system clock is out of sync. Login time does not match the time of this action, so it was prohibited.');
-            }
-        }
-        removeHashAndQuerystring();
-        await userManager.clearStaleState();
-        await userManager.removeUser();
-        return null;
+    if (!forceRefresh && pendingAuthPromise) {
+        return pendingAuthPromise;
     }
+
+    pendingAuthPromise = fetch('/Api/Auth/Me', {
+        method: 'GET',
+        credentials: 'same-origin',
+        cache: 'no-store'
+    })
+        .then(async response => {
+            if (!response.ok) {
+                return { user: null, csrfToken: null };
+            }
+
+            const data = await response.json();
+            const user = data && data.isAuthenticated
+                ? {
+                    name: data.name,
+                    isAdmin: Boolean(data.isAdmin),
+                    profile: {
+                        name: data.name,
+                        role: data.isAdmin ? 'admin' : null
+                    }
+                }
+                : null;
+
+            return {
+                user: user,
+                csrfToken: data ? data.csrfToken || null : null
+            };
+        })
+        .catch(() => ({ user: null, csrfToken: null }))
+        .then(state => {
+            cachedAuthState = state;
+            pendingAuthPromise = null;
+            return state;
+        });
+
+    return pendingAuthPromise;
 }
 
-const createCustomErrorMessage = (obj, prop) => {
-    const potentialErrormessage = obj[prop];
-    if (potentialErrormessage && typeof(potentialErrormessage) === 'string' && potentialErrormessage.toLowerCase().indexOf('future') !== -1) {
-        return 'Login Failed! Possible Reasons: Your system clock is out of sync. Login time does not match the time of this action, so it was prohibited.';
+/**
+ * Returns the currently logged in user, or null if not authenticated.
+ * @param {boolean} [forceRefresh]
+ * @returns {Promise<object|null>}
+ */
+const getUser = async (forceRefresh = false) => {
+    const state = await fetchAuthState(forceRefresh);
+
+    if (state.user) {
+        await userLoggedInSetup(state.user);
+        return state.user;
     }
 
     return null;
-}
+};
+
+/**
+ * Returns the current anti-forgery token for state-changing API requests.
+ * @returns {Promise<string|null>}
+ */
+const getCsrfToken = async () => {
+    const state = await fetchAuthState(false);
+    return state.csrfToken;
+};
 
 /** redirects the user to the login page */
 const signin = () => {
-    const userManager = getUserManager();
-    userManager.signinRedirect();
-}
-
+    const returnUrl = window.location.pathname + window.location.search;
+    window.location.href = `/Account/Login?returnUrl=${encodeURIComponent(returnUrl)}`;
+};
 
 /** redirects the user to the logout page */
 const signout = () => {
-    const userManager = getUserManager();
-    userManager.signoutRedirect();
-}
-
+    window.location.href = '/Account/Logout';
+};
 
 /**
- * checks whether the user has the 'Admin' role claim set
- * @param {User|null} user
+ * checks whether the user has the 'admin' role
+ * @param {object|null} user
  * @returns {boolean}
  */
 const isAdmin = (user) => {
-    if (!user || !user.profile) {
+    if (!user) {
         return false;
     }
 
-    if (user.profile['role'] === 'admin') {
+    if (user.isAdmin === true) {
         return true;
     }
 
-    return false;
-}
+    return Boolean(user.profile && user.profile['role'] === 'admin');
+};
 
-
-/** 
- *  loads the admin backend if user is admin 
- *  @returns {Promise}
+/**
+ * loads the admin backend if user is admin
+ * @returns {Promise}
  */
 const tryloadAdminPages = user => {
     if (isAdmin(user)) {
@@ -149,25 +118,22 @@ const tryloadAdminPages = user => {
     } else {
         return Promise.resolve();
     }
-}
+};
 
-
-/** 
- *  loads the 'submit video' page for the logged in user 
- *  @returns {Promise}
+/**
+ * loads the 'submit video' page for the logged in user
+ * @returns {Promise}
  */
 const loadSubmitVideoPage = () => {
     return loadSciptIfNotExists('/js/dist/submit_episode.min.js');
-}
-
+};
 
 /**
  * runs once, after a user was found.
  * used to load admin backend and pages that only registered users can access
- * @param {User} user - the logged in user
+ * @param {object} user
  */
 const userLoggedInSetup = user => {
-    // only do this once
     if (!userWasFoundActionsExecuted) {
         userWasFoundActionsExecuted = true;
 
@@ -178,22 +144,22 @@ const userLoggedInSetup = user => {
     } else {
         return Promise.resolve();
     }
-}
-
+};
 
 const removeUser = () => {
-    const userManager = getUserManager();
-    return userManager.removeUser();
-}
-
+    cachedAuthState = null;
+    pendingAuthPromise = null;
+    userWasFoundActionsExecuted = false;
+    return Promise.resolve();
+};
 
 export {
     getUser,
+    getCsrfToken,
     signin,
     signout,
     isAdmin,
     tryloadAdminPages,
     loadSubmitVideoPage,
     removeUser
-}
-
+};

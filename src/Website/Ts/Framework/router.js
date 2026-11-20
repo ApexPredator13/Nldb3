@@ -1,7 +1,6 @@
-﻿import { renderNavigation } from './Customizable/Layout/navigation';
+import { renderNavigation } from './Customizable/Layout/navigation';
 import { renderMainContainer } from './Customizable/Layout/main';
 import { setGlobalChartOptions } from './Customizable/global-chart-options';
-import { getConfig } from './Customizable/config.development';
 import { removeUser } from './Customizable/authentication';
 import { renderCookieConsentIfNeeded } from './Customizable/Layout/cookie-consent';
 
@@ -307,16 +306,12 @@ const navigate = (requestedRoute, preventDefaultForEvent, specificPageType, push
     }
 };
 
-// TODO: base url in production mode
 const getCurrentRoute = () => {
-    const config = getConfig();
-    const url = window.location.href;
-    const baseUrlLength = config.baseUrlWithoutTrailingSlash.length;
-    if (url.length <= baseUrlLength || url.indexOf('?code=') !== -1) {
+    const pathname = window.location.pathname;
+    if (!pathname || pathname === '/') {
         return '/';
-    } else {
-        return url.substring(baseUrlLength);
     }
+    return pathname;
 }
 
 

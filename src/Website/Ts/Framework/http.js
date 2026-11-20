@@ -1,9 +1,9 @@
-﻿import { getUser } from "./Customizable/authentication";
+import { getCsrfToken } from "./Customizable/authentication";
 import { modal } from "./renderer";
 import { notLoggedIn } from "../Components/General/modal-contents";
 
-async function createHeaders(body, authorized) {
-    if (!body && !authorized) {
+async function createHeaders(body, includeCsrf = false) {
+    if (!body && !includeCsrf) {
         return undefined;
     }
 
@@ -13,10 +13,10 @@ async function createHeaders(body, authorized) {
         headers.set('Content-Type', 'application/json');
     }
 
-    if (authorized) {
-        const user = await getUser(false);
-        if (user) {
-            headers.set('Authorization', `${user.token_type} ${user.access_token}`);
+    if (includeCsrf) {
+        const csrfToken = await getCsrfToken();
+        if (csrfToken) {
+            headers.set('RequestVerificationToken', csrfToken);
         }
     }
 
@@ -26,7 +26,7 @@ async function createHeaders(body, authorized) {
 
 async function request(url, requestInit, displayError = true) {
     try {
-        const response = await fetch(url, requestInit);
+        const response = await fetch(url, { credentials: 'same-origin', ...requestInit });
 
         if (response.status === 401) {
             if (displayError) {
@@ -61,29 +61,38 @@ async function request(url, requestInit, displayError = true) {
 }
 
 async function requestResponse(url, requestInit) {
-    return fetch(url, requestInit);
+    return fetch(url, { credentials: 'same-origin', ...requestInit });
 }
 
 
-
 async function get(url, authorized = false, displayError = true) {
-    const headers = await createHeaders(undefined, authorized);
+    const headers = await createHeaders(undefined, false);
     return request(url, { method: 'GET', headers: headers }, displayError);
 }
 
 async function getResponse(url, authorized = false) {
-    const headers = await createHeaders(undefined, authorized);
+    const headers = await createHeaders(undefined, false);
     return requestResponse(url, { method: 'GET', headers: headers });
 }
 
 async function post(url, body, authorized = false, displayError = true) {
-    const headers = await createHeaders(body, authorized);
+    const headers = await createHeaders(body, true);
     return request(url, { method: 'POST', headers: headers, body: body }, displayError);
 }
 
 async function postResponse(url, body, authorized = false) {
-    const headers = await createHeaders(body, authorized);
+    const headers = await createHeaders(body, true);
     return requestResponse(url, { method: 'POST', headers: headers, body: body });
+}
+
+async function del(url, authorized = false, displayError = true) {
+    const headers = await createHeaders(undefined, true);
+    return request(url, { method: 'DELETE', headers: headers }, displayError);
+}
+
+async function deleteResponse(url, authorized = false) {
+    const headers = await createHeaders(undefined, true);
+    return requestResponse(url, { method: 'DELETE', headers: headers });
 }
 
 
@@ -92,6 +101,7 @@ export {
     getResponse,
     post,
     postResponse,
+    del,
+    deleteResponse,
     createHeaders
 }
-

@@ -1,9 +1,7 @@
-﻿import { registerPage, navigate } from "../Framework/router";
+import { registerPage, navigate } from "../Framework/router";
 import { getUser, signin } from "../Framework/Customizable/authentication";
 import { Html, H1, t, Hr, P, span, cl, event, br, img, src, Div, div, p } from "../Framework/renderer";
-import { User } from "oidc-client";
 import { get } from "../Framework/http";
-import { createSingleQuote } from "./quotes";
 import { Link } from "./_link-creator";
 import { QuoteCreator } from "../Components/Quote/quote-creator";
 

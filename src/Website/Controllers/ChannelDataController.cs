@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 using System;
 using System.Collections.Generic;
@@ -30,7 +30,7 @@ namespace Website.Controllers
             _config = config;
         }
 
-        [HttpGet, HttpPost]
+        [HttpGet, HttpPost, IgnoreAntiforgeryToken]
         public async Task<ActionResult> Index()
         {
             // subscription confirmation

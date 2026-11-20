@@ -1,7 +1,7 @@
-﻿import { registerPage, navigate } from "../Framework/router";
+import { registerPage, navigate } from "../Framework/router";
 import { Html, H1, t, Hr, Div, h2, form, event, textarea, attr, input, div, formButton, modal, p, button } from "../Framework/renderer";
 import { getUser } from "../Framework/Customizable/authentication";
-import { get } from "../Framework/http";
+import { get, deleteResponse } from "../Framework/http";
 import { FormHelper } from "../Framework/forms";
 import { Link } from "./_link-creator";
 import { modalContent } from "../Framework/Customizable/Layout/modal-content";
@@ -130,9 +130,7 @@ EditQuotePage.prototype = {
     deleteQuote: function () {
         getUser(false).then(user => {
             if (user) {
-                const headers = new Headers();
-                headers.append('Authorization', `${user.token_type} ${user.access_token}`);
-                fetch(`/Api/Quotes/${this.quoteId.toString(10)}`, { method: 'DELETE', headers: headers }).then(response => {
+                deleteResponse(`/Api/Quotes/${this.quoteId.toString(10)}`, true).then(response => {
                     if (response.ok) {
                         navigate(this.link.editQuote(this.quoteId), undefined, undefined, false, true, true);
                     } else {
