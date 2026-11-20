@@ -199,13 +199,6 @@ namespace Website
         {
             app.ApplyEntityFrameworkDatabaseMigrations();
 
-            app.UseCors(x =>
-            {
-                x.AllowAnyOrigin();
-                x.AllowAnyHeader();
-                x.AllowAnyMethod();
-            });
-
             var forwardOptions = new ForwardedHeadersOptions()
             {
                 ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
