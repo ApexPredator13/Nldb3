@@ -27,6 +27,7 @@
 
 # sql dump of the database
 /src/Website/wwwroot/dump/*
+/src/Website/AppData/
 
 # compiled javascript files
 /src/Website/wwwroot/js/dist/*
@@ -359,4 +360,3 @@ ASALocalRun/
 
 # MFractors (Xamarin productivity tool) working folder 
 .mfractor/
-src/Website/wwwroot/img/isaac.png

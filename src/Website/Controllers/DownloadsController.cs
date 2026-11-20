@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
-using System.IO;
+using Website.Infrastructure;
 
 namespace Website.Controllers
 {
@@ -19,14 +19,13 @@ namespace Website.Controllers
         [HttpGet]
         public ActionResult DownloadFile()
         {
-            if (Infrastructure.SqlDumper.currentlyRecreatingDump) {
-                return BadRequest("The SQL Dump is currently being recreated. Please wait a few seconds and try again.");
+            var sqlDumpPath = SqlDumper.GetDumpFilePath(_env);
+            if (!System.IO.File.Exists(sqlDumpPath))
+            {
+                return NotFound("The SQL dump has not been generated yet. Please try again shortly.");
             }
 
-            var sqlDumpPath = Path.Combine(_env.WebRootPath, "dump", "nldb_dump.sql");
-            return PhysicalFile(sqlDumpPath, "APPLICATION/octet-stream", "NorthernlionDatabase_SQL_Dump.sql");
+            return PhysicalFile(sqlDumpPath, "application/octet-stream", "NorthernlionDatabase_SQL_Dump.sql");
         }
     }
 }
-
-

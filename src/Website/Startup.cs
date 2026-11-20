@@ -104,10 +104,7 @@ namespace Website
                 options.Password.RequireUppercase = false;
                 options.SignIn.RequireConfirmedEmail = false;
                 options.SignIn.RequireConfirmedPhoneNumber = false;
-                // Keep AllowedUserNameCharacters permissive for legacy/external accounts and [removed account];
-                // new/changed usernames are validated on the input models.
                 options.User.AllowedUserNameCharacters = string.Empty;
-                // External logins (Steam/Twitch/Twitter) may have no email; non-empty email uniqueness is enforced in Account/MyAccount controllers.
                 options.User.RequireUniqueEmail = false;
             })
                 .AddDefaultTokenProviders()
