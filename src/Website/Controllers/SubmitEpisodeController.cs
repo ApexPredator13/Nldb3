@@ -23,7 +23,7 @@ namespace Website.Controllers
             _userManager = userManager;
         }
 
-        [HttpGet("currently_adding/{id}")]
+        [HttpGet("currently_adding/{id}"), Authorize]
         public async Task<ActionResult> CurrentlyAdding(string id)
         {
             await _videoRepository.SetVideoIsCurrentlyBeingAdded(id);
@@ -38,6 +38,11 @@ namespace Website.Controllers
             if (user is null)
             {
                 return BadRequest("User was not found or is not logged in.");
+            }
+
+            if (string.IsNullOrWhiteSpace(episode.VideoId) || !await _videoRepository.VideoExists(episode.VideoId))
+            {
+                return NotFound("The specified video does not exist.");
             }
 
             await _videoRepository.UpdateVideoWithYoutubeData(episode.VideoId);
