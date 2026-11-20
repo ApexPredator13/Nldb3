@@ -61,6 +61,7 @@ namespace Website
             services.Configure<KestrelServerOptions>(options =>
             {
                 options.AllowSynchronousIO = true;
+                options.AddServerHeader = false;
             });
 
             // hangfire
@@ -222,6 +223,7 @@ namespace Website
             }
 
             app.UseHttpsRedirection();
+            app.UseMiddleware<SecurityHeadersMiddleware>();
             app.UseStaticFiles();
 
             app.UseRouting();
