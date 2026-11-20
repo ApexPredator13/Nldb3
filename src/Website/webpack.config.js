@@ -1,13 +1,11 @@
-﻿const path = require('path');
-const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
-const CopyPlugin = require('copy-webpack-plugin');
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 
 module.exports = (env, argv) => {
 
     if (!argv.mode) {
-        console.warn('WARNING - webpack mode not detected, defaulting to \'production\'.');
+        console.warn('WARNING - webpack mode not detected, defaulting to \'development\'.');
     }
 
     const mode = argv.mode ? argv.mode : 'development';
@@ -36,33 +34,22 @@ module.exports = (env, argv) => {
         output: {
             path: path.resolve(__dirname, 'wwwroot', 'js', 'dist'),
             filename: '[name].min.js',
-            publicPath: path.resolve(__dirname, 'wwwroot')
+            publicPath: '/js/dist/',
+            clean: true
         },
         resolve: {
             alias: {
-                [path.resolve(__dirname, 'Ts/Framework/Customizable/config.development.js')] :
-                    mode === 'development' 
-                    ? path.resolve(__dirname, 'Ts/Framework/Customizable/config.development.js')
-                    : path.resolve(__dirname, 'Ts/Framework/Customizable/config.production.js')
+                [path.resolve(__dirname, 'Ts/Framework/Customizable/config.development.js')]:
+                    mode === 'development'
+                        ? path.resolve(__dirname, 'Ts/Framework/Customizable/config.development.js')
+                        : path.resolve(__dirname, 'Ts/Framework/Customizable/config.production.js')
             },
-            extensions: [ '.js' ]
+            extensions: ['.js']
         },
         plugins: [
-            new CleanWebpackPlugin(),
             new MiniCssExtractPlugin({
-                    filename: '[name].css',
-            }),
-            new OptimizeCssAssetsPlugin(),
-            new CopyPlugin(
-                {
-                    patterns: [
-                        { 
-                            from: path.resolve(__dirname, 'node_modules', 'oidc-client', 'dist', 'oidc-client.slim.min.js'),
-                            to: path.resolve(__dirname, 'wwwroot', 'js', 'oidc-client.slim.min.js')
-                        }
-                    ]
-                }
-            )
+                filename: '[name].css',
+            })
         ],
         module: {
             rules: [
@@ -70,7 +57,12 @@ module.exports = (env, argv) => {
                     test: /\.css$/,
                     use: [
                         MiniCssExtractPlugin.loader,
-                        'css-loader?url=false'
+                        {
+                            loader: 'css-loader',
+                            options: {
+                                url: false
+                            }
+                        }
                     ],
                 }
             ]
@@ -80,6 +72,10 @@ module.exports = (env, argv) => {
             moment: 'moment'
         },
         optimization: {
+            minimizer: [
+                '...',
+                new CssMinimizerPlugin()
+            ],
             runtimeChunk: 'single',
             splitChunks: {
                 minSize: 0,
@@ -104,4 +100,4 @@ module.exports = (env, argv) => {
             hints: false
         }
     };
-}
+};
