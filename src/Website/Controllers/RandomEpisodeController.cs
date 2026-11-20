@@ -66,7 +66,7 @@ namespace Website.Controllers
                     connection, 
                     "SELECT id FROM videos WHERE published >= @Start AND published <= @End ORDER BY RANDOM() LIMIT 1;", 
                     _npgsql.Parameter("@Start", NpgsqlDbType.TimestampTz, ImportantDates.afterbirthPlusStart),
-                    _npgsql.Parameter("@End", NpgsqlDbType.TimestampTz, new DateTime(2100, 1, 1))),
+                    _npgsql.Parameter("@End", NpgsqlDbType.TimestampTz, new DateTime(2100, 1, 1, 0, 0, 0, DateTimeKind.Utc))),
 
                 "antibirth"
                 => _npgsql.Command(

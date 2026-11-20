@@ -1,4 +1,4 @@
-﻿using Npgsql;
+using Npgsql;
 using NpgsqlTypes;
 using System;
 using System.Collections.Generic;
@@ -1314,6 +1314,13 @@ namespace Website.Data
         }
 
 
+        private static DateTime EnsureUtc(DateTime value) => value.Kind switch
+        {
+            DateTimeKind.Utc => value,
+            DateTimeKind.Local => value.ToUniversalTime(),
+            _ => DateTime.SpecifyKind(value, DateTimeKind.Utc)
+        };
+
         public async Task<(bool allowsMultiple, string? transformationId, string? requiredTitleString)> IsTransformativeForPointInTime(string isaacResourceId, DateTime pointInTime)
         {
             string commandText =
@@ -1326,7 +1333,7 @@ namespace Website.Data
             using var connection = await _npgsql.Connect();
             using var command = _npgsql.Command(connection, commandText, 
                 _npgsql.Parameter("@IsaacResource", NpgsqlDbType.Text, isaacResourceId),
-                _npgsql.Parameter("@PointInTime", NpgsqlDbType.TimestampTz, pointInTime));
+                _npgsql.Parameter("@PointInTime", NpgsqlDbType.TimestampTz, EnsureUtc(pointInTime)));
 
             using var reader = await command.ExecuteReaderAsync();
             
@@ -1353,8 +1360,8 @@ namespace Website.Data
             command.Parameters.AddWithValue("@CM", NpgsqlDbType.Boolean, model.CanCountMultipleTimes);
             command.Parameters.AddWithValue("@RT", NpgsqlDbType.Text, model.RequiresTitleContent ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@SN", NpgsqlDbType.Integer, model.StepsNeeded);
-            if (model.ValidFrom.HasValue) command.Parameters.AddWithValue("@VF", NpgsqlDbType.TimestampTz, model.ValidFrom ?? (object)DBNull.Value);
-            if (model.ValidUntil.HasValue) command.Parameters.AddWithValue("@VU", NpgsqlDbType.TimestampTz, model.ValidUntil ?? (object)DBNull.Value);
+            if (model.ValidFrom.HasValue) command.Parameters.AddWithValue("@VF", NpgsqlDbType.TimestampTz, EnsureUtc(model.ValidFrom.Value));
+            if (model.ValidUntil.HasValue) command.Parameters.AddWithValue("@VU", NpgsqlDbType.TimestampTz, EnsureUtc(model.ValidUntil.Value));
 
             return Convert.ToInt32(await command.ExecuteScalarAsync());
         }
@@ -1413,7 +1420,7 @@ namespace Website.Data
             using var command = new NpgsqlCommand(commandText, connection);
 
             command.Parameters.AddWithValue("@I", NpgsqlDbType.Text, resourceId);
-            command.Parameters.AddWithValue("@R", NpgsqlDbType.TimestampTz, videoReleasedate);
+            command.Parameters.AddWithValue("@R", NpgsqlDbType.TimestampTz, EnsureUtc(videoReleasedate));
 
             using var reader = await command.ExecuteReaderAsync();
 

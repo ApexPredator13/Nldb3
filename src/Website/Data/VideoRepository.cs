@@ -312,7 +312,7 @@ namespace Website.Data
             DateTime? result = null;
 
             using var c = await _npgsql.Connect();
-            using var q = new NpgsqlCommand("SELECT published AT TIME ZONE 'UTC' FROM videos WHERE id = @Id; ", c);
+            using var q = new NpgsqlCommand("SELECT published FROM videos WHERE id = @Id; ", c);
             q.Parameters.AddWithValue("@Id", NpgsqlDbType.Text, videoId);
 
             using var r = await q.ExecuteReaderAsync();
@@ -320,7 +320,7 @@ namespace Website.Data
             if (r.HasRows)
             {
                 r.Read();
-                result = r.GetDateTime(0);
+                result = r.IsDBNull(0) ? null : r.GetDateTime(0);
             }
 
             return result;
@@ -532,7 +532,7 @@ namespace Website.Data
 
             // check if any mods were used
             var usedMods = await _modRepository.GetUsedModsForSubmittedEpisode(episode);
-            var videoReleasedate = await GetVideoReleasedate(episode.VideoId) ?? DateTime.Now;
+            var videoReleasedate = await GetVideoReleasedate(episode.VideoId) ?? DateTime.UtcNow;
             var videoTitle = await GetVideoTitle(episode.VideoId) ?? string.Empty;
             var videoLength = await GetVideoLength(episode.VideoId);
             var transformationProgress = new List<TransformationProgress>();

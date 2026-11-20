@@ -1,4 +1,4 @@
-﻿using Npgsql;
+using Npgsql;
 using NpgsqlTypes;
 using System;
 using System.Collections.Generic;
@@ -39,7 +39,7 @@ namespace Website.Data
             using var connection = await _npgsql.Connect();
             using var command = new NpgsqlCommand(commandText, connection);
             command.Parameters.AddWithValue("@UserId", NpgsqlDbType.Text, userId);
-            command.Parameters.AddWithValue("@NowMinus15Seconds", NpgsqlDbType.TimestampTz, DateTime.Now - TimeSpan.FromSeconds(15));
+            command.Parameters.AddWithValue("@NowMinus15Seconds", NpgsqlDbType.TimestampTz, DateTime.UtcNow - TimeSpan.FromSeconds(15));
             using var r = await command.ExecuteReaderAsync();
             if (r.HasRows)
             {
