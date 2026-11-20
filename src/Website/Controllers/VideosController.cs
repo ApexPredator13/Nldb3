@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Website.Models;
@@ -32,6 +32,9 @@ namespace Website.Controllers
             {
                 request = new IsaacSearchOptions();
             }
+
+            request.Page = System.Math.Max(1, request.Page);
+            request.Amount = System.Math.Clamp(request.Amount, 1, 200);
 
             return await _videoRepository.GetVideos(request);
         }
