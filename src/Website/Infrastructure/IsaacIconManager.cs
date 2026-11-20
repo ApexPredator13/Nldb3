@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Hosting;
 using SixLabors.ImageSharp.PixelFormats;
 using Website.Services;
 using Microsoft.AspNetCore.Http;
-using SixLabors.ImageSharp.Formats.Png;
 
 namespace Website.Infrastructure
 {
@@ -47,25 +46,20 @@ namespace Website.Infrastructure
         {
             var fileExtension = Path.GetExtension(file.FileName);
 
-            if (fileExtension != ".png")
+            if (!string.Equals(fileExtension, ".png", StringComparison.OrdinalIgnoreCase))
             {
                 throw new Exception("invalid file format - must be .png!");
             }
 
             using var ms = new MemoryStream();
             await file.CopyToAsync(ms);
-            var imageDecoder = new PngDecoder();
+            ms.Position = 0;
 
-            if (ms.Position == ms.Length)
+            var info = await Image.IdentifyAsync(ms);
+
+            if (info is not null && string.Equals(info.Metadata.DecodedImageFormat?.Name, "PNG", StringComparison.OrdinalIgnoreCase))
             {
-                ms.Position = ms.Seek(0, SeekOrigin.Begin);
-            }
-
-            var image = imageDecoder.Decode<Rgba32>(Configuration.Default, ms, System.Threading.CancellationToken.None);
-
-            if (image != null)
-            {
-                return (image.Width, image.Height);
+                return (info.Width, info.Height);
             }
             else
             {
@@ -119,7 +113,8 @@ namespace Website.Infrastructure
 
             using (var bigImage = GetDefaultImage())
             {
-                using (var icon = Image.Load<Rgba32>(image.OpenReadStream()))
+                using (var iconStream = image.OpenReadStream())
+                using (var icon = Image.Load<Rgba32>(iconStream))
                 {
                     RemoveTransparentBorder(icon);
                     width = icon.Width;
@@ -143,9 +138,6 @@ namespace Website.Infrastructure
 
                 bigImage.Save(_defaultIsaacImage);
             }
-
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
 
             return (width, height);
         }
