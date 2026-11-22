@@ -1,5 +1,3 @@
-﻿import { Html, Div, cl, div, input, attr, event, span, t, style, id } from "../../Framework/renderer";
-import { removeClassIfExists, addClassIfNotExists } from "../../Framework/browser";
 import "../../Framework/Customizable/typedefs.js";
 
 /**
@@ -18,135 +16,164 @@ function Searchbox(caller, sub, searchboxId, resources, displayType, containerId
     this.sub = sub;
     this.searchboxId = searchboxId;
     this.displayType = displayType;
+    this.items = [];
+    this.searchInput = null;
+    this.listContainer = null;
 
-    // renders the initial HTML
-    new Html([
-        Div(
-            event('mouseover', this.focusOnMouseover),
-            cl('dd-container'),
+    const host = document.getElementById(containerId);
+    if (!host) {
+        return;
+    }
 
-            div(
-                cl('dd-search'),
-                input(
-                    attr({ type: 'text', class: 'dd-searchbox', placeholder: 'filter...' }),
-                    event('input', this.filter),
-                    event('keydown', this.keyboardEvent)
-                )
-            ),
-            div(
-                id(`s${searchboxId.toString(10)}`),
-                span(
-                    t('loading resources...')
-                )
-            )
-        )
-    ], containerId, true, replaceContent);
+    const container = document.createElement('div');
+    container.className = 'dd-container';
+    container.addEventListener('mouseenter', () => this.tryFocusOnSearchbox());
+
+    const searchWrapper = document.createElement('div');
+    searchWrapper.className = 'dd-search';
+
+    const searchInput = document.createElement('input');
+    searchInput.type = 'text';
+    searchInput.className = 'dd-searchbox';
+    searchInput.placeholder = 'filter...';
+    searchInput.addEventListener('input', e => this.filter(e));
+    searchInput.addEventListener('keydown', e => this.keyboardEvent(e));
+    this.searchInput = searchInput;
+
+    searchWrapper.appendChild(searchInput);
+
+    const listContainer = document.createElement('div');
+    listContainer.id = `s${searchboxId.toString(10)}`;
+    const loadingSpan = document.createElement('span');
+    loadingSpan.textContent = 'loading resources...';
+    listContainer.appendChild(loadingSpan);
+    this.listContainer = listContainer;
+
+    container.appendChild(searchWrapper);
+    container.appendChild(listContainer);
+
+    if (replaceContent) {
+        host.replaceChildren(container);
+    } else {
+        host.appendChild(container);
+    }
 
     // renders the searchbox content
     if (Array.isArray(resources)) {
         this.createSearchboxContent(resources);
-    } else {
-        resources.then(resources => this.createSearchboxContent(resources));
+    } else if (resources && typeof resources.then === 'function') {
+        resources.then(resolved => this.createSearchboxContent(resolved));
     }
 
     // clears the searchbox when it appears
-    // -> better usability if it was displayed by a keypress
     setTimeout(() => {
-        var searchboxes = document.getElementsByClassName('dd-searchbox');
-        if (searchboxes && searchboxes.length) {
-            for (var i = 0; i < searchboxes.length; ++i) {
-                searchboxes[i].value = '';
-            }
+        if (this.searchInput) {
+            this.searchInput.value = '';
         }
     }, 10);
 }
 
 
-
 Searchbox.prototype = {
 
     /**
-     * renders the searchbox
+     * renders the searchbox into a DocumentFragment with a single delegated click handler
      * @param {IsaacResource[]} resources
      */
     createSearchboxContent: function (resources) {
+        const listContainer = this.listContainer || document.getElementById(`s${this.searchboxId.toString(10)}`);
+        if (!listContainer || !listContainer.isConnected) {
+            return;
+        }
+
         if (!resources || resources.length === 0) {
-            new Html([
-                Div(
-                    t('No resources found')
-                )
-            ], `s${this.searchboxId.toString(10)}`, true, true);
-        } else {
-            new Html([
-                Div(
-                    cl('dd-dropdown'),
-                    ...resources.map(resource => {
+            this.items = [];
+            const emptyDiv = document.createElement('div');
+            emptyDiv.textContent = 'No resources found';
+            listContainer.replaceChildren(emptyDiv);
+            this.tryFocusOnSearchbox();
+            return;
+        }
 
-                        const x = resource.x <= 0 ? '0px' : `-${resource.x.toString(10)}px`;
-                        const y = resource.y <= 0 ? '0px' : `-${resource.y.toString(10)}px`;
-                        const w = resource.w <= 0 ? '0px' : `${resource.w.toString(10)}px`;
-                        const h = resource.h <= 0 ? '0px' : `${resource.h.toString(10)}px`;
-                        const s = `background: url('/img/isaac.png') ${x} ${y} transparent; width: ${w}; height: ${h}`;
+        const dropdown = document.createElement('div');
+        dropdown.className = 'dd-dropdown';
+        dropdown.addEventListener('click', e => this.lineClickEvent(e));
 
-                        let displayName = resource.name;
+        const fragment = document.createDocumentFragment();
+        const count = resources.length;
+        const items = new Array(count);
+        const displayType = this.displayType;
 
-                        if (this.displayType) {
-                            switch (resource.resource_type) {
-                                case 11: displayName += ' (killed by)'; break;
-                                case 7: displayName += ' (item source)'; break;
-                                case 14: displayName += ' (character reroll)'; break;
-                                case 1: displayName += ' (bossfight)'; break;
-                            }
-                        }
+        for (let i = 0; i < count; ++i) {
+            const resource = resources[i];
+            const name = resource.name || '';
+            let displayName = name;
 
-                        return div(
-                            attr({ class: 'dd-line', title: resource.name, di: resource.id, dl: resource.name.toLowerCase() }),
-                            event('click', e => this.lineClickEvent(e)),
-                            div(
-                                t(displayName),
-                                cl('dd-text')
-                            ),
-                            div(
-                                cl('dd-image'),
-                                style(s)
-                            )
-                        );
-                    })
-                )
-            ], `s${this.searchboxId.toString(10)}`, true, true);
+            if (displayType) {
+                switch (resource.resource_type) {
+                    case 11: displayName += ' (killed by)'; break;
+                    case 7: displayName += ' (item source)'; break;
+                    case 14: displayName += ' (character reroll)'; break;
+                    case 1: displayName += ' (bossfight)'; break;
+                }
+            }
+
+            const line = document.createElement('div');
+            line.className = 'dd-line';
+            line.title = name;
+            line.setAttribute('di', resource.id);
+
+            const textDiv = document.createElement('div');
+            textDiv.className = 'dd-text';
+            textDiv.textContent = displayName;
+
+            const imgDiv = document.createElement('div');
+            imgDiv.className = 'dd-image';
+            const x = resource.x <= 0 ? '0px' : `-${resource.x}px`;
+            const y = resource.y <= 0 ? '0px' : `-${resource.y}px`;
+            const w = resource.w <= 0 ? '0px' : `${resource.w}px`;
+            const h = resource.h <= 0 ? '0px' : `${resource.h}px`;
+            imgDiv.style.backgroundPosition = `${x} ${y}`;
+            imgDiv.style.width = w;
+            imgDiv.style.height = h;
+
+            line.appendChild(textDiv);
+            line.appendChild(imgDiv);
+            fragment.appendChild(line);
+
+            items[i] = {
+                el: line,
+                id: resource.id,
+                text: name.toLowerCase(),
+                hidden: false
+            };
+        }
+
+        this.items = items;
+        dropdown.appendChild(fragment);
+        listContainer.replaceChildren(dropdown);
+
+        if (this.searchInput && this.searchInput.value) {
+            this.applyFilter(this.searchInput.value.toLowerCase());
         }
 
         this.tryFocusOnSearchbox();
     },
 
-
     /**
-     * focuses on the input element when the user hovers over the searchbox
-     * @param {Event} e - the raw hover event
+     * selects the top visible element in the searchbox on Enter
+     * @param {KeyboardEvent} e - the raw keydown event
      */
-    focusOnMouseover: function(e) {
-        e.stopPropagation();
-        const searchBoxes = e.target.getElementsByClassName('dd-searchbox');
-        if (searchBoxes && searchBoxes.length > 0) {
-            const firstSearchBox = searchBoxes[0];
-            firstSearchBox.focus();
-        }
-    },
-
-    /**
-     * selects the top element in the searchbox
-     * @param {Event} e - the raw keydown event 
-     */
-    keyboardEvent: function(e) {
+    keyboardEvent: function (e) {
         if (e.key === 'Enter') {
-            const elements = e.target.parentElement.parentElement.getElementsByClassName('dd-line');
-            for (let i = 0; i < elements.length; ++i) {
-                const element = elements[i];
-                if (!element.classList.contains('display-none')) {
-                    element.style.backgroundColor = 'rgba(255,255,255,0.3)';
-                    element.style.border = '1px solid white;'
+            const items = this.items;
+            for (let i = 0; i < items.length; ++i) {
+                const item = items[i];
+                if (!item.hidden) {
+                    item.el.style.backgroundColor = 'rgba(255,255,255,0.3)';
+                    item.el.style.border = '1px solid white';
                     setTimeout(() => {
-                        element.click();
+                        this.selectId(item.id);
                     }, 100);
                     break;
                 }
@@ -155,66 +182,78 @@ Searchbox.prototype = {
     },
 
     /**
-     * focuses on the first searchbox input element on the page
+     * focuses on this searchbox's input element
      */
-    tryFocusOnSearchbox: function() {
-        const searchboxes = document.getElementsByClassName('dd-searchbox');
-        if (searchboxes && searchboxes.length > 0 && searchboxes[0].focus) {
-            searchboxes[0].focus();
+    tryFocusOnSearchbox: function () {
+        if (this.searchInput && this.searchInput.isConnected) {
+            this.searchInput.focus();
         }
     },
 
-
     /**
-     * processes the click event after the user selected something and notifies the subscriber
-     * @param {Event} e - the raw click event
+     * notifies the subscriber of a selected resource ID
+     * @param {string} id
      */
-    lineClickEvent: function (e) {
-        const target = e.target;
-        let id = null;
-
-        if (target.className === 'dd-line') {
-            id = target.getAttribute('di');
-        } else if ((target.className === 'dd-text' || target.className === 'dd-image')) {
-            id = target.parentElement.getAttribute('di');
-        }
-
-        if (id) {
+    selectId: function (id) {
+        if (id && this.sub) {
             this.sub.call(this.caller, id);
         }
     },
 
+    /**
+     * processes delegated click events on the dropdown
+     * @param {MouseEvent} e - the raw click event
+     */
+    lineClickEvent: function (e) {
+        const line = e.target && e.target.closest ? e.target.closest('.dd-line') : null;
+        if (line) {
+            this.selectId(line.getAttribute('di'));
+        }
+    },
+
+    /**
+     * filters the cached item array in memory, only touching the DOM when visibility changes
+     * @param {string} value - lowercased search query
+     */
+    applyFilter: function (value) {
+        const items = this.items;
+        const len = items.length;
+
+        if (!value) {
+            for (let i = 0; i < len; ++i) {
+                const item = items[i];
+                if (item.hidden) {
+                    item.hidden = false;
+                    item.el.classList.remove('display-none');
+                }
+            }
+            return;
+        }
+
+        for (let i = 0; i < len; ++i) {
+            const item = items[i];
+            const shouldHide = item.text.indexOf(value) === -1;
+            if (shouldHide !== item.hidden) {
+                item.hidden = shouldHide;
+                if (shouldHide) {
+                    item.el.classList.add('display-none');
+                } else {
+                    item.el.classList.remove('display-none');
+                }
+            }
+        }
+    },
 
     /**
      * filters the searchbox
      * @param {Event} e - the raw input event
      */
-    filter: function(e) {
-        const value = e.target.value.toLowerCase();
-        const parent = e.target.parentElement;
-        const linesContainer = parent.nextElementSibling;
-        const lines = linesContainer.getElementsByClassName('dd-line');
-
-        if (!value) {
-            for (let i = 0; i < lines.length; ++i) {
-                removeClassIfExists(lines[i], 'display-none');
-            }
-        } else {
-            for (let i = 0; i < lines.length; ++i) {
-                const text = lines[i].getAttribute('dl');
-                if (text && text.indexOf(value) === -1) {
-                    addClassIfNotExists(lines[i], 'display-none');
-                } else {
-                    removeClassIfExists(lines[i], 'display-none');
-                }
-            }
-        }
+    filter: function (e) {
+        this.applyFilter(e.target.value.toLowerCase());
     }
 };
 
 
-
 export {
     Searchbox
-}
-
+};

@@ -1,4 +1,4 @@
-﻿.highlight {
+.highlight {
     background-color: rgba(255,255,255,0.2);
 }
 .dd-container {
@@ -47,9 +47,16 @@
     flex-wrap: nowrap;
     justify-content: space-between;
     align-items: center;
+    content-visibility: auto;
+    contain-intrinsic-size: auto 34px;
 }
 .dd-line:hover {
     background-color: rgba(255,255,255,0.1);
+}
+.dd-dropdown .dd-image {
+    background-image: url('/img/isaac.png');
+    background-color: transparent;
+    background-repeat: no-repeat;
 }
 .dd-image, .dd-text {
     display: block;
