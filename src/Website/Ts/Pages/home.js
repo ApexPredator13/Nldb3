@@ -1,7 +1,6 @@
-﻿import { Html, Div, h1, p, P, div, hr, cl, id, h3, style, attr, t, do_nothing } from "../Framework/renderer";
+import { Html, Div, h1, p, P, div, hr, cl, id, style, t } from "../Framework/renderer";
 import { topic } from "../Components/Home/topic";
 import { get } from "../Framework/http";
-import { rankImage, rankName } from "../Components/Home/Rank";
 import { statHeader, statImage, statText } from "../Components/Home/stat";
 import { registerPage, initRouter, PAGE_TYPE_ISAAC_RESOURCE } from "../Framework/router";
 import { Link, RO_ITEMS, RO_ITEMSOURCES, RO_BOSSES, RO_CHARACTERS, RO_FLOORS, RO_TRANS } from "./_link-creator";
@@ -69,10 +68,12 @@ HomePage.prototype = {
     /** loads fun & facts from the server and displays it */
     renderBelowTheFoldContent: function () {
         Promise.all([
-            get('/frontpage/top-users'),
             get('/frontpage'),
             get('/api/videos/today')
-        ]).then(([topUsers, data, today]) => {
+        ]).then(([data, today]) => {
+            if (!data) {
+                throw new Error('Front page data unavailable');
+            }
 
             const link = new Link();
 
@@ -81,38 +82,6 @@ HomePage.prototype = {
                     div(
                         p(
                             t(`Today, ${today} ${today === 1 ? 'episode has' : 'episodes have'} been added to the database!`)
-                        )
-                    ),
-                    div(
-                        id('top-contributors-container'),
-
-                        div(
-                            cl('fp-contributors-header'),
-                            h3(
-                                t('Big thanks to our top contributors!!')
-                            )
-                        ),
-
-                        rankImage('0', '-1560'),
-                        rankName(topUsers[0], 1),
-                        rankImage('-50', '-1560'),
-                        rankName(topUsers[1], 2),
-                        rankImage('-100', '-1560'),
-                        rankName(topUsers[2], 3),
-
-                        div(
-                            cl('fp-contributors-header'),
-                            h3(
-                                t('...and all the other major contributors!')
-                            )
-                        ),
-
-                        div(
-                            style('padding: 0 20%; background-color: transparent; font-size: 1.1rem; border-top: none; grid-column-start: 1; grid-column-end: 3;'),
-                            p(
-                                attr({ style: 'padding-top: 0', id: 'major-contributors' }),
-                                t(topUsers.slice(3).map(user => user.name).join(', '))
-                            )
                         )
                     ),
 
