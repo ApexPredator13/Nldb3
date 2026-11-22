@@ -49,11 +49,6 @@ const CONFIRM_NO_BOSSFIGHT_ON_THIS_FLOOR = 25;
 const TAINTED_ISAAC_EVENTS = 26;
 
 
-const beforeUnloadEvent = e => {
-    e.preventDefault();
-    e.returnValue = '';
-}
-
 let mouseUpEvent = null;
 let mouseDownEvent = null;
 let interval = 0;
@@ -104,7 +99,7 @@ function SubmitVideoPage(parameters) {
 
     // mark video as 'is currently being added'
     interval = window.setInterval(() => {
-        fetch(`/SubmitEpisode/currently_adding/${parameters[0]}`, { method: 'GET' })
+        fetch(`/SubmitEpisode/currently_adding/${encodeURIComponent(parameters[0])}`, { method: 'GET', credentials: 'same-origin' });
     }, 12000);
 
     // prevent user from navigating away
@@ -122,9 +117,6 @@ function SubmitVideoPage(parameters) {
         removeClassIfExists(main, 'w80');
         addClassIfNotExists(main, 'w100');
     }
-
-    // add beforeUnload event
-    window.addEventListener('beforeunload', beforeUnloadEvent);
 
     // set all local variables
     /** @type {string} */
@@ -408,7 +400,6 @@ SubmitVideoPage.prototype = {
                     t('Yes, Leave!'),
                     event('click', e => {
                         e.preventDefault();
-                        window.removeEventListener('beforeunload', beforeUnloadEvent);
                         useRegularPopstateHandler();
                         hideModal();
                         goBack();
@@ -2276,10 +2267,8 @@ SubmitVideoPage.prototype = {
     /** displays the 'submission succeeded!' menu */
     menu_SubmitEpisodeSucceeded: function () {
 
-        // user is allowed to leave the page unpromptet now:
-        window.removeEventListener('beforeunload', beforeUnloadEvent);
+        // user is allowed to leave the page unprompted now:
         useRegularPopstateHandler();
-        window.cannotLeave = false;
 
         this.display(
             H2(t('Submission Succeeded!')),
@@ -2564,8 +2553,8 @@ function registerSubmitVideoPage() {
                 addClassIfNotExists(main, 'w80');
             }
 
-            // remove beforeUnload event
-            window.removeEventListener('beforeunload', beforeUnloadEvent);
+            // restore normal navigation handlers
+            useRegularPopstateHandler();
 
             // remove mouse controls
             if (mouseUpEvent) {

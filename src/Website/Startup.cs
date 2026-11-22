@@ -143,11 +143,6 @@ namespace Website
             });
 
             services.AddAuthentication()
-                .AddTwitter(options =>
-                {
-                    options.ConsumerKey = Config["TwitterConsumerKey"];
-                    options.ConsumerSecret = Config["TwitterConsumerSecret"];
-                })
                 .AddGoogle(options =>
                 {
                     options.ClientId = Config["GoogleClientId"];

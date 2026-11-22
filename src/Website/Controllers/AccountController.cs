@@ -215,13 +215,6 @@ namespace Website.Controllers
                         return steamName.Value;
                     }
                     break;
-                case "twitter":
-                    var twitterScreenName = info.Principal.Claims.FirstOrDefault(x => x.Type.ToLower() == "urn:twitter:screenname");
-                    if (twitterScreenName != null)
-                    {
-                        return twitterScreenName.Value;
-                    }
-                    break;
             }
 
             return string.Empty;

@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewData["Title"] = "External Logins";
     var currentLogins = (IList<Microsoft.AspNetCore.Identity.UserLoginInfo>)ViewData["CurrentLogins"];
     var otherLogins = (IList<Microsoft.AspNetCore.Authentication.AuthenticationScheme>)ViewData["OtherLogins"];
@@ -23,9 +23,6 @@
                 @(currentLogin.ProviderDisplayName ?? currentLogin.LoginProvider)
                 @switch ((currentLogin.ProviderDisplayName ?? currentLogin.LoginProvider).ToLower())
                 {
-                    case "twitter":
-                        <partial name="_IconTwitterPartial" />
-                        break;
                     case "google":
                         <partial name="_IconGooglePartial" />
                         break;
@@ -64,9 +61,6 @@
             @(otherLogin.DisplayName ?? otherLogin.Name)
             @switch ((otherLogin.DisplayName ?? otherLogin.Name).ToLower())
             {
-                case "twitter":
-                    <partial name="_IconTwitterPartial" />
-                    break;
                 case "google":
                     <partial name="_IconGooglePartial" />
                     break;
