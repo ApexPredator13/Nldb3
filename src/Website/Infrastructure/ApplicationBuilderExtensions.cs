@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
 using System.Security.Claims;
@@ -52,14 +53,17 @@ namespace Website.Infrastructure
         {
             using var serviceScope = CreateScope(app);
 
-            // migrate identityserver 
-
             var userManager = serviceScope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
             var config = serviceScope.ServiceProvider.GetRequiredService<IConfiguration>();
+            var logger = serviceScope.ServiceProvider.GetService<ILoggerFactory>()?.CreateLogger("StartupAccountSeeding");
 
-            if (userManager is null || config is null)
+            void LogIfFailed(string step, IdentityResult result)
             {
-                return;
+                if (!result.Succeeded)
+                {
+                    var errors = string.Join("; ", result.Errors.Select(e => $"{e.Code}: {e.Description}"));
+                    logger?.LogError("Admin/seed account step '{Step}' failed: {Errors}", step, errors);
+                }
             }
 
             // create admin account
@@ -68,37 +72,78 @@ namespace Website.Infrastructure
             var adminPassword = config["AdminPassword"];
             var adminId = config["AdminUserId"];
 
-            var admin = userManager.FindByEmailAsync(adminEmail).Result;
-
-            if (admin is null)
+            if (!string.IsNullOrWhiteSpace(adminEmail) && !string.IsNullOrWhiteSpace(adminUsername))
             {
-                admin = new IdentityUser(adminUsername)
-                {
-                    Id = adminId
-                };
+                var admin = userManager.FindByEmailAsync(adminEmail).Result
+                    ?? (!string.IsNullOrWhiteSpace(adminId) ? userManager.FindByIdAsync(adminId).Result : null)
+                    ?? userManager.FindByNameAsync(adminUsername).Result;
 
-                var result = userManager.CreateAsync(admin).Result;
-                result = userManager.SetEmailAsync(admin, adminEmail).Result;
-                result = userManager.AddPasswordAsync(admin, adminPassword).Result;
-                result = userManager.AddClaimAsync(admin, new Claim(ClaimTypes.Role, "admin")).Result;
-                var code = userManager.GenerateEmailConfirmationTokenAsync(admin).Result;
-                result = userManager.ConfirmEmailAsync(admin, code).Result;
+                if (admin is null)
+                {
+                    admin = new IdentityUser(adminUsername);
+                    if (!string.IsNullOrWhiteSpace(adminId))
+                    {
+                        admin.Id = adminId;
+                    }
+
+                    var createResult = userManager.CreateAsync(admin).Result;
+                    LogIfFailed("CreateAdmin", createResult);
+                    if (!createResult.Succeeded)
+                    {
+                        admin = null;
+                    }
+                }
+
+                if (admin is not null)
+                {
+                    if (!string.Equals(admin.Email, adminEmail, StringComparison.OrdinalIgnoreCase))
+                    {
+                        LogIfFailed("SetAdminEmail", userManager.SetEmailAsync(admin, adminEmail).Result);
+                    }
+
+                    if (!userManager.HasPasswordAsync(admin).Result)
+                    {
+                        if (string.IsNullOrEmpty(adminPassword))
+                        {
+                            logger?.LogError("Admin account has no password set and 'AdminPassword' is empty in configuration.");
+                        }
+                        else
+                        {
+                            LogIfFailed("AddAdminPassword", userManager.AddPasswordAsync(admin, adminPassword).Result);
+                        }
+                    }
+
+                    var existingClaims = userManager.GetClaimsAsync(admin).Result;
+                    if (!existingClaims.Any(c => c.Type == ClaimTypes.Role && c.Value == "admin"))
+                    {
+                        LogIfFailed("AddAdminRoleClaim", userManager.AddClaimAsync(admin, new Claim(ClaimTypes.Role, "admin")).Result);
+                    }
+
+                    if (!userManager.IsEmailConfirmedAsync(admin).Result)
+                    {
+                        var code = userManager.GenerateEmailConfirmationTokenAsync(admin).Result;
+                        LogIfFailed("ConfirmAdminEmail", userManager.ConfirmEmailAsync(admin, code).Result);
+                    }
+                }
             }
 
             // create [removed user] account
             var removedUserName = config["DeletedUserName"];
             var removedUserId = config["DeletedUserId"];
 
-            var removedUser = userManager.FindByIdAsync(removedUserId).Result;
-
-            if (removedUser is null)
+            if (!string.IsNullOrWhiteSpace(removedUserName) && !string.IsNullOrWhiteSpace(removedUserId))
             {
-                removedUser = new IdentityUser(removedUserName)
-                {
-                    Id = removedUserId
-                };
+                var removedUser = userManager.FindByIdAsync(removedUserId).Result;
 
-                var result = userManager.CreateAsync(removedUser).Result;
+                if (removedUser is null)
+                {
+                    removedUser = new IdentityUser(removedUserName)
+                    {
+                        Id = removedUserId
+                    };
+
+                    LogIfFailed("CreateRemovedUser", userManager.CreateAsync(removedUser).Result);
+                }
             }
         }
 
