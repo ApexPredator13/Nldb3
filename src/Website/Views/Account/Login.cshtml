@@ -1,7 +1,8 @@
 @{
     ViewData["Title"] = "Login";
-    var returnUrl = (string)ViewData["returnUrl"];
-    var externalAuthenticationSchemes = (IEnumerable<Microsoft.AspNetCore.Authentication.AuthenticationScheme>)ViewData["externalLogins"];
+    var returnUrl = (string?)ViewData["returnUrl"];
+    var externalAuthenticationSchemes = (IEnumerable<Microsoft.AspNetCore.Authentication.AuthenticationScheme>?)ViewData["externalLogins"] ?? Array.Empty<Microsoft.AspNetCore.Authentication.AuthenticationScheme>();
+    var allowRegistration = (ViewData["AllowRegistration"] as bool?) ?? false;
 }
 
 @model LoginModel
@@ -40,7 +41,14 @@
 </form>
 
 <div>
-    <a asp-controller="@AccountController.Controllername" asp-action="@nameof(AccountController.Register)" asp-route-returnUrl="@returnUrl">Create a new account</a><br/>
+    @if (allowRegistration)
+    {
+        <a asp-controller="@AccountController.Controllername" asp-action="@nameof(AccountController.Register)" asp-route-returnUrl="@returnUrl">Create a new account</a><br/>
+    }
+    else
+    {
+        <p>Registration of new accounts is temporarily disabled.</p>
+    }
     <a asp-controller="@AccountController.Controllername" asp-action="@nameof(AccountController.ForgotPassword)">Forgot Password</a>
 </div>
 

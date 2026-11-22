@@ -4,6 +4,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -62,6 +63,8 @@ namespace Website.Controllers
             });
         }
 
+        private bool IsRegistrationEnabled => _config.GetValue<bool>("AllowRegistration", false);
+
         private ActionResult RedirectToLocal(string? returnUrl)
         {
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
@@ -84,6 +87,7 @@ namespace Website.Controllers
             // get data for view
             ViewData["externalLogins"] = await _signInManager.GetExternalAuthenticationSchemesAsync();
             ViewData["returnUrl"] = returnUrl;
+            ViewData["AllowRegistration"] = IsRegistrationEnabled;
 
             // clear external cookie
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
@@ -99,6 +103,7 @@ namespace Website.Controllers
             {
                 ViewData["externalLogins"] = await _signInManager.GetExternalAuthenticationSchemesAsync();
                 ViewData["returnUrl"] = returnUrl;
+                ViewData["AllowRegistration"] = IsRegistrationEnabled;
             }
 
             // check user input
@@ -260,6 +265,12 @@ namespace Website.Controllers
             // user was never here before, ask him to choose a username - don't clear external cookie in this case!
             else
             {
+                if (!IsRegistrationEnabled)
+                {
+                    await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+                    return RedirectToAction(nameof(ExternalLoginFailed), new { error = "Registration of new accounts is temporarily disabled." });
+                }
+
                 ViewData["returnUrl"] = returnUrl;
                 return View(new ExternalLoginCallbackModel(info.LoginProvider));
             }
@@ -268,6 +279,12 @@ namespace Website.Controllers
         [HttpPost]
         public async Task<ActionResult> ExternalLoginCallback([FromForm] ExternalLoginCallbackModel model, [FromQuery] string? returnUrl = null)
         {
+            if (!IsRegistrationEnabled)
+            {
+                await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+                return RedirectToAction(nameof(ExternalLoginFailed), new { error = "Registration of new accounts is temporarily disabled." });
+            }
+
             if (!ModelState.IsValid)
             {
                 ViewData["returnUrl"] = returnUrl;
@@ -412,12 +429,22 @@ namespace Website.Controllers
         public ViewResult Register([FromQuery] string? returnUrl = null)
         {
             ViewData["returnUrl"] = returnUrl;
+            ViewData["AllowRegistration"] = IsRegistrationEnabled;
             return View(new RegisterModel());
         }
 
         [HttpPost]
         public async Task<ActionResult> Register([FromForm] RegisterModel model, [FromQuery] string? returnUrl = null)
         {
+            ViewData["returnUrl"] = returnUrl;
+            ViewData["AllowRegistration"] = IsRegistrationEnabled;
+
+            if (!IsRegistrationEnabled)
+            {
+                Response.StatusCode = StatusCodes.Status403Forbidden;
+                return View(model);
+            }
+
             // check user input
             if (!ModelState.IsValid)
             {
