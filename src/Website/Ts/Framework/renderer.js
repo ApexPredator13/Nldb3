@@ -1,4 +1,4 @@
-﻿import { addClassIfNotExists, removeClassIfExists } from "./browser";
+import { addClassIfNotExists, removeClassIfExists } from "./browser";
 
 const NEW_ELEMENT = 1;
 const EVENT_LISTENER = 99;
@@ -50,6 +50,58 @@ const do_nothing = function () {
     const doNothing = function () { }
     return doNothing;
 };
+
+function isSafeUrl(value) {
+    if (typeof value !== 'string') {
+        return false;
+    }
+
+    const normalized = value.replace(/[\u0000-\u0020\u007F]+/g, '').toLowerCase();
+    if (!normalized) {
+        return true;
+    }
+
+    const colonIndex = normalized.indexOf(':');
+    if (colonIndex === -1) {
+        return !normalized.startsWith('//');
+    }
+
+    const slashIndex = normalized.indexOf('/');
+    const queryIndex = normalized.indexOf('?');
+    const hashIndex = normalized.indexOf('#');
+    if ((slashIndex !== -1 && slashIndex < colonIndex)
+        || (queryIndex !== -1 && queryIndex < colonIndex)
+        || (hashIndex !== -1 && hashIndex < colonIndex)) {
+        return !normalized.startsWith('//');
+    }
+
+    return normalized.startsWith('https:') || normalized.startsWith('http:') || normalized.startsWith('mailto:');
+}
+
+function setSafeAttribute(element, key, value) {
+    const lowerKey = key.toLowerCase();
+
+    if (lowerKey.startsWith('on') || lowerKey === 'srcdoc') {
+        console.warn('Blocked unsafe attribute:', key);
+        return;
+    }
+
+    if (lowerKey === 'href' || lowerKey === 'src' || lowerKey === 'action' || lowerKey === 'formaction') {
+        if (!isSafeUrl(String(value))) {
+            console.warn('Blocked unsafe URL in attribute:', key, value);
+            return;
+        }
+    }
+
+    element.setAttribute(key, value);
+
+    if (lowerKey === 'target' && String(value).toLowerCase() === '_blank') {
+        const existingRel = element.getAttribute('rel') || '';
+        if (!existingRel.toLowerCase().includes('noopener')) {
+            element.setAttribute('rel', existingRel ? `${existingRel} noopener noreferrer` : 'noopener noreferrer');
+        }
+    }
+}
 
 // infrastructure
 function HtmlBuffer() {
@@ -150,7 +202,8 @@ function Html(content, id = 'main', displayHtmlAfterRender = true, replaceConten
                 break;
 
             case TEXT_NODE:
-                const text = document.createTextNode(this.buffer.data[this.buffer.index++]);
+                const textValue = this.buffer.data[this.buffer.index++];
+                const text = document.createTextNode(textValue === null || textValue === undefined ? '' : textValue);
                 currentElement.appendChild(text);
                 break;
 
@@ -167,8 +220,10 @@ function Html(content, id = 'main', displayHtmlAfterRender = true, replaceConten
 
             case ATTRIBUTES:
                 const attributes = this.buffer.data[this.buffer.index++];
-                for (const key of Object.keys(attributes)) {
-                    currentElement.setAttribute(key, attributes[key])
+                for (const key in attributes) {
+                    if (Object.prototype.hasOwnProperty.call(attributes, key)) {
+                        setSafeAttribute(currentElement, key, attributes[key]);
+                    }
                 }
                 break;
 
@@ -228,9 +283,10 @@ function Html(content, id = 'main', displayHtmlAfterRender = true, replaceConten
         const container = document.getElementById(this.buffer.id || id);
         if (container) {
             if (replaceContent) {
-                container.innerHTML = '';
+                container.replaceChildren(fragment);
+            } else {
+                container.appendChild(fragment);
             }
-            container.appendChild(fragment);
         }
     } else {
         return fragment;
@@ -339,7 +395,7 @@ function popup(distances, popupCreator) {
 
 function modal(hideOnClickAnywhere, ...content) {
     const modalContainer = document.getElementById('modal') || createAndGetModalContainer();
-    modalContainer.innerHTML = '';
+    modalContainer.replaceChildren();
     new Html([...content], 'modal');
     const modalContentDiv = modalContainer.firstElementChild;
     addClassIfNotExists(modalContentDiv, 'modal-container');

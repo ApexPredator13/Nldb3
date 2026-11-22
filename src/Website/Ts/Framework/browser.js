@@ -127,7 +127,11 @@ function getFromLocalStorage(key) {
         return null;
     }
 
-    return JSON.parse(result);
+    try {
+        return JSON.parse(result);
+    } catch (e) {
+        return null;
+    }
 }
 
 function localStorageHasKey(key) {

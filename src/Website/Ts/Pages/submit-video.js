@@ -2264,7 +2264,7 @@ SubmitVideoPage.prototype = {
                     t('Try Again!'),
                     event('click', e => {
                         document.getElementById('header').innerText = 'Resubmitting......';
-                        document.getElementById('message').innerHTML = '';
+                        document.getElementById('message').replaceChildren();
                         this.process_SubmitEpisode(e);
                     })
                 )

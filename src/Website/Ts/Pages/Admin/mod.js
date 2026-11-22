@@ -1,4 +1,4 @@
-﻿import { Html, Div, t, h1, hr, table, thead, tr, th, tbody, p, span, cl, div, a, attr, td, event } from "../../Framework/renderer";
+import { Html, Div, t, h1, hr, table, thead, tr, th, tbody, p, span, cl, div, a, attr, td, event } from "../../Framework/renderer";
 import { registerPage, navigate } from "../../Framework/router";
 import { get } from "../../Framework/http";
 import { AdminLink } from "./_admin-link-creator";
@@ -80,7 +80,7 @@ ModPage.prototype = {
                                 td(
                                     a(
                                         t(link.link_text),
-                                        attr({ href: link.link_text, target: '_blank' })
+                                        attr({ href: link.url, target: '_blank' })
                                     )
                                 ),
                                 td(

@@ -82,7 +82,7 @@ RandomEpisodeGeneratorPage.prototype = {
         event.preventDefault();
         fetch(`/RandomEpisode/${type}`)
             .then(response => response.text())
-            .then(id => window.open(`https://www.youtube.com/watch?v=${id}`, '_blank'));
+            .then(id => window.open(`https://www.youtube.com/watch?v=${encodeURIComponent(id)}`, '_blank', 'noopener,noreferrer'));
     }
 };
 

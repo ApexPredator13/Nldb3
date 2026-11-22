@@ -1,4 +1,4 @@
-﻿import { do_nothing, div, cl, img, src, t, span, event, attr, br, modal, Div, p, Html } from "../../Framework/renderer";
+import { do_nothing, div, cl, img, src, t, span, event, attr, br, modal, Div, p, Html } from "../../Framework/renderer";
 import { Link } from "../../Pages/_link-creator";
 import { getUser } from "../../Framework/Customizable/authentication";
 import { notLoggedIn } from "../General/modal-contents";
@@ -130,7 +130,7 @@ QuoteCreator.prototype = {
      * @param {any} quote
      */
     watchQuote: function (quote) {
-        window.open(`https://youtu.be/${quote.videoId}?t=${quote.at}`, '_blank');
+        window.open(`https://youtu.be/${encodeURIComponent(quote.videoId)}?t=${encodeURIComponent(quote.at)}`, '_blank', 'noopener,noreferrer');
     },
 
 
@@ -151,7 +151,6 @@ QuoteCreator.prototype = {
             } else {
                 this.canVote = true;
                 modal(false, notLoggedIn())
-                debugger;
                 if (e && e.target) {
                     e.target.style.color = 'white';
                     e.target.style.cursor = 'pointer';

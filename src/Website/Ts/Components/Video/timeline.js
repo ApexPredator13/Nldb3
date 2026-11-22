@@ -1,4 +1,4 @@
-﻿import { Html, Div, div, t, style, cl, event, popup, h4, hr, br, strong, do_nothing, p, span } from "../../Framework/renderer";
+import { Html, Div, div, t, style, cl, event, popup, h4, hr, br, strong, do_nothing, p, span } from "../../Framework/renderer";
 import { isaacImage } from "../General/isaac-image";
 import { isCoop } from "./is-coop";
 
@@ -62,7 +62,7 @@ export function renderTimeline(video, submissionIndex, containerId) {
                 div(
                     style(`width: ${percentage}%; background-color: ${floor.floor.color}`),
                     cl('r', 'timeline-floor'),
-                    event('click', () => window.open(`https://youtu.be/${video.id}?t=${floorStartsAt}`, '_blank')),
+                    event('click', () => window.open(`https://youtu.be/${encodeURIComponent(video.id)}?t=${encodeURIComponent(floorStartsAt)}`, '_blank', 'noopener,noreferrer')),
 
                     ...bossfightEvents.map(bossfight => isaacImage(bossfight, 1, false)),
 

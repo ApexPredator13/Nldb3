@@ -54,7 +54,7 @@ ValidateSubmissions.prototype = {
     },
 
     loadEpisodes: function() {
-        document.getElementById('progress').innerHTML = '';
+        document.getElementById('progress').replaceChildren();
         document.getElementById('cancel-btn').removeAttribute('disabled');
         this.printProgress('loading submissions...');
         get('/Admin/Submissions/1000/0/true', true, true).then(episodes => {
